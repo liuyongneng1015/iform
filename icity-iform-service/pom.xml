@@ -7,13 +7,14 @@
 		<groupId>tech.ascs.icity</groupId>
 		<artifactId>icity-parent</artifactId>
 		<version>1.0.0-SNAPSHOT</version>
-		<relativePath />
+		<relativePath>../..</relativePath>
 	</parent>
 
 	<artifactId>icity-iform-service</artifactId>
 	<packaging>jar</packaging>
 	<name>icity-iform-service</name>
 	<description>iCity iform service implement</description>
+
 
 	<dependencies>
 		<dependency>
@@ -70,6 +71,18 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>1.3.2</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.freemarker</groupId>
+			<artifactId>freemarker</artifactId>
+		</dependency>
+
 	</dependencies>
 
 	<build>
@@ -80,6 +93,5 @@
 			</plugin>
 		</plugins>
 	</build>
-
 
 </project>

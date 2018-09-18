@@ -26,8 +26,8 @@ public class SwaggerConfiguration {
 
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
-                .title("iCity 业务支撑平台core API V1.0")
-                .description("iCity 业务支撑平台核心API，包括组织机构管理、角色权限管理、菜单管理、系统配置管理、字典表管理等等功能")
+                .title("iCity 业务支撑平台iform API V1.0")
+                .description("iCity 业务支撑平台iform API，包括数据表建模,列表建模,表单建模等功能")
                 .version("1.0")
                 .build();
     }
