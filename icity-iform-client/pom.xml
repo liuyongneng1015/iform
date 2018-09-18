@@ -7,7 +7,7 @@
 		<groupId>tech.ascs.icity</groupId>
 		<artifactId>icity-parent</artifactId>
 		<version>1.0.0-SNAPSHOT</version>
-		<relativePath />
+		<relativePath>../..</relativePath>
 	</parent>
 
 	<artifactId>icity-iform-client</artifactId>
@@ -37,7 +37,7 @@
 
 		<dependency>
 			<groupId>tech.ascs.icity</groupId>
-			<artifactId>icity-admin-api</artifactId>
+			<artifactId>icity-iform-api</artifactId>
 		</dependency>
 
 	</dependencies>
