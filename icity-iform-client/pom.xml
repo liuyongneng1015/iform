@@ -34,7 +34,7 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-
+      <!-- test -->
 		<dependency>
 			<groupId>tech.ascs.icity</groupId>
 			<artifactId>icity-admin-api</artifactId>
