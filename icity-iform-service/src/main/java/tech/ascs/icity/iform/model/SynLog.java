@@ -1,7 +1,7 @@
 package tech.ascs.icity.iform.model;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
+import java.util.Date;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
@@ -24,7 +24,7 @@ public class SynLog extends BaseEntity implements Serializable {
 	private String sqlType;
 	private String remark;
 	private String synBy;
-	private Timestamp synTime;
+	private Date synTime;
 	
 	public String getTabInfoId() {
 		return tabInfoId;
@@ -66,11 +66,11 @@ public class SynLog extends BaseEntity implements Serializable {
 		this.synBy = synBy;
 	}
 
-	public Timestamp getSynTime() {
+	public Date getSynTime() {
 		return synTime;
 	}
 
-	public void setSynTime(Timestamp synTime) {
+	public void setSynTime(Date synTime) {
 		this.synTime = synTime;
 	}
 

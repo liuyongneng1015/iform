@@ -59,10 +59,10 @@ public interface TabInfoService {
 	    @ApiImplicitParam(paramType="query", name = "tabName", value = "tabName", required = false, dataType = "String"),
 	    @ApiImplicitParam(paramType="query", name = "synFlag", value = "synFlag", required = false, dataType = "Boolean"),
 	    @ApiImplicitParam(paramType="query", name = "page", value = "页码（默认为1）", required = false),
-	    @ApiImplicitParam(paramType="query", name = "pageSize", value = "每页记录数（默认为10）", required = false)
+	    @ApiImplicitParam(paramType="query", name = "pagesize", value = "每页记录数（默认为10）", required = false)
 	    })
 	    @GetMapping()
 	    public Page<TabInfo> findByTabNameAndSynFlag(@RequestParam(required=false)  String tabName,@RequestParam(required=false) Boolean synFlag,
-	    		@RequestParam(name="page", defaultValue = "1") int page,@RequestParam(name="pageSize", defaultValue = "10") int pageSize) ;
+	    		@RequestParam(name="page", defaultValue = "1") int page,@RequestParam(name="pagesize", defaultValue = "10") int pagesize) ;
 
 }

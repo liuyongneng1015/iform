@@ -26,8 +26,11 @@ public class ColumnDataController implements
 
 	@Override
 	public void add(@RequestBody ColumnData columnData) {
+		TabInfo tabInfo = tabInfoService.get(columnData.getTabInfoId());
+		
 		tech.ascs.icity.iform.model.ColumnData data = EntityUtil
 				.toColumnDataEntity(columnData);
+		data.setTabName(tabInfo.getTabName());
 		data.setCreateTime(new Timestamp(System.currentTimeMillis()));
 		columnDataService.save(data);
 	}
@@ -40,12 +43,13 @@ public class ColumnDataController implements
 	@Override
 	public void update(@RequestBody ColumnData columnData) {
 		try {
+			TabInfo tabInfo = tabInfoService.get(columnData.getTabInfoId());
 			tech.ascs.icity.iform.model.ColumnData data = EntityUtil
 					.toColumnDataEntity(columnData);
+			data.setTabName(tabInfo.getTabName());
 			data.setUpdateTime(new Timestamp(System.currentTimeMillis()));
 			columnDataService.update(data);
 
-			TabInfo tabInfo = tabInfoService.get(columnData.getTabInfoId());
 			tabInfo.setSynFlag(false);
 			tabInfo.setUpdateTime(new Timestamp(System.currentTimeMillis()));
 			tabInfoService.save(tabInfo);

@@ -25,6 +25,10 @@
 			<groupId>tech.ascs.icity</groupId>
 			<artifactId>icity-common</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>tech.ascs.icity</groupId>
+			<artifactId>icity-iflow-api</artifactId>
+		</dependency>
 	</dependencies>
 
 </project>

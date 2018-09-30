@@ -3,7 +3,7 @@ package tech.ascs.icity.iform.api.model;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
-import java.sql.Timestamp;
+import java.util.Date;
 
 import tech.ascs.icity.model.IdEntity;
 
@@ -27,7 +27,7 @@ public class SynLog  extends  IdEntity{
 	@ApiModelProperty(value = "同步操作人",required=true)
 	private String synBy;
 	@ApiModelProperty(value = "同步操作时间")
-	private Timestamp synTime;
+	private Date synTime;
 	
 	public String getTabInfoId() {
 		return tabInfoId;
@@ -70,11 +70,11 @@ public class SynLog  extends  IdEntity{
 	}
 	
 
-	 public Timestamp getSynTime() {
+	 public Date getSynTime() {
 		return synTime;
 	}
 
-	public void setSynTime(Timestamp synTime) {
+	public void setSynTime(Date synTime) {
 		this.synTime = synTime;
 	}
 

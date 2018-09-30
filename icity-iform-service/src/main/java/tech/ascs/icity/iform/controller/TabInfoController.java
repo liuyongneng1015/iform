@@ -110,10 +110,10 @@ public class TabInfoController implements
 			@RequestParam(required = false) String tabName,
 			@RequestParam(required = false) Boolean synFlag,
 			@RequestParam(name = "page", defaultValue = "1") int page,
-			@RequestParam(name = "pageSize", defaultValue = "10") int pageSize) {
+			@RequestParam(name = "pagesize", defaultValue = "10") int pagesize) {
 
 		return DTOTools.wrapPage(tabInfoService.findByTabNameAndSynFlag(
-				tabName, synFlag, page, pageSize), TabInfo.class);
+				tabName, synFlag, page, pagesize), TabInfo.class);
 	}
 
 	@Override

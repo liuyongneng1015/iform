@@ -13,12 +13,24 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.PersistenceUnit;
+
 import org.apache.commons.io.IOUtils;
+import org.hibernate.SessionFactory;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.boot.spi.MetadataImplementor;
+import org.hibernate.cfg.AvailableSettings;
+import org.hibernate.engine.jdbc.spi.JdbcServices;
+import org.hibernate.engine.spi.SessionFactoryImplementor;
+import org.hibernate.service.ServiceRegistry;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
+import org.hibernate.tool.hbm2ddl.SchemaUpdate;
 import org.hibernate.tool.schema.TargetType;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.orm.hibernate5.SessionFactoryUtils;
+import org.springframework.stereotype.Service;
 
 import tech.ascs.icity.iform.model.ColumnData;
 import tech.ascs.icity.iform.model.TabInfo;
@@ -27,7 +39,8 @@ import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 
-public class TableUtilService {
+@Service
+public class TableUtilService implements InitializingBean {
 
 	static String classFilePath = "";
 	static {
@@ -36,6 +49,20 @@ public class TableUtilService {
 		if ("\\".equals(File.separator)) {
 			classFilePath = classFilePath.substring(1);
 		}
+	}
+
+	@PersistenceUnit
+	private EntityManagerFactory entityMangerFactory;
+
+	private ServiceRegistry serviceRegistry;
+	
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		SessionFactory sessionFactory = entityMangerFactory.unwrap(SessionFactory.class);
+		serviceRegistry = (ServiceRegistry) new StandardServiceRegistryBuilder()
+				.applySetting(AvailableSettings.DATASOURCE, SessionFactoryUtils.getDataSource(sessionFactory))
+				.applySetting(AvailableSettings.DIALECT, ((SessionFactoryImplementor) sessionFactory).getServiceRegistry().getService(JdbcServices.class).getDialect().getClass())
+				.build();
 	}
 
 	public void createTable(TabInfo tabInfo) throws Exception {
@@ -106,38 +133,21 @@ public class TableUtilService {
 		return sb.toString();
 	}
 
-	private static void createTable(String xmlContent) throws Exception {
-
-		MetadataSources metadata = new MetadataSources(
-				new StandardServiceRegistryBuilder()
-						.applySetting("hibernate.connection.driver_class",
-								"com.mysql.jdbc.Driver")
-						.applySetting("hibernate.connection.url",
-								"jdbc:mysql://192.168.4.151:3306/icity")
-						.applySetting("hibernate.connection.username", "root")
-						.applySetting("hibernate.connection.password",
-								"icityDB2018!@#")
-						.applySetting("hibernate.dialect",
-								"org.hibernate.dialect.MySQL5Dialect")
-						.applySetting("hibernate.show_sql", "true")
-						.applySetting("hibernate.hbm2ddl.auto", "create")
-						.build());
-
-		metadata.addInputStream(IOUtils.toInputStream(xmlContent, "UTF-8"));
-
-		MetadataImplementor metadataImplementor = (MetadataImplementor) metadata
+	private void createTable(String xmlContent) throws Exception {
+		MetadataImplementor metadataImplementor = (MetadataImplementor) new MetadataSources(serviceRegistry)
+				.addInputStream(IOUtils.toInputStream(xmlContent, "UTF-8"))
 				.buildMetadata();
 		SchemaExport export = new SchemaExport();
 		export.setFormat(true);
-
+		SchemaUpdate update = new SchemaUpdate();
 		EnumSet<TargetType> enumSet = EnumSet.of(TargetType.DATABASE);
-		export.execute(enumSet, SchemaExport.Action.CREATE, metadataImplementor);// TODO
+		update.execute(enumSet, metadataImplementor);// TODO
 	}
 
 	private Map<String, Object> getTemplateMap(TabInfo tabInfo) {
 
 		Map<String, Object> map = new HashMap<String, Object>();
-		map.put("table", tabInfo.getTabName());
+		map.put("table", "if_" + tabInfo.getTabName());
 
 		List<ColumnBean> list = new ArrayList<>();
 

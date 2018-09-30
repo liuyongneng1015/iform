@@ -1,7 +1,7 @@
 package tech.ascs.icity.iform.model;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
+import java.util.Date;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,12 +34,12 @@ public class TabInfo extends BaseEntity implements Serializable {
 	private String masterTable;
 //	private String subTable;
 	private String remark;
-	private Timestamp synTime;
+	private Date synTime;
 	private Boolean synFlag;
 	private String createBy;
-	private Timestamp createTime;
+	private Date createTime;
 	private String updateBy;
-	private Timestamp updateTime;
+	private Date updateTime;
 	
 	
 //	@OneToMany(mappedBy = "tabInfo", fetch = FetchType.LAZY, cascade = {CascadeType.ALL})
@@ -105,11 +105,11 @@ public class TabInfo extends BaseEntity implements Serializable {
 		this.remark = remark;
 	}
 
-	public Timestamp getSynTime() {
+	public Date getSynTime() {
 		return synTime;
 	}
 
-	public void setSynTime(Timestamp synTime) {
+	public void setSynTime(Date synTime) {
 		this.synTime = synTime;
 	}
 
@@ -129,11 +129,11 @@ public class TabInfo extends BaseEntity implements Serializable {
 		this.createBy = createBy;
 	}
 
-	public Timestamp getCreateTime() {
+	public Date getCreateTime() {
 		return createTime;
 	}
 
-	public void setCreateTime(Timestamp createTime) {
+	public void setCreateTime(Date createTime) {
 		this.createTime = createTime;
 	}
 
@@ -145,11 +145,11 @@ public class TabInfo extends BaseEntity implements Serializable {
 		this.updateBy = updateBy;
 	}
 
-	public Timestamp getUpdateTime() {
+	public Date getUpdateTime() {
 		return updateTime;
 	}
 
-	public void setUpdateTime(Timestamp updateTime) {
+	public void setUpdateTime(Date updateTime) {
 		this.updateTime = updateTime;
 	}
 

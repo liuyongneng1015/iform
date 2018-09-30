@@ -30,7 +30,8 @@ public class SynLogController implements
 	@Autowired
 	private IndexInfoService indexInfoService;
 
-	TableUtilService tableUtilService = new TableUtilService();
+	@Autowired
+	TableUtilService tableUtilService;
 
 	@Override
 	public void add(@RequestBody SynLog synLog) {

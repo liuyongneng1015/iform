@@ -25,7 +25,7 @@ public class TabInfoServiceImpl extends DefaultJPAService<TabInfo> implements
 	}
 
 	public Page<TabInfo> findByTabNameAndSynFlag(String tabName,
-			Boolean synFlag, int page, int pageSize) {
+			Boolean synFlag, int page, int pagesize) {
 		tech.ascs.icity.jpa.dao.Query<TabInfo, TabInfo> query = jPAManager
 				.query();
 		if (tabName == null || "".equals(tabName)) {
@@ -37,7 +37,7 @@ public class TabInfoServiceImpl extends DefaultJPAService<TabInfo> implements
 			query.filterEqual("synFlag", synFlag);
 		}
 
-		return query.page(page, pageSize).page();
+		return query.page(page, pagesize).page();
 
 	}
 

@@ -3,7 +3,7 @@ package tech.ascs.icity.iform.api.model;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
-import java.sql.Timestamp;
+import java.util.Date;
 
 import tech.ascs.icity.model.IdEntity;
 
@@ -43,11 +43,11 @@ public class ColumnData extends IdEntity{
 	@ApiModelProperty(value = "创建人",required=true)
 	private String createBy;
 	@ApiModelProperty(value = "创建时间")
-	private Timestamp createTime;
+	private Date createTime;
 	@ApiModelProperty(value = "更新人")
 	private String updateBy;
 	@ApiModelProperty(value = "更新时间")
-	private Timestamp updateTime;
+	private Date updateTime;
 
 	
 //	@JsonIgnore
@@ -166,11 +166,11 @@ public class ColumnData extends IdEntity{
 		this.createBy = createBy;
 	}
 
-	public Timestamp getCreateTime() {
+	public Date getCreateTime() {
 		return createTime;
 	}
 
-	public void setCreateTime(Timestamp createTime) {
+	public void setCreateTime(Date createTime) {
 		this.createTime = createTime;
 	}
 
@@ -182,11 +182,11 @@ public class ColumnData extends IdEntity{
 		this.updateBy = updateBy;
 	}
 
-	public Timestamp getUpdateTime() {
+	public Date getUpdateTime() {
 		return updateTime;
 	}
 
-	public void setUpdateTime(Timestamp updateTime) {
+	public void setUpdateTime(Date updateTime) {
 		this.updateTime = updateTime;
 	}
 	

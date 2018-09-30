@@ -1,15 +1,12 @@
 package tech.ascs.icity.iform.model;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
+import java.util.Date;
 
 import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import tech.ascs.icity.jpa.dao.model.BaseEntity;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  * 字段数据
@@ -35,9 +32,9 @@ public class ColumnData extends BaseEntity implements Serializable {
 	private String foreignKey;
 	private String foreignTab;
 	private String createBy;
-	private Timestamp createTime;
+	private Date createTime;
 	private String updateBy;
-	private Timestamp updateTime;
+	private Date updateTime;
 
 	
 //	@ManyToOne
@@ -167,11 +164,11 @@ public class ColumnData extends BaseEntity implements Serializable {
 		this.createBy = createBy;
 	}
 
-	public Timestamp getCreateTime() {
+	public Date getCreateTime() {
 		return createTime;
 	}
 
-	public void setCreateTime(Timestamp createTime) {
+	public void setCreateTime(Date createTime) {
 		this.createTime = createTime;
 	}
 
@@ -183,11 +180,11 @@ public class ColumnData extends BaseEntity implements Serializable {
 		this.updateBy = updateBy;
 	}
 
-	public Timestamp getUpdateTime() {
+	public Date getUpdateTime() {
 		return updateTime;
 	}
 
-	public void setUpdateTime(Timestamp updateTime) {
+	public void setUpdateTime(Date updateTime) {
 		this.updateTime = updateTime;
 	}
 
