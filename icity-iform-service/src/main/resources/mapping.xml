@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping package="tech.ascs.icity.iform.table.service">
+	<class th:attr="entity-name=${dataModel.tableName}, table=${'if_' + dataModel.tableName}">
+		<comment th:text="${dataModel.name}">COMMENT</comment>
+		<id name="id" type="string" length="32">
+			<column name="ID">
+				<comment>主键</comment>
+			</column>
+			<generator class="uuid" />
+		</id>
+
+		<property th:each="column:${dataModel.columns}" th:if="${!column.key}" th:attr="
+				name=${column.columnName},
+				type=${column.getDataType().toString().toLowerCase()},
+				not-null=${column.notNull},
+				length=${column.length},
+				precision=${column.precision},
+				scale=${column.scale}">
+			<column th:attr="name=${'f' + column.columnName}, default=${column.defaultValue}">
+				<comment th:text="${column.name}">COMMENT</comment>
+			</column>
+		</property>
+		<property name="PROCESS_ID" type="string" length="64" precision="0" scale="0">
+			<column name="PROCESS_ID">
+				<comment>流程ID</comment>
+			</column>
+		</property>
+		<property name="PROCESS_INSTANCE" type="string" length="64" precision="0" scale="0">
+			<column name="PROCESS_INSTANCE">
+				<comment>流程实例ID</comment>
+			</column>
+		</property>
+		<property name="ACTIVITY_ID" type="string" length="255" precision="0" scale="0">
+			<column name="ACTIVITY_ID">
+				<comment>环节ID</comment>
+			</column>
+		</property>
+		<property name="ACTIVITY_INSTANCE" type="string" length="255" precision="0" scale="0">
+			<column name="ACTIVITY_INSTANCE">
+				<comment>环节实例ID</comment>
+			</column>
+		</property>
+	</class>
+
+	<class th:each="slaver:${dataModel.slaverModels}" th:attr="entity-name=${slaver.tableName}, table=${'if_' + slaver.tableName}">
+		<comment th:text="${slaver.name}">COMMENT</comment>
+		<id name="id" type="string" length="32">
+			<generator class="uuid" />
+		</id>
+
+		<property th:each="column:${slaver.columns}" th:if="${!column.key}" th:attr="
+				name=${column.columnName},
+				type=${column.getDataType().toString().toLowerCase()},
+				not-null=${column.notNull},
+				length=${column.length},
+				precision=${column.precision},
+				scale=${column.scale}">
+			<column th:attr="name=${'f' + column.columnName}, default=${column.defaultValue}">
+				<comment th:text="${column.name}">COMMENT</comment>
+			</column>
+		</property>
+		<property name="PROCESS_ID" type="string" length="64" precision="0" scale="0" />
+		<property name="PROCESS_INSTANCE" type="string" length="64" precision="0" scale="0" />
+		<property name="ACTIVITY_ID" type="string" length="255" precision="0" scale="0" />
+		<property name="ACTIVITY_INSTANCE" type="string" length="255" precision="0" scale="0" />
+	</class>
+</hibernate-mapping>

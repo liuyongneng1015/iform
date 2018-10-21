@@ -32,7 +32,7 @@ public class FormModelEntity extends BaseEntity implements Serializable {
 		joinColumns = @JoinColumn( name="form_model"),
 		inverseJoinColumns = @JoinColumn( name="data_model")
 	)
-	private List<TabInfo> dataModels = new ArrayList<TabInfo>();
+	private List<DataModelEntity> dataModels = new ArrayList<DataModelEntity>();
 
 	@Embedded
 	private FormProcessInfo process;
@@ -48,11 +48,11 @@ public class FormModelEntity extends BaseEntity implements Serializable {
 		this.description = description;
 	}
 
-	public List<TabInfo> getDataModels() {
+	public List<DataModelEntity> getDataModels() {
 		return dataModels;
 	}
 
-	public void setDataModels(List<TabInfo> dataModels) {
+	public void setDataModels(List<DataModelEntity> dataModels) {
 		this.dataModels = dataModels;
 	}
 

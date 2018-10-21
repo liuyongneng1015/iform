@@ -11,12 +11,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import tech.ascs.icity.iflow.client.ProcessService;
 import tech.ascs.icity.iform.IFormException;
-import tech.ascs.icity.iform.model.ColumnData;
+import tech.ascs.icity.iform.api.model.ColumnType;
+import tech.ascs.icity.iform.model.ColumnModelEntity;
+import tech.ascs.icity.iform.model.DataModelEntity;
 import tech.ascs.icity.iform.model.FormModelEntity;
 import tech.ascs.icity.iform.model.ItemActivityInfo;
 import tech.ascs.icity.iform.model.ItemModelEntity;
 import tech.ascs.icity.iform.model.ItemSelectOption;
-import tech.ascs.icity.iform.model.TabInfo;
 import tech.ascs.icity.iform.service.FormModelService;
 import tech.ascs.icity.iform.table.service.TableUtilService;
 import tech.ascs.icity.jpa.service.JPAManager;
@@ -31,9 +32,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 	private JPAManager<ItemSelectOption> itemSelectOptionManager;
 
-	private JPAManager<TabInfo> dataModelManager;
+	private JPAManager<DataModelEntity> dataModelManager;
 
-	private JPAManager<ColumnData> columnModelManager;
+	private JPAManager<ColumnModelEntity> columnModelManager;
 
 	@Autowired
 	TableUtilService tableUtilService;
@@ -51,8 +52,8 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		itemManager = getJPAManagerFactory().getJPAManager(ItemModelEntity.class);
 		itemActivityManager = getJPAManagerFactory().getJPAManager(ItemActivityInfo.class);
 		itemSelectOptionManager = getJPAManagerFactory().getJPAManager(ItemSelectOption.class);
-		dataModelManager = getJPAManagerFactory().getJPAManager(TabInfo.class);
-		columnModelManager = getJPAManagerFactory().getJPAManager(ColumnData.class);
+		dataModelManager = getJPAManagerFactory().getJPAManager(DataModelEntity.class);
+		columnModelManager = getJPAManagerFactory().getJPAManager(ColumnModelEntity.class);
 	}
 
 	@Override
@@ -138,7 +139,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		if (entity.getDataModels().size() == 0) {
 			throw new IFormException("必须至少绑定一个数据模型");
 		}
-		for (TabInfo dataModel : entity.getDataModels()) {
+		for (DataModelEntity dataModel : entity.getDataModels()) {
 			if (dataModelManager.find(dataModel.getId()) == null) {
 				throw new IFormException(404, "数据模型【" + dataModel.getId() + "】不存在");
 			}
@@ -154,12 +155,12 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 	protected boolean dataModelUpdateNeeded(FormModelEntity entity) {
 		if (entity.getProcess() != null && entity.getProcess().getKey() != null) {
-			return columnModelManager.query().filterEqual("tabName", entity.getDataModels().get(0).getTabName()).filterEqual("colName", "PROCESS_ID").count() == 0;
+			return columnModelManager.query().filterEqual("tabName", entity.getDataModels().get(0).getTableName()).filterEqual("colName", "PROCESS_ID").count() == 0;
 		}
 		return false;
 	}
 
-	protected void updateDataModel(TabInfo dataModel) {
+	protected void updateDataModel(DataModelEntity dataModel) {
 		dataModel = dataModelManager.get(dataModel.getId());
 		createColumnModel(dataModel, "PROCESS_ID", "流程ID", 64);
 		createColumnModel(dataModel, "PROCESS_INSTANCE", "流程实例ID", 64);
@@ -167,21 +168,20 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		createColumnModel(dataModel, "ACTIVITY_INSTANCE", "环节实例ID", 255);
 		dataModel = dataModelManager.save(dataModel);
 		try {
-			tableUtilService.createTable(dataModel);
+//			tableUtilService.createTable(dataModel);
 		} catch (Exception e) {
 			throw new IFormException("更新数据模型【" + dataModel.getName() + "】失败", e);
 		}
 	}
 
-	protected void createColumnModel(TabInfo dataModel, String columnName, String columnDesc, int length) {
-		ColumnData columnModel = new ColumnData();
-		columnModel.setTabInfoId(dataModel.getId());
-		columnModel.setColName(columnName);
-		columnModel.setColNameDesc(columnDesc);
-		columnModel.setType("String");
+	protected void createColumnModel(DataModelEntity dataModel, String columnName, String columnDesc, int length) {
+		ColumnModelEntity columnModel = new ColumnModelEntity();
+		columnModel.setDataModel(dataModel);
+		columnModel.setColumnName(columnName);
+		columnModel.setName(columnDesc);
+		columnModel.setDataType(ColumnType.String);
 		columnModel.setLength(length);
-		columnModel.setTabName(dataModel.getTabName());
-		dataModel.getColumnDatas().add(columnModel);
+		dataModel.getColumns().add(columnModel);
 		//columnModelManager.save(columnModel);
 	}
 }

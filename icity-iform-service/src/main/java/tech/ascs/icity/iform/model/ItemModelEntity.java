@@ -32,7 +32,7 @@ public class ItemModelEntity extends BaseEntity implements Serializable {
 
 	@OneToOne
 	@JoinColumn(name="column_id")
-	private ColumnData columnModel;
+	private ColumnModelEntity columnModel;
 
 	@Enumerated(EnumType.STRING)
 	private ItemType type;
@@ -53,11 +53,11 @@ public class ItemModelEntity extends BaseEntity implements Serializable {
 		this.formModel = formModel;
 	}
 
-	public ColumnData getColumnModel() {
+	public ColumnModelEntity getColumnModel() {
 		return columnModel;
 	}
 
-	public void setColumnModel(ColumnData columnModel) {
+	public void setColumnModel(ColumnModelEntity columnModel) {
 		this.columnModel = columnModel;
 	}
 

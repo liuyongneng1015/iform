@@ -15,7 +15,7 @@ import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.FormInstance;
 import tech.ascs.icity.iform.model.FormModelEntity;
 import tech.ascs.icity.iform.model.ListModelEntity;
-import tech.ascs.icity.iform.service.FormInstanceService;
+import tech.ascs.icity.iform.service.FormInstanceServiceEx;
 import tech.ascs.icity.iform.service.FormModelService;
 import tech.ascs.icity.iform.service.ListModelService;
 import tech.ascs.icity.model.IdEntity;
@@ -32,7 +32,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	private FormModelService formModelService;
 
 	@Autowired
-	private FormInstanceService formInstanceService;
+	private FormInstanceServiceEx formInstanceService;
 
 	@Override
 	public List<FormInstance> list(@PathVariable(name="listId") String listId, @RequestParam Map<String, String> parameters) {

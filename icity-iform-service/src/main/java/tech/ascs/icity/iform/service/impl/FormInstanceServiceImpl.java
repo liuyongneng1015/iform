@@ -25,7 +25,7 @@ import tech.ascs.icity.iform.api.model.FormInstance;
 import tech.ascs.icity.iform.api.model.ItemInstance;
 import tech.ascs.icity.iform.api.model.ItemType;
 import tech.ascs.icity.iform.api.model.SearchType;
-import tech.ascs.icity.iform.model.ColumnData;
+import tech.ascs.icity.iform.model.ColumnModelEntity;
 import tech.ascs.icity.iform.model.FormModelEntity;
 import tech.ascs.icity.iform.model.ItemActivityInfo;
 import tech.ascs.icity.iform.model.ItemModelEntity;
@@ -63,19 +63,19 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 
 			List<ItemInstance> items = new ArrayList<ItemInstance>();
 			for (ItemModelEntity itemModel : formModel.getItems()) {
-				ColumnData column = itemModel.getColumnModel();
-				Object value = rs.getObject(column.getColName());
+				ColumnModelEntity column = itemModel.getColumnModel();
+				Object value = rs.getObject("f" + column.getColumnName());
 				ItemInstance itemInstance = new ItemInstance();
 				itemInstance.setId(itemModel.getId());
 				updateValue(itemModel, itemInstance, value);
-				if (column.getKeyFlag()) {
+				if (column.getKey()) {
 					itemInstance.setVisible(false);
 					itemInstance.setReadonly(true);
 				} else {
 					updateActivityInfo(itemModel, itemInstance, formInstance.getActivityId());
 				}
 				items.add(itemInstance);
-				formInstance.addData(column.getColName(), itemInstance.getValue());
+				formInstance.addData(column.getColumnName(), itemInstance.getValue());
 			}
 			formInstance.setItems(items);
 
@@ -151,10 +151,10 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 	@Override
 	public Page<FormInstance> pageFormInstance(ListModelEntity listModel, int page, int pagesize, Map<String, String> queryParameters) {
 		String where = buildWhereSql(listModel, queryParameters);
-		StringBuilder countSql = new StringBuilder("SELECT COUNT(*) FROM if_").append(listModel.getMasterForm().getDataModels().get(0).getTabName()).append(where);
+		StringBuilder countSql = new StringBuilder("SELECT COUNT(*) FROM if_").append(listModel.getMasterForm().getDataModels().get(0).getTableName()).append(where);
 		int count = jdbcTemplate.queryForObject(countSql.toString(), Integer.class);
 		
-		StringBuilder sql = new StringBuilder("SELECT * FROM if_").append(listModel.getMasterForm().getDataModels().get(0).getTabName())
+		StringBuilder sql = new StringBuilder("SELECT * FROM if_").append(listModel.getMasterForm().getDataModels().get(0).getTableName())
 				.append(where).append(buildOrderBySql(listModel, queryParameters));
 
 		String pageSql = buildPageSql(sql.toString(), page, pagesize);
@@ -174,10 +174,10 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 
 		List<ItemInstance> items = new ArrayList<ItemInstance>();
 		for (ItemModelEntity itemModel : formModel.getItems()) {
-			ColumnData column = itemModel.getColumnModel();
+			ColumnModelEntity column = itemModel.getColumnModel();
 			ItemInstance itemInstance = new ItemInstance();
 			itemInstance.setId(itemModel.getId());
-			if (column.getKeyFlag()) {
+			if (column.getKey()) {
 				itemInstance.setVisible(false);
 				itemInstance.setReadonly(true);
 			} else {
@@ -190,7 +190,7 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 				}
 			}
 			items.add(itemInstance);
-			formInstance.addData(column.getColName(), itemInstance.getValue());
+			formInstance.addData(column.getColumnName(), itemInstance.getValue());
 		}
 		formInstance.setItems(items);
 
@@ -199,7 +199,7 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 
 	@Override
 	public FormInstance getFormInstance(FormModelEntity formModel, String instanceId) {
-		StringBuilder sql = new StringBuilder("SELECT * FROM if_").append(formModel.getDataModels().get(0).getTabName()).append(" WHERE id='").append(instanceId).append("'");
+		StringBuilder sql = new StringBuilder("SELECT * FROM if_").append(formModel.getDataModels().get(0).getTableName()).append(" WHERE id='").append(instanceId).append("'");
 		List<FormInstance> list = jdbcTemplate.query(sql.toString(), new FormInstanceRowMapper(formModel));
 		if (list.size() == 0) {
 			throw new IFormException(404, "表单实例【" + instanceId + "】不存在");
@@ -218,10 +218,10 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 		Map<String, Object> data = new HashMap<String, Object>();
 		for (ItemInstance itemInstance : formInstance.getItems()) {
 			ItemModelEntity itemModel = getItemModel(formModel, itemInstance.getId());
-			if (itemModel.getColumnModel().getColName().equalsIgnoreCase("id")) {
+			if (itemModel.getColumnModel().getColumnName().equalsIgnoreCase("id")) {
 				continue;
 			}
-			fields.append(", ").append(itemModel.getColumnModel().getColName());
+			fields.append(", f").append(itemModel.getColumnModel().getColumnName());
 			values.append(", ?");
 			Object value;
 			if (itemModel.getType() == ItemType.DatePicker) {
@@ -230,10 +230,10 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 				value = itemInstance.getValue();
 			}
 			params.add(value);
-			data.put(itemModel.getColumnModel().getColName(), value);
+			data.put(itemModel.getColumnModel().getColumnName(), value);
 		}
 		
-		StringBuilder sql = new StringBuilder("INSERT INTO if_").append(formModel.getDataModels().get(0).getTabName())
+		StringBuilder sql = new StringBuilder("INSERT INTO if_").append(formModel.getDataModels().get(0).getTableName())
 				.append(" (").append(fields).append(") VALUES (").append(values).append(")");
 		doUpdate(sql.toString(), params.toArray(new Object[] {}));
 
@@ -253,13 +253,13 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 		Map<String, Object> data = new HashMap<String, Object>();
 		for (ItemInstance itemInstance : formInstance.getItems()) {
 			ItemModelEntity itemModel = getItemModel(formModel, itemInstance.getId());
-			if (itemModel.getColumnModel().getColName().equalsIgnoreCase("id") && !instanceId.equals(itemInstance.getValue())) {
+			if (itemModel.getColumnModel().getColumnName().equalsIgnoreCase("id") && !instanceId.equals(itemInstance.getValue())) {
 				throw new IFormException("表单实例ID不一致");
 			}
 			if (fields.length() > 0) {
 				fields.append(",");
 			}
-			fields.append(itemModel.getColumnModel().getColName()).append("=?");
+			fields.append("f").append(itemModel.getColumnModel().getColumnName()).append("=?");
 
 			Object value;
 			if (itemModel.getType() == ItemType.DatePicker) {
@@ -268,9 +268,9 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 				value = itemInstance.getValue();
 			}
 			params.add(value);
-			data.put(itemModel.getColumnModel().getColName(), value);
+			data.put(itemModel.getColumnModel().getColumnName(), value);
 		}
-		StringBuilder sql = new StringBuilder("UPDATE if_").append(formModel.getDataModels().get(0).getTabName())
+		StringBuilder sql = new StringBuilder("UPDATE if_").append(formModel.getDataModels().get(0).getTableName())
 				.append(" SET ").append(fields).append(" WHERE id=?");
 		params.add(instanceId);
 		doUpdate(sql.toString(), params.toArray(new Object[] {}));
@@ -284,19 +284,19 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 
 	@Override
 	public void deleteFormInstance(FormModelEntity formModel, String instanceId) {
-		StringBuilder sql = new StringBuilder("DELETE FROM if_").append(formModel.getDataModels().get(0).getTabName()).append(" WHERE id=?");
+		StringBuilder sql = new StringBuilder("DELETE FROM if_").append(formModel.getDataModels().get(0).getTableName()).append(" WHERE id=?");
 		doUpdate(sql.toString(), instanceId);
 	}
 
 	protected void updateProcessInfo(FormModelEntity formModel, String formInstanceId, String processInstanceId) {
 		ProcessInstance processInstance = processInstanceService.get(processInstanceId);
-		StringBuilder updateSql = new StringBuilder("UPDATE if_").append(formModel.getDataModels().get(0).getTabName())
+		StringBuilder updateSql = new StringBuilder("UPDATE if_").append(formModel.getDataModels().get(0).getTableName())
 				.append(" SET PROCESS_ID=?,PROCESS_INSTANCE=?,ACTIVITY_ID=?,ACTIVITY_INSTANCE=? WHERE id=?");
 		doUpdate(updateSql.toString(), formModel.getProcess().getId(), processInstanceId, processInstance.getCurrentActivityId(), processInstance.getCurrentActivityInstanceId(), formInstanceId);
 	}
 
 	private String buildListSql(ListModelEntity listModel, Map<String, String> queryParameters) {
-		StringBuilder sql = new StringBuilder("SELECT * FROM if_").append(listModel.getMasterForm().getDataModels().get(0).getTabName())
+		StringBuilder sql = new StringBuilder("SELECT * FROM if_").append(listModel.getMasterForm().getDataModels().get(0).getTableName())
 				.append(buildWhereSql(listModel, queryParameters))
 				.append(buildOrderBySql(listModel, queryParameters));
 
@@ -330,7 +330,7 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 				if (sql.length() > 0) {
 					sql.append(" AND ");
 				}
-				sql.append(searchItem.getItemModel().getColumnModel().getColName());
+				sql.append("f").append(searchItem.getItemModel().getColumnModel().getColumnName());
 				if (searchItem.getSearch().getSearchType() == SearchType.Like) {
 					sql.append(" LIKE '%").append(value).append("%'");
 				} else {
@@ -352,7 +352,7 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 			if (sql.length() > 0) {
 				sql.append(",");
 			}
-			sql.append(sortItem.getItemModel().getColumnModel().getColName()).append(sortItem.isAsc() ? "" : " DESC");
+			sql.append("f").append(sortItem.getItemModel().getColumnModel().getColumnName()).append(sortItem.isAsc() ? "" : " DESC");
 		}
 		return sql.length() > 0 ? " ORDER BY " + sql : sql.toString();
 	}
