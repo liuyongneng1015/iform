@@ -32,7 +32,7 @@ public class DataModel extends NameEntity {
     @JsonManagedReference
     private List<IndexModel> indexes = new ArrayList<IndexModel>();
 
-    @ApiModelProperty(value = "是否需要同步", position = 8)
+    @ApiModelProperty(value = "是否已同步", position = 8)
     private boolean synchronized_;
 
     @ApiModelProperty(value = "中文名", position = 1)

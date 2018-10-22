@@ -153,6 +153,7 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 
 	private DataModel toDTO(DataModelEntity entity) throws InstantiationException, IllegalAccessException {
 		DataModel dataModel = BeanUtils.copy(entity, DataModel.class, new String[] {"columns", "indexes"});
+		dataModel.setSynchronized(entity.getSynchronized());
 
 		if (entity.getColumns().size() > 0) {
 			List<ColumnModel> columns = new ArrayList<ColumnModel>();
