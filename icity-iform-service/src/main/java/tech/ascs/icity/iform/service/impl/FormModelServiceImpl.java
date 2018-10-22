@@ -19,7 +19,6 @@ import tech.ascs.icity.iform.model.ItemActivityInfo;
 import tech.ascs.icity.iform.model.ItemModelEntity;
 import tech.ascs.icity.iform.model.ItemSelectOption;
 import tech.ascs.icity.iform.service.FormModelService;
-import tech.ascs.icity.iform.table.service.TableUtilService;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 import tech.ascs.icity.utils.BeanUtils;
@@ -35,9 +34,6 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 	private JPAManager<DataModelEntity> dataModelManager;
 
 	private JPAManager<ColumnModelEntity> columnModelManager;
-
-	@Autowired
-	TableUtilService tableUtilService;
 
 	@Autowired
 	ProcessService processService;
