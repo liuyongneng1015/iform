@@ -133,6 +133,9 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 		if (entity == null) {
 			throw new IFormException(404, "数据模型【" + id + "】不存在");
 		}
+		if (entity.getModelType() == DataModelType.Slaver) {
+			throw new IFormException("不能直接同步从表，请同步所属主表【" + entity.getMasterModel().getName() + "】");
+		}
 
 		dataModelService.sync(entity);
 	}
