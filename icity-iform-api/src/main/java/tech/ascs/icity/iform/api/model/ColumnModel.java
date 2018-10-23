@@ -16,7 +16,10 @@ public class ColumnModel extends NameEntity {
     @ApiModelProperty(value = "字段名", position = 3)
     private String columnName;
 
-    @ApiModelProperty(value = "字段类型", position = 4)
+	@ApiModelProperty(value = "描述", position = 3)
+	private String description;
+
+	@ApiModelProperty(value = "字段类型", position = 4)
     private ColumnType dataType;
 
     @ApiModelProperty(value = "字段长度", position = 5)
@@ -51,6 +54,14 @@ public class ColumnModel extends NameEntity {
 
 	public void setColumnName(String columnName) {
 		this.columnName = columnName;
+	}
+
+    public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
 	}
 
 	public ColumnType getDataType() {

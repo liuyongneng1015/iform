@@ -28,21 +28,23 @@ public class ColumnModelEntity extends BaseEntity implements Serializable {
 
     private String columnName;
 
-    @Enumerated(EnumType.STRING)
+	private String description;
+
+	@Enumerated(EnumType.STRING)
     private ColumnType dataType;
 
-	private Integer length;
+	private Integer length = 0;
 
 	@Column(name = "precision_")
-    private Integer precision;
+    private Integer precision = 0;
 
 	@Column(name = "scale_")
-    private Integer scale;
+    private Integer scale = 0;
 
-	private Boolean notNull;
+	private Boolean notNull = false;
 
 	@Column(name = "is_key")
-	private Boolean key;
+	private Boolean key = false;
 
 	private String defaultValue;
 
@@ -60,6 +62,14 @@ public class ColumnModelEntity extends BaseEntity implements Serializable {
 
 	public void setColumnName(String columnName) {
 		this.columnName = columnName;
+	}
+
+    public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
 	}
 
 	public ColumnType getDataType() {
