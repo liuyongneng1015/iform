@@ -23,9 +23,9 @@ public enum DataModelType {
 	public String value() {
 		return value;
 	}
-
-	@Override
-	public String toString() {
-		return value;
-	}
+//
+//	@Override
+//	public String toString() {
+//		return value;
+//	}
 }

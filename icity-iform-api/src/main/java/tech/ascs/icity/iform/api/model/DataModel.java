@@ -89,6 +89,7 @@ public class DataModel extends NameEntity {
 		this.indexes = indexes;
 	}
 
+    @ApiModelProperty(value = "是否已同步", position = 8)
 	public boolean isSynchronized() {
 		return synchronized_;
 	}

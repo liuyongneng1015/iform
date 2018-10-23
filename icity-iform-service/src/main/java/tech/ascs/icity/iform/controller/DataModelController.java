@@ -61,7 +61,10 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 		try {
 			Query<DataModelEntity, DataModelEntity> query = dataModelService.query();
 			if (StringUtils.hasText(name)) {
-				query.filterLike("name", "%" + name + "%");
+				query.filterOr(Filter.like("name", "%" + name + "%"), Filter.like("tableName", "%" + name + "%"));
+			}
+			if (StringUtils.hasText(sync)) {
+				query.filterEqual("synchronized_", "1".equals(sync));
 			}
 			Page<DataModelEntity> entities = query.page(page, pagesize).page();
 			return toDTO(entities);
