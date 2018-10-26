@@ -151,7 +151,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 	protected boolean dataModelUpdateNeeded(FormModelEntity entity) {
 		if (entity.getProcess() != null && entity.getProcess().getKey() != null) {
-			return columnModelManager.query().filterEqual("tabName", entity.getDataModels().get(0).getTableName()).filterEqual("colName", "PROCESS_ID").count() == 0;
+			return columnModelManager.query().filterEqual("tableName", entity.getDataModels().get(0).getTableName()).filterEqual("columnName", "PROCESS_ID").count() == 0;
 		}
 		return false;
 	}
