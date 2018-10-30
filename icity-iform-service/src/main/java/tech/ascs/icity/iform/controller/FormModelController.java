@@ -12,15 +12,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.annotations.Api;
 import tech.ascs.icity.iform.IFormException;
+import tech.ascs.icity.iform.api.model.DataModelInfo;
 import tech.ascs.icity.iform.api.model.FormModel;
 import tech.ascs.icity.iform.api.model.ItemModel;
 import tech.ascs.icity.iform.api.model.ItemModel.ActivityInfo;
 import tech.ascs.icity.iform.api.model.ItemModel.Option;
-import tech.ascs.icity.iform.model.FormModelEntity;
-import tech.ascs.icity.iform.model.ItemActivityInfo;
-import tech.ascs.icity.iform.model.ItemModelEntity;
-import tech.ascs.icity.iform.model.ItemSelectOption;
+import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.FormModelService;
+import tech.ascs.icity.iform.utils.CommonUtils;
 import tech.ascs.icity.jpa.dao.Query;
 import tech.ascs.icity.model.IdEntity;
 import tech.ascs.icity.model.Page;
@@ -52,7 +51,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		try {
 			Query<FormModelEntity, FormModelEntity> query = formModelService.query();
 			if (StringUtils.hasText(name)) {
-				query.filterLike("name", "%" + name + "%");
+				query.filterLike("name", CommonUtils.convertParamOfFuzzySearch(name));
 			}
 			Page<FormModelEntity> entities = query.page(page, pagesize).page();
 			return toDTO(entities);
@@ -169,7 +168,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 	private FormModel toDTO(FormModelEntity entity) throws InstantiationException, IllegalAccessException {
 		FormModel formModel = BeanUtils.copy(entity, FormModel.class, new String[] {"items"});
-
 		if (entity.getItems().size() > 0) {
 			List<ItemModel> items = new ArrayList<ItemModel>();
 			for (ItemModelEntity itemModelEntity : entity.getItems()) {

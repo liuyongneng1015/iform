@@ -6,6 +6,8 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import tech.ascs.icity.model.NameEntity;
 
+import java.util.Set;
+
 @ApiModel("数据字段模型")
 public class ColumnModel extends NameEntity {
 

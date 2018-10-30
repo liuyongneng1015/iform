@@ -18,7 +18,7 @@ public class DataModel extends NameEntity {
 	@ApiModelProperty(value = "描述", position = 3)
 	private String description;
 
-	@ApiModelProperty(value = "模型类型（单表、主表、从表）", position = 4)
+	@ApiModelProperty(value = "表类型（单表、主表、从表）", position = 4)
 	private DataModelType modelType;
     
     @ApiModelProperty(value = "从表对应的主表(当表类型为从表时需要填)", position = 5)

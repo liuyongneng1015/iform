@@ -106,7 +106,11 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 
 	@Transactional(readOnly = false)
 	protected DataModelEntity save(DataModelEntity entity, List<String> deletedCloumnIds, List<String> deletedIndexIds) {
-		if (deletedCloumnIds.size() > 0) {
+		if (!deletedCloumnIds.isEmpty()) {
+			//TODO 处理查看行是否被关联,则提示“该字段被XXX表单XXX控件关联”
+			for(String id : deletedCloumnIds) {
+				ColumnModelEntity entity1 = columnManager.get(id);
+			}
 			columnManager.deleteById(deletedCloumnIds.toArray(new String[] {}));
 		}
 		if (deletedIndexIds.size() > 0) {
