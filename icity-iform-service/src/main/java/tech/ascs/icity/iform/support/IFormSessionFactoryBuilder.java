@@ -29,12 +29,14 @@ import org.thymeleaf.spring5.SpringTemplateEngine;
 import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import freemarker.template.TemplateException;
+import freemarker.template.TemplateExceptionHandler;
 import tech.ascs.icity.iform.model.DataModelEntity;
 
 @Service
 public class IFormSessionFactoryBuilder {
-
-	private static final String TEMPLATE_NAME = "mapping.xml";
 
 	@PersistenceUnit
 	private EntityManagerFactory entityMangerFactory;
@@ -82,7 +84,11 @@ public class IFormSessionFactoryBuilder {
 		return serviceRegistry;
 	}
 
-	protected String generateHibernateMapping(DataModelEntity dataModel) {
+	public String generateHibernateMapping(DataModelEntity dataModel) throws IOException {
+		return generateHibernateMappingFreeMarker(dataModel);
+	}
+
+	protected String generateHibernateMappingThymeleaf(DataModelEntity dataModel) {
         TemplateEngine templateEngine = new SpringTemplateEngine();
         ClassLoaderTemplateResolver templateResolver = new ClassLoaderTemplateResolver();
         templateResolver.setTemplateMode(TemplateMode.XML);
@@ -90,7 +96,35 @@ public class IFormSessionFactoryBuilder {
         Context context = new Context();
         context.setVariable("dataModel", dataModel);
         StringWriter stringWriter = new StringWriter();
-        templateEngine.process(TEMPLATE_NAME, context, stringWriter);
+        templateEngine.process("mapping.xml", context, stringWriter);
         return stringWriter.toString();
+	}
+
+
+
+	private Configuration cfg;
+
+	protected String generateHibernateMappingFreeMarker(DataModelEntity dataModel) throws IOException {
+		Configuration cfg = getConfiguration();
+		Template template = cfg.getTemplate("mapping.ftl");
+		Map<String, Object> root = new HashMap<String, Object>();
+        root.put("dataModel", dataModel);
+        StringWriter stringWriter = new StringWriter();
+        try {
+			template.process(root, stringWriter);
+		} catch (TemplateException e) {
+			throw new IOException(e);
+		}
+        return stringWriter.toString();
+	}
+
+	private Configuration getConfiguration() {
+		if (cfg == null) {
+			cfg = new Configuration(Configuration.VERSION_2_3_28);
+			cfg.setClassForTemplateLoading(IFormSessionFactoryBuilder.class, "/");
+			cfg.setDefaultEncoding("UTF-8");
+			cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
+		}
+		return cfg;
 	}
 }
