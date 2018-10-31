@@ -34,6 +34,9 @@ public class FormModelEntity extends BaseEntity implements Serializable {
 	)
 	private List<DataModelEntity> dataModels = new ArrayList<DataModelEntity>();
 
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "formModel")
+	private List<FormModelEntity> childrenFormModel = new ArrayList<FormModelEntity>();
+
 	@Embedded
 	private FormProcessInfo process;
  

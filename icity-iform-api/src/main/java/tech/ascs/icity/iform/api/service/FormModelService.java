@@ -16,6 +16,7 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import tech.ascs.icity.iform.api.model.FormModel;
+import tech.ascs.icity.iform.api.model.PCFormModel;
 import tech.ascs.icity.model.IdEntity;
 import tech.ascs.icity.model.Page;
 
@@ -101,4 +102,18 @@ public interface FormModelService {
     @ApiImplicitParam(paramType = "path", name = "id", value = "表单模型ID", required = true, dataType = "String")
 	@DeleteMapping("/{id}")
 	void removeFormModel(@PathVariable(name="id") String id);
+
+
+	/**
+	 * 根据表单模型ID获取表单模型对象
+	 *
+	 * @param id 表单模型ID（uuid）
+	 * @return
+	 */
+	@ApiOperation(value = "根据表单模型ID获取表单模型对象", position = 2)
+	@ApiImplicitParams({
+			@ApiImplicitParam(paramType = "path", name = "id", value = "表单模型ID", required = true, dataType = "String")
+	})
+	@GetMapping("/pc/{id}")
+	PCFormModel getPCFormModelById(@PathVariable(name="id") String id);
 }

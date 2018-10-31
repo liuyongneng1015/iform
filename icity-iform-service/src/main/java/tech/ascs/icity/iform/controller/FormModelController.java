@@ -17,6 +17,7 @@ import tech.ascs.icity.iform.api.model.FormModel;
 import tech.ascs.icity.iform.api.model.ItemModel;
 import tech.ascs.icity.iform.api.model.ItemModel.ActivityInfo;
 import tech.ascs.icity.iform.api.model.ItemModel.Option;
+import tech.ascs.icity.iform.api.model.PCFormModel;
 import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.FormModelService;
 import tech.ascs.icity.iform.utils.CommonUtils;
@@ -103,6 +104,20 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	@Override
 	public void removeFormModel(@PathVariable(name="id") String id) {
 		formModelService.deleteById(id);
+	}
+
+	@Override
+	public PCFormModel getPCFormModelById(@PathVariable(name="id") String id) {
+		FormModelEntity entity = formModelService.find(id);
+		if (entity == null) {
+			throw new IFormException(404, "表单模型【" + id + "】不存在");
+		}
+		try {
+			//TODO 需要处理数据返回给pc端
+			return null;
+		} catch (Exception e) {
+			throw new IFormException("获取表单模型列表失败：" + e.getMessage(), e);
+		}
 	}
 
 	private FormModelEntity wrap(FormModel formModel) throws InstantiationException, IllegalAccessException {
