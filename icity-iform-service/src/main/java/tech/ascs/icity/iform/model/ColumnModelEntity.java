@@ -1,6 +1,8 @@
 package tech.ascs.icity.iform.model;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -8,6 +10,7 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import tech.ascs.icity.iform.api.model.ColumnType;
@@ -26,7 +29,10 @@ public class ColumnModelEntity extends BaseEntity implements Serializable {
 	@JoinColumn(name="data_model_id")
 	private DataModelEntity dataModel;
 
-    private String columnName;
+	@OneToMany(mappedBy = "fromColumn")
+	private List<ColumnReferenceEntity> ColumnReferences = new ArrayList<ColumnReferenceEntity>();
+
+	private String columnName;
 
 	private String description;
 
@@ -54,6 +60,14 @@ public class ColumnModelEntity extends BaseEntity implements Serializable {
 
 	public void setDataModel(DataModelEntity dataModel) {
 		this.dataModel = dataModel;
+	}
+
+    public List<ColumnReferenceEntity> getColumnReferences() {
+		return ColumnReferences;
+	}
+
+	public void setColumnReferences(List<ColumnReferenceEntity> columnReferences) {
+		ColumnReferences = columnReferences;
 	}
 
 	public String getColumnName() {

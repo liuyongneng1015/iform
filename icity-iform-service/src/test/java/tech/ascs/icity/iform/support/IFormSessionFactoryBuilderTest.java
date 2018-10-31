@@ -26,7 +26,20 @@ public class IFormSessionFactoryBuilderTest {
 		DataModelEntity dataModel = dataModelService.get("2c9280836619855301661a756c87011a");
 		try {
 			if (dataModel != null) {
-				sessionFactoryBuilder.getSessionFactory(dataModel, true);
+				System.out.println(sessionFactoryBuilder.generateHibernateMapping(dataModel));
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Test
+	@Transactional
+	public void testGetHibernateMapping() {
+		DataModelEntity dataModel = dataModelService.get("2c9280836619855301661a756c87011a");
+		try {
+			if (dataModel != null) {
+				System.out.println(sessionFactoryBuilder.generateHibernateMapping(dataModel));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
