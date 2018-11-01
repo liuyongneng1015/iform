@@ -30,7 +30,7 @@ public class ColumnModelEntity extends BaseEntity implements Serializable {
 	private DataModelEntity dataModel;
 
 	@OneToMany(mappedBy = "fromColumn")
-	private List<ColumnReferenceEntity> ColumnReferences = new ArrayList<ColumnReferenceEntity>();
+	private List<ColumnReferenceEntity> columnReferences = new ArrayList<ColumnReferenceEntity>();
 
 	private String columnName;
 
@@ -63,11 +63,11 @@ public class ColumnModelEntity extends BaseEntity implements Serializable {
 	}
 
     public List<ColumnReferenceEntity> getColumnReferences() {
-		return ColumnReferences;
+		return columnReferences;
 	}
 
 	public void setColumnReferences(List<ColumnReferenceEntity> columnReferences) {
-		ColumnReferences = columnReferences;
+		this.columnReferences = columnReferences;
 	}
 
 	public String getColumnName() {

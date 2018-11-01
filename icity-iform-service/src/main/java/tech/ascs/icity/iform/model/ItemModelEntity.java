@@ -4,15 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 import tech.ascs.icity.iform.api.model.ItemType;
 import tech.ascs.icity.jpa.dao.model.BaseEntity;
@@ -22,6 +14,10 @@ import tech.ascs.icity.jpa.dao.model.BaseEntity;
  */
 @Entity
 @Table(name = "ifm_item_model")
+@Inheritance(strategy = InheritanceType.JOINED)
+@DiscriminatorColumn(name = "discriminator", discriminatorType = DiscriminatorType.STRING)
+@DiscriminatorValue("itemModel")
+@AttributeOverride(name="formModel", column=@Column(name="form_id"))
 public class ItemModelEntity extends BaseEntity implements Serializable {
 
 	private static final long serialVersionUID = 1L;

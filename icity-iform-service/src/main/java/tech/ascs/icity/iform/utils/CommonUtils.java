@@ -9,4 +9,7 @@ public class CommonUtils {
     public static String convertParamOfFuzzySearch(String parameter) {
         return "%" + parameter.replace("%","\\%").replace("_","\\_") + "%";
     }
+
+    //异常编码
+    public static int exceptionCode = 404;
 }

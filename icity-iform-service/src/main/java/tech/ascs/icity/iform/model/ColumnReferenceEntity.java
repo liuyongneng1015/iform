@@ -14,7 +14,7 @@ import tech.ascs.icity.jpa.dao.model.JPAEntity;
  * 数据字段模型关联关系
  */
 @Entity
-@Table(name = "ifm_column_model")
+@Table(name = "ifm_column_reference")
 public class ColumnReferenceEntity extends JPAEntity implements Serializable {
 
 	public static enum ReferenceType {

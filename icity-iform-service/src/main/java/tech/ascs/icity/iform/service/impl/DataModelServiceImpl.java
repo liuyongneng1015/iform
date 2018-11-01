@@ -13,10 +13,12 @@ import tech.ascs.icity.iform.api.model.DataModel;
 import tech.ascs.icity.iform.api.model.DataModelType;
 import tech.ascs.icity.iform.api.model.IndexModel;
 import tech.ascs.icity.iform.model.ColumnModelEntity;
+import tech.ascs.icity.iform.model.ColumnReferenceEntity;
 import tech.ascs.icity.iform.model.DataModelEntity;
 import tech.ascs.icity.iform.model.IndexModelEntity;
 import tech.ascs.icity.iform.service.DataModelService;
 import tech.ascs.icity.iform.support.IFormSessionFactoryBuilder;
+import tech.ascs.icity.iform.utils.CommonUtils;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 import tech.ascs.icity.utils.BeanUtils;
@@ -64,6 +66,9 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 			columnEntity.setDataModel(old);
 			columns.add(columnEntity);
 		}
+		//检查属性是否被关联
+		checkRelevance(cloumnIds);
+
 		old.setColumns(columns);
 
 		List<IndexModelEntity> indexes = new ArrayList<IndexModelEntity>();
@@ -89,6 +94,22 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		old.setIndexes(indexes);
 
 		return save(old, cloumnIds, indexIds);
+	}
+
+	//检查属性是否被关联
+	@Transactional(readOnly = false)
+	protected void checkRelevance(List<String> deletedCloumnIds) {
+		if (!deletedCloumnIds.isEmpty()) {
+			//TODO 处理查看行是否被关联,则提示“该字段被XXX表单XXX控件关联”
+			for(String id : deletedCloumnIds) {
+				ColumnModelEntity entity = columnManager.get(id);
+				List<ColumnReferenceEntity> columnReferenceEntityList = entity.getColumnReferences();
+				if(!columnReferenceEntityList.isEmpty()){
+					ColumnModelEntity entity1 =columnReferenceEntityList.get(0).getToColumn();
+					throw new IFormException(CommonUtils.exceptionCode, entity.getColumnName()+"被"+entity1.getDataModel().getTableName()+"表单" + entity1.getColumnName() + "控件关联");
+				}
+			}
+		}
 	}
 
 	@Override
