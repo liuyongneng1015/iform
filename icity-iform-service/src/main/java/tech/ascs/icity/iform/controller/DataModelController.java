@@ -35,8 +35,10 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 	@Autowired
 	private DataModelService dataModelService;
 
+
 	@Override
-	public List<DataModel> list(@RequestParam(name="name", required=false) String name, @RequestParam(name = "sync", required=false) String sync) {
+	public List<DataModel> list(@RequestParam(name="name", required=false) String name, @RequestParam(name = "sync", required=false) String sync,
+								@RequestParam(name = "modelType", required=false) String modelType) {
 		try {
 			Query<DataModelEntity, DataModelEntity> query = dataModelService.query();
 			if (StringUtils.hasText(name)) {
@@ -44,6 +46,37 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 			}
 			if (StringUtils.hasText(sync)) {
 				query.filterEqual("synchronized_", "1".equals(sync));
+			}
+			if (StringUtils.hasText(modelType)) {
+				String[] modelTypeArray = modelType.split(",");
+				List<DataModelType> list = new ArrayList<>();
+				for(String str : modelTypeArray){
+					list.add( DataModelType.valueOf(str));
+				}
+				query.filterIn("modelType", list);
+			}
+
+			List<DataModelEntity> entities = query.list();
+			return toDTO(entities);
+		} catch (Exception e) {
+			throw new IFormException("获取数据模型列表失败：" + e.getMessage(), e);
+		}
+	}
+
+	@Override
+	public List<DataModel> listReferenceDataModel(@RequestParam(name = "name", required = true) String name,	@RequestParam(name = "modelType", required = true) String modelType) {
+		try {
+			Query<DataModelEntity, DataModelEntity> query = dataModelService.query();
+			if (StringUtils.hasText(name)) {
+				query.filterNotEqual("name",  name );
+			}
+			if (StringUtils.hasText(modelType)) {
+				String[] modelTypeArray = modelType.split(",");
+				List<DataModelType> list = new ArrayList<>();
+				for(String str : modelTypeArray){
+					list.add( DataModelType.valueOf(str));
+				}
+				query.filterIn("modelType", list);
 			}
 			List<DataModelEntity> entities = query.list();
 			return toDTO(entities);

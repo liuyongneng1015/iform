@@ -8,11 +8,14 @@ package tech.ascs.icity.iform.api.model;
  */
 public enum DataModelType {
 
-	Single("单表"),
+	//单表
+	Single("Single"),
 
-	Master("主表"),
+	//主表
+	Master("Master"),
 
-	Slaver("从表");
+	//从表
+	Slaver("Slaver");
 
 	private String value;
 

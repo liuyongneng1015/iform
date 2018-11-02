@@ -76,8 +76,8 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 			List<String> newToColumnIds = new ArrayList<>();
 			if(!referenceModelList.isEmpty()) {
 				for (ReferenceModel model : referenceModelList) {
-					newToColumnIds.add(model.getToColumnId());
-					referenceMap.put(model.getToColumnId(), model.getReferenceType());
+					newToColumnIds.add(model.getToColumnModel().getId());
+					referenceMap.put(model.getToColumnModel().getId(), model.getReferenceType());
 				}
 			}
 			//旧的关联实体

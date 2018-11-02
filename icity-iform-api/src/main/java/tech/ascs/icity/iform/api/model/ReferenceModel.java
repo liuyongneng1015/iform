@@ -20,29 +20,18 @@ public class ReferenceModel extends NameEntity {
 	}
 
 
-	@ApiModelProperty(value = "被关联字段", position = 1)
-	private String fromColumnId;
-
 	@ApiModelProperty(value = "目标", position = 2)
-	private String toColumnId;
+	private ColumnModel toColumnModel;
 
 	@ApiModelProperty(value = "关联关系", position = 3)
 	private ReferenceType referenceType;
 
-	public String getFromColumnId() {
-		return fromColumnId;
+	public ColumnModel getToColumnModel() {
+		return toColumnModel;
 	}
 
-	public void setFromColumnId(String fromColumnId) {
-		this.fromColumnId = fromColumnId;
-	}
-
-	public String getToColumnId() {
-		return toColumnId;
-	}
-
-	public void setToColumnId(String toColumnId) {
-		this.toColumnId = toColumnId;
+	public void setToColumnModel(ColumnModel toColumnModel) {
+		this.toColumnModel = toColumnModel;
 	}
 
 	public ReferenceType getReferenceType() {
