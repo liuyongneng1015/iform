@@ -8,6 +8,7 @@ import javax.persistence.Enumerated;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import tech.ascs.icity.iform.api.model.ReferenceType;
 import tech.ascs.icity.jpa.dao.model.JPAEntity;
 
 /**
@@ -17,19 +18,12 @@ import tech.ascs.icity.jpa.dao.model.JPAEntity;
 @Table(name = "ifm_column_reference")
 public class ColumnReferenceEntity extends JPAEntity implements Serializable {
 
-	public static enum ReferenceType {
-		OneToOne,
-		OneToMany,
-		ManyToOne,
-		ManyToMany
-	}
-
 	private static final long serialVersionUID = 1L;
 
-	@ManyToOne
+	@ManyToOne//被关联字段
 	private ColumnModelEntity fromColumn;
 
-	@ManyToOne
+	@ManyToOne//目标
 	private ColumnModelEntity toColumn;
 
 	@Enumerated(EnumType.STRING)

@@ -1,17 +1,16 @@
 package tech.ascs.icity.iform.service.impl;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import tech.ascs.icity.iform.IFormException;
-import tech.ascs.icity.iform.api.model.ColumnModel;
-import tech.ascs.icity.iform.api.model.ColumnModelInfo;
-import tech.ascs.icity.iform.api.model.DataModel;
-import tech.ascs.icity.iform.api.model.DataModelType;
-import tech.ascs.icity.iform.api.model.IndexModel;
+import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.model.ColumnModelEntity;
 import tech.ascs.icity.iform.model.ColumnReferenceEntity;
 import tech.ascs.icity.iform.model.DataModelEntity;
@@ -48,8 +47,17 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		DataModelEntity old = dataModel.isNew() ? new DataModelEntity() : get(dataModel.getId());
 		BeanUtils.copyProperties(dataModel, old, new String[] {"masterModel", "slaverModels", "columns", "indexes"});
 
+		//主表
 		if (dataModel.getMasterModel() != null) {
 			old.setMasterModel(get(dataModel.getMasterModel().getId()));
+		}
+
+		//从表
+		if (!dataModel.getSlaverModels().isEmpty()) {
+			//TODO 获取从表id集合
+			Object[] transactionsIds = dataModel.getSlaverModels().parallelStream().
+					map(DataModelInfo::getId).toArray();
+			old.setSlaverModels(query().filterIn("id", transactionsIds).list());
 		}
 
 		List<ColumnModelEntity> columns = new ArrayList<ColumnModelEntity>();
@@ -62,6 +70,38 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 			if (!columnEntity.isNew()) {
 				cloumnIds.remove(columnEntity.getId());
 			}
+			Map<String, ReferenceType> referenceMap = new HashMap<String, ReferenceType>();
+			List<ReferenceModel> referenceModelList = column.getReferenceModelList();
+			//新关联行id
+			List<String> newToColumnIds = new ArrayList<>();
+			if(!referenceModelList.isEmpty()) {
+				for (ReferenceModel model : referenceModelList) {
+					newToColumnIds.add(model.getToColumnId());
+					referenceMap.put(model.getToColumnId(), model.getReferenceType());
+				}
+			}
+			//旧的关联实体
+			List<ColumnReferenceEntity> oldReferenceEntityList = columnEntity.getColumnReferences();
+			if(oldReferenceEntityList.isEmpty()){
+				oldReferenceEntityList = new ArrayList<>();
+			}
+			//旧关联行id
+			List<String> oldToColumnIds = new ArrayList<>();
+			for(ColumnReferenceEntity entity: oldReferenceEntityList){
+				oldToColumnIds.add(entity.getToColumn().getId());
+			}
+			//旧关联行id
+			List<String> oldToColumnIdList = new ArrayList<>(oldToColumnIds);
+
+			//删除旧的关联关系
+			deleteOlbColumnReferenceEntity(columnEntity, oldToColumnIds, newToColumnIds, oldReferenceEntityList);
+
+
+			//待增新的
+			newToColumnIds.removeAll(oldToColumnIdList);
+			//创建新的关联关系
+			addNewColumnReferenceEntity(columnEntity, newToColumnIds, oldReferenceEntityList, referenceMap);
+
 			BeanUtils.copyProperties(column, columnEntity, new String[] {"dataModel"});
 			columnEntity.setDataModel(old);
 			columns.add(columnEntity);
@@ -96,8 +136,53 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		return save(old, cloumnIds, indexIds);
 	}
 
+
+	//删除旧的关联关系
+	private void deleteOlbColumnReferenceEntity(ColumnModelEntity columnEntity, List<String> oldToColumnIds, List<String> newToColumnIds, List<ColumnReferenceEntity> oldReferenceEntityList){
+		//删除旧的关联
+		oldToColumnIds.removeAll(newToColumnIds);
+		List<ColumnModelEntity> toColumnModelEntityList = columnManager.query().filterIn("id",oldToColumnIds).list();
+		//删除正向关联的关系
+		for(ColumnReferenceEntity referenceEntity: oldReferenceEntityList){
+			if(oldToColumnIds.contains(referenceEntity.getToColumn().getId())){
+				oldReferenceEntityList.remove(referenceEntity);
+			}
+		}
+		//删除方向关联的关系
+		for(ColumnModelEntity toEntity : toColumnModelEntityList){
+			List<ColumnReferenceEntity> toReferenceEntities = toEntity.getColumnReferences();
+			for(ColumnReferenceEntity reference : toReferenceEntities){
+				if(StringUtils.equals(reference.getToColumn().getId(), columnEntity.getId())){
+					toReferenceEntities.remove(reference);
+				}
+			}
+		}
+	}
+
+	//创建新的关联关系
+	private void addNewColumnReferenceEntity(ColumnModelEntity columnEntity, List<String> newToColumnIds, List<ColumnReferenceEntity> oldReferenceEntityList, Map<String, ReferenceType> referenceMap){
+		if(!newToColumnIds.isEmpty()){
+			List<ColumnModelEntity> newToColumnModelEntityList = columnManager.query().filterIn("id",newToColumnIds).list();
+			for(ColumnModelEntity addToEntity : newToColumnModelEntityList){
+				//正向关联
+				ColumnReferenceEntity addFromReferenceEntity = new ColumnReferenceEntity();
+				addFromReferenceEntity.setFromColumn(columnEntity);
+				addFromReferenceEntity.setToColumn(addToEntity);
+				addFromReferenceEntity.setReferenceType(referenceMap.get(addToEntity.getId()));
+				oldReferenceEntityList.add(addFromReferenceEntity);
+
+				//反向关联
+				ColumnReferenceEntity addToReferenceEntity = new ColumnReferenceEntity();
+				addToReferenceEntity.setFromColumn(addToEntity);
+				addToReferenceEntity.setToColumn(columnEntity);
+				addToReferenceEntity.setReferenceType(ReferenceModel.getToReferenceType(addFromReferenceEntity.getReferenceType()));
+				addToEntity.getColumnReferences().add(addToReferenceEntity);
+			}
+		}
+	}
+
 	//检查属性是否被关联
-	@Transactional(readOnly = false)
+	@Transactional(readOnly = true)
 	protected void checkRelevance(List<String> deletedCloumnIds) {
 		if (!deletedCloumnIds.isEmpty()) {
 			//TODO 处理查看行是否被关联,则提示“该字段被XXX表单XXX控件关联”
@@ -128,10 +213,6 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 	@Transactional(readOnly = false)
 	protected DataModelEntity save(DataModelEntity entity, List<String> deletedCloumnIds, List<String> deletedIndexIds) {
 		if (!deletedCloumnIds.isEmpty()) {
-			//TODO 处理查看行是否被关联,则提示“该字段被XXX表单XXX控件关联”
-			for(String id : deletedCloumnIds) {
-				ColumnModelEntity entity1 = columnManager.get(id);
-			}
 			columnManager.deleteById(deletedCloumnIds.toArray(new String[] {}));
 		}
 		if (deletedIndexIds.size() > 0) {

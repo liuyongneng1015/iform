@@ -11,16 +11,16 @@ import javax.persistence.*;
 public class ReferenceItemModelEntity extends ItemModelEntity  {
 
 	private static final long serialVersionUID = 1L;
-	public static enum ReferenceType {
+	public static enum ReferenceTableType {
 		OneToOne,
 		OneToMany,
 		ManyToOne,
 		ManyToMany
 	}
 
-	@Column
+	@Column(name="reference_table_type")
 	@Enumerated(EnumType.STRING)
-	private ColumnReferenceEntity.ReferenceType referenceType;
+	private ReferenceTableType referenceTableType;
 
 	@Column(name="reference_dictionary_id")// 关联字典ID
 	private String referenceDictionaryId;
@@ -34,12 +34,12 @@ public class ReferenceItemModelEntity extends ItemModelEntity  {
 	@Column(name="reference_list_model")// 关联显示列表模型
 	private String referenceListModel;
 
-	public ColumnReferenceEntity.ReferenceType getReferenceType() {
-		return referenceType;
+	public ReferenceTableType getReferenceTableType() {
+		return referenceTableType;
 	}
 
-	public void setReferenceType(ColumnReferenceEntity.ReferenceType referenceType) {
-		this.referenceType = referenceType;
+	public void setReferenceTableType(ReferenceTableType referenceTableType) {
+		this.referenceTableType = referenceTableType;
 	}
 
 	public String getReferenceDictionaryId() {

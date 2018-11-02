@@ -24,6 +24,9 @@ public class DataModel extends NameEntity {
     @ApiModelProperty(value = "从表对应的主表(当表类型为从表时需要填)", position = 5)
 	private DataModelInfo masterModel;
 
+	@ApiModelProperty(value = "从表对应的从表(当表类型为主表时需要填)", position = 9)
+	private List<DataModelInfo> slaverModels;
+
     @ApiModelProperty(value = "数据字段模型列表", position = 6)
     @JsonManagedReference
     private List<ColumnModel> columns = new ArrayList<ColumnModel>();
@@ -71,6 +74,14 @@ public class DataModel extends NameEntity {
 
 	public void setMasterModel(DataModelInfo masterModel) {
 		this.masterModel = masterModel;
+	}
+
+	public List<DataModelInfo> getSlaverModels() {
+		return slaverModels;
+	}
+
+	public void setSlaverModels(List<DataModelInfo> slaverModels) {
+		this.slaverModels = slaverModels;
 	}
 
 	public List<ColumnModel> getColumns() {

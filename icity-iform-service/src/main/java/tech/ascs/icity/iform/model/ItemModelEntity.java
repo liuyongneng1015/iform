@@ -15,9 +15,8 @@ import tech.ascs.icity.jpa.dao.model.BaseEntity;
 @Entity
 @Table(name = "ifm_item_model")
 @Inheritance(strategy = InheritanceType.JOINED)
-@DiscriminatorColumn(name = "discriminator", discriminatorType = DiscriminatorType.STRING)
+@DiscriminatorColumn(name="type", discriminatorType = DiscriminatorType.STRING)
 @DiscriminatorValue("itemModel")
-@AttributeOverride(name="formModel", column=@Column(name="form_id"))
 public class ItemModelEntity extends BaseEntity implements Serializable {
 
 	private static final long serialVersionUID = 1L;
@@ -30,9 +29,11 @@ public class ItemModelEntity extends BaseEntity implements Serializable {
 	@JoinColumn(name="column_id")
 	private ColumnModelEntity columnModel;
 
+	@JoinColumn(name="type")
 	@Enumerated(EnumType.STRING)
 	private ItemType type;
 
+	@JoinColumn(name="props")
 	private String props;
 
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "itemModel")

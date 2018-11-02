@@ -6,6 +6,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import tech.ascs.icity.model.NameEntity;
 
+import java.util.List;
 import java.util.Set;
 
 @ApiModel("数据字段模型")
@@ -15,7 +16,7 @@ public class ColumnModel extends NameEntity {
 	@JsonBackReference
 	private DataModel dataModel;
 
-    @ApiModelProperty(value = "字段名", position = 3)
+    @ApiModelProperty(value = "字段名", position = 2)
     private String columnName;
 
 	@ApiModelProperty(value = "描述", position = 3)
@@ -39,8 +40,12 @@ public class ColumnModel extends NameEntity {
     @ApiModelProperty(value = "是否主键", position = 9)
 	private Boolean key;
 
-	@ApiModelProperty(value = " 字段默认值", position = 9)
+	@ApiModelProperty(value = " 字段默认值", position = 10)
     private String defaultValue;
+
+	@ApiModelProperty(value = "关联字段模型", position = 11)
+	private List<ReferenceModel> referenceModelList;
+
 
 	public DataModel getDataModel() {
 		return dataModel;
@@ -120,5 +125,13 @@ public class ColumnModel extends NameEntity {
 
 	public void setDefaultValue(String defaultValue) {
 		this.defaultValue = defaultValue;
+	}
+
+	public List<ReferenceModel> getReferenceModelList() {
+		return referenceModelList;
+	}
+
+	public void setReferenceModelList(List<ReferenceModel> referenceModelList) {
+		this.referenceModelList = referenceModelList;
 	}
 }
