@@ -25,7 +25,7 @@ public class DataModel extends NameEntity {
 	private DataModelInfo masterModel;
 
 	@ApiModelProperty(value = "从表对应的从表(当表类型为主表时需要填)", position = 9)
-	private List<DataModelInfo> slaverModels;
+	private List<DataModelInfo> slaverModels = new ArrayList<DataModelInfo>();
 
     @ApiModelProperty(value = "数据字段模型列表", position = 6)
     @JsonManagedReference

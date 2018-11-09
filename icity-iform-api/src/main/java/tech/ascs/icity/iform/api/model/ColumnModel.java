@@ -6,6 +6,8 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import tech.ascs.icity.model.NameEntity;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -44,7 +46,7 @@ public class ColumnModel extends NameEntity {
     private String defaultValue;
 
 	@ApiModelProperty(value = "关联字段模型", position = 11)
-	private List<ReferenceModel> referenceModelList;
+	private List<ReferenceModel> referenceModelList = new ArrayList<ReferenceModel>();
 
 
 	public DataModel getDataModel() {

@@ -21,19 +21,11 @@ import tech.ascs.icity.iflow.api.model.ProcessInstance;
 import tech.ascs.icity.iflow.client.ProcessInstanceService;
 import tech.ascs.icity.iflow.client.TaskService;
 import tech.ascs.icity.iform.IFormException;
-import tech.ascs.icity.iform.api.model.FormInstance;
-import tech.ascs.icity.iform.api.model.ItemInstance;
-import tech.ascs.icity.iform.api.model.ItemType;
-import tech.ascs.icity.iform.api.model.SearchType;
-import tech.ascs.icity.iform.model.ColumnModelEntity;
-import tech.ascs.icity.iform.model.FormModelEntity;
-import tech.ascs.icity.iform.model.ItemActivityInfo;
-import tech.ascs.icity.iform.model.ItemModelEntity;
-import tech.ascs.icity.iform.model.ItemSelectOption;
-import tech.ascs.icity.iform.model.ListModelEntity;
-import tech.ascs.icity.iform.model.ListSearchItem;
-import tech.ascs.icity.iform.model.ListSortItem;
+import tech.ascs.icity.iform.api.model.*;
+import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.FormInstanceService;
+import tech.ascs.icity.jpa.service.JPAManager;
+import tech.ascs.icity.jpa.service.JPAService;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 import tech.ascs.icity.model.Page;
 
@@ -136,6 +128,10 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 		super(FormModelEntity.class);
 	}
 
+	private JPAManager<ItemModelEntity> itemModelEntityJPAManager;
+
+	private JPAManager<DataModelEntity> dataModelEntityJPAManager;
+
 	@Override
 	protected void initManager() {
 		super.initManager();
@@ -151,14 +147,21 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 	@Override
 	public Page<FormInstance> pageFormInstance(ListModelEntity listModel, int page, int pagesize, Map<String, String> queryParameters) {
 		String where = buildWhereSql(listModel, queryParameters);
-		StringBuilder countSql = new StringBuilder("SELECT COUNT(*) FROM if_").append(listModel.getMasterForm().getDataModels().get(0).getTableName()).append(where);
+		String tableName = listModel.getMasterForm().getDataModels().get(0).getTableName();
+		StringBuilder countSql = new StringBuilder("SELECT COUNT(*) FROM if_").append(tableName).append(where);
 		int count = jdbcTemplate.queryForObject(countSql.toString(), Integer.class);
 		
-		StringBuilder sql = new StringBuilder("SELECT * FROM if_").append(listModel.getMasterForm().getDataModels().get(0).getTableName())
+		StringBuilder sql = new StringBuilder("SELECT * FROM if_").append(tableName)
 				.append(where).append(buildOrderBySql(listModel, queryParameters));
 
 		String pageSql = buildPageSql(sql.toString(), page, pagesize);
 		List<FormInstance> list = jdbcTemplate.query(pageSql, new FormInstanceRowMapper(listModel.getMasterForm()));
+		//TODO select如何处理
+		Map<String, Object> map = selectValue(tableName, list.get(0).getData());
+		for(FormInstance instance : list) {
+			changeSelectItemValue(tableName, instance.getData(), (Map<String, Object>)map.get("valueMap"));
+		}
+
 		Page<FormInstance> result = Page.get(page, pagesize);
 		return result.data(count, list);
 	}
@@ -286,6 +289,114 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 	public void deleteFormInstance(FormModelEntity formModel, String instanceId) {
 		StringBuilder sql = new StringBuilder("DELETE FROM if_").append(formModel.getDataModels().get(0).getTableName()).append(" WHERE id=?");
 		doUpdate(sql.toString(), instanceId);
+	}
+
+	@Override
+	public Page<Map<String,Object>> pageSubFormInstance(String tableName, int page, int pagesize) {
+		StringBuilder countSql = new StringBuilder("SELECT COUNT(*) FROM if_").append(tableName);
+		int count = jdbcTemplate.queryForObject(countSql.toString(), Integer.class);
+
+		DataModelEntity dataModelEntity = dataModelEntityJPAManager.findUniqueByProperty("tableName", tableName);
+
+		StringBuilder sql = new StringBuilder("SELECT * FROM if_").append(tableName);
+		String pageSql = buildPageSql(sql.toString(), page, pagesize);
+		List<Map<String, Object>> list = jdbcTemplate.queryForList(pageSql);
+
+		//可选择的值
+		Map<String, Object> mapSelect = selectValue(tableName, list.get(0));
+		Map<String, Object> selectMap = (Map<String, Object>) mapSelect.get("choiceMap");
+		for(Map<String, Object> map : list) {
+			changeSelectItemValue(tableName, map, (Map<String, Object>) mapSelect.get("valueMap"));
+		}
+
+		List<Map<String, Object>> outPut = new ArrayList<>();
+		//子表
+		if(dataModelEntity.getModelType() == DataModelType.Slaver){
+			SubFormItemModelEntity subFormItemModelEntity = (SubFormItemModelEntity) itemModelEntityJPAManager.findUniqueByProperty("tableName", tableName);
+			List<RowItemModelEntity> rowItems = subFormItemModelEntity.getItems();
+			for(Map<String, Object> map : list) {
+				for(RowItemModelEntity entity : rowItems){
+					Map<String, Object> mapStr =new HashMap<>();
+					List<ItemModelEntity> itemModelEntities = entity.getItems();
+					for(ItemModelEntity itemModelEntity: itemModelEntities){
+						mapStr.put(itemModelEntity.getId(), map.get(itemModelEntity.getColumnModel().getColumnName()));
+					}
+					outPut.add(mapStr);
+				}
+			}
+		}
+
+		Page<Map<String,Object>> result = Page.get(page, pagesize);
+		return result.data(count, outPut);
+
+	}
+
+	private void changeSelectItemValue(String tableName, Map<String, Object> datamap , Map<String, Object> valueMap){
+		//改变选择宽的值
+		for (String key : datamap.keySet()) {
+			if(valueMap.containsKey(key)){
+				datamap.put(key, getSelectValue(tableName, key,String.valueOf(datamap.get(key))));
+			}
+		}
+	}
+
+	private Map<String, Object> selectValue(String tableName, Map<String,Object> mapkey){
+		Map<String, Object> map = new HashMap<>();
+		Map<String, Object> choiceMap = new HashMap<>();
+		Map<String, Object> valueMap = new HashMap<>();
+		for(String key : mapkey.keySet()) {
+			Map<String, Object> item_type = jdbcTemplate.queryForMap(" select i.id, i.type from ifm_data_model d,ifm_column_model c,ifm_item_model i where c.id=i.column_id  and c.data_model_id=d.id and d.table_name ='" + tableName + "' and c.column_name='" + key + "' ");
+			if(ItemType.Select.getValue().equals(item_type.get("type"))) {
+				ItemModelEntity itemModelEntity = itemModelEntityJPAManager.find((String)item_type.get("id"));
+				if(((SelectItemModelEntity)itemModelEntity).getSelectReferenceType() == SelectReferenceType.Table){
+					//TODO 根据类型查找对应的值
+					List<String> tableValues = jdbcTemplate.queryForList(" select " + ((SelectItemModelEntity) itemModelEntity).getReferenceValueColumn() + " from " + ((SelectItemModelEntity) itemModelEntity).getReferenceTable(),String.class);
+					//selectMap.put(itemModelEntity.getId(), tableValues);
+					//valueMap.put(key, tableValues);
+				}else if(((SelectItemModelEntity)itemModelEntity).getSelectReferenceType() == SelectReferenceType.Dictionary){
+					//TODO 根据类型查找对应的值
+					List<DictionaryItemModel> tableValues = jdbcTemplate.queryForList(" select *  from ifm_dictionary_item where parent_id = "+((SelectItemModelEntity) itemModelEntity).getReferenceDictionaryId(),DictionaryItemModel.class);
+					choiceMap.put(itemModelEntity.getId(), tableValues);
+					valueMap.put(key, tableValues);
+				}else if(((SelectItemModelEntity)itemModelEntity).getSelectReferenceType() == SelectReferenceType.Fixed){
+					//TODO 根据类型查找对应的值
+					List<Option> tableValues = jdbcTemplate.queryForList(" select *  from ifm_item_select_option where item_id = "+itemModelEntity.getId(), Option.class);
+					choiceMap.put(itemModelEntity.getId(), tableValues);
+					valueMap.put(key, tableValues);
+				}
+			}
+		}
+		map.put("choiceMap", choiceMap);
+		map.put("valueMap", valueMap);
+		return map;
+	}
+
+	private String getSelectValue(String tableName, String key, String value){
+		Map<String, Object> item_type = jdbcTemplate.queryForMap(" select i.id, i.type from ifm_data_model d,ifm_column_model c,ifm_item_model i where c.id=i.column_id  and c.data_model_id=d.id and d.table_name ='" + tableName + "' and c.column_name='" + key + "' ");
+		if(ItemType.Select.getValue().equals(item_type.get("type"))) {
+			ItemModelEntity itemModelEntity = itemModelEntityJPAManager.find((String)item_type.get("id"));
+			if(((SelectItemModelEntity)itemModelEntity).getSelectReferenceType() == SelectReferenceType.Table){
+				//TODO 根据类型查找对应的值
+				//List<String> tableValues = jdbcTemplate.queryForList(" select " + ((SelectItemModelEntity) itemModelEntity).getReferenceValueColumn() + " from " + ((SelectItemModelEntity) itemModelEntity).getReferenceTable(),String.class);
+			}else if(((SelectItemModelEntity)itemModelEntity).getSelectReferenceType() == SelectReferenceType.Dictionary){
+				//TODO 根据类型查找对应的值
+				List<DictionaryItemModel> tableValues = jdbcTemplate.queryForList(" select *  from ifm_dictionary_item where parent_id = "+((SelectItemModelEntity) itemModelEntity).getReferenceDictionaryId(),DictionaryItemModel.class);
+				for(DictionaryItemModel model : tableValues){
+					if(model.getCode().equals(value)){
+						return model.getName();
+					}
+				}
+			}else if(((SelectItemModelEntity)itemModelEntity).getSelectReferenceType() == SelectReferenceType.Fixed){
+				//TODO 根据类型查找对应的值
+				List<Option> tableValues = jdbcTemplate.queryForList(" select * from ifm_item_select_option where item_id = "+itemModelEntity.getId(), Option.class);
+				for(Option model : tableValues){
+					if(model.getLabel().equals(value)){
+						return model.getValue();
+					}
+				}
+			}
+		}
+		return value;
 	}
 
 	protected void updateProcessInfo(FormModelEntity formModel, String formInstanceId, String processInstanceId) {

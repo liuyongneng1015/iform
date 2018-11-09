@@ -10,25 +10,57 @@ import java.util.List;
 @ApiModel("PC表单模型FormModel")
 public class PCFormModel extends NameEntity {
 
-	@ApiModelProperty(value = "子表单绑定的数据模型列表", position = 3)
-	private List<FormModel> childrenFormModels = new ArrayList<FormModel>();
+	@ApiModel("流程摘要信息")
+	public static class PCProceeeModel extends NameEntity {
+		@ApiModelProperty(value = "流程KEY", position = 0)
+		private String key;
+		@ApiModelProperty(value = "流程启动环节ID", position = 1)
+		private String startActivity;
+		public String getKey() {
+			return key;
+		}
+		public void setKey(String key) {
+			this.key = key;
+		}
+		public String getStartActivity() {
+			return startActivity;
+		}
+		public void setStartActivity(String startActivity) {
+			this.startActivity = startActivity;
+		}
 
-	@ApiModelProperty(value = "表单绑定的数据模型列表", position = 3)
-	private FormModel formModel;
+	}
+	@ApiModelProperty(value = "表单绑定的流程模型", position = 1)
+	private PCProceeeModel process;
 
-	public List<FormModel> getChildrenFormModels() {
-		return childrenFormModels;
+	@ApiModelProperty(value = "描述", position = 2)
+	private String description;
+
+	@ApiModelProperty(value = "关联表数据模型列表", position = 3)
+	private List<DataModel> dataModels = new ArrayList<DataModel>();
+
+
+	public PCProceeeModel getProcess() {
+		return process;
 	}
 
-	public void setChildrenFormModels(List<FormModel> childrenFormModels) {
-		this.childrenFormModels = childrenFormModels;
+	public void setProcess(PCProceeeModel process) {
+		this.process = process;
 	}
 
-	public FormModel getFormModel() {
-		return formModel;
+	public String getDescription() {
+		return description;
 	}
 
-	public void setFormModel(FormModel formModel) {
-		this.formModel = formModel;
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	public List<DataModel> getDataModels() {
+		return dataModels;
+	}
+
+	public void setDataModels(List<DataModel> dataModels) {
+		this.dataModels = dataModels;
 	}
 }

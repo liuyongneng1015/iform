@@ -9,29 +9,41 @@ package tech.ascs.icity.iform.api.model;
 public enum ItemType {
 
 	/** 标签 */
-	Label,
+	Label("Label"),
 	/** 单行文本 / 多行文本 */
-	Input,
+	Input("Input"),
 	/** 数值输入框 */
-	InputNumber,
+	InputNumber("InputNumber"),
 	/** 图片 */
-	Image,
+	Image("Image"),
 	/** 附件 */
-	Attachment,
+	Attachment("Attachment"),
 	/** 日期控件 */
-	DatePicker,
+	DatePicker("DatePicker"),
 	/** 下拉选择 */
-	Select,
+	Select("Select"),
 	/** 单选 */
-	RadioGroup,
+	RadioGroup("RadioGroup"),
 	/** 多选 */
-	CheckboxGroup,
+	CheckboxGroup("CheckboxGroup"),
 	/** 关联表单列表 */
-	ReferenceList,
+	ReferenceList("ReferenceList"),
 	/** 关联属性 */
-	ReferenceLabel,
+	ReferenceLabel("ReferenceLabel"),
 	/** 子表 */
-	SubForm,
+	SubForm("SubForm"),
 	/** 自定义（组合控件） */
-	Row
+	Row("Row");
+	private String value;
+	private ItemType(String value) {
+		this.value= value;
+	}
+
+	public String getValue() {
+		return value;
+	}
+
+	public void setValue(String value) {
+		this.value = value;
+	}
 }

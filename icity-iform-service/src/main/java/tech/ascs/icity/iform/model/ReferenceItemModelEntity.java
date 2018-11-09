@@ -1,9 +1,13 @@
 package tech.ascs.icity.iform.model;
 
+import tech.ascs.icity.iform.api.model.ControlType;
+import tech.ascs.icity.iform.api.model.ReferenceType;
+import tech.ascs.icity.iform.api.model.SelectMode;
+
 import javax.persistence.*;
 
 /**
- * 选择表单控件模型
+ * 关联表单控件模型
  */
 @Entity
 @Table(name = "ifm_reference_item_model")
@@ -11,19 +15,14 @@ import javax.persistence.*;
 public class ReferenceItemModelEntity extends ItemModelEntity  {
 
 	private static final long serialVersionUID = 1L;
-	public static enum ReferenceTableType {
-		OneToOne,
-		OneToMany,
-		ManyToOne,
-		ManyToMany
-	}
 
-	@Column(name="reference_table_type")
+	@Column(name="reference_type")
 	@Enumerated(EnumType.STRING)
-	private ReferenceTableType referenceTableType;
+	private ReferenceType referenceType;
 
-	@Column(name="reference_dictionary_id")// 关联字典ID
-	private String referenceDictionaryId;
+	@Column(name="select_mode")//选择方式
+	@Enumerated(EnumType.STRING)
+	private SelectMode selectMode;
 
 	@Column(name="reference_table")// 关联表
 	private String referenceTable;
@@ -31,23 +30,28 @@ public class ReferenceItemModelEntity extends ItemModelEntity  {
 	@Column(name="reference_value_column")// 关联值字段（比如“ID”）
 	private String referenceValueColumn;
 
-	@Column(name="reference_list_model")// 关联显示列表模型
-	private String referenceListModel;
+	@Column(name="control_type")//控件类型选择框还是列表
+	@Enumerated(EnumType.STRING)
+	private ControlType controlType;
 
-	public ReferenceTableType getReferenceTableType() {
-		return referenceTableType;
+	@JoinColumn(name="list_model_id") // 关联显示列表模型
+	@ManyToOne(cascade = CascadeType.ALL)
+	private ListModelEntity listModel;
+
+	public ReferenceType getReferenceType() {
+		return referenceType;
 	}
 
-	public void setReferenceTableType(ReferenceTableType referenceTableType) {
-		this.referenceTableType = referenceTableType;
+	public void setReferenceType(ReferenceType referenceType) {
+		this.referenceType = referenceType;
 	}
 
-	public String getReferenceDictionaryId() {
-		return referenceDictionaryId;
+	public SelectMode getSelectMode() {
+		return selectMode;
 	}
 
-	public void setReferenceDictionaryId(String referenceDictionaryId) {
-		this.referenceDictionaryId = referenceDictionaryId;
+	public void setSelectMode(SelectMode selectMode) {
+		this.selectMode = selectMode;
 	}
 
 	public String getReferenceTable() {
@@ -66,11 +70,19 @@ public class ReferenceItemModelEntity extends ItemModelEntity  {
 		this.referenceValueColumn = referenceValueColumn;
 	}
 
-	public String getReferenceListModel() {
-		return referenceListModel;
+	public ControlType getControlType() {
+		return controlType;
 	}
 
-	public void setReferenceListModel(String referenceListModel) {
-		this.referenceListModel = referenceListModel;
+	public void setControlType(ControlType controlType) {
+		this.controlType = controlType;
+	}
+
+	public ListModelEntity getListModel() {
+		return listModel;
+	}
+
+	public void setListModel(ListModelEntity listModel) {
+		this.listModel = listModel;
 	}
 }

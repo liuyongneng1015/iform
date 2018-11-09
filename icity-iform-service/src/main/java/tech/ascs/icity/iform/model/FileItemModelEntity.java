@@ -1,5 +1,7 @@
 package tech.ascs.icity.iform.model;
 
+import tech.ascs.icity.iform.api.model.FileReferenceType;
+
 import javax.persistence.*;
 
 /**
@@ -11,11 +13,6 @@ import javax.persistence.*;
 public class FileItemModelEntity extends ItemModelEntity  {
 
 	private static final long serialVersionUID = 1L;
-	public static enum FileReferenceType {
-		Image,//图片
-		Video,//视频
-		Attachment//附件
-	}
 
 	@Column(name="file_reference_type")
 	@Enumerated(EnumType.STRING)

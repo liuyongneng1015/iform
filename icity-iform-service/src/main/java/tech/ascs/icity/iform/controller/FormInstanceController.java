@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import io.swagger.annotations.Api;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.FormInstance;
+import tech.ascs.icity.iform.api.model.TableDataModel;
 import tech.ascs.icity.iform.model.FormModelEntity;
 import tech.ascs.icity.iform.model.ListModelEntity;
 import tech.ascs.icity.iform.service.FormInstanceServiceEx;
@@ -55,6 +56,12 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	}
 
 	@Override
+	public Page<String> pageByTableName(@PathVariable(name="tableName") String tableName, @RequestParam(name = "page", defaultValue = "1") int page, @RequestParam(name="pagesize", defaultValue = "10") int pagesize) {
+		return formInstanceService.pageByTableName(tableName, page, pagesize);
+	}
+
+
+	@Override
 	public FormInstance getEmptyInstance(@PathVariable(name="formId") String formId) {
 		FormModelEntity formModel = formModelService.find(formId);
 		if (formModel == null) {
@@ -70,7 +77,6 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		if (formModel == null) {
 			throw new IFormException(404, "表单模型【" + formId + "】不存在");
 		}
-
 		return formInstanceService.getFormInstance(formModel, id);
 	}
 
@@ -106,5 +112,10 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		}
 
 		formInstanceService.deleteFormInstance(formModel, id);
+	}
+
+	@Override
+	public List<TableDataModel> findTableDataFormInstance(String formId, String id) {
+		return formInstanceService.findTableDataFormInstance(formId, id);
 	}
 }

@@ -19,19 +19,18 @@ public class ReferenceModel extends NameEntity {
 		}
 	}
 
-
-	@ApiModelProperty(value = "目标", position = 2)
-	private ColumnModel toColumnModel;
-
 	@ApiModelProperty(value = "关联关系", position = 3)
 	private ReferenceType referenceType;
 
-	public ColumnModel getToColumnModel() {
-		return toColumnModel;
+	@ApiModelProperty(value = "目标", position = 4)
+	private ColumnModel toColumn = new ColumnModel();
+
+	public ColumnModel getToColumn() {
+		return toColumn;
 	}
 
-	public void setToColumnModel(ColumnModel toColumnModel) {
-		this.toColumnModel = toColumnModel;
+	public void setToColumn(ColumnModel toColumn) {
+		this.toColumn = toColumn;
 	}
 
 	public ReferenceType getReferenceType() {

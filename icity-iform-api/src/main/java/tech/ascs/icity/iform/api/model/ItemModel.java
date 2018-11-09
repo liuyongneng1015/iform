@@ -2,73 +2,13 @@ package tech.ascs.icity.iform.api.model;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import tech.ascs.icity.iflow.api.model.Activity;
 import tech.ascs.icity.model.NameEntity;
 
 @ApiModel("表单控件模型ItemModel")
 public class ItemModel extends NameEntity {
 
-	@ApiModel("环节摘要信息")
-	public static class ActivityInfo extends Activity {
-
-		@ApiModelProperty(value = "是否可见", position = 7)
-		private boolean visible;
-
-		@ApiModelProperty(value = "是否只读", position = 7)
-		private boolean readonly;
-
-		@JsonIgnore
-		@Override
-		public String getFormKey() {
-			return super.getFormKey();
-		}
-
-		public boolean isVisible() {
-			return visible;
-		}
-
-		public void setVisible(boolean visible) {
-			this.visible = visible;
-		}
-
-		public boolean isReadonly() {
-			return readonly;
-		}
-
-		public void setReadonly(boolean readonly) {
-			this.readonly = readonly;
-		}
-	}
-
-	public static class Option {
-		@ApiModelProperty(value = "显示名称", position = 0)
-		private String label;
-		@ApiModelProperty(value = "值", position = 1)
-		private String value;
-		public Option() {}
-		public Option(String label, String value) {
-			this.label = label;
-			this.value = value;
-		}
-		public String getLabel() {
-			return label;
-		}
-		public void setLabel(String label) {
-			this.label = label;
-		}
-		public String getValue() {
-			return value;
-		}
-		public void setValue(String value) {
-			this.value = value;
-		}
-	}
-	
 	@ApiModelProperty(value = "控件类型", position = 3)
 	private ItemType type;
 
@@ -78,11 +18,58 @@ public class ItemModel extends NameEntity {
 	@ApiModelProperty(value = "数据字段模型", position = 5)
 	private ColumnModelInfo columnModel;
 
-	@ApiModelProperty(value = "流程环节配置", position = 7)
+	@ApiModelProperty(value = "流程环节配置", position = 6)
 	private List<ActivityInfo> activities = new ArrayList<ActivityInfo>();
 
-	@ApiModelProperty(value = "Select选项列表", position = 8)
+	//FileItemModel
+	@ApiModelProperty(value = "文件类型", position = 7)
+	private FileReferenceType fileReferenceType;
+	@ApiModelProperty(value = "文件路径", position = 8)
+	private String filePath;
+
+	//File/selectItemModel
+	@ApiModelProperty(value = "关联类型", position = 9)
+	private ReferenceType referenceType;
+	@ApiModelProperty(value = "多对多创建表的名称", position = 10)
+	private String referenceTableName;
+	@ApiModelProperty(value="选择关系",position = 11)
+	private SelectReferenceType selectReferenceType;
+	@ApiModelProperty(value="是否多选",position = 12)
+	private Boolean multiple;
+	@ApiModelProperty(value = " 关联字典ID", position = 13)
+	private String referenceDictionaryId;
+	@ApiModelProperty(value = " 关联表", position = 14)
+	private String referenceTable;
+	@ApiModelProperty(value = " 关联值字段（比如“ID”）", position = 15)
+	private String referenceValueColumn;
+	@ApiModelProperty(value="控件类型选择框还是列表", position = 16)
+	private ControlType controlType;
+	@ApiModelProperty(value = "关联显示列表模型",position = 17)
+	private ListModel referenceList;
+	@ApiModelProperty(value = "选项配置", position = 18)
 	private List<Option> options = new ArrayList<Option>();
+
+	//SubFormItemModel
+	@ApiModelProperty(value="头部标签",position = 19)
+	private String legend;
+	@ApiModelProperty(value=" 控件行数",position = 20)
+	private Integer rowCount;
+	@ApiModelProperty(value="是否显示表头",position = 21)
+	private Boolean showHead;
+	@ApiModelProperty(value="表名",position = 22)
+	private String tableName;
+	@ApiModelProperty(value="当前行数",position = 23)
+	private Integer rowNumber;
+	@ApiModelProperty(value="当前列数",position = 24)
+	private Integer columnNumber;
+	@ApiModelProperty(value="子表行级模型",position = 25)
+	private List<RowItemModel> rowItems = new ArrayList<RowItemModel>();
+	@ApiModelProperty(value="组件子项（由组和字段构成） ",position = 26)
+	private List<ItemModel> items = new ArrayList<ItemModel>();;
+
+	//TimeItemModel
+	@ApiModelProperty(value="time_format",position = 27)//时间格式
+	private String timeFormat;
 
 	public ItemType getType() {
 		return type;
@@ -116,11 +103,171 @@ public class ItemModel extends NameEntity {
 		this.activities = activities;
 	}
 
+	public FileReferenceType getFileReferenceType() {
+		return fileReferenceType;
+	}
+
+	public void setFileReferenceType(FileReferenceType fileReferenceType) {
+		this.fileReferenceType = fileReferenceType;
+	}
+
+	public String getFilePath() {
+		return filePath;
+	}
+
+	public void setFilePath(String filePath) {
+		this.filePath = filePath;
+	}
+
+	public ReferenceType getReferenceType() {
+		return referenceType;
+	}
+
+	public void setReferenceType(ReferenceType referenceType) {
+		this.referenceType = referenceType;
+	}
+
+	public String getReferenceTableName() {
+		return referenceTableName;
+	}
+
+	public void setReferenceTableName(String referenceTableName) {
+		this.referenceTableName = referenceTableName;
+	}
+
+	public SelectReferenceType getSelectReferenceType() {
+		return selectReferenceType;
+	}
+
+	public void setSelectReferenceType(SelectReferenceType selectReferenceType) {
+		this.selectReferenceType = selectReferenceType;
+	}
+
+	public Boolean getMultiple() {
+		return multiple;
+	}
+
+	public void setMultiple(Boolean multiple) {
+		this.multiple = multiple;
+	}
+
+	public String getReferenceDictionaryId() {
+		return referenceDictionaryId;
+	}
+
+	public void setReferenceDictionaryId(String referenceDictionaryId) {
+		this.referenceDictionaryId = referenceDictionaryId;
+	}
+
+	public String getReferenceTable() {
+		return referenceTable;
+	}
+
+	public void setReferenceTable(String referenceTable) {
+		this.referenceTable = referenceTable;
+	}
+
+	public String getReferenceValueColumn() {
+		return referenceValueColumn;
+	}
+
+	public void setReferenceValueColumn(String referenceValueColumn) {
+		this.referenceValueColumn = referenceValueColumn;
+	}
+
+	public ControlType getControlType() {
+		return controlType;
+	}
+
+	public void setControlType(ControlType controlType) {
+		this.controlType = controlType;
+	}
+
+	public ListModel getReferenceList() {
+		return referenceList;
+	}
+
+	public void setReferenceList(ListModel referenceList) {
+		this.referenceList = referenceList;
+	}
+
 	public List<Option> getOptions() {
 		return options;
 	}
 
 	public void setOptions(List<Option> options) {
 		this.options = options;
+	}
+
+	public String getLegend() {
+		return legend;
+	}
+
+	public void setLegend(String legend) {
+		this.legend = legend;
+	}
+
+	public Integer getRowCount() {
+		return rowCount;
+	}
+
+	public void setRowCount(Integer rowCount) {
+		this.rowCount = rowCount;
+	}
+
+	public Boolean getShowHead() {
+		return showHead;
+	}
+
+	public void setShowHead(Boolean showHead) {
+		this.showHead = showHead;
+	}
+
+	public String getTableName() {
+		return tableName;
+	}
+
+	public void setTableName(String tableName) {
+		this.tableName = tableName;
+	}
+
+	public Integer getRowNumber() {
+		return rowNumber;
+	}
+
+	public void setRowNumber(Integer rowNumber) {
+		this.rowNumber = rowNumber;
+	}
+
+	public Integer getColumnNumber() {
+		return columnNumber;
+	}
+
+	public void setColumnNumber(Integer columnNumber) {
+		this.columnNumber = columnNumber;
+	}
+
+	public List<RowItemModel> getRowItems() {
+		return rowItems;
+	}
+
+	public void setRowItems(List<RowItemModel> rowItems) {
+		this.rowItems = rowItems;
+	}
+
+	public List<ItemModel> getItems() {
+		return items;
+	}
+
+	public void setItems(List<ItemModel> items) {
+		this.items = items;
+	}
+
+	public String getTimeFormat() {
+		return timeFormat;
+	}
+
+	public void setTimeFormat(String timeFormat) {
+		this.timeFormat = timeFormat;
 	}
 }

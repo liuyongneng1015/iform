@@ -1,5 +1,6 @@
 package tech.ascs.icity.iform.service.impl;
 
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -7,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.time.DateFormatUtils;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -14,6 +16,7 @@ import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -21,21 +24,11 @@ import tech.ascs.icity.iflow.api.model.ProcessInstance;
 import tech.ascs.icity.iflow.client.ProcessInstanceService;
 import tech.ascs.icity.iflow.client.TaskService;
 import tech.ascs.icity.iform.IFormException;
-import tech.ascs.icity.iform.api.model.FormInstance;
-import tech.ascs.icity.iform.api.model.ItemInstance;
-import tech.ascs.icity.iform.api.model.ItemType;
-import tech.ascs.icity.iform.api.model.SearchType;
-import tech.ascs.icity.iform.model.ColumnModelEntity;
-import tech.ascs.icity.iform.model.DataModelEntity;
-import tech.ascs.icity.iform.model.FormModelEntity;
-import tech.ascs.icity.iform.model.ItemActivityInfo;
-import tech.ascs.icity.iform.model.ItemModelEntity;
-import tech.ascs.icity.iform.model.ItemSelectOption;
-import tech.ascs.icity.iform.model.ListModelEntity;
-import tech.ascs.icity.iform.model.ListSearchItem;
-import tech.ascs.icity.iform.model.ListSortItem;
+import tech.ascs.icity.iform.api.model.*;
+import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.FormInstanceServiceEx;
 import tech.ascs.icity.iform.support.IFormSessionFactoryBuilder;
+import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.model.Page;
 
 @Service
@@ -51,6 +44,13 @@ public class FormInstanceServiceExImpl implements FormInstanceServiceEx {
 
 	@Autowired
 	private TaskService taskService;
+
+	private JPAManager<FormModelEntity> formModelEntityJPAManager;
+
+	private JPAManager<DictionaryEntity> dictionaryEntityJPAManager;
+
+	@Autowired
+	private JdbcTemplate jdbcTemplate;
 
 	public FormInstanceServiceExImpl() {
 	}
@@ -82,6 +82,37 @@ public class FormInstanceServiceExImpl implements FormInstanceServiceEx {
 		return result.data(count.intValue(), list);
 	}
 
+	@Override
+	public Page<String> pageByTableName(String tableName, int page, int pagesize) {
+		StringBuilder countSql = new StringBuilder("SELECT COUNT(*) FROM if_").append(tableName);
+		int count = jdbcTemplate.queryForObject(countSql.toString(), Integer.class);
+
+		StringBuilder sql = new StringBuilder("SELECT * FROM if_").append(tableName);
+		String pageSql = buildPageSql(sql.toString(), page, pagesize);
+		List<String> list = jdbcTemplate.queryForList(pageSql,String.class);
+
+		Page<String> result = Page.get(page, pagesize);
+		return result.data(count, list);
+	}
+
+	private String buildPageSql(String sql, int page, int pagesize) {
+		String database = "";
+		try {
+			database = jdbcTemplate.getDataSource().getConnection().getMetaData().getDatabaseProductName().toLowerCase();
+		} catch (SQLException e) {
+			throw new IFormException("获取数据库类型失败", e);
+		}
+		if ("MySQL".equalsIgnoreCase(database)) {
+			return sql + " LIMIT " + (page - 1) * pagesize + "," + pagesize;
+		} else if ("PostgreSQL".equalsIgnoreCase(database)) {
+			return sql + " LIMIT " + pagesize + " OFFSET " + (page - 1) * pagesize;
+		} else if ("Oracle".equalsIgnoreCase(database)) {
+			return new StringBuffer("SELECT * FROM (SELECT t1.*,rownum sn1 FROM (").append(sql).append(") t1) t2 WHERE t2.sn1 BETWEEN ")
+					.append((page - 1) * pagesize + 1).append(" AND ").append(page * pagesize).toString();
+		} else {
+			return sql;
+		}
+	}
 	@Override
 	public FormInstance newFormInstance(FormModelEntity formModel) {
 		FormInstance formInstance = new FormInstance();
@@ -121,7 +152,34 @@ public class FormInstanceServiceExImpl implements FormInstanceServiceEx {
 	public FormInstance getFormInstance(FormModelEntity formModel, String instanceId) {
 		DataModelEntity dataModel = formModel.getDataModels().get(0);
 		Session session = getSession(dataModel);
-		return wrapEntity(formModel, (Map<String, Object>) session.load(dataModel.getTableName(), instanceId));
+		Map<String, Object> map = (Map<String, Object>) session.load(dataModel.getTableName(), instanceId);
+		/*for(String key : map.keySet()){
+			map.put(dataModel.getTableName() + "_" + key, map.get(key));
+		}
+		for(DataModelEntity dataModelEntity : dataModel.getSlaverModels()){
+			 session = getSession(dataModel);
+			Map<String, Object> slaverMap = (Map<String, Object>) session.load(dataModel.getTableName(), instanceId);
+			for(String key : map.keySet()){
+				slaverMap.put(dataModel.getTableName() + "_" + key, map.get(key));
+			}
+			map.putAll(slaverMap);
+		}
+
+		for(DataModelEntity dataModelEntity : dataModel.getChildrenModels()){
+
+		}*/
+
+
+		return wrapEntity(formModel, map);
+	}
+
+	private Map<String, Object> createDataModel(DataModelEntity dataModel, String instanceId){
+		Session session = getSession(dataModel);
+		Map<String, Object> map = (Map<String, Object>) session.load(dataModel.getTableName(), instanceId);
+		for(String key : map.keySet()){
+			map.put(dataModel.getTableName() + "_" + key, map.get(key));
+		}
+		return map;
 	}
 
 	@Override
@@ -204,6 +262,98 @@ public class FormInstanceServiceExImpl implements FormInstanceServiceEx {
 		Session session = getSession(dataModel);
 		Map<String, Object> entity = (Map<String, Object>) session.load(dataModel.getTableName(), instanceId);
 		session.delete(dataModel.getTableName(), entity);
+	}
+
+	@Override
+	public List<TableDataModel> findTableDataFormInstance(String formId, String id) {
+		FormModelEntity formModelEntity = formModelEntityJPAManager.find(formId);
+		List<DataModelEntity> dataModels = formModelEntity.getDataModels();
+		//主表
+		DataModelEntity masterDataModelEntity = null;
+		//从表
+		List<DataModelEntity> slaverDataModels = new ArrayList<DataModelEntity>();
+		for(DataModelEntity dataModelEntity : dataModels){
+			if(dataModelEntity.getModelType() != DataModelType.Slaver){
+				masterDataModelEntity = dataModelEntity;
+			}else{
+				slaverDataModels.add(dataModelEntity);
+			}
+		}
+		List<TableDataModel> tableDataModels = new ArrayList<>();
+		//主表的数据
+		StringBuffer stringBuffer = new StringBuffer("select * from if_");
+		stringBuffer.append(masterDataModelEntity.getTableName());
+		stringBuffer.append(" where id=" + id);
+		Map<String, Object> masterMap = jdbcTemplate.queryForMap(stringBuffer.toString());
+		tableDataModels.addAll(setColumData(masterMap, masterDataModelEntity.getColumns()));
+		//子表数据
+		for(DataModelEntity slaverDataModelEntity : slaverDataModels) {
+			StringBuffer sb = new StringBuffer("select * from if_");
+			sb.append(slaverDataModelEntity.getTableName());
+			sb.append(" where parent_id=" + id);
+			Map<String, Object> slaverDataMap = jdbcTemplate.queryForMap(sb.toString());
+			List<ColumnModelEntity> columns = slaverDataModelEntity.getColumns();
+			tableDataModels.addAll(setColumData(slaverDataMap, columns));
+		}
+		//TODO 如果值为下拉选择我还没处理
+
+		//TODO  还没做关联表关系
+		List<ColumnModelEntity> masterColumnModelEntities = masterDataModelEntity.getColumns();
+		Map<String, List<ItemModelEntity>> tableItemMap = new HashMap<>();
+		List<ItemModelEntity> referenceItmes = new ArrayList<>();
+		List<ItemModelEntity> attribute = new ArrayList<>();
+		for(ItemModelEntity itemModelEntity : formModelEntity.getItems()){
+			if(itemModelEntity.getType() == ItemType.ReferenceList){
+				referenceItmes.add(itemModelEntity);
+			}
+			if(itemModelEntity.getType() == ItemType.ReferenceLabel){
+				attribute.add(itemModelEntity);
+			}
+		}
+
+		for(ItemModelEntity itemModelEntity : referenceItmes){
+			if(((ReferenceItemModelEntity)itemModelEntity).getSelectMode() == SelectMode.Inverse){
+				StringBuffer sb = new StringBuffer("select * from if_");
+				sb.append(((ReferenceItemModelEntity) itemModelEntity).getReferenceTable());
+				sb.append(" where "+((ReferenceItemModelEntity) itemModelEntity).getReferenceValueColumn()+"=" + id);
+				List<Map<String, Object>> referenceDataMap = jdbcTemplate.queryForList(sb.toString());
+				List<String> list = new ArrayList<String>();
+
+				for(Map<String, Object> map : referenceDataMap){
+					if(itemModelEntity.getType() == ItemType.DatePicker){
+						list.add(DateFormatUtils.format((Date) map.get(itemModelEntity.getColumnModel().getColumnName()),((TimeItemModelEntity)itemModelEntity).getTimeFormat()));
+					}else{
+						list.add(String.valueOf(map.get(itemModelEntity.getColumnModel().getColumnName())));
+					}
+				}
+				tableDataModels.add(setTableDataModel(itemModelEntity.getColumnModel(), org.apache.commons.lang3.StringUtils.join(list,",")));
+			}//TODO MANYTOMANY
+		}
+
+
+		return tableDataModels;
+	}
+
+	private List<TableDataModel> setColumData(Map<String, Object> dataMap, List<ColumnModelEntity> columns){
+		List<TableDataModel> list = new ArrayList<>();
+		for(ColumnModelEntity columnModelEntity : columns){
+			ItemModelEntity modelEntity = columnModelEntity.getItemModel();
+			String value = null;
+			if(modelEntity.getType() == ItemType.DatePicker){
+				value = DateFormatUtils.format((Date) dataMap.get(columnModelEntity.getColumnName()),((TimeItemModelEntity)modelEntity).getTimeFormat());
+			}else{
+				value = String.valueOf(dataMap.get(columnModelEntity.getColumnName()));
+			}
+			list.add(setTableDataModel(columnModelEntity, value));
+		}
+		return list;
+	}
+	private TableDataModel setTableDataModel(ColumnModelEntity columnModelEntity, String value){
+		TableDataModel tableDataModel = new TableDataModel();
+		tableDataModel.setColumnId(columnModelEntity.getId());
+		tableDataModel.setItemId(columnModelEntity.getItemModel().getId());
+		tableDataModel.setValue(value);
+		return tableDataModel;
 	}
 
 	protected void updateProcessInfo(FormModelEntity formModel, Map<String, Object> entity, String processInstanceId) {
@@ -312,16 +462,31 @@ public class FormInstanceServiceExImpl implements FormInstanceServiceEx {
 			case DatePicker:
 				Date date = (Date) value;
 				itemInstance.setValue(date);
-				itemInstance.setDisplayValue(dateFormat.format(date));
+				itemInstance.setDisplayValue(DateFormatUtils.format(date,((TimeItemModelEntity)itemModel).getTimeFormat()));
 				break;
 			case Select:
 				itemInstance.setValue(String.valueOf(value));
-				for (ItemSelectOption option : itemModel.getOptions()) {
-					if (option.getValue().equals(String.valueOf(value))) {
-						itemInstance.setDisplayValue(option.getLabel());
-						break;
+				if(((SelectItemModelEntity)itemModel).getSelectReferenceType() == SelectReferenceType.Dictionary){
+					DictionaryEntity dictionary = dictionaryEntityJPAManager.find(((SelectItemModelEntity) itemModel).getReferenceDictionaryId());
+					if(dictionary != null) {
+						List<DictionaryItemEntity> dictionaryItemEntities = dictionary.getDictionaryItems();
+						for(DictionaryItemEntity dictionaryItemEntity : dictionaryItemEntities){
+							if (dictionaryItemEntity.getCode().equals(String.valueOf(value))) {
+								itemInstance.setDisplayValue(dictionaryItemEntity.getDescription());
+								break;
+							}
+						}
+					}
+				}else if(((SelectItemModelEntity)itemModel).getSelectReferenceType() == SelectReferenceType.Fixed) {
+					for (ItemSelectOption option : itemModel.getOptions()) {
+						if (option.getValue().equals(String.valueOf(value))) {
+							itemInstance.setDisplayValue(option.getLabel());
+							break;
+						}
 					}
 				}
+				itemInstance.setValue(value);
+				itemInstance.setDisplayValue(String.valueOf(value));
 				break;
 //			case InputNumber:
 //				break;

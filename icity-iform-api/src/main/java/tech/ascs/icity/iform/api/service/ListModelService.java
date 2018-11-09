@@ -100,4 +100,14 @@ public interface ListModelService {
     @ApiImplicitParam(paramType = "path", name = "id", value = "列表模型ID", required = true, dataType = "String")
 	@DeleteMapping("/{id}")
 	void removeListModel(@PathVariable(name="id") String id);
+
+	/**
+	 * 查询列表模型
+	 *
+	 * @param tableName 数据库表
+	 */
+	@ApiOperation(value = "查询列表模型", position = 6)
+	@ApiImplicitParam(paramType = "query", name = "tableName", value = "数据库表", required = true, dataType = "String")
+	@GetMapping("/find")
+	List<ListModel> findListModelsByTableName(@PathVariable(name="tableName") String tableName);
 }

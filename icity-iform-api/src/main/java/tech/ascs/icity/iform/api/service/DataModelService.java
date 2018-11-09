@@ -40,18 +40,19 @@ public interface DataModelService {
 			@RequestParam(name = "modelType", required = false) String modelType);
 
 	/**
-	 * 获取关联数据模型
+	 * 获取关联表
 	 *
-	 * @param name （可选）模型名称
+	 * @param tableName （可选）当前表名称
 	 * @return
 	 */
-	@ApiOperation(value = "获取关联数据模型", position = 0)
+	@ApiOperation(value = "获取关联表", position = 0)
 	@ApiImplicitParams({
-			@ApiImplicitParam(paramType = "query", name = "name", value = "模型名称", required = true),
-			@ApiImplicitParam(paramType = "query", name = "modelType", value = "模型类型", required = true)
+			@ApiImplicitParam(paramType = "query", name = "tableName", value = "当前表名称", required = false),
+			@ApiImplicitParam(paramType = "query", name = "modelType", value = "模型类型", required = false)
 	})
 	@GetMapping("/list/reference")
-	List<DataModel> listReferenceDataModel(@RequestParam(name = "name", required = true) String name,	@RequestParam(name = "modelType", required = true) String modelType);
+	List<DataModelInfo> listReferenceDataModel(@RequestParam(name = "tableName", required = false) String tableName,
+											   @RequestParam(name = "modelType", required = false) String modelType);
 
 
 	/**
@@ -147,4 +148,15 @@ public interface DataModelService {
     @ApiImplicitParam(paramType = "path", name = "id", value = "数据模型ID", required = true, dataType = "String")
 	@DeleteMapping("/{id}")
 	void removeDataModel(@PathVariable(name="id") String id);
+
+	/**
+	 * 查询字段流程
+	 *
+	 * @param formId 数据模型ID
+	 */
+	@ApiOperation(value = "查询字段", position = 6)
+	@ApiImplicitParam(paramType = "query", name = "formId", value = "表单模型ID", required = true, dataType = "String")
+	@GetMapping("/find")
+	List<DataModel> findDataModelByFormId(@RequestParam(name="formId", required = true) String formId);
+
 }

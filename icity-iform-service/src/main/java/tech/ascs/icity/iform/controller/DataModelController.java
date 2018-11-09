@@ -24,6 +24,7 @@ import tech.ascs.icity.iform.model.DataModelEntity;
 import tech.ascs.icity.iform.model.IndexModelEntity;
 import tech.ascs.icity.iform.service.DataModelService;
 import tech.ascs.icity.jpa.dao.Query;
+import tech.ascs.icity.jpa.tools.DTOTools;
 import tech.ascs.icity.model.IdEntity;
 import tech.ascs.icity.model.Page;
 import tech.ascs.icity.utils.BeanUtils;
@@ -51,7 +52,7 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 				String[] modelTypeArray = modelType.split(",");
 				List<DataModelType> list = new ArrayList<>();
 				for(String str : modelTypeArray){
-					list.add( DataModelType.valueOf(str));
+					list.add(DataModelType.valueOf(str));
 				}
 				query.filterIn("modelType", list);
 			}
@@ -64,22 +65,24 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 	}
 
 	@Override
-	public List<DataModel> listReferenceDataModel(@RequestParam(name = "name", required = true) String name,	@RequestParam(name = "modelType", required = true) String modelType) {
+	public List<DataModelInfo> listReferenceDataModel(@RequestParam(name = "tableName", required = false) String tableName,
+													  @RequestParam(name = "modelType", required = false) String modelType) {
 		try {
 			Query<DataModelEntity, DataModelEntity> query = dataModelService.query();
-			if (StringUtils.hasText(name)) {
-				query.filterNotEqual("name",  name );
+			if (StringUtils.hasText(tableName)) {
+				query.filterNotEqual("tableName",  tableName );
 			}
 			if (StringUtils.hasText(modelType)) {
 				String[] modelTypeArray = modelType.split(",");
 				List<DataModelType> list = new ArrayList<>();
 				for(String str : modelTypeArray){
-					list.add( DataModelType.valueOf(str));
+					list.add(DataModelType.valueOf(str));
 				}
 				query.filterIn("modelType", list);
 			}
+
 			List<DataModelEntity> entities = query.list();
-			return toDTO(entities);
+			return DTOTools.wrapList(entities, DataModelInfo.class);
 		} catch (Exception e) {
 			throw new IFormException("获取数据模型列表失败：" + e.getMessage(), e);
 		}
@@ -164,6 +167,11 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 	}
 
 	@Override
+	public List<DataModel> findDataModelByFormId(String formId) {
+		return dataModelService.findDataModelByFormId(formId);
+	}
+
+	@Override
 	public void syncDataModel(@PathVariable(name="id") String id) {
 		DataModelEntity entity = dataModelService.find(id);
 		if (entity == null) {
@@ -194,7 +202,7 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 		DataModel dataModel = BeanUtils.copy(entity, DataModel.class, new String[] {"columns", "indexes"});
 		dataModel.setSynchronized(entity.getSynchronized());
 
-		if (entity.getColumns().size() > 0) {
+		if (entity.getColumns() != null && !entity.getColumns().isEmpty()) {
 			List<ColumnModel> columns = new ArrayList<ColumnModel>();
 			for (ColumnModelEntity columnEntity : entity.getColumns()) {
 				ColumnModel column = toDTO(columnEntity);
@@ -204,7 +212,7 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 			dataModel.setColumns(columns);
 		}
 
-		if (entity.getIndexes().size() > 0) {
+		if (entity.getIndexes() != null && !entity.getIndexes().isEmpty()) {
 			List<IndexModel> indexes = new ArrayList<IndexModel>();
 			for (IndexModelEntity indexEntity : entity.getIndexes()) {
 				IndexModel index = toDTO(indexEntity);

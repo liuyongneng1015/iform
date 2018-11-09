@@ -1,17 +1,23 @@
 package tech.ascs.icity.iform.service.impl;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.transaction.annotation.Transactional;
 
-import tech.ascs.icity.iform.model.ListFunction;
-import tech.ascs.icity.iform.model.ListModelEntity;
-import tech.ascs.icity.iform.model.ListSearchItem;
-import tech.ascs.icity.iform.model.ListSortItem;
+import tech.ascs.icity.iform.IFormException;
+import tech.ascs.icity.iform.api.model.DataModelInfo;
+import tech.ascs.icity.iform.api.model.ListModel;
+import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.ListModelService;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
+import tech.ascs.icity.utils.BeanUtils;
 
 public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> implements ListModelService {
 
@@ -20,6 +26,9 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 	private JPAManager<ListSearchItem> searchItemManager;
 
 	private JPAManager<ListFunction> listFunctionManager;
+
+	@Autowired
+	private JdbcTemplate jdbcTemplate;
 
 	public ListModelServiceImpl() {
 		super(ListModelEntity.class);
@@ -69,6 +78,27 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 			return doUpdate(old, sortItemIds, searchItemIds, functionIds);
 		} else {
 			return super.save(entity);
+		}
+	}
+
+	@Override
+	public List<ListModel> findListModelsByTableName(String tableName) {
+		try {
+
+			List<String> idlist = jdbcTemplate.query("select l.id from ifm_form_data_bind fd,ifm_list_model l,ifm_data_model d where fd.data_model=d.id and d.table_name ='"+tableName+"' and fd.form_model=l.master_form",
+					new RowMapper<String>() {
+						@Override
+						public String mapRow(ResultSet rs, int rowNum) throws SQLException {
+							return rs.getString("id");
+						}});
+			List<ListModelEntity> listModelEntities = query().filterIn("id",idlist).list();
+			List<ListModel> list = new ArrayList<>();
+			for(ListModelEntity listModelEntity : listModelEntities){
+				list.add(BeanUtils.copy(listModelEntity, ListModel.class, new String[]{"displayItems","searchItems","functions","sortItems","slaverForms","masterForm"}));
+			}
+			return list;
+		} catch (Exception e) {
+			throw new IFormException("获取列表模型列表失败：" + e.getMessage(), e);
 		}
 	}
 

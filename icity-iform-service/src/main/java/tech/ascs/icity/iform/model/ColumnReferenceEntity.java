@@ -2,13 +2,10 @@ package tech.ascs.icity.iform.model;
 
 import java.io.Serializable;
 
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 import tech.ascs.icity.iform.api.model.ReferenceType;
+import tech.ascs.icity.jpa.dao.model.BaseEntity;
 import tech.ascs.icity.jpa.dao.model.JPAEntity;
 
 /**
@@ -16,14 +13,14 @@ import tech.ascs.icity.jpa.dao.model.JPAEntity;
  */
 @Entity
 @Table(name = "ifm_column_reference")
-public class ColumnReferenceEntity extends JPAEntity implements Serializable {
+public class ColumnReferenceEntity extends BaseEntity implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	@ManyToOne//被关联字段
+	@ManyToOne(cascade = {CascadeType.DETACH,CascadeType.MERGE,CascadeType.PERSIST,CascadeType.REFRESH})//被关联字段
 	private ColumnModelEntity fromColumn;
 
-	@ManyToOne//目标
+	@ManyToOne(cascade = {CascadeType.DETACH,CascadeType.MERGE,CascadeType.PERSIST,CascadeType.REFRESH})//目标
 	private ColumnModelEntity toColumn;
 
 	@Enumerated(EnumType.STRING)

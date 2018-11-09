@@ -2,16 +2,11 @@ package tech.ascs.icity.iform.model;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 import tech.ascs.icity.iform.api.model.ColumnType;
 import tech.ascs.icity.jpa.dao.model.BaseEntity;
@@ -29,7 +24,11 @@ public class ColumnModelEntity extends BaseEntity implements Serializable {
 	@JoinColumn(name="data_model_id")
 	private DataModelEntity dataModel;
 
-	@OneToMany(mappedBy = "fromColumn")
+	@OneToOne
+	@JoinColumn(name="item_id")
+	private ItemModelEntity itemModel;
+
+	@OneToMany(cascade={CascadeType.ALL}, mappedBy = "fromColumn")
 	private List<ColumnReferenceEntity> columnReferences = new ArrayList<ColumnReferenceEntity>();
 
 	private String columnName;
@@ -62,7 +61,15 @@ public class ColumnModelEntity extends BaseEntity implements Serializable {
 		this.dataModel = dataModel;
 	}
 
-    public List<ColumnReferenceEntity> getColumnReferences() {
+	public ItemModelEntity getItemModel() {
+		return itemModel;
+	}
+
+	public void setItemModel(ItemModelEntity itemModel) {
+		this.itemModel = itemModel;
+	}
+
+	public List<ColumnReferenceEntity> getColumnReferences() {
 		return columnReferences;
 	}
 

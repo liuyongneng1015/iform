@@ -1,5 +1,7 @@
 package tech.ascs.icity.iform.model;
 
+import tech.ascs.icity.iform.api.model.ReferenceType;
+
 import javax.persistence.*;
 import java.util.List;
 
@@ -20,10 +22,16 @@ public class SubFormItemModelEntity extends ItemModelEntity  {
 	@JoinColumn(name="showHead") // 是否显示表头
 	private Boolean showHead;
 
+	@JoinColumn(name="table_name") // 表名
+	private String tableName;
+
+	@Column(name="reference_type")
+	@Enumerated(EnumType.STRING)
+	private ReferenceType referenceType = ReferenceType.ManyToOne;//子表对主表多对一
+
 	/** 组件子项（由组和字段构成） */
-	@Column(name="parent_id")
 	@OneToMany(cascade={CascadeType.ALL}) // {CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.REMOVE}
-	private List<ItemModelEntity> items;
+	private List<RowItemModelEntity> items;
 
 
 	public String getLegend() {
@@ -50,11 +58,27 @@ public class SubFormItemModelEntity extends ItemModelEntity  {
 		this.showHead = showHead;
 	}
 
-	public List<ItemModelEntity> getItems() {
+	public String getTableName() {
+		return tableName;
+	}
+
+	public void setTableName(String tableName) {
+		this.tableName = tableName;
+	}
+
+	public ReferenceType getReferenceType() {
+		return referenceType;
+	}
+
+	public void setReferenceType(ReferenceType referenceType) {
+		this.referenceType = referenceType;
+	}
+
+	public List<RowItemModelEntity> getItems() {
 		return items;
 	}
 
-	public void setItems(List<ItemModelEntity> items) {
+	public void setItems(List<RowItemModelEntity> items) {
 		this.items = items;
 	}
 }

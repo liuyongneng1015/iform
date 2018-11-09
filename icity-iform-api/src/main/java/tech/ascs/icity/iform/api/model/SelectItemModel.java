@@ -1,38 +1,31 @@
-package tech.ascs.icity.iform.model;
+package tech.ascs.icity.iform.api.model;
 
-import tech.ascs.icity.iform.api.model.SelectReferenceType;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 
-import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
-/**
- * 选择表单控件模型
- */
-@Entity
-@Table(name = "ifm_select_item_model")
-@DiscriminatorValue("selectItemModel")
-public class SelectItemModelEntity extends ItemModelEntity  {
+@ApiModel("选择控件模型ItemModel")
+public class SelectItemModel extends BaseItemModel {
 
-	private static final long serialVersionUID = 1L;
-
-	@Column(name="select_reference_type")
-	@Enumerated(EnumType.STRING)
+	@ApiModelProperty(value="选择关系",position = 11)
 	private SelectReferenceType selectReferenceType;
 
-	@Column(name="multiple")// 是否多选
+	@ApiModelProperty(value="是否多选",position = 12)
 	private Boolean multiple;
 
-	@Column(name="reference_dictionary_id")// 关联字典ID
+	@ApiModelProperty(value="关联字典ID",position = 13)
 	private String referenceDictionaryId;
 
-	@Column(name="reference_table")// 关联表
+	@ApiModelProperty(value="关联表",position = 14)
 	private String referenceTable;
 
-	@Column(name="reference_value_column")// 关联值字段（比如“ID”）
+	@ApiModelProperty(value=" 关联值字段（比如“ID”）",position = 15)
 	private String referenceValueColumn;
 
-	@JoinColumn(name="list_model_id") // 关联显示列表模型
-	@ManyToOne(cascade = CascadeType.ALL)
-	private ListModelEntity listModel;
+	@ApiModelProperty(value = "Select选项列表", position = 8)
+	private List<Option> options = new ArrayList<Option>();
 
 	public SelectReferenceType getSelectReferenceType() {
 		return selectReferenceType;
@@ -74,11 +67,11 @@ public class SelectItemModelEntity extends ItemModelEntity  {
 		this.referenceValueColumn = referenceValueColumn;
 	}
 
-	public ListModelEntity getListModel() {
-		return listModel;
+	public List<Option> getOptions() {
+		return options;
 	}
 
-	public void setListModel(ListModelEntity listModel) {
-		this.listModel = listModel;
+	public void setOptions(List<Option> options) {
+		this.options = options;
 	}
 }

@@ -2,16 +2,11 @@ package tech.ascs.icity.iform.model;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 import tech.ascs.icity.iform.api.model.DataModelType;
 import tech.ascs.icity.jpa.dao.model.BaseEntity;
@@ -38,6 +33,26 @@ public class DataModelEntity extends BaseEntity implements Serializable {
 
 	@OneToMany(mappedBy = "masterModel")
 	private List<DataModelEntity> slaverModels = new ArrayList<DataModelEntity>();
+
+	//多对多映射
+	@ManyToMany
+	@JoinTable(
+			name = "ifm_data_model_bind",
+			joinColumns = @JoinColumn( name="children_model"),
+			inverseJoinColumns = @JoinColumn( name="parents_model")
+	)
+	private Set<DataModelEntity> parentsModel = new HashSet<DataModelEntity>();
+
+	//多对多映射
+	@ManyToMany
+	@JoinTable(
+			name = "ifm_data_model_bind",
+			joinColumns = @JoinColumn( name="parents_model"),
+			inverseJoinColumns = @JoinColumn( name="children_model")
+	)
+	private Set<DataModelEntity> childrenModels = new HashSet<DataModelEntity>();
+
+
 
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "dataModel")
     private List<ColumnModelEntity> columns = new ArrayList<ColumnModelEntity>();
@@ -85,6 +100,22 @@ public class DataModelEntity extends BaseEntity implements Serializable {
 
 	public void setSlaverModels(List<DataModelEntity> slaverModels) {
 		this.slaverModels = slaverModels;
+	}
+
+	public Set<DataModelEntity> getParentsModel() {
+		return parentsModel;
+	}
+
+	public void setParentsModel(Set<DataModelEntity> parentsModel) {
+		this.parentsModel = parentsModel;
+	}
+
+	public Set<DataModelEntity> getChildrenModels() {
+		return childrenModels;
+	}
+
+	public void setChildrenModels(Set<DataModelEntity> childrenModels) {
+		this.childrenModels = childrenModels;
 	}
 
 	public List<ColumnModelEntity> getColumns() {

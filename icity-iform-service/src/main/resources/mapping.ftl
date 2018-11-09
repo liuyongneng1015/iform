@@ -64,4 +64,26 @@
 		</#list>
 	</class>
 	</#list>
+
+	<#list dataModel.childrenModel as slaver>
+	<class entity-name="${slaver.tableName}" table="if_${slaver.tableName}">
+		<comment>${slaver.name}</comment>
+		<id name="id" type="string" length="32">
+			<generator class="uuid" />
+		</id>
+
+   		<set name="childrenModel" table="ifm_data_model_bind"  >
+            <key column="children_model"/>
+            <many-to-many class="parentModel" column="parent_model"/>
+        </set>
+
+		<#list slaver.columns as column>
+		<property name="${column.columnName}" type="${column.dataType?lower_case}">
+			<column name="f${column.columnName}" default="${column.defaultValue!'null'}" not-null="${(column.notNull!false)?c}" length="${column.length!0}" precision="${column.precision!0}" scale=${column.scale!0}">
+				<comment>${column.name}</comment>
+			</column>
+		</property>
+		</#list>
+	</class>
+	</#list>
 </hibernate-mapping>

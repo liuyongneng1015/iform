@@ -108,6 +108,11 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		listModelService.deleteById(id);
 	}
 
+	@Override
+	public List<ListModel> findListModelsByTableName(String tableName) {
+		return listModelService.findListModelsByTableName(tableName);
+	}
+
 	private ListModelEntity wrap(ListModel listModel) throws InstantiationException, IllegalAccessException {
 		ListModelEntity entity = BeanUtils.copy(listModel, ListModelEntity.class, new String[] {"sortItems", "searchItems"});
 

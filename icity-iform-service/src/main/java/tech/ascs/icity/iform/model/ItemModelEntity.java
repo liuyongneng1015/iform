@@ -25,7 +25,7 @@ public class ItemModelEntity extends BaseEntity implements Serializable {
 	@JoinColumn(name="form_id")
 	private FormModelEntity formModel;
 
-	@OneToOne
+	@OneToOne(mappedBy = "itemModel")
 	@JoinColumn(name="column_id")
 	private ColumnModelEntity columnModel;
 
