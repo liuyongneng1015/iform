@@ -29,10 +29,11 @@ import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.FormInstanceServiceEx;
 import tech.ascs.icity.iform.support.IFormSessionFactoryBuilder;
 import tech.ascs.icity.jpa.service.JPAManager;
+import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 import tech.ascs.icity.model.Page;
 
 @Service
-public class FormInstanceServiceExImpl implements FormInstanceServiceEx {
+public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity> implements FormInstanceServiceEx {
 	
 	private static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
@@ -53,6 +54,13 @@ public class FormInstanceServiceExImpl implements FormInstanceServiceEx {
 	private JdbcTemplate jdbcTemplate;
 
 	public FormInstanceServiceExImpl() {
+		super(FormModelEntity.class);
+	}
+	@Override
+	protected void initManager() {
+		super.initManager();
+		formModelEntityJPAManager = getJPAManagerFactory().getJPAManager(FormModelEntity.class);
+		dictionaryEntityJPAManager = getJPAManagerFactory().getJPAManager(DictionaryEntity.class);
 	}
 
 	@SuppressWarnings("unchecked")
