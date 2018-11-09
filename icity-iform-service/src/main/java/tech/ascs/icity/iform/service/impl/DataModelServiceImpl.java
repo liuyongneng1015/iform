@@ -40,6 +40,9 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		super.initManager();
 		columnManager = getJPAManagerFactory().getJPAManager(ColumnModelEntity.class);
 		indexManager = getJPAManagerFactory().getJPAManager(IndexModelEntity.class);
+		formManager = getJPAManagerFactory().getJPAManager(FormModelEntity.class);
+		itemManager = getJPAManagerFactory().getJPAManager(ItemModelEntity.class);
+		columnReferenceManager = getJPAManagerFactory().getJPAManager(ColumnReferenceEntity.class);
 	}
 
 	@Override
@@ -179,18 +182,16 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 					DataModelEntity dataModelEntity = it.next();
 					if (dataModelEntity.getTableName().equals(referenceEntity.getToColumn().getDataModel().getTableName())) {
 						it.remove();
-						referenceEntity.setFromColumn(null);
-						referenceEntity.setToColumn(null);
-						referenceEntity.setReferenceType(null);
 					}
 				}
 				oldReferenceEntityList.remove(referenceEntity);
 				i--;
+				columnReferenceManager.delete(referenceEntity);
 			}
 		}
 		//删除反向关联的关系
 		for(ColumnModelEntity toEntity : toColumnModelEntityList){
-			List<ColumnReferenceEntity> toReferenceEntities = new ArrayList<>(toEntity.getColumnReferences());
+			List<ColumnReferenceEntity> toReferenceEntities = toEntity.getColumnReferences();
 			//Iterator<ColumnReferenceEntity> toReference = toReferenceEntities.iterator();
 			for(int i = 0; i < toReferenceEntities.size(); i++){
 				ColumnReferenceEntity reference = toReferenceEntities.get(i);
@@ -204,11 +205,9 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 							iterator.remove();
 						}
 					}
-					reference.setFromColumn(null);
-					reference.setToColumn(null);
-					reference.setReferenceType(null);
 					toReferenceEntities.remove(reference);
 					i--;
+					columnReferenceManager.delete(reference);
 				}
 			}
 		}
