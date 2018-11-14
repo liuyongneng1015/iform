@@ -114,10 +114,10 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				}
 				if(itemModelEntity.getColumnModel() != null) {
 					ColumnModelEntity columnModelEntity = itemModelEntity.getColumnModel();
-					columnModelEntity.setItemModel(null);
-					itemModelEntity.setColumnModel(null);
-					//columnModelManager.save(columnModelEntity);
-					itemManager.save(itemModelEntity);
+					//columnModelEntity.setItemModel(null);
+					//itemModelEntity.setColumnModel(null);
+					columnModelManager.delete(columnModelEntity);
+					//itemManager.save(itemModelEntity);
 				}
 				System.out.println(itemModelEntity.getId());
 				itemManager.deleteById(itemModelEntity.getId());
