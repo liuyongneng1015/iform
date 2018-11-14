@@ -96,7 +96,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			deleteItems(oldItems.keySet());
 
 			//设置关联关系
-			setReferenceItems(allItems);
+			setReferenceItems(oldItems.keySet(), allItems);
 
 			return doUpdate(old, dataModelUpdateNeeded, itemActivityIds, itemSelectOptionIds);
 		} else {
@@ -113,9 +113,14 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 					deleteOldColumnReferenceEntity(itemModelEntity.getColumnModel());
 				}
 				if(itemModelEntity.getColumnModel() != null) {
-					columnModelManager.delete(itemModelEntity.getColumnModel());
+					ColumnModelEntity columnModelEntity = itemModelEntity.getColumnModel();
+					columnModelEntity.setItemModel(null);
+					itemModelEntity.setColumnModel(null);
+					//columnModelManager.save(columnModelEntity);
+					itemManager.save(itemModelEntity);
 				}
-				itemManager.delete(itemModelEntity);
+				System.out.println(itemModelEntity.getId());
+				itemManager.deleteById(itemModelEntity.getId());
 			}
 		}
 	}
@@ -252,8 +257,11 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 	}
 
 	//处理item关联关系
-	private void setReferenceItems(List<ItemModelEntity> allItems) {
+	private void setReferenceItems(Collection<String> deletedItemIds, List<ItemModelEntity> allItems) {
 		for(ItemModelEntity entity : allItems) {
+			if(deletedItemIds.contains(entity)){
+				return;
+			}
 			if (entity instanceof ReferenceItemModelEntity && ((ReferenceItemModelEntity) entity).getSelectMode() != null) {
 				//主表行
 				ColumnModelEntity columnEntity = entity.getColumnModel();

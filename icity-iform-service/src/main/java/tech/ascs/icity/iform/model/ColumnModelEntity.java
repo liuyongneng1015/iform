@@ -24,7 +24,7 @@ public class ColumnModelEntity extends BaseEntity implements Serializable {
 	@JoinColumn(name="data_model_id")
 	private DataModelEntity dataModel;
 
-	@OneToOne(cascade = {CascadeType.DETACH, CascadeType.PERSIST, CascadeType.REFRESH })
+	@OneToOne(cascade = CascadeType.ALL)
 	@JoinColumn(name="item_id")
 	private ItemModelEntity itemModel;
 

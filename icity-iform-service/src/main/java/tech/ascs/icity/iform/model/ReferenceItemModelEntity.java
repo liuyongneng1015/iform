@@ -35,7 +35,7 @@ public class ReferenceItemModelEntity extends ItemModelEntity  {
 	private ControlType controlType;
 
 	@JoinColumn(name="list_model_id") // 关联显示列表模型
-	@ManyToOne(cascade = CascadeType.ALL)
+	@ManyToOne(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH })
 	private ListModelEntity referenceList;
 
 	public ReferenceType getReferenceType() {
