@@ -20,22 +20,25 @@ public class DataModelEntity extends BaseEntity implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
+	@Column(name = "table_name")
 	private String tableName;
 
+	@Column(name = "description")
 	private String description;
 
+	@JoinColumn(name="model_type")
 	@Enumerated(EnumType.STRING)
 	private DataModelType modelType;
 
-	@ManyToOne
+	@ManyToOne(cascade = CascadeType.ALL)
 	@JoinColumn(name = "master_model")
 	private DataModelEntity masterModel;
 
-	@OneToMany(mappedBy = "masterModel")
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "masterModel")
 	private List<DataModelEntity> slaverModels = new ArrayList<DataModelEntity>();
 
 	//多对多映射
-	@ManyToMany
+	@ManyToMany(cascade = CascadeType.ALL)
 	@JoinTable(
 			name = "ifm_data_model_bind",
 			joinColumns = @JoinColumn( name="children_model"),
@@ -44,7 +47,7 @@ public class DataModelEntity extends BaseEntity implements Serializable {
 	private Set<DataModelEntity> parentsModel = new HashSet<DataModelEntity>();
 
 	//多对多映射
-	@ManyToMany
+	@ManyToMany(cascade = CascadeType.ALL)
 	@JoinTable(
 			name = "ifm_data_model_bind",
 			joinColumns = @JoinColumn( name="parents_model"),
@@ -60,6 +63,7 @@ public class DataModelEntity extends BaseEntity implements Serializable {
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "dataModel")
     private List<IndexModelEntity> indexes = new ArrayList<IndexModelEntity>();
 
+	@Column(name="synchronized_")
 	private Boolean synchronized_;
 
 	public String getTableName() {

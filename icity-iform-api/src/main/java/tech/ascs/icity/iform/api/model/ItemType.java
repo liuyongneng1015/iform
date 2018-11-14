@@ -32,7 +32,9 @@ public enum ItemType {
 	ReferenceLabel("ReferenceLabel"),
 	/** 子表 */
 	SubForm("SubForm"),
-	/** 自定义（组合控件） */
+	/** 子表自定义（组合控件） */
+	RowItem("RowItem"),
+	/** 主表自定义（组合控件） */
 	Row("Row");
 	private String value;
 	private ItemType(String value) {

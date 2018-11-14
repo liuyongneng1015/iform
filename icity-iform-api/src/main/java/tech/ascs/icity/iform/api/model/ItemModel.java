@@ -34,8 +34,10 @@ public class ItemModel extends NameEntity {
 	private String referenceTableName;
 	@ApiModelProperty(value="选择关系",position = 11)
 	private SelectReferenceType selectReferenceType;
-	@ApiModelProperty(value="是否多选",position = 12)
+	@ApiModelProperty(value="是否多选",position = 11)
 	private Boolean multiple;
+	@ApiModelProperty(value="单选、多选、反选",position = 12)
+	private SelectMode selectMode;
 	@ApiModelProperty(value = " 关联字典ID", position = 13)
 	private String referenceDictionaryId;
 	@ApiModelProperty(value = " 关联表", position = 14)
@@ -58,14 +60,12 @@ public class ItemModel extends NameEntity {
 	private Boolean showHead;
 	@ApiModelProperty(value="表名",position = 22)
 	private String tableName;
+
+	//subformrow/row
 	@ApiModelProperty(value="当前行数",position = 23)
 	private Integer rowNumber;
-	@ApiModelProperty(value="当前列数",position = 24)
-	private Integer columnNumber;
-	@ApiModelProperty(value="子表行级模型",position = 25)
-	private List<RowItemModel> rowItems = new ArrayList<RowItemModel>();
 	@ApiModelProperty(value="组件子项（由组和字段构成） ",position = 26)
-	private List<ItemModel> items = new ArrayList<ItemModel>();;
+	private List<ItemModel> items = new ArrayList<ItemModel>();
 
 	//TimeItemModel
 	@ApiModelProperty(value="time_format",position = 27)//时间格式
@@ -149,6 +149,14 @@ public class ItemModel extends NameEntity {
 
 	public void setMultiple(Boolean multiple) {
 		this.multiple = multiple;
+	}
+
+	public SelectMode getSelectMode() {
+		return selectMode;
+	}
+
+	public void setSelectMode(SelectMode selectMode) {
+		this.selectMode = selectMode;
 	}
 
 	public String getReferenceDictionaryId() {
@@ -237,22 +245,6 @@ public class ItemModel extends NameEntity {
 
 	public void setRowNumber(Integer rowNumber) {
 		this.rowNumber = rowNumber;
-	}
-
-	public Integer getColumnNumber() {
-		return columnNumber;
-	}
-
-	public void setColumnNumber(Integer columnNumber) {
-		this.columnNumber = columnNumber;
-	}
-
-	public List<RowItemModel> getRowItems() {
-		return rowItems;
-	}
-
-	public void setRowItems(List<RowItemModel> rowItems) {
-		this.rowItems = rowItems;
 	}
 
 	public List<ItemModel> getItems() {

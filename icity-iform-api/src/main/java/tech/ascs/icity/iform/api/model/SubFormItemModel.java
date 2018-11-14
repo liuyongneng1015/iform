@@ -18,7 +18,7 @@ public class SubFormItemModel extends BaseItemModel {
 	@ApiModelProperty(value="表名",position = 14)
 	private String tableName;
 	@ApiModelProperty(value="组件子项（由组和字段构成） ",position = 15)
-	private List<RowItemModel> items = new ArrayList<RowItemModel>();
+	private List<SubFormRowItemModel> items = new ArrayList<SubFormRowItemModel>();
 
 	public String getLegend() {
 		return legend;
@@ -52,11 +52,11 @@ public class SubFormItemModel extends BaseItemModel {
 		this.tableName = tableName;
 	}
 
-	public List<RowItemModel> getItems() {
+	public List<SubFormRowItemModel> getItems() {
 		return items;
 	}
 
-	public void setItems(List<RowItemModel> items) {
+	public void setItems(List<SubFormRowItemModel> items) {
 		this.items = items;
 	}
 

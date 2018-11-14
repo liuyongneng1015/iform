@@ -2,10 +2,7 @@ package tech.ascs.icity.iform.model;
 
 import java.io.Serializable;
 
-import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 import tech.ascs.icity.jpa.dao.model.JPAEntity;
 
@@ -18,16 +15,20 @@ public class ItemActivityInfo extends JPAEntity implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	@ManyToOne
+	@ManyToOne(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH })
 	@JoinColumn(name="item_id")
 	private ItemModelEntity itemModel;
 
+	@Column(name="activity_id")
 	private String activityId;
 
+	@Column(name="activity_name")
 	private String activityName;
 
+	@Column(name="visible")
 	private boolean visible = true;
 
+	@Column(name="readonly")
 	private boolean readonly = false;
 
 	public ItemModelEntity getItemModel() {

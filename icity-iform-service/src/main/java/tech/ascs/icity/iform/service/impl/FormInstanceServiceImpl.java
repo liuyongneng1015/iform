@@ -25,7 +25,6 @@ import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.FormInstanceService;
 import tech.ascs.icity.jpa.service.JPAManager;
-import tech.ascs.icity.jpa.service.JPAService;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 import tech.ascs.icity.model.Page;
 
@@ -135,7 +134,8 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 	@Override
 	protected void initManager() {
 		super.initManager();
-//		itemManager = getJPAManagerFactory().getJPAManager(ItemModelEntity.class);
+		itemModelEntityJPAManager = getJPAManagerFactory().getJPAManager(ItemModelEntity.class);
+		dataModelEntityJPAManager = getJPAManagerFactory().getJPAManager(DataModelEntity.class);
 	}
 
 	@Override
@@ -313,9 +313,9 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 		//子表
 		if(dataModelEntity.getModelType() == DataModelType.Slaver){
 			SubFormItemModelEntity subFormItemModelEntity = (SubFormItemModelEntity) itemModelEntityJPAManager.findUniqueByProperty("tableName", tableName);
-			List<RowItemModelEntity> rowItems = subFormItemModelEntity.getItems();
+			List<SubFormRowItemModelEntity> rowItems = subFormItemModelEntity.getItems();
 			for(Map<String, Object> map : list) {
-				for(RowItemModelEntity entity : rowItems){
+				for(SubFormRowItemModelEntity entity : rowItems){
 					Map<String, Object> mapStr =new HashMap<>();
 					List<ItemModelEntity> itemModelEntities = entity.getItems();
 					for(ItemModelEntity itemModelEntity: itemModelEntities){

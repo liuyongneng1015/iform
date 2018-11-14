@@ -20,7 +20,7 @@ public class ReferenceItemModelEntity extends ItemModelEntity  {
 	@Enumerated(EnumType.STRING)
 	private ReferenceType referenceType;
 
-	@Column(name="select_mode")//选择方式
+	@JoinColumn(name="select_mode")//选择方式
 	@Enumerated(EnumType.STRING)
 	private SelectMode selectMode;
 
@@ -36,7 +36,7 @@ public class ReferenceItemModelEntity extends ItemModelEntity  {
 
 	@JoinColumn(name="list_model_id") // 关联显示列表模型
 	@ManyToOne(cascade = CascadeType.ALL)
-	private ListModelEntity listModel;
+	private ListModelEntity referenceList;
 
 	public ReferenceType getReferenceType() {
 		return referenceType;
@@ -78,11 +78,11 @@ public class ReferenceItemModelEntity extends ItemModelEntity  {
 		this.controlType = controlType;
 	}
 
-	public ListModelEntity getListModel() {
-		return listModel;
+	public ListModelEntity getReferenceList() {
+		return referenceList;
 	}
 
-	public void setListModel(ListModelEntity listModel) {
-		this.listModel = listModel;
+	public void setReferenceList(ListModelEntity referenceList) {
+		this.referenceList = referenceList;
 	}
 }

@@ -3,6 +3,7 @@ package tech.ascs.icity.iform.model;
 import tech.ascs.icity.iform.api.model.ReferenceType;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -30,8 +31,8 @@ public class SubFormItemModelEntity extends ItemModelEntity  {
 	private ReferenceType referenceType = ReferenceType.ManyToOne;//子表对主表多对一
 
 	/** 组件子项（由组和字段构成） */
-	@OneToMany(cascade={CascadeType.ALL}) // {CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.REMOVE}
-	private List<RowItemModelEntity> items;
+	@OneToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH },mappedBy = "parentItem") // {CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.REMOVE}
+	private List<SubFormRowItemModelEntity> items = new ArrayList<SubFormRowItemModelEntity>();
 
 
 	public String getLegend() {
@@ -74,11 +75,11 @@ public class SubFormItemModelEntity extends ItemModelEntity  {
 		this.referenceType = referenceType;
 	}
 
-	public List<RowItemModelEntity> getItems() {
+	public List<SubFormRowItemModelEntity> getItems() {
 		return items;
 	}
 
-	public void setItems(List<RowItemModelEntity> items) {
+	public void setItems(List<SubFormRowItemModelEntity> items) {
 		this.items = items;
 	}
 }

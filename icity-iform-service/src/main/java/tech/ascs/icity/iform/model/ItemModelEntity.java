@@ -6,6 +6,8 @@ import java.util.List;
 
 import javax.persistence.*;
 
+import org.hibernate.annotations.DiscriminatorOptions;
+import org.hibernate.annotations.GenericGenerator;
 import tech.ascs.icity.iform.api.model.ItemType;
 import tech.ascs.icity.jpa.dao.model.BaseEntity;
 
@@ -15,17 +17,18 @@ import tech.ascs.icity.jpa.dao.model.BaseEntity;
 @Entity
 @Table(name = "ifm_item_model")
 @Inheritance(strategy = InheritanceType.JOINED)
-@DiscriminatorColumn(name="type", discriminatorType = DiscriminatorType.STRING)
-@DiscriminatorValue("itemModel")
-public class ItemModelEntity extends BaseEntity implements Serializable {
+@DiscriminatorColumn(name="discriminator", discriminatorType = DiscriminatorType.STRING)
+@DiscriminatorOptions(force=true)
+@DiscriminatorValue(value = "Input")
+public class ItemModelEntity extends  BaseEntity implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	@ManyToOne
+	@ManyToOne(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH })
 	@JoinColumn(name="form_id")
 	private FormModelEntity formModel;
 
-	@OneToOne(mappedBy = "itemModel")
+	@OneToOne(cascade = CascadeType.ALL, mappedBy = "itemModel")
 	@JoinColumn(name="column_id")
 	private ColumnModelEntity columnModel;
 

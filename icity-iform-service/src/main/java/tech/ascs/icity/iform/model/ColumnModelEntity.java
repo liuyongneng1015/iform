@@ -20,24 +20,28 @@ public class ColumnModelEntity extends BaseEntity implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	@ManyToOne
+	@ManyToOne(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH })
 	@JoinColumn(name="data_model_id")
 	private DataModelEntity dataModel;
 
-	@OneToOne
+	@OneToOne(cascade = {CascadeType.DETACH, CascadeType.PERSIST, CascadeType.REFRESH })
 	@JoinColumn(name="item_id")
 	private ItemModelEntity itemModel;
 
-	@OneToMany(cascade={CascadeType.ALL}, mappedBy = "fromColumn")
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "fromColumn")
 	private List<ColumnReferenceEntity> columnReferences = new ArrayList<ColumnReferenceEntity>();
 
+	@Column(name="column_name")
 	private String columnName;
 
+	@Column(name="description")
 	private String description;
 
+	@JoinColumn(name="data_type")
 	@Enumerated(EnumType.STRING)
     private ColumnType dataType;
 
+	@Column(name="length")
 	private Integer length = 0;
 
 	@Column(name = "precision_")
@@ -46,11 +50,13 @@ public class ColumnModelEntity extends BaseEntity implements Serializable {
 	@Column(name = "scale_")
     private Integer scale = 0;
 
+	@Column(name="not_null")
 	private Boolean notNull = false;
 
 	@Column(name = "is_key")
 	private Boolean key = false;
 
+	@Column(name="default_value")
 	private String defaultValue;
 
 	public DataModelEntity getDataModel() {

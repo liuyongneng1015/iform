@@ -5,8 +5,8 @@ import io.swagger.annotations.ApiModelProperty;
 
 import java.util.List;
 
-@ApiModel("表单组合控件模型ItemModel")
-public class RowItemModel extends BaseItemModel {
+@ApiModel("子表单行级控件模型ItemModel")
+public class SubFormRowItemModel extends BaseItemModel {
 
 	@ApiModelProperty(value=" 控件行数",position = 12)
 	private Integer rowNumber;
