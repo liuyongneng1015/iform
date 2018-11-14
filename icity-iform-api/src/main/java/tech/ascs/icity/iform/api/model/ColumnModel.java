@@ -48,6 +48,8 @@ public class ColumnModel extends NameEntity {
 	@ApiModelProperty(value = "关联字段模型", position = 11)
 	private List<ReferenceModel> referenceModelList = new ArrayList<ReferenceModel>();
 
+	@ApiModelProperty(value = "关联表单模型", position = 12)
+	private ItemModel itemModel;
 
 	public DataModel getDataModel() {
 		return dataModel;
@@ -135,5 +137,13 @@ public class ColumnModel extends NameEntity {
 
 	public void setReferenceModelList(List<ReferenceModel> referenceModelList) {
 		this.referenceModelList = referenceModelList;
+	}
+
+	public ItemModel getItemModel() {
+		return itemModel;
+	}
+
+	public void setItemModel(ItemModel itemModel) {
+		this.itemModel = itemModel;
 	}
 }

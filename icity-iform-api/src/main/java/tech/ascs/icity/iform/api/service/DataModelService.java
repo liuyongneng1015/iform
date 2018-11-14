@@ -155,8 +155,8 @@ public interface DataModelService {
 	 * @param formId 数据模型ID
 	 */
 	@ApiOperation(value = "查询字段", position = 6)
-	@ApiImplicitParam(paramType = "query", name = "formId", value = "表单模型ID", required = true, dataType = "String")
-	@GetMapping("/find")
-	List<DataModel> findDataModelByFormId(@RequestParam(name="formId", required = true) String formId);
+	@ApiImplicitParam(paramType = "path", name = "formId", value = "表单模型ID", required = true, dataType = "String")
+	@GetMapping("/find/{formId}")
+	List<DataModel> findDataModelByFormId(@PathVariable(name="formId") String formId);
 
 }

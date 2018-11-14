@@ -1,39 +1,45 @@
 package tech.ascs.icity.iform.api.model;
 
+import java.io.Serializable;
+
 /**
  * 数据字段类型
  * 
  * @author Jackie
  *
  */
-public enum ColumnType {
+public enum ColumnType implements Serializable {
 
-	Integer("整数（32位）"),
+	Integer("Integer"),//整数（32位）
 
-	Long("整数（64位）"),
+	Long("Long"),//整数（64位）
 
-	Float("浮点数（32位）"),
+	Float("Float"),//浮点数（32位）
 
-	Double("浮点数（64位）"),
+	Double("Double"),//浮点数（64位）
 
-	String("字符串"),
+	String("String"),//字符串
 
-	Date("日期"),
+	Date("Date"),//日期
 
-	Time("时间"),
+	Time("Time"),//时间
 
-	Timestamp("时间戳"),
+	Timestamp("Timestamp"),//时间戳
 
-	Boolean("布尔类型");
+	Boolean("Boolean");//布尔类型
 
-	private String value;
+	private String value;//
 
 	private ColumnType(String value) {
 		this.value = value;
 	}
 
-	public String value() {
+	public String getValue() {
 		return value;
+	}
+
+	public void setValue(String value) {
+		this.value = value;
 	}
 //
 //	@Override

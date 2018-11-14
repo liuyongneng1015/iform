@@ -159,7 +159,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			throw new IFormException(404, "表单模型【" + id + "】不存在");
 		}
 		try {
-			//TODO 需要处理数据返回给pc端
 			return toPCDTO(entity);
 		} catch (Exception e) {
 			throw new IFormException("获取表单模型列表失败：" + e.getMessage(), e);
@@ -247,8 +246,11 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 		//TODO 根据类型映射对应的item
 		ItemModelEntity entity = getItemModelEntity(itemModel);
+		if(itemModel.getId() != null){
+			entity = itemModelService.find(itemModel.getId());
+		}
 		//需要保持column
-		entity = BeanUtils.copy(itemModel, entity.getClass(), new String[] {"dataModel","activities"});
+		BeanUtils.copyProperties(itemModel, entity, new String[] {"dataModel","activities","options"});
 
 		if(entity instanceof ReferenceItemModelEntity){
 			((ReferenceItemModelEntity)entity).setReferenceList(setItemModelByListModel(entity));
@@ -287,27 +289,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				option.setItemModel(entity);
 			}
 		}
-		//TODO 关联对象
-		/*ItemModelEntity itemModelEntity = itemModelService.save(entity);
-		if(entity instanceof ReferenceItemModelEntity || entity instanceof SubFormItemModelEntity){
-			ColumnModelEntity addToEntity = itemModelEntity.getColumnModel();
-			ColumnModelEntity columnEntity = columnModelService.findUniqueByProperty("columnName", ((ReferenceItemModelEntity) entity).getReferenceValueColumn());
-
-			List<ColumnReferenceEntity> oldReferenceEntityList = addToEntity.getColumnReferences();
-			//正向关联
-			ColumnReferenceEntity addFromReferenceEntity = new ColumnReferenceEntity();
-			addFromReferenceEntity.setFromColumn(addToEntity);
-			addFromReferenceEntity.setToColumn(columnEntity);
-			addFromReferenceEntity.setReferenceType(((ReferenceItemModelEntity) entity).getReferenceType());
-			oldReferenceEntityList.add(addFromReferenceEntity);
-
-			//反向关联
-			ColumnReferenceEntity addToReferenceEntity = new ColumnReferenceEntity();
-			addToReferenceEntity.setFromColumn(columnEntity);
-			addToReferenceEntity.setToColumn(addToEntity);
-			addToReferenceEntity.setReferenceType(ReferenceModel.getToReferenceType(addFromReferenceEntity.getReferenceType()));
-			addToEntity.getColumnReferences().add(addToReferenceEntity);
-		}*/
 
 		return entity;
 	}
@@ -400,17 +381,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	}
 
 	private PCFormModel toPCDTO(FormModelEntity entity) throws InstantiationException, IllegalAccessException {
-		PCFormModel formModel = BeanUtils.copy(entity, PCFormModel.class, new String[] {"dataModels"});
-		DataModelEntity dataModelEntity = entity.getDataModels().get(0);
-		List<DataModelEntity> list = new ArrayList<>();
-		list.add(dataModelEntity);
-		list.addAll(dataModelEntity.getSlaverModels());
-		list.addAll(dataModelEntity.getChildrenModels());
-		 List<DataModel> dataModels = new ArrayList<DataModel>();
-		for(DataModelEntity modelEntity : list){
-			dataModels.add(BeanUtils.copy(modelEntity, DataModel.class, new String[] {"slaverModels","masterModel","parentsModel","childrenModels","indexes"}));
-		}
-		formModel.setDataModels(dataModels);
+		PCFormModel formModel = BeanUtils.copy(entity, PCFormModel.class, new String[] {"dataModels","items"});
+		List<DataModel> dataModelList = dataModelService.findDataModelByFormId(formModel.getId());
+		formModel.setDataModels(dataModelList);
 		return formModel;
 	}
 
@@ -458,7 +431,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 	private ItemModel toDTO(ItemModelEntity entity) throws InstantiationException, IllegalAccessException {
 		//TODO 根据模型找到对应的参数
-		ItemModel itemModel = BeanUtils.copy(entity.getClass(), ItemModel.class, new String[] {"activities", "options"});
+		ItemModel itemModel = BeanUtils.copy(entity, ItemModel.class, new String[] {});
 
 		if (entity.getActivities().size() > 0) {
 			List<ActivityInfo> activities = new ArrayList<ActivityInfo>();

@@ -133,6 +133,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		List<ItemInstance> items = new ArrayList<ItemInstance>();
 		for (ItemModelEntity itemModel : formModel.getItems()) {
 			ColumnModelEntity column = itemModel.getColumnModel();
+			if(column == null){
+				continue;
+			}
 			ItemInstance itemInstance = new ItemInstance();
 			itemInstance.setId(itemModel.getId());
 			if (column.getKey()) {

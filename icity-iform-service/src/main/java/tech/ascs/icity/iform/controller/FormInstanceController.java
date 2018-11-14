@@ -67,7 +67,6 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		if (formModel == null) {
 			throw new IFormException(404, "表单模型【" + formId + "】不存在");
 		}
-
 		return formInstanceService.newFormInstance(formModel);
 	}
 

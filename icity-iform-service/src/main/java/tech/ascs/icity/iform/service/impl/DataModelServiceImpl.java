@@ -182,7 +182,7 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 	private void verifyTableName(DataModelEntity old, String tableName){
 		if(StringUtils.isNoneBlank(tableName)) {
 			DataModelEntity dataModelEntity = findUniqueByProperty("tableName", tableName);
-			if(dataModelEntity != null && StringUtils.equals(dataModelEntity.getId(), old.getId())){
+			if(dataModelEntity != null && !StringUtils.equals(dataModelEntity.getId(), old.getId())){
 				throw new IFormException("表名重复了");
 			}
 		}
@@ -324,12 +324,25 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		List<DataModel> dataModelList = new ArrayList<>();
 		DataModelEntity dataModelEntity = formModelEntity.getDataModels().get(0);
 		List<DataModelEntity> list = new ArrayList<>();
+		list.add(dataModelEntity.getMasterModel());
 		list.add(dataModelEntity);
 		list.addAll(dataModelEntity.getSlaverModels());
 		list.addAll(dataModelEntity.getChildrenModels());
 		for(DataModelEntity modelEntity : list){
 			try {
-				dataModelList.add(BeanUtils.copy(modelEntity, DataModel.class, new String[] {"slaverModels","masterModel","parentsModel","childrenModels","indexes"}));
+				DataModel dataModel = BeanUtils.copy(modelEntity, DataModel.class, new String[] {"columns","slaverModels","masterModel","parentsModel","childrenModels","indexes"});
+				List<ColumnModelEntity> columnModelEntities = modelEntity.getColumns();
+				List<ColumnModel> columnModels = new ArrayList<>();
+				for(ColumnModelEntity columnModelEntity : columnModelEntities){
+					ColumnModel columnModel = BeanUtils.copy(columnModelEntity, ColumnModel.class, new String[] {"dataModel","itemModel","columnReferences"});
+					if(columnModelEntity.getItemModel() != null){
+						ItemModel itemModel = BeanUtils.copy(columnModelEntity.getItemModel(), ItemModel.class, new String[] {"formModel","columnModel","activities","options"});
+						columnModel.setItemModel(itemModel);
+					}
+					columnModels.add(columnModel);
+				}
+				dataModel.setColumns(columnModels);
+				dataModelList.add(dataModel);
 			} catch (Exception e) {
 				throw new IFormException("同步数据模型【" + dataModelEntity.getName() + "】转换失败：" + e.getMessage(), e);
 			}

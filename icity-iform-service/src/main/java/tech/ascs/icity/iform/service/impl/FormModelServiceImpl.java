@@ -153,7 +153,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		//设置行模型
 		if (!item.isNew() && item.getColumnModel() != null && item.getColumnModel().getId() != null) {
 			ColumnModelEntity columnModelEntity = columnModelManager.get(item.getColumnModel().getId());
-			BeanUtils.copyProperties(item.getColumnModel(), columnModelEntity.getClass(), new String[]{"dataModel", "itemModel", "columnReferences"});
+			BeanUtils.copyProperties(item.getColumnModel(), columnModelEntity, new String[]{"dataModel", "itemModel", "columnReferences"});
 			item.setColumnModel(columnModelEntity);
 		}
 		//设置数据模型

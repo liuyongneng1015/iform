@@ -167,7 +167,7 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 	}
 
 	@Override
-	public List<DataModel> findDataModelByFormId(String formId) {
+	public List<DataModel> findDataModelByFormId(@PathVariable(name="formId") String formId) {
 		return dataModelService.findDataModelByFormId(formId);
 	}
 
