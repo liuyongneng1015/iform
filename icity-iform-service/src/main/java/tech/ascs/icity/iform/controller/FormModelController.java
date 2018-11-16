@@ -2,7 +2,6 @@ package tech.ascs.icity.iform.controller;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,36 +87,46 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 	@Override
 	public IdEntity saveFormModel(@RequestBody FormModel formModel) {
-		FormModelEntity entity = new FormModelEntity();
+		FormModelEntity oldEntity = new FormModelEntity();
 		if (StringUtils.hasText(formModel.getId())) {
-			entity = formModelService.find(formModel.getId());
+			oldEntity = formModelService.find(formModel.getId());
 		}
-		BeanUtils.copyProperties(formModel, entity, new String[] {"items"});
 		if (StringUtils.hasText(formModel.getId())) {
-			saveDataModel(entity, entity);
+			saveDataModel(formModel, oldEntity);
 		}
-		return new IdEntity(formModelService.save(entity).getId());
+
+		BeanUtils.copyProperties(formModel, oldEntity, new String[] {"indexes","dataModels"});
+
+		return new IdEntity(formModelService.save(oldEntity).getId());
 	}
 
 	//删除或者保存旧的数据建模
-	private void saveDataModel(FormModelEntity newEntity, FormModelEntity oldEntity){
-		List<DataModelEntity> dataModelEntities = oldEntity.getDataModels();
-		if(dataModelEntities == null || dataModelEntities.isEmpty()){
-			return;
-		}
+	private void saveDataModel(FormModel formModel, FormModelEntity oldEntity){
+		//新的
 		List<String> newDataModelIds = new ArrayList<>();
-		if(newEntity.getDataModels() != null && !newEntity.getDataModels().isEmpty()) {
-			newDataModelIds = newEntity.getDataModels().parallelStream().
-					map(DataModelEntity::getId).
-					collect(Collectors.toList());
+		List<DataModelEntity> newAddDataModel = new ArrayList<>();
+		if(formModel.getDataModels() != null ) {
+			for(DataModel dataModel : formModel.getDataModels()) {
+				if(!dataModel.isNew()) {
+					newDataModelIds.add(dataModel.getId());
+					newAddDataModel.add(dataModelService.find(dataModel.getId()));
+				}else {
+					DataModelEntity dataModelEntity = new DataModelEntity();
+					BeanUtils.copyProperties(dataModel, DataModelEntity.class,new String[]{});
+					dataModelService.save(dataModelEntity);
+					newAddDataModel.add(dataModelEntity);
+				}
+			}
 		}
-		List<String> oldDataModelIds = dataModelEntities.parallelStream().
-				map(DataModelEntity::getId).
-				collect(Collectors.toList());
-		oldDataModelIds.removeAll(newDataModelIds);
-		if(!oldDataModelIds.isEmpty()){
-			formModelService.deleteById(oldDataModelIds.toArray(new String[oldDataModelIds.size()]));
+
+		List<DataModelEntity> oldDataModelEntities = oldEntity.getDataModels();
+		for(DataModelEntity dataModelEntity : oldDataModelEntities){
+			if(!newDataModelIds.contains(dataModelEntity.getId())){
+				oldDataModelEntities.remove(dataModelEntity);
+			}
 		}
+		oldDataModelEntities.addAll(newAddDataModel);
+		formModelService.save(oldEntity);
 	}
 
 	@Override
@@ -166,45 +175,90 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	}
 
 	private FormModelEntity wrap(FormModel formModel) throws InstantiationException, IllegalAccessException {
-		FormModelEntity entity = BeanUtils.copy(formModel, FormModelEntity.class, new String[] {"items"});
-		boolean isNewFlag = entity.isNew();
-		List<DataModelEntity> dataModelEntities = entity.getDataModels();
-		if(dataModelEntities == null){
-			dataModelEntities = new ArrayList<>();
+		FormModelEntity entity = new FormModelEntity();
+		BeanUtils.copyProperties(formModel, entity, new String[] {"items","dataModels"});
+
+		List<DataModel> dataModels = formModel.getDataModels();
+		if(dataModels == null || dataModels.isEmpty()){
+			throw new IFormException("请先关联数据模型");
 		}
-		//TODO 创建一个数据模型
-		if(isNewFlag){
-			DataModelEntity dataModelEntity = dataModelService.findUniqueByProperty("tableName", formModel.getName());
-			if(dataModelEntity != null){
-				throw new IFormException("表单名存在了，不要重复添加");
-			}
-			dataModelEntities.add(createDataModelEntity(formModel.getName(), formModel.getDescription(), DataModelType.Master, null));
-		}
-		DataModelEntity masterModelEntity = dataModelEntities.get(0);
-		Set<DataModelEntity> parentModelEntities = masterModelEntity.getParentsModel();
-		Set<DataModelEntity> childrenModelEntities = masterModelEntity.getChildrenModels();
-		//创建子数据模型
-		for (ItemModel itemModel : formModel.getItems()) {
-			ItemModelEntity itemModelEntity = getItemModelEntity(itemModel);
-			//TODO 如果是子表单需创建datamodel
-			if(itemModelEntity instanceof SubFormItemModelEntity){
-				parentModelEntities.add(masterModelEntity);
-				childrenModelEntities.add(masterModelEntity);
-				DataModelEntity dataModelEntity = dataModelService.findUniqueByProperty("tableName", ((SubFormItemModelEntity) itemModelEntity).getTableName());
-				if(dataModelEntity == null) {
-					dataModelEntity = createDataModelEntity(((SubFormItemModelEntity) itemModelEntity).getTableName(), itemModelEntity.getName(),DataModelType.Slaver, dataModelEntities);
-				}
-				childrenModelEntities.add(dataModelEntity);
-				parentModelEntities.add(dataModelEntity);
-			}else if(itemModelEntity instanceof ReferenceItemModelEntity){
-				if(((ReferenceItemModelEntity) itemModelEntity).getSelectMode() != null){
-					parentModelEntities.add(masterModelEntity);
-					childrenModelEntities.add(masterModelEntity);
-					childrenModelEntities.add(itemModelEntity.getColumnModel().getDataModel());
-					parentModelEntities.add(itemModelEntity.getColumnModel().getDataModel());
-				}
+		//TODO 获取主数据模型
+		DataModel masterDataModel = null;
+		for(DataModel dataModel : dataModels){
+			if(dataModel.getMasterModel() == null){
+				masterDataModel = dataModel;
+				break;
 			}
 		}
+		//主表的数据建模
+		DataModelEntity masterDataModelEntity = dataModelService.find(masterDataModel.getId());
+
+
+		BeanUtils.copyProperties(masterDataModel, masterDataModelEntity, new String[]{"masterModel", "slaverModels", "columns", "indexes" });
+		//创建获取主键未持久化到数据库
+		ColumnModelEntity masterIdColumnEntity = columnModelService.saveColumnModelEntity(masterDataModelEntity, "id");
+		//创建获取关联字段未持久化到数据库
+		ColumnModelEntity referenceIdColumnEntity = null;
+		if(masterDataModelEntity.getMasterModel() != null) {
+			referenceIdColumnEntity = columnModelService.saveColumnModelEntity(masterDataModelEntity, "master_id");
+		}
+		if(masterDataModelEntity.getModelType() == DataModelType.Single && dataModels.size() > 1) {
+			masterDataModelEntity.setModelType(DataModelType.Master);
+		}
+		masterDataModelEntity.setSynchronized(false);
+		masterDataModelEntity.getColumns().add(masterIdColumnEntity);
+		if(referenceIdColumnEntity != null){
+			masterDataModelEntity.getColumns().add(referenceIdColumnEntity);
+		}
+
+		//设置数据模型行
+		setDataModelEntityColumns(masterDataModel, masterDataModelEntity);
+
+		if(!masterDataModel.getColumns().isEmpty()){
+			//masterDataModelEntity.setColumns(saveColumnModelEntity( masterDataModelEntity, masterDataModel));
+		}
+
+		List<DataModelEntity> slaverDataModelEntities = new ArrayList<>();
+		for(DataModel dataModel : dataModels) {
+			if (dataModel.getMasterModel() != null) {
+				DataModelEntity slaverDataModelEntity = new DataModelEntity();
+				//创建关联字段
+				boolean dataFlag = dataModel.isNew();
+				if (!dataFlag) {
+					slaverDataModelEntity = dataModelService.find(dataModel.getId());
+				}
+				//创建获取主键未持久化到数据库
+				ColumnModelEntity idColumnReference = columnModelService.saveColumnModelEntity(slaverDataModelEntity, "id");
+				//创建获取关联字段未持久化到数据库
+				ColumnModelEntity columnReference = columnModelService.saveColumnModelEntity(slaverDataModelEntity, "master_id");
+
+				//关联关系未持久化到数据库
+				columnModelService.saveColumnReferenceEntity(masterIdColumnEntity, columnReference, ReferenceType.OneToMany);
+
+				slaverDataModelEntity.setModelType(DataModelType.Slaver);
+				slaverDataModelEntity.setSynchronized(false);
+				slaverDataModelEntity.setMasterModel(masterDataModelEntity);
+				BeanUtils.copyProperties(dataModel, slaverDataModelEntity, new String[]{"masterModel","slaverModels","columns","indexes"});
+
+				//设置数据模型行
+				setDataModelEntityColumns(dataModel, slaverDataModelEntity);
+				if(!dataModel.getColumns().isEmpty()){
+					//slaverDataModelEntity.setColumns(saveColumnModelEntity( slaverDataModelEntity, dataModel));
+				}
+				slaverDataModelEntity.getColumns().add(idColumnReference);
+				slaverDataModelEntity.getColumns().add(columnReference);
+				slaverDataModelEntities.add(slaverDataModelEntity);
+			}
+		}
+		masterDataModelEntity.setSlaverModels(slaverDataModelEntities);
+
+		//设置数据模型结构了
+		List<DataModelEntity> dataModelEntities = new ArrayList<>();
+		dataModelEntities.add(masterDataModelEntity);
+		entity.setDataModels(dataModelEntities);
+
+		dataModelService.save(masterDataModelEntity);
+
 
 		List<ItemModelEntity> items = new ArrayList<ItemModelEntity>();
 		for (ItemModel itemModel : formModel.getItems()) {
@@ -212,25 +266,109 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			itemModelEntity.setFormModel(entity);
 			items.add(itemModelEntity);
 		}
-		entity.setDataModels(dataModelEntities);
 		entity.setItems(items);
-
 		return entity;
 	}
 
-	//创建数据模型
-	private DataModelEntity createDataModelEntity(String tableName, String description, DataModelType dataModelType, List<DataModelEntity> dataModelEntities){
-		DataModelEntity dataModelEntity = new DataModelEntity();
-		dataModelEntity.setTableName(tableName);
-		dataModelEntity.setDescription(description);
-		dataModelEntity.setModelType(dataModelType);
-		if(dataModelType == DataModelType.Slaver) {
-			dataModelEntity.setMasterModel(getMasterDataModelEntity(dataModelEntities));
+	//设置数据模型行
+	private void setDataModelEntityColumns(DataModel newDataModel, DataModelEntity oldDataModelEntity){
+		//待更新的行
+		List<String> newColumnIds = new ArrayList<>();
+		//待保存的行
+		List<ColumnModelEntity> saveModelEntities = new ArrayList<ColumnModelEntity>();
+		for(ColumnModel newColumnModel : newDataModel.getColumns()){
+			if(newColumnModel.getId() != null){
+				newColumnIds.add(newColumnModel.getId());
+			}
 		}
-		dataModelEntity.setSynchronized(false);
-		dataModelService.save(dataModelEntity);
-		return dataModelEntity;
+
+		//待删除的行
+		for(int i = 0 ; i <  oldDataModelEntity.getColumns().size() ; i++ ){
+			ColumnModelEntity columnModelEntity = oldDataModelEntity.getColumns().get(i);
+			if(!newColumnIds.contains(columnModelEntity.getId())){
+				if("id".equals(columnModelEntity.getColumnName()) || "master_id".equals(columnModelEntity.getColumnName())){
+					continue;
+				}
+				List<ColumnReferenceEntity> referenceEntityList = columnModelEntity.getColumnReferences();
+				for(int m = 0 ; m < referenceEntityList.size(); m++ ){
+					ColumnReferenceEntity referenceEntity = referenceEntityList.get(m);
+					List<ColumnReferenceEntity> toReferenceEntityList = referenceEntity.getToColumn().getColumnReferences();
+					for(int j = 0 ; j < toReferenceEntityList.size(); j++){
+						ColumnReferenceEntity columnReferenceEntity = toReferenceEntityList.get(j);
+						if(columnReferenceEntity.getToColumn().getId().equals(columnModelEntity.getId())){
+							toReferenceEntityList.remove(columnReferenceEntity);
+							j--;
+							columnModelService.save(referenceEntity.getToColumn());
+						}
+					}
+					referenceEntityList.remove(referenceEntity);
+					m--;
+				}
+				oldDataModelEntity.getColumns().remove(columnModelEntity);
+				i--;
+				ItemModelEntity itemModelEntity = itemModelService.findUniqueByProperty("columnModel.id",columnModelEntity.getId());
+				if(itemModelEntity != null) {
+					itemModelEntity.setColumnModel(null);
+					itemModelService.save(itemModelEntity);
+				}
+				columnModelService.delete(columnModelEntity);
+			}
+		}
+
+		for(ColumnModel columnModel : newDataModel.getColumns()){
+			ColumnModelEntity oldColumnModelEntity = setColumn(columnModel);
+			oldColumnModelEntity.getColumnReferences().clear();
+			if(columnModel.getColumnReferences() != null){
+				for(ReferenceModel columnReferenceEntity : columnModel.getColumnReferences()){
+					ColumnReferenceEntity referenceEntity = new ColumnReferenceEntity();
+					referenceEntity.setFromColumn(oldColumnModelEntity);
+					referenceEntity.setFromColumn(setColumn(columnReferenceEntity.getToColumn()));
+					referenceEntity.setReferenceType(referenceEntity.getReferenceType());
+					oldColumnModelEntity.getColumnReferences().add(referenceEntity);
+				}
+			}
+			saveModelEntities.add(oldColumnModelEntity);
+		}
+		oldDataModelEntity.getColumns().addAll(saveModelEntities);
 	}
+
+	private ColumnModelEntity setColumn(ColumnModel columnModel){
+		ColumnModelEntity oldColumnModelEntity = new ColumnModelEntity();
+		if(!columnModel.isNew()) {
+			 oldColumnModelEntity = columnModelService.get(columnModel.getId());
+		}
+		BeanUtils.copyProperties(columnModel, oldColumnModelEntity, new String[]{"dataModel", "columnReferences"});
+		if(columnModel.getDataModel() != null){
+			DataModelEntity dataModelEntity = new DataModelEntity();
+			if(!columnModel.getDataModel().isNew()) {
+				dataModelEntity = dataModelService.get(columnModel.getDataModel().getId());
+			}
+			BeanUtils.copyProperties(columnModel.getDataModel(), dataModelEntity, new String[]{"masterModel", "slaverModels", "columns", "indexes" });
+			oldColumnModelEntity.setDataModel(dataModelEntity);
+		}
+		if(columnModel.getColumnReferences() != null){
+			//TODO 关联
+		}
+		return oldColumnModelEntity;
+	}
+
+	private List<ColumnModelEntity>  saveColumnModelEntity(DataModelEntity dataModelEntity, DataModel dataModel){
+		List<ColumnModelEntity> columnlist = new ArrayList<>();
+		for(ColumnModel columnModel : dataModel.getColumns()){
+			if("id".equals(columnModel.getColumnName()) || "master_id".equals(columnModel.getColumnName())){
+				continue;
+			}
+			ColumnModelEntity columnModelEntity = new ColumnModelEntity();
+			if (!columnModel.isNew()) {
+				columnModelEntity = columnModelService.find(columnModel.getId());
+			}
+			BeanUtils.copyProperties(columnModel, columnModelEntity, new String[]{"dataModel","slaverModels","columns","indexes"});
+			columnModelEntity.setDataModel(dataModelEntity);
+			columnlist.add(columnModelEntity);
+		}
+		return columnlist;
+	}
+
 
 	//获取主的数据模型
 	private DataModelEntity getMasterDataModelEntity(List<DataModelEntity> dataModelEntities){
@@ -250,7 +388,11 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			entity = itemModelService.find(itemModel.getId());
 		}
 		//需要保持column
-		BeanUtils.copyProperties(itemModel, entity, new String[] {"dataModel","activities","options"});
+		BeanUtils.copyProperties(itemModel, entity, new String[] {"formModel","dataModel", "columnReferences", "activities","options"});
+
+		if(itemModel.getColumnModel() == null){
+			entity.setColumnModel(null);
+		}
 
 		if(entity instanceof ReferenceItemModelEntity){
 			((ReferenceItemModelEntity)entity).setReferenceList(setItemModelByListModel(entity));

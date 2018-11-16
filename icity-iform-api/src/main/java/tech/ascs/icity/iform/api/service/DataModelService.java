@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import tech.ascs.icity.iform.api.model.ColumnModel;
+import tech.ascs.icity.iform.api.model.ColumnModelInfo;
 import tech.ascs.icity.iform.api.model.DataModel;
 import tech.ascs.icity.iform.api.model.DataModelInfo;
 import tech.ascs.icity.model.IdEntity;
@@ -40,12 +42,12 @@ public interface DataModelService {
 			@RequestParam(name = "modelType", required = false) String modelType);
 
 	/**
-	 * 获取关联表
+	 * 查询新增关联数据模型
 	 *
 	 * @param tableName （可选）当前表名称
 	 * @return
 	 */
-	@ApiOperation(value = "获取关联表", position = 0)
+	@ApiOperation(value = "查询新增关联数据模型", position = 0)
 	@ApiImplicitParams({
 			@ApiImplicitParam(paramType = "query", name = "tableName", value = "当前表名称", required = false),
 			@ApiImplicitParam(paramType = "query", name = "modelType", value = "模型类型", required = false)
@@ -79,13 +81,13 @@ public interface DataModelService {
 
 
 	/**
-	 * 获取主数据模型
+	 * 获取非从表数据模型
 	 * 
 	 * <p>获取所有类型为主表或单表的数据模型，用于设计从表时选择主表
 	 * 
 	 * @return
 	 */
-	@ApiOperation(value = "获取主数据模型", notes = "获取所有类型为主表或单表的数据模型，用于设计从表时选择主表", position = 0)
+	@ApiOperation(value = "获取非从表数据模型", notes = "获取所有类型为主表或单表的数据模型，用于设计从表时选择主表", position = 0)
 	@GetMapping("/master-models")
 	List<DataModelInfo> getMasterModels();
 
@@ -158,5 +160,4 @@ public interface DataModelService {
 	@ApiImplicitParam(paramType = "path", name = "formId", value = "表单模型ID", required = true, dataType = "String")
 	@GetMapping("/find/{formId}")
 	List<DataModel> findDataModelByFormId(@PathVariable(name="formId") String formId);
-
 }

@@ -24,10 +24,6 @@ public class ColumnModelEntity extends BaseEntity implements Serializable {
 	@JoinColumn(name="data_model_id")
 	private DataModelEntity dataModel;
 
-	@OneToOne(cascade = CascadeType.ALL)
-	@JoinColumn(name="item_id")
-	private ItemModelEntity itemModel;
-
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "fromColumn")
 	private List<ColumnReferenceEntity> columnReferences = new ArrayList<ColumnReferenceEntity>();
 
@@ -65,14 +61,6 @@ public class ColumnModelEntity extends BaseEntity implements Serializable {
 
 	public void setDataModel(DataModelEntity dataModel) {
 		this.dataModel = dataModel;
-	}
-
-	public ItemModelEntity getItemModel() {
-		return itemModel;
-	}
-
-	public void setItemModel(ItemModelEntity itemModel) {
-		this.itemModel = itemModel;
 	}
 
 	public List<ColumnReferenceEntity> getColumnReferences() {

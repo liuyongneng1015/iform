@@ -23,12 +23,12 @@ public class SubFormItemModelEntity extends ItemModelEntity  {
 	@JoinColumn(name="showHead") // 是否显示表头
 	private Boolean showHead;
 
-	@JoinColumn(name="table_name") // 表名
+	@JoinColumn(name="table_name") // 子表名
 	private String tableName;
 
 	@Column(name="reference_type")
 	@Enumerated(EnumType.STRING)
-	private ReferenceType referenceType = ReferenceType.ManyToOne;//子表对主表多对一
+	private ReferenceType referenceType = ReferenceType.OneToMany;//主表对子表一对多
 
 	/** 组件子项（由组和字段构成） */
 	@OneToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH },mappedBy = "parentItem") // {CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.REMOVE}

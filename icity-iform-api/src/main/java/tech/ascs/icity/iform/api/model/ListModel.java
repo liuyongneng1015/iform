@@ -16,7 +16,7 @@ public class ListModel extends NameEntity {
 	public static class FormModelInfo extends FormModel {
 		@JsonIgnore
 		@Override
-		public List<DataModelInfo> getDataModels() {
+		public List<DataModel> getDataModels() {
 			return super.getDataModels();
 		}
 		@JsonIgnore

@@ -37,26 +37,6 @@ public class DataModelEntity extends BaseEntity implements Serializable {
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "masterModel")
 	private List<DataModelEntity> slaverModels = new ArrayList<DataModelEntity>();
 
-	//多对多映射
-	@ManyToMany(cascade = CascadeType.ALL)
-	@JoinTable(
-			name = "ifm_data_model_bind",
-			joinColumns = @JoinColumn( name="children_model"),
-			inverseJoinColumns = @JoinColumn( name="parents_model")
-	)
-	private Set<DataModelEntity> parentsModel = new HashSet<DataModelEntity>();
-
-	//多对多映射
-	@ManyToMany(cascade = CascadeType.ALL)
-	@JoinTable(
-			name = "ifm_data_model_bind",
-			joinColumns = @JoinColumn( name="parents_model"),
-			inverseJoinColumns = @JoinColumn( name="children_model")
-	)
-	private Set<DataModelEntity> childrenModels = new HashSet<DataModelEntity>();
-
-
-
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "dataModel")
     private List<ColumnModelEntity> columns = new ArrayList<ColumnModelEntity>();
 
@@ -104,22 +84,6 @@ public class DataModelEntity extends BaseEntity implements Serializable {
 
 	public void setSlaverModels(List<DataModelEntity> slaverModels) {
 		this.slaverModels = slaverModels;
-	}
-
-	public Set<DataModelEntity> getParentsModel() {
-		return parentsModel;
-	}
-
-	public void setParentsModel(Set<DataModelEntity> parentsModel) {
-		this.parentsModel = parentsModel;
-	}
-
-	public Set<DataModelEntity> getChildrenModels() {
-		return childrenModels;
-	}
-
-	public void setChildrenModels(Set<DataModelEntity> childrenModels) {
-		this.childrenModels = childrenModels;
 	}
 
 	public List<ColumnModelEntity> getColumns() {

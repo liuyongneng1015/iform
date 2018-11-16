@@ -35,7 +35,7 @@ public class FormModel extends NameEntity {
 	private String description;
 
 	@ApiModelProperty(value = "表单绑定的数据模型列表", position = 3)
-	private List<DataModelInfo> dataModels = new ArrayList<DataModelInfo>();
+	private List<DataModel> dataModels = new ArrayList<DataModel>();
 
 	@ApiModelProperty(value = "表单绑定的流程模型", position = 4)
 	private ProceeeModel process;
@@ -51,11 +51,11 @@ public class FormModel extends NameEntity {
 		this.description = description;
 	}
 
-	public List<DataModelInfo> getDataModels() {
+	public List<DataModel> getDataModels() {
 		return dataModels;
 	}
 
-	public void setDataModels(List<DataModelInfo> dataModels) {
+	public void setDataModels(List<DataModel> dataModels) {
 		this.dataModels = dataModels;
 	}
 

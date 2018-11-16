@@ -27,6 +27,7 @@ import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.FormInstanceServiceEx;
+import tech.ascs.icity.iform.service.ItemModelService;
 import tech.ascs.icity.iform.support.IFormSessionFactoryBuilder;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
@@ -50,6 +51,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	private JPAManager<DictionaryEntity> dictionaryEntityJPAManager;
 
+	private JPAManager<ItemModelEntity> itemModelManager;
+
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
 
@@ -61,6 +64,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		super.initManager();
 		formModelEntityJPAManager = getJPAManagerFactory().getJPAManager(FormModelEntity.class);
 		dictionaryEntityJPAManager = getJPAManagerFactory().getJPAManager(DictionaryEntity.class);
+		itemModelManager = getJPAManagerFactory().getJPAManager(ItemModelEntity.class);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -348,7 +352,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	private List<TableDataModel> setColumData(Map<String, Object> dataMap, List<ColumnModelEntity> columns){
 		List<TableDataModel> list = new ArrayList<>();
 		for(ColumnModelEntity columnModelEntity : columns){
-			ItemModelEntity modelEntity = columnModelEntity.getItemModel();
+			ItemModelEntity modelEntity = itemModelManager.findUniqueByProperty("columnModel.id", columnModelEntity.getId());
 			String value = null;
 			if(modelEntity.getType() == ItemType.DatePicker){
 				value = DateFormatUtils.format((Date) dataMap.get(columnModelEntity.getColumnName()),((TimeItemModelEntity)modelEntity).getTimeFormat());
@@ -362,7 +366,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	private TableDataModel setTableDataModel(ColumnModelEntity columnModelEntity, String value){
 		TableDataModel tableDataModel = new TableDataModel();
 		tableDataModel.setColumnId(columnModelEntity.getId());
-		tableDataModel.setItemId(columnModelEntity.getItemModel().getId());
 		tableDataModel.setValue(value);
 		return tableDataModel;
 	}

@@ -14,14 +14,11 @@ import com.googlecode.genericdao.search.Filter;
 
 import io.swagger.annotations.Api;
 import tech.ascs.icity.iform.IFormException;
-import tech.ascs.icity.iform.api.model.ColumnModel;
-import tech.ascs.icity.iform.api.model.DataModel;
-import tech.ascs.icity.iform.api.model.DataModelInfo;
-import tech.ascs.icity.iform.api.model.DataModelType;
-import tech.ascs.icity.iform.api.model.IndexModel;
+import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.model.ColumnModelEntity;
 import tech.ascs.icity.iform.model.DataModelEntity;
 import tech.ascs.icity.iform.model.IndexModelEntity;
+import tech.ascs.icity.iform.service.ColumnModelService;
 import tech.ascs.icity.iform.service.DataModelService;
 import tech.ascs.icity.jpa.dao.Query;
 import tech.ascs.icity.jpa.tools.DTOTools;
@@ -35,6 +32,8 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 
 	@Autowired
 	private DataModelService dataModelService;
+	@Autowired
+	private ColumnModelService columnModelService;
 
 
 	@Override
@@ -113,11 +112,7 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 	public List<DataModelInfo> getMasterModels() {
 		try {
 			List<DataModelEntity> entities = dataModelService.query().filterNotEqual("modelType", DataModelType.Slaver).list();
-			List<DataModelInfo> dataModels = new ArrayList<DataModelInfo>();
-			for (DataModelEntity entity : entities) {
-				dataModels.add(BeanUtils.copy(entity, DataModelInfo.class));
-			}
-			return dataModels;
+			return DTOTools.wrapList(entities, DataModelInfo.class);
 		} catch (Exception e) {
 			throw new IFormException("获取数据模型列表失败：" + e.getMessage(), e);
 		}

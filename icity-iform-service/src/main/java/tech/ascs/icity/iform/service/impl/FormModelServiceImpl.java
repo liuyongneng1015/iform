@@ -10,10 +10,10 @@ import org.springframework.transaction.annotation.Transactional;
 import tech.ascs.icity.iflow.client.ProcessService;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.ColumnType;
-import tech.ascs.icity.iform.api.model.ItemModel;
 import tech.ascs.icity.iform.api.model.ReferenceModel;
-import tech.ascs.icity.iform.api.model.SelectItemModel;
+import tech.ascs.icity.iform.api.model.ReferenceType;
 import tech.ascs.icity.iform.model.*;
+import tech.ascs.icity.iform.service.ColumnModelService;
 import tech.ascs.icity.iform.service.DataModelService;
 import tech.ascs.icity.iform.service.FormModelService;
 import tech.ascs.icity.jpa.service.JPAManager;
@@ -30,10 +30,16 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 	private JPAManager<ListModelEntity> listModelManager;
 
-	private JPAManager<ColumnReferenceEntity> columnReferenceManager;
+	private JPAManager<ItemActivityInfo> itemActivityManager;
+
+	private JPAManager<ItemSelectOption> itemSelectOptionManager;
+
 
 	@Autowired
 	ProcessService processService;
+
+	@Autowired
+	ColumnModelService columnModelService;
 
 
 	public FormModelServiceImpl() {
@@ -47,7 +53,8 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		dataModelManager = getJPAManagerFactory().getJPAManager(DataModelEntity.class);
 		columnModelManager = getJPAManagerFactory().getJPAManager(ColumnModelEntity.class);
 		listModelManager = getJPAManagerFactory().getJPAManager(ListModelEntity.class);
-		columnReferenceManager = getJPAManagerFactory().getJPAManager(ColumnReferenceEntity.class);
+		itemActivityManager = getJPAManagerFactory().getJPAManager(ItemActivityInfo.class);
+		itemSelectOptionManager = getJPAManagerFactory().getJPAManager(ItemSelectOption.class);
 	}
 
 	@Override
@@ -55,9 +62,26 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		validate(entity);
 		boolean dataModelUpdateNeeded = dataModelUpdateNeeded(entity);
 		if (!entity.isNew()) { // 先删除所有字段然后重建
+			//主表新数据模型
+			DataModelEntity newDataModelEntity = entity.getDataModels().get(0);
+			DataModelEntity oldDataModelEntity = dataModelManager.get(newDataModelEntity.getId());
+
+			//所以的自身与下级的行
+			Map<String, ColumnModelEntity> modelEntityMap = new HashMap<String, ColumnModelEntity>();
+			Set<ColumnModelEntity> columnModelEntities = new HashSet<>();
+			columnModelEntities.addAll(oldDataModelEntity.getColumns());
+			if(oldDataModelEntity.getSlaverModels() != null){
+				for(DataModelEntity dataModelEntity : oldDataModelEntity.getSlaverModels()){
+					columnModelEntities.addAll(dataModelEntity.getColumns());
+				}
+			}
+			for(ColumnModelEntity columnModelEntity : columnModelEntities){
+				modelEntityMap.put(columnModelEntity.getDataModel().getTableName() + "_" + columnModelEntity.getColumnName(), columnModelEntity);
+			}
+
+			//再次查询旧的表单模型
 			FormModelEntity old = get(entity.getId());
-			//主表数据模型
-			DataModelEntity dataModelEntity = old.getDataModels().get(0);
+
 
 			Map<String, ItemModelEntity> oldItems = new HashMap<String, ItemModelEntity>();
 			List<String> itemActivityIds = new ArrayList<String>();
@@ -66,9 +90,10 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			setOldItems(oldItems,  itemActivityIds,  itemSelectOptionIds ,  old );
 
 			BeanUtils.copyProperties(entity, old, new String[] {"dataModels", "items"});
-			//包括所有的item(包括子item)
+
+			//包括所有的新的item(包括子item)
 			List<ItemModelEntity> allItems = new ArrayList<>();
-			//form直接的item
+			//form直接的新的item
 			List<ItemModelEntity> itemModelEntities = new ArrayList<ItemModelEntity>();
 			for(ItemModelEntity itemModelEntity : entity.getItems()) {
 				itemModelEntity.setFormModel(old);
@@ -78,93 +103,67 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			}
 
 			for(ItemModelEntity item : allItems) {
-				initItemData(dataModelEntity, item);
+				initItemData(modelEntityMap, item);
 				if (!item.isNew()) {
-					ItemModelEntity oldItem = oldItems.remove(item.getId());
-					item = getNewItem(item, oldItem);
+					oldItems.remove(item.getId());
 				}
-				if (item.getColumnModel() != null) {
-					ColumnModelEntity columnModelEntity = item.getColumnModel();
-					columnModelEntity.setItemModel(item);
-					item.setColumnModel(columnModelEntity);
-				}
+				 setAcitityOption(item);
 			}
-
 			//设置item
 			old.setItems(itemModelEntities);
 
-			deleteItems(oldItems.keySet());
+			//删除item
+			deleteItems(oldItems.keySet(), itemActivityIds, itemSelectOptionIds);
 
 			//设置关联关系
 			setReferenceItems(oldItems.keySet(), allItems);
-
-			return doUpdate(old, dataModelUpdateNeeded, itemActivityIds, itemSelectOptionIds);
-		} else {
-			return doSave(entity, dataModelUpdateNeeded);
+			return doSave(old, dataModelUpdateNeeded);
 		}
+		return doSave(entity, dataModelUpdateNeeded);
+
 	}
 
 	//删除item
-	private void deleteItems(Collection<String> deletedItemIds){
+	private void deleteItems(Collection<String> deletedItemIds, Collection<String> deleteItemActivityIds, Collection<String> deleteItemSelectOptionIds){
 		if (deletedItemIds.size() > 0) {
-			List<ItemModelEntity> list = itemManager.query().filterIn("id", deletedItemIds).list();
-			for(ItemModelEntity itemModelEntity : list) {
-				if(itemModelEntity.getColumnModel() != null && !itemModelEntity.getColumnModel().getColumnReferences().isEmpty()) {
-					deleteOldColumnReferenceEntity(itemModelEntity.getColumnModel());
-				}
-				if(itemModelEntity.getColumnModel() != null) {
-					ColumnModelEntity columnModelEntity = itemModelEntity.getColumnModel();
-					//columnModelEntity.setItemModel(null);
-					//itemModelEntity.setColumnModel(null);
-					columnModelManager.delete(columnModelEntity);
-					//itemManager.save(itemModelEntity);
-				}
-				System.out.println(itemModelEntity.getId());
-				itemManager.deleteById(itemModelEntity.getId());
-			}
+			itemManager.deleteById(deletedItemIds.toArray(new String[]{}));
+		}
+		if (deleteItemActivityIds.size() > 0) {
+			itemActivityManager.deleteById(deleteItemActivityIds.toArray(new String[] {}));
+		}
+		if (deleteItemSelectOptionIds.size() > 0) {
+			itemSelectOptionManager.deleteById(deleteItemSelectOptionIds.toArray(new String[] {}));
 		}
 	}
 
-	//得到最新的item
-	private ItemModelEntity getNewItem(ItemModelEntity item, ItemModelEntity oldItem){
-		BeanUtils.copyProperties(item, oldItem, new String[]{"columnModel", "formModel", "activities", "options","items"});
 
+	//得到最新的item
+	private ItemModelEntity setAcitityOption(ItemModelEntity item){
 		List<ItemActivityInfo> activities = new ArrayList<ItemActivityInfo>();
 		for (ItemActivityInfo activity : item.getActivities()) {
 			activity.setId(null);
-			activity.setItemModel(oldItem);
+			activity.setItemModel(item);
 			activities.add(activity);
 		}
-		oldItem.setActivities(activities);
+		item.setActivities(activities);
 		List<ItemSelectOption> options = new ArrayList<ItemSelectOption>();
 		for (ItemSelectOption option : item.getOptions()) {
 			option.setId(null);
-			option.setItemModel(oldItem);
+			option.setItemModel(item);
 			options.add(option);
 		}
-		oldItem.setOptions(options);
-
-		BeanUtils.copyProperties(oldItem, item, new String[]{"columnModel", "formModel","items"});
+		item.setOptions(options);
 		return item;
 	}
 
 	//初始化item的值
-	private void initItemData(DataModelEntity dataModelEntity, ItemModelEntity item){
+	private void initItemData(Map<String, ColumnModelEntity> modelEntityMap, ItemModelEntity item){
 		//设置行模型
-		if (!item.isNew() && item.getColumnModel() != null && item.getColumnModel().getId() != null) {
-			ColumnModelEntity columnModelEntity = columnModelManager.get(item.getColumnModel().getId());
-			BeanUtils.copyProperties(item.getColumnModel(), columnModelEntity, new String[]{"dataModel", "itemModel", "columnReferences"});
-			item.setColumnModel(columnModelEntity);
-		}
-		//设置数据模型
-		if (item.getColumnModel() != null && item.getColumnModel().getDataModel() != null && item.getColumnModel().getId() == null
-				&&  !StringUtils.equals(dataModelEntity.getId(), item.getColumnModel().getDataModel().getId())) {
-			item.getColumnModel().setDataModel(dataModelManager.find(item.getColumnModel().getDataModel().getId()));
-		}else if(item.getColumnModel() != null){
-			item.getColumnModel().setDataModel(dataModelEntity);
+		if (item.getColumnModel() != null && item.getColumnModel().getDataModel() != null) {
+			item.setColumnModel(modelEntityMap.get(item.getColumnModel().getDataModel().getTableName()+"_"+item.getColumnModel().getColumnName()));
 		}
 		//设置列表模型
-		if (item instanceof ReferenceItemModelEntity) {
+		if (item instanceof ReferenceItemModelEntity && ((ReferenceItemModelEntity) item).getReferenceList() != null) {
 			((ReferenceItemModelEntity) item).setReferenceList(listModelManager.find(((ReferenceItemModelEntity) item).getReferenceList().getId()));
 		}
 	}
@@ -277,44 +276,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 						}
 					}
 				}
-
-				//正向关联
-				ColumnReferenceEntity addFromReferenceEntity = new ColumnReferenceEntity();
-				addFromReferenceEntity.setFromColumn(columnEntity);
-				addFromReferenceEntity.setToColumn(addToEntity);
-				addFromReferenceEntity.setReferenceType(((ReferenceItemModelEntity) entity).getReferenceType());
-				columnEntity.getColumnReferences().add(addFromReferenceEntity);
-
-				//反向关联
-				ColumnReferenceEntity addToReferenceEntity = new ColumnReferenceEntity();
-				addToReferenceEntity.setFromColumn(addToEntity);
-				addToReferenceEntity.setToColumn(columnEntity);
-				addToReferenceEntity.setReferenceType(ReferenceModel.getToReferenceType(addFromReferenceEntity.getReferenceType()));
-				addToEntity.getColumnReferences().add(addToReferenceEntity);
-
-
-				//主表数据模型
-				DataModelEntity dataModelEntity = dataModelManager.find(columnEntity.getDataModel().getId());
-
-				//从表数据模型
-				DataModelEntity addToDataModelEntity = addToEntity.getDataModel();
-
-				Set<DataModelEntity> childrenModelEntities = dataModelEntity.getChildrenModels();
-				if(childrenModelEntities.contains(addToDataModelEntity)){
-					//已经存在了关系
-					return;
-				}
-				childrenModelEntities.add(addToDataModelEntity);
-
-				//主表上级模型
-				Set<DataModelEntity> parentDataModelEntity = dataModelEntity.getParentsModel();
-				parentDataModelEntity.add(addToDataModelEntity);
-
-				//设置关联关系
-				columnEntity.setDataModel(dataModelEntity);
-				//addToEntity.setDataModel(addToDataModelEntity);
-				//dataModelManager.save(dataModelEntity);
-				//dataModelManager.save(addToDataModelEntity);
+				columnModelService.saveColumnReferenceEntity(columnEntity, addToEntity, ((ReferenceItemModelEntity) entity).getReferenceType());
+				columnModelManager.save(columnEntity);
+				columnModelManager.save(addToEntity);
 			}
 		}
 	}
@@ -324,62 +288,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		return doSave(entity, dataModelUpdateNeeded);
 	}
 
-	//删除旧的关联关系
-	private void deleteOldColumnReferenceEntity(ColumnModelEntity columnEntity){
-		//删除正向关联的关系
-		List<ColumnReferenceEntity> oldReferenceEntityList = columnEntity.getColumnReferences();
-		//删除旧的关联
-		List<String> deleteOldToColumnIds = new ArrayList<>();
-		List<ColumnModelEntity> deleteToColumnModelEntityList = new ArrayList<ColumnModelEntity>();
-		for (ColumnReferenceEntity columnReferenceEntity : oldReferenceEntityList) {
-			deleteToColumnModelEntityList.add(columnReferenceEntity.getToColumn());
-			deleteOldToColumnIds.add(columnReferenceEntity.getToColumn().getId());
-		}
-		Set<DataModelEntity> dataModelEntities = columnEntity.getDataModel().getChildrenModels();
-		Iterator<DataModelEntity> it = dataModelEntities.iterator();
-		//Iterator<ColumnReferenceEntity> oldReference = oldReferenceEntityList.iterator();
-		for(int i = 0 ; i < oldReferenceEntityList.size(); i++ ) {
-			ColumnReferenceEntity referenceEntity = oldReferenceEntityList.get(i) ;
-			if (deleteOldToColumnIds.contains(referenceEntity.getToColumn().getId())) {
-				//删除数据模型的关系
-				while (it.hasNext()) {
-					DataModelEntity dataModelEntity = it.next();
-					if (dataModelEntity.getTableName().equals(referenceEntity.getToColumn().getDataModel().getTableName())) {
-						it.remove();
-						referenceEntity.setToColumn(null);
-						referenceEntity.setFromColumn(null);
-					}
-				}
-				oldReferenceEntityList.remove(referenceEntity);
-				i--;
-				columnReferenceManager.delete(referenceEntity);
-			}
-		}
-		//删除反向关联的关系
-		for(ColumnModelEntity toEntity : deleteToColumnModelEntityList){
-			List<ColumnReferenceEntity> toReferenceEntities = toEntity.getColumnReferences();
-			//Iterator<ColumnReferenceEntity> toReference = toReferenceEntities.iterator();
-			for(int i = 0; i < toReferenceEntities.size(); i++){
-				ColumnReferenceEntity reference = toReferenceEntities.get(i);
-				if(StringUtils.equals(reference.getToColumn().getId(), columnEntity.getId())){
-					Set<DataModelEntity> referenceDataModelEntities = reference.getFromColumn().getDataModel().getChildrenModels();
-					//删除关联关系
-					Iterator<DataModelEntity> iterator = referenceDataModelEntities.iterator();
-					while(iterator.hasNext()) {
-						DataModelEntity dataModelEntity = iterator.next() ;
-						if (dataModelEntity.getTableName().equals(columnEntity.getDataModel().getTableName())) {
-							iterator.remove();
-							reference.setToColumn(null);
-							reference.setFromColumn(null);
-						}
-					}
-					toReferenceEntities.remove(reference);
-					i--;
-					columnReferenceManager.delete(reference);
-				}
-			}
-		}
-	}
+
 
 	@Transactional(readOnly = false)
 	protected FormModelEntity doSave(FormModelEntity entity, boolean dataModelUpdateNeeded) {
