@@ -3,6 +3,7 @@ package tech.ascs.icity.iform.support;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.persistence.EntityManagerFactory;
@@ -33,6 +34,8 @@ import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import freemarker.template.TemplateExceptionHandler;
+import tech.ascs.icity.iform.model.ColumnModelEntity;
+import tech.ascs.icity.iform.model.ColumnReferenceEntity;
 import tech.ascs.icity.iform.model.DataModelEntity;
 
 @Service
@@ -85,7 +88,24 @@ public class IFormSessionFactoryBuilder {
 	}
 
 	public String generateHibernateMapping(DataModelEntity dataModel) throws IOException {
+		setReferenceDataModel(dataModel);
 		return generateHibernateMappingFreeMarker(dataModel);
+	}
+
+	private void setReferenceDataModel(DataModelEntity dataModel){
+		//行
+		List<DataModelEntity> referencesDataModel = dataModel.getReferencesDataModel();
+		List<ColumnModelEntity> columnModelEntities = dataModel.getColumns();
+		for(ColumnModelEntity columnModelEntity : columnModelEntities) {
+			for (ColumnReferenceEntity entity : columnModelEntity.getColumnReferences()){
+				DataModelEntity dataModelEntity = entity.getToColumn().getDataModel();
+				if(referencesDataModel.contains(dataModelEntity)) {
+					continue;
+				}
+				referencesDataModel.add(dataModelEntity);
+				setReferenceDataModel(dataModelEntity);
+			}
+		}
 	}
 
 	protected String generateHibernateMappingThymeleaf(DataModelEntity dataModel) {

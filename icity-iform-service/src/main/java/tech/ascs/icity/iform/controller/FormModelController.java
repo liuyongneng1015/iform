@@ -1,7 +1,9 @@
 package tech.ascs.icity.iform.controller;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -190,6 +192,18 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				break;
 			}
 		}
+		for(DataModel dataModel : formModel.getDataModels()){
+			List<String> columnModelEntities = dataModel.getColumns().parallelStream().map(ColumnModel::getColumnName).collect(Collectors.toList());
+			Map<String, Object> map = new HashMap<String, Object>();
+			for(String string : columnModelEntities){
+				if(map.containsKey(string)){
+					throw new IFormException("字段重复了");
+				}
+				map.put(string, string);
+			}
+		}
+
+
 		//主表的数据建模
 		DataModelEntity masterDataModelEntity = dataModelService.find(masterDataModel.getId());
 

@@ -46,6 +46,9 @@ public class DataModelEntity extends BaseEntity implements Serializable {
 	@Column(name="synchronized_")
 	private Boolean synchronized_;
 
+	@Transient//关联数据模型不存数据库
+	private List<DataModelEntity> referencesDataModel = new ArrayList<DataModelEntity>();
+
 	public String getTableName() {
 		return tableName;
 	}
@@ -110,4 +113,11 @@ public class DataModelEntity extends BaseEntity implements Serializable {
 		this.synchronized_ = synchronized_;
 	}
 
+	public List<DataModelEntity> getReferencesDataModel() {
+		return referencesDataModel;
+	}
+
+	public void setReferencesDataModel(List<DataModelEntity> referencesDataModel) {
+		this.referencesDataModel = referencesDataModel;
+	}
 }
