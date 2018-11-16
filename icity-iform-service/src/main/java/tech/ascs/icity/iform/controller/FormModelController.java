@@ -286,9 +286,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		for(int i = 0 ; i <  oldDataModelEntity.getColumns().size() ; i++ ){
 			ColumnModelEntity columnModelEntity = oldDataModelEntity.getColumns().get(i);
 			if(!newColumnIds.contains(columnModelEntity.getId())){
-				if("id".equals(columnModelEntity.getColumnName()) || "master_id".equals(columnModelEntity.getColumnName())){
-					continue;
-				}
 				List<ColumnReferenceEntity> referenceEntityList = columnModelEntity.getColumnReferences();
 				for(int m = 0 ; m < referenceEntityList.size(); m++ ){
 					ColumnReferenceEntity referenceEntity = referenceEntityList.get(m);
@@ -298,11 +295,17 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 						if(columnReferenceEntity.getToColumn().getId().equals(columnModelEntity.getId())){
 							toReferenceEntityList.remove(columnReferenceEntity);
 							j--;
+							columnModelService.deleteColumnReferenceEntity(columnReferenceEntity);
 							columnModelService.save(referenceEntity.getToColumn());
 						}
 					}
 					referenceEntityList.remove(referenceEntity);
 					m--;
+					columnModelService.deleteColumnReferenceEntity(referenceEntity);
+				}
+				columnModelService.save(columnModelEntity);
+				if("id".equals(columnModelEntity.getColumnName()) || ("master_id".equals(columnModelEntity.getColumnName()) && newDataModel.getMasterModel() != null)){
+					continue;
 				}
 				oldDataModelEntity.getColumns().remove(columnModelEntity);
 				i--;
@@ -320,11 +323,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			oldColumnModelEntity.getColumnReferences().clear();
 			if(columnModel.getColumnReferences() != null){
 				for(ReferenceModel columnReferenceEntity : columnModel.getColumnReferences()){
-					ColumnReferenceEntity referenceEntity = new ColumnReferenceEntity();
-					referenceEntity.setFromColumn(oldColumnModelEntity);
-					referenceEntity.setFromColumn(setColumn(columnReferenceEntity.getToColumn()));
-					referenceEntity.setReferenceType(referenceEntity.getReferenceType());
-					oldColumnModelEntity.getColumnReferences().add(referenceEntity);
+					columnModelService.saveColumnReferenceEntity(oldColumnModelEntity, setColumn(columnReferenceEntity.getToColumn()), columnReferenceEntity.getReferenceType());
 				}
 			}
 			saveModelEntities.add(oldColumnModelEntity);

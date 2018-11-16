@@ -12,6 +12,7 @@ import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.ColumnType;
 import tech.ascs.icity.iform.api.model.ReferenceModel;
 import tech.ascs.icity.iform.api.model.ReferenceType;
+import tech.ascs.icity.iform.api.model.SelectMode;
 import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.ColumnModelService;
 import tech.ascs.icity.iform.service.DataModelService;
@@ -75,7 +76,11 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 					columnModelEntities.addAll(dataModelEntity.getColumns());
 				}
 			}
+			ColumnModelEntity idColumnModelEntity = null;
 			for(ColumnModelEntity columnModelEntity : columnModelEntities){
+				if(columnModelEntity.getColumnName().equals("id") && columnModelEntity.getDataModel().getId().equals(newDataModelEntity.getId())){
+					idColumnModelEntity = columnModelEntity;
+				}
 				modelEntityMap.put(columnModelEntity.getDataModel().getTableName() + "_" + columnModelEntity.getColumnName(), columnModelEntity);
 			}
 
@@ -116,7 +121,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			deleteItems(oldItems.keySet(), itemActivityIds, itemSelectOptionIds);
 
 			//设置关联关系
-			setReferenceItems(oldItems.keySet(), allItems);
+			setReferenceItems(oldItems.keySet(), idColumnModelEntity, allItems);
 			return doSave(old, dataModelUpdateNeeded);
 		}
 		return doSave(entity, dataModelUpdateNeeded);
@@ -160,7 +165,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 	private void initItemData(Map<String, ColumnModelEntity> modelEntityMap, ItemModelEntity item){
 		//设置行模型
 		if (item.getColumnModel() != null && item.getColumnModel().getDataModel() != null) {
-			item.setColumnModel(modelEntityMap.get(item.getColumnModel().getDataModel().getTableName()+"_"+item.getColumnModel().getColumnName()));
+			item.setColumnModel(modelEntityMap.get(item.getColumnModel().getDataModel().getTableName() + "_" + item.getColumnModel().getColumnName()));
 		}
 		//设置列表模型
 		if (item instanceof ReferenceItemModelEntity && ((ReferenceItemModelEntity) item).getReferenceList() != null) {
@@ -256,14 +261,14 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 	}
 
 	//处理item关联关系
-	private void setReferenceItems(Collection<String> deletedItemIds, List<ItemModelEntity> allItems) {
+	private void setReferenceItems(Collection<String> deletedItemIds, ColumnModelEntity idColumnModelEntity, List<ItemModelEntity> allItems) {
 		for(ItemModelEntity entity : allItems) {
 			if(deletedItemIds.contains(entity)){
 				return;
 			}
-			if (entity instanceof ReferenceItemModelEntity && ((ReferenceItemModelEntity) entity).getSelectMode() != null) {
+			if (entity instanceof ReferenceItemModelEntity && ((ReferenceItemModelEntity) entity).getSelectMode() == SelectMode.Inverse) {
 				//主表行
-				ColumnModelEntity columnEntity = entity.getColumnModel();
+				ColumnModelEntity columnEntity = idColumnModelEntity;
 				//关联表行
 				ColumnModelEntity addToEntity =
 						columnModelManager.query().filterEqual("columnName", ((ReferenceItemModelEntity) entity).getReferenceValueColumn()).filterEqual("dataModel.tableName",((ReferenceItemModelEntity) entity).getReferenceTable()).unique();
@@ -276,6 +281,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 						}
 					}
 				}
+				//保存关系持久化到数据库
 				columnModelService.saveColumnReferenceEntity(columnEntity, addToEntity, ((ReferenceItemModelEntity) entity).getReferenceType());
 				columnModelManager.save(columnEntity);
 				columnModelManager.save(addToEntity);
