@@ -125,4 +125,17 @@ public interface FormModelService {
 	})
 	@GetMapping("/pc/{id}")
 	PCFormModel getPCFormModelById(@PathVariable(name="id") String id);
+
+	/**
+	 * 数据标识
+	 *
+	 * @param itemModelId 控件模型id（uuid）
+	 * @return
+	 */
+	@ApiOperation(value = "数据标识", position = 2)
+	@ApiImplicitParams({
+			@ApiImplicitParam(paramType = "query", name = "itemModelId", value = "控件模型id", required = true, dataType = "String")
+	})
+	@GetMapping("/data_mark")
+	FormModel getByItemModelId(@RequestParam(name="itemModelId") String itemModelId);
 }

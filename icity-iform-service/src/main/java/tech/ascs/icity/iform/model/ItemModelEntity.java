@@ -9,6 +9,7 @@ import javax.persistence.*;
 import org.hibernate.annotations.DiscriminatorOptions;
 import org.hibernate.annotations.GenericGenerator;
 import tech.ascs.icity.iform.api.model.ItemType;
+import tech.ascs.icity.iform.api.model.SystemControlType;
 import tech.ascs.icity.jpa.dao.model.BaseEntity;
 
 /**
@@ -44,6 +45,13 @@ public class ItemModelEntity extends  BaseEntity implements Serializable {
 
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "itemModel")
 	private List<ItemSelectOption> options = new ArrayList<ItemSelectOption>();
+
+	@Column(name="system_flag")//是否系统控件
+	private Boolean systemFlag = false;
+
+	@JoinColumn(name="system_control_type")//系统控件类型
+	@Enumerated(EnumType.STRING)
+	private SystemControlType systemControlType;
 
 	public FormModelEntity getFormModel() {
 		return formModel;
@@ -91,5 +99,21 @@ public class ItemModelEntity extends  BaseEntity implements Serializable {
 
 	public void setOptions(List<ItemSelectOption> options) {
 		this.options = options;
+	}
+
+	public Boolean getSystemFlag() {
+		return systemFlag;
+	}
+
+	public void setSystemFlag(Boolean systemFlag) {
+		this.systemFlag = systemFlag;
+	}
+
+	public SystemControlType getSystemControlType() {
+		return systemControlType;
+	}
+
+	public void setSystemControlType(SystemControlType systemControlType) {
+		this.systemControlType = systemControlType;
 	}
 }

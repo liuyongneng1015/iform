@@ -176,6 +176,31 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 	}
 
+	@Override
+	public FormModel getByItemModelId(@RequestParam(name="itemModelId") String itemModelId) {
+		ItemModelEntity itemModelEntity = itemModelService.get(itemModelId);
+		if (itemModelEntity == null) {
+			throw new IFormException(404, "控件【" + itemModelId + "】不存在");
+		}
+		String tableName = ((ReferenceItemModelEntity) itemModelEntity).getReferenceTable();
+		if(!(itemModelEntity instanceof  ReferenceItemModelEntity) || tableName== null){
+			throw new IFormException(404, "【" + itemModelId + "】控件不是关联类型");
+		}
+
+		DataModelEntity dataModelEntity = dataModelService.findUniqueByProperty("tableName", tableName);
+		if (dataModelEntity == null) {
+			throw new IFormException(404, "【" + tableName + "】数据模型不存在");
+		}
+		//TODO something here
+		/*FormModelEntity formModelEntity = formModelService.
+		try {
+			return toDTO(entity);
+		} catch (Exception e) {
+			throw new IFormException("获取表单模型列表失败：" + e.getMessage(), e);
+		}*/
+		return null;
+	}
+
 	private FormModelEntity wrap(FormModel formModel) throws InstantiationException, IllegalAccessException {
 		FormModelEntity entity = new FormModelEntity();
 		BeanUtils.copyProperties(formModel, entity, new String[] {"items","dataModels"});
