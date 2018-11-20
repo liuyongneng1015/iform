@@ -1,9 +1,6 @@
 package tech.ascs.icity.iform.controller;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,7 +48,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		try {
 			Query<FormModelEntity, FormModelEntity> query = formModelService.query();
 			if (StringUtils.hasText(name)) {
-				query.filterLike("name", "%" + name + "%");
+				query.filterLike("name", CommonUtils.convertParamOfFuzzySearch(name));
 			}
 			List<FormModelEntity> entities = query.list();
 			return toDTO(entities);
@@ -182,23 +179,29 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		if (itemModelEntity == null) {
 			throw new IFormException(404, "控件【" + itemModelId + "】不存在");
 		}
-		String tableName = ((ReferenceItemModelEntity) itemModelEntity).getReferenceTable();
-		if(!(itemModelEntity instanceof  ReferenceItemModelEntity) || tableName== null){
+		String formModelName = ((ReferenceItemModelEntity) itemModelEntity).getReferenceTable();
+		if(!(itemModelEntity instanceof  ReferenceItemModelEntity) || formModelName== null){
 			throw new IFormException(404, "【" + itemModelId + "】控件不是关联类型");
 		}
-
-		DataModelEntity dataModelEntity = dataModelService.findUniqueByProperty("tableName", tableName);
-		if (dataModelEntity == null) {
-			throw new IFormException(404, "【" + tableName + "】数据模型不存在");
+		List<String> stringList = Arrays.asList(((ReferenceItemModelEntity) itemModelEntity).getItemModelList().split(","));
+		FormModelEntity formModelEntity = formModelService.findUniqueByProperty("name", formModelName);
+		if (formModelEntity == null) {
+			throw new IFormException(404, "【" + formModelName + "】表单模型不存在");
 		}
-		//TODO something here
-		/*FormModelEntity formModelEntity = formModelService.
+		formModelEntity.setItems(formModelService.getAllColumnItems(formModelEntity.getItems()));
 		try {
-			return toDTO(entity);
+			 FormModel formModel = toDTO(formModelEntity);
+			 for(ItemModel itemModel : formModel.getItems()){
+			 	if(stringList.contains(itemModel.getId())){
+			 		itemModel.setSelectFlag(true);
+				}else{
+					itemModel.setSelectFlag(false);
+				}
+			 }
+			 return formModel;
 		} catch (Exception e) {
 			throw new IFormException("获取表单模型列表失败：" + e.getMessage(), e);
-		}*/
-		return null;
+		}
 	}
 
 	private FormModelEntity wrap(FormModel formModel) throws InstantiationException, IllegalAccessException {
@@ -563,6 +566,16 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	private PCFormModel toPCDTO(FormModelEntity entity) throws InstantiationException, IllegalAccessException {
 		PCFormModel formModel = BeanUtils.copy(entity, PCFormModel.class, new String[] {"dataModels","items"});
 		List<DataModel> dataModelList = dataModelService.findDataModelByFormId(formModel.getId());
+		List<ItemModelEntity> itemModelEntities = formModelService.getAllColumnItems(entity.getItems());
+		Set<DataModelEntity> dataModelEntities = new HashSet<DataModelEntity>();
+		for(ItemModelEntity itemModelEntity : itemModelEntities){
+			dataModelEntities.add(itemModelEntity.getColumnModel().getDataModel());
+		}
+		for(DataModelEntity dataModelEntity : dataModelEntities){
+			DataModel dataModel = dataModelService.transitionToModel(dataModelEntity);
+			dataModel.setModelType(DataModelType.Relevance);
+			dataModelList.add(dataModel);
+		}
 		formModel.setDataModels(dataModelList);
 		return formModel;
 	}

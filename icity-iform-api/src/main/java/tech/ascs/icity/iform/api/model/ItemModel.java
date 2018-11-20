@@ -40,9 +40,9 @@ public class ItemModel extends NameEntity {
 	private SelectMode selectMode;
 	@ApiModelProperty(value = " 关联字典ID", position = 13)
 	private String referenceDictionaryId;
-	@ApiModelProperty(value = " 关联表", position = 14)
+	@ApiModelProperty(value = " 关联表单模型", position = 14)
 	private String referenceTable;
-	@ApiModelProperty(value = " 关联值字段（比如“ID”）", position = 15)
+	@ApiModelProperty(value = " 关联字段模型（比如“ID”）", position = 15)
 	private String referenceValueColumn;
 	@ApiModelProperty(value="控件类型选择框还是列表", position = 16)
 	private ControlType controlType;
@@ -77,7 +77,9 @@ public class ItemModel extends NameEntity {
 	@ApiModelProperty(value="系统控件类型", position = 29)
 	private SystemControlType systemControlType;
 	@ApiModelProperty(value="数据标识:控件id集合",position = 30)
-	private List<String> itemList = new ArrayList<>();
+	private String itemModelList;
+	@ApiModelProperty(value="是否被选中:true选中，flse未选中",position = 31)
+	private Boolean  selectFlag = false;
 
 	public ItemType getType() {
 		return type;
@@ -287,11 +289,19 @@ public class ItemModel extends NameEntity {
 		this.systemControlType = systemControlType;
 	}
 
-	public List<String> getItemList() {
-		return itemList;
+	public String getItemModelList() {
+		return itemModelList;
 	}
 
-	public void setItemList(List<String> itemList) {
-		this.itemList = itemList;
+	public void setItemModelList(String itemModelList) {
+		this.itemModelList = itemModelList;
+	}
+
+	public Boolean getSelectFlag() {
+		return selectFlag;
+	}
+
+	public void setSelectFlag(Boolean selectFlag) {
+		this.selectFlag = selectFlag;
 	}
 }

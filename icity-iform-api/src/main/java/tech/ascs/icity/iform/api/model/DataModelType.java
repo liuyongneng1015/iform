@@ -15,7 +15,10 @@ public enum DataModelType {
 	Master("Master"),
 
 	//从表
-	Slaver("Slaver");
+	Slaver("Slaver"),
+
+	//关联表
+	Relevance("Relevance");
 
 	private String value;
 
@@ -26,9 +29,5 @@ public enum DataModelType {
 	public String value() {
 		return value;
 	}
-//
-//	@Override
-//	public String toString() {
-//		return value;
-//	}
+
 }

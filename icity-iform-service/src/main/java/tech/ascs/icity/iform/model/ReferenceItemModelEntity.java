@@ -26,10 +26,10 @@ public class ReferenceItemModelEntity extends ItemModelEntity  {
 	@Enumerated(EnumType.STRING)
 	private SelectMode selectMode;
 
-	@Column(name="reference_table")// 关联表
+	@Column(name="reference_table")// 关联表单模型
 	private String referenceTable;
 
-	@Column(name="reference_value_column")// 关联值字段（比如“ID”）
+	@Column(name="reference_value_column")// 关联字段模型（比如“ID”）
 	private String referenceValueColumn;
 
 	@Column(name="control_type")//控件类型选择框还是列表
@@ -40,8 +40,8 @@ public class ReferenceItemModelEntity extends ItemModelEntity  {
 	@ManyToOne(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH })
 	private ListModelEntity referenceList;
 
-	@Transient // 数据标识
-	private List<String> itemList = new ArrayList<String>();
+	@Column(name="item_model_ids") // 关联数据标识：控件id集合
+	private String itemModelList;
 
 
 	public ReferenceType getReferenceType() {
@@ -92,11 +92,11 @@ public class ReferenceItemModelEntity extends ItemModelEntity  {
 		this.referenceList = referenceList;
 	}
 
-	public List<String> getItemList() {
-		return itemList;
+	public String getItemModelList() {
+		return itemModelList;
 	}
 
-	public void setItemList(List<String> itemList) {
-		this.itemList = itemList;
+	public void setItemModelList(String itemModelList) {
+		this.itemModelList = itemModelList;
 	}
 }

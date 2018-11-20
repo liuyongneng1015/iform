@@ -23,7 +23,9 @@ import tech.ascs.icity.iflow.client.TaskService;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.model.*;
+import tech.ascs.icity.iform.service.DataModelService;
 import tech.ascs.icity.iform.service.FormInstanceService;
+import tech.ascs.icity.iform.service.FormModelService;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 import tech.ascs.icity.model.Page;
@@ -31,7 +33,7 @@ import tech.ascs.icity.model.Page;
 public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> implements FormInstanceService {
 
 	public static class FormInstanceRowMapper implements RowMapper<FormInstance> {
-		
+
 		private static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
 		private FormModelEntity formModel;
@@ -53,8 +55,11 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 			}
 
 			List<ItemInstance> items = new ArrayList<ItemInstance>();
-			for (ItemModelEntity itemModel : formModel.getItems()) {
+			for (ItemModelEntity itemModel : getAllColumnItems(formModel.getItems())) {
 				ColumnModelEntity column = itemModel.getColumnModel();
+				if(column == null){
+					continue;
+				}
 				Object value = rs.getObject("f" + column.getColumnName());
 				ItemInstance itemInstance = new ItemInstance();
 				itemInstance.setId(itemModel.getId());
@@ -71,6 +76,35 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 			formInstance.setItems(items);
 
 			return formInstance;
+		}
+
+		private  List<ItemModelEntity> getAllColumnItems(List<ItemModelEntity> itemModelEntities){
+			List<ItemModelEntity> itemModels = new ArrayList<>();
+			for(ItemModelEntity itemModelEntity : itemModelEntities){
+				if(itemModelEntity.getColumnModel() != null){
+					itemModels.add(itemModelEntity);
+					continue;
+				}
+				if(itemModelEntity instanceof SubFormItemModelEntity){
+					List<SubFormRowItemModelEntity> subRowItems = ((SubFormItemModelEntity) itemModelEntity).getItems();
+					for(SubFormRowItemModelEntity rowItemModelEntity : subRowItems){
+						for(ItemModelEntity itemModel : rowItemModelEntity.getItems()) {
+							if (itemModel.getColumnModel() != null) {
+								itemModels.add(itemModel);
+								continue;
+							}
+						}
+					}
+				}else if(itemModelEntity instanceof RowItemModelEntity){
+					for(ItemModelEntity itemModel : ((RowItemModelEntity) itemModelEntity).getItems()) {
+						if (itemModel.getColumnModel() != null) {
+							itemModels.add(itemModel);
+							continue;
+						}
+					}
+				}
+			}
+			return itemModels;
 		}
 
 		protected void updateActivityInfo(ItemModelEntity itemModel, ItemInstance itemInstance, String activityId) {
@@ -150,7 +184,7 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 		String tableName = listModel.getMasterForm().getDataModels().get(0).getTableName();
 		StringBuilder countSql = new StringBuilder("SELECT COUNT(*) FROM if_").append(tableName).append(where);
 		int count = jdbcTemplate.queryForObject(countSql.toString(), Integer.class);
-		
+
 		StringBuilder sql = new StringBuilder("SELECT * FROM if_").append(tableName)
 				.append(where).append(buildOrderBySql(listModel, queryParameters));
 
@@ -235,7 +269,7 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 			params.add(value);
 			data.put(itemModel.getColumnModel().getColumnName(), value);
 		}
-		
+
 		StringBuilder sql = new StringBuilder("INSERT INTO if_").append(formModel.getDataModels().get(0).getTableName())
 				.append(" (").append(fields).append(") VALUES (").append(values).append(")");
 		doUpdate(sql.toString(), params.toArray(new Object[] {}));
@@ -245,7 +279,7 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 			String processInstanceId = processInstanceService.startProcess(formModel.getProcess().getKey(), newId, data);
 			updateProcessInfo(formModel, newId, processInstanceId);
 		}
-		
+
 		return newId;
 	}
 

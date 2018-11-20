@@ -29,7 +29,7 @@ public class ItemModelEntity extends  BaseEntity implements Serializable {
 	@JoinColumn(name="form_id")
 	private FormModelEntity formModel;
 
-	@OneToOne(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH })
+	@ManyToOne(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH })
 	@JoinColumn(name="column_id")
 	private ColumnModelEntity columnModel;
 

@@ -11,6 +11,7 @@ import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.ColumnModelService;
 import tech.ascs.icity.iform.service.DataModelService;
+import tech.ascs.icity.iform.service.FormModelService;
 import tech.ascs.icity.iform.support.IFormSessionFactoryBuilder;
 import tech.ascs.icity.iform.utils.CommonUtils;
 import tech.ascs.icity.jpa.service.JPAManager;
@@ -34,6 +35,10 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 
 	@Autowired
 	private ColumnModelService columnModelService;
+
+	@Autowired
+	private FormModelService formModelService;
+
 
 	public DataModelServiceImpl() {
 		super(DataModelEntity.class);
@@ -273,21 +278,24 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		list.add(dataModelEntity);
 		list.addAll(dataModelEntity.getSlaverModels());
 		for(DataModelEntity modelEntity : list){
-			try {
-				DataModel dataModel = BeanUtils.copy(modelEntity, DataModel.class, new String[] {"columns","slaverModels","masterModel","parentsModel","childrenModels","indexes"});
-				List<ColumnModelEntity> columnModelEntities = modelEntity.getColumns();
-				List<ColumnModel> columnModels = new ArrayList<>();
-				for(ColumnModelEntity columnModelEntity : columnModelEntities){
-					ColumnModel columnModel = BeanUtils.copy(columnModelEntity, ColumnModel.class, new String[] {"dataModel","columnReferences"});
-					columnModels.add(columnModel);
-				}
-				dataModel.setColumns(columnModels);
-				dataModelList.add(dataModel);
-			} catch (Exception e) {
-				throw new IFormException("同步数据模型【" + dataModelEntity.getName() + "】转换失败：" + e.getMessage(), e);
-			}
+			dataModelList.add(transitionToModel(modelEntity));
 		}
 		return dataModelList;
+	}
+
+	@Override
+	public DataModel transitionToModel(DataModelEntity modelEntity){
+		DataModel dataModel = new DataModel();
+		BeanUtils.copyProperties(modelEntity, dataModel, new String[] {"columns","slaverModels","masterModel","parentsModel","childrenModels","indexes"});
+		List<ColumnModelEntity> columnModelEntities = modelEntity.getColumns();
+		List<ColumnModel> columnModels = new ArrayList<>();
+		for(ColumnModelEntity columnModelEntity : columnModelEntities){
+			ColumnModel columnModel = new ColumnModel();
+			BeanUtils.copyProperties(columnModelEntity, columnModel, new String[] {"dataModel","columnReferences"});
+			columnModels.add(columnModel);
+		}
+		dataModel.setColumns(columnModels);
+		return dataModel;
 	}
 
 	@Transactional(readOnly = false)

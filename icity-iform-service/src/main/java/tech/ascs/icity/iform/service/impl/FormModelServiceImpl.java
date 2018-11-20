@@ -209,9 +209,28 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 	//校验关联
 	private void verifyReference(ReferenceItemModelEntity rowItem){
+		FormModelEntity formModelEntity = findUniqueByName(rowItem.getReferenceTable());
+		if(formModelEntity == null){
+			throw new IFormException(404, "表单【" + rowItem.getReferenceTable() +"】， 未找到");
+		}
+		List<ItemModelEntity> itemModels = getAllColumnItems(formModelEntity.getItems());
+
 		//关联表行
-		ColumnModelEntity addToEntity =
+		ColumnModelEntity addToEntity = null;
+		for(ItemModelEntity itemModelEntity : itemModels){
+			if(itemModelEntity.getName().equals(rowItem.getReferenceValueColumn())){
+				addToEntity = itemModelEntity.getColumnModel();
+			}
+		}
+
+		if(addToEntity == null){
+			throw new IFormException(404, "表单【" + rowItem.getReferenceTable() +"】， 未找到对应的【"+ rowItem.getReferenceValueColumn() +"】控件");
+		}
+
+		//关联表行
+		/*ColumnModelEntity addToEntity =
 				columnModelManager.query().filterEqual("columnName",  rowItem.getReferenceValueColumn()).filterEqual("dataModel.tableName", rowItem.getReferenceTable()).unique();
+		*/
 		if(addToEntity.getColumnReferences() != null){
 			List<String> dataModelIds= new ArrayList<String>();
 			List<String> items = new ArrayList<String>();
@@ -246,6 +265,37 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				setItemActivityOption(oldItems, itemActivityIds, itemSelectOptionIds, itemModelEntity);
 			}
 		}
+	}
+
+	//获取关联行的控件
+	@Override
+	public  List<ItemModelEntity> getAllColumnItems(List<ItemModelEntity> itemModelEntities){
+		List<ItemModelEntity> itemModels = new ArrayList<>();
+		for(ItemModelEntity itemModelEntity : itemModelEntities){
+			if(itemModelEntity.getColumnModel() != null){
+				itemModels.add(itemModelEntity);
+				continue;
+			}
+			if(itemModelEntity instanceof SubFormItemModelEntity){
+				List<SubFormRowItemModelEntity> subRowItems = ((SubFormItemModelEntity) itemModelEntity).getItems();
+				for(SubFormRowItemModelEntity rowItemModelEntity : subRowItems){
+					for(ItemModelEntity itemModel : rowItemModelEntity.getItems()) {
+						if (itemModel.getColumnModel() != null) {
+							itemModels.add(itemModel);
+							continue;
+						}
+					}
+				}
+			}else if(itemModelEntity instanceof RowItemModelEntity){
+				for(ItemModelEntity itemModel : ((RowItemModelEntity) itemModelEntity).getItems()) {
+					if (itemModel.getColumnModel() != null) {
+						itemModels.add(itemModel);
+						continue;
+					}
+				}
+			}
+		}
+		return itemModels;
 	}
 
 

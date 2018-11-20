@@ -27,6 +27,7 @@ import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.FormInstanceServiceEx;
+import tech.ascs.icity.iform.service.FormModelService;
 import tech.ascs.icity.iform.service.ItemModelService;
 import tech.ascs.icity.iform.support.IFormSessionFactoryBuilder;
 import tech.ascs.icity.jpa.service.JPAManager;
@@ -43,6 +44,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	@Autowired
 	private ProcessInstanceService processInstanceService;
+
+	@Autowired
+	private FormModelService formModelService;
 
 	@Autowired
 	private TaskService taskService;
@@ -165,6 +169,18 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	@SuppressWarnings("unchecked")
 	@Override
 	public FormInstance getFormInstance(FormModelEntity formModel, String instanceId) {
+		List<ItemModelEntity> columnItem = formModelService.getAllColumnItems(formModel.getItems());
+		/*Map<String, List<ItemModelEntity>> referenceMap = new HashMap<>();
+		for(ItemModelEntity itemModelEntity : columnItem){
+			if(itemModelEntity instanceof ReferenceItemModelEntity && ((ReferenceItemModelEntity) itemModelEntity).getSelectMode() == null) {
+				List<ItemModelEntity> list = referenceMap.get(itemModelEntity.getColumnModel().getDataModel()+"_f"+itemModelEntity.getColumnModel().getColumnName());
+				if(list == null){
+					list = new ArrayList<>();
+				}
+				list.add(itemModelEntity);
+				referenceMap.put(itemModelEntity.getColumnModel().getDataModel()+"_f"+itemModelEntity.getColumnModel().getColumnName(), list);
+			}
+		}*/
 		DataModelEntity dataModel = formModel.getDataModels().get(0);
 		Session session = getSession(dataModel);
 		Map<String, Object> map = (Map<String, Object>) session.load(dataModel.getTableName(), instanceId);
@@ -178,14 +194,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				slaverMap.put(dataModel.getTableName() + "_" + key, map.get(key));
 			}
 			map.putAll(slaverMap);
-		}
-
-		for(DataModelEntity dataModelEntity : dataModel.getChildrenModels()){
-
 		}*/
 
 
-		return wrapEntity(formModel, map);
+		return wrapEntity(formModel, map, instanceId);
 	}
 
 	private Map<String, Object> createDataModel(DataModelEntity dataModel, String instanceId){
@@ -418,42 +430,83 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		List<FormInstance> FormInstanceList = new ArrayList<FormInstance>();
 		FormModelEntity formModel = listModel.getMasterForm();
 		for (Map<String, Object> entity : entities) {
-			FormInstanceList.add(wrapEntity(formModel, entity));
+			FormInstanceList.add(wrapEntity(formModel, entity,String.valueOf(entity.get("id"))));
 		}
 		return FormInstanceList;
 	}
 
-	protected FormInstance wrapEntity(FormModelEntity formModel, Map<String, Object> entity) {
+	protected FormInstance wrapEntity(FormModelEntity formModel, Map<String, Object> entity, String instanceId) {
 		FormInstance formInstance = new FormInstance();
 		formInstance.setFormId(formModel.getId());
-		formInstance.setId((String) entity.get("id"));
-
+		//数据id
+		formInstance.setId(instanceId);
 		if (formModel.getProcess() != null && StringUtils.hasText(formModel.getProcess().getId())) {
 			formInstance.setProcessId((String) entity.get("PROCESS_ID"));
 			formInstance.setProcessInstanceId((String) entity.get("PROCESS_INSTANCE"));
 			formInstance.setActivityId((String) entity.get("ACTIVITY_ID"));
 			formInstance.setActivityInstanceId((String) entity.get("ACTIVITY_INSTANCE"));
 		}
+		return setFormInstanceModel(formInstance, formModel,  entity);
+	}
 
-		List<ItemInstance> items = new ArrayList<ItemInstance>();
-		for (ItemModelEntity itemModel : formModel.getItems()) {
+	private FormInstance setFormInstanceModel(FormInstance formInstance, FormModelEntity formModel, Map<String, Object> entity){
+		List<ItemInstance> items = new ArrayList<>();
+		List<ItemModelEntity> list = formModelService.getAllColumnItems(formModel.getItems());
+		for (ItemModelEntity itemModel : list) {
+			System.out.println(itemModel.getId()+"____begin");
 			ColumnModelEntity column = itemModel.getColumnModel();
-			Object value = entity.get(column.getColumnName());
-			ItemInstance itemInstance = new ItemInstance();
-			itemInstance.setId(itemModel.getId());
-			updateValue(itemModel, itemInstance, value);
-			if (column.getKey()) {
-				itemInstance.setVisible(false);
-				itemInstance.setReadonly(true);
-			} else {
-				updateActivityInfo(itemModel, itemInstance, formInstance.getActivityId());
+			if(column == null){
+				continue;
 			}
-			items.add(itemInstance);
-			formInstance.addData(column.getColumnName(), itemInstance.getValue());
+			Object value = entity.get(column.getColumnName());
+			if(itemModel instanceof ReferenceItemModelEntity  ){
+				ReferenceItemModelEntity item = (ReferenceItemModelEntity)itemModel;
+				FormModelEntity formModelEntity = formModelEntityJPAManager.query().filterEqual("name",item.getReferenceTable()).unique();
+				if(formModelEntity.getId().equals(formInstance.getFormId()) ||
+					(!item.getFormModel().getId().equals(formInstance.getFormId()) && !formModelEntity.getId().equals(formInstance.getFormId()))){
+					continue;
+				}
+				if(formModelEntity != null) {
+					FormInstance newFormInstance = setFormInstanceModel(formInstance, formModelEntity, (Map<String, Object>)value);
+					formInstance.getData().putAll(newFormInstance.getData());
+				}
+			}else {
+				if(column.getColumnReferences() != null && !column.getColumnReferences().isEmpty() ){
+					if(!itemModel.getFormModel().getId().equals(formInstance.getFormId())){
+						continue;
+					}
+					for(ColumnReferenceEntity columnReferenceEntity : column.getColumnReferences()) {
+						ColumnModelEntity toColumnModel = columnReferenceEntity.getToColumn();
+						ItemModelEntity item = itemModelManager.findUniqueByProperty("columnModel.id", toColumnModel.getId());
+						FormModelEntity formModelEntity = item.getFormModel();
+						if(formModelEntity != null) {
+							FormInstance newFormInstance = setFormInstanceModel(formInstance, formModelEntity, (Map<String, Object>)value);
+							formInstance.getData().putAll(newFormInstance.getData());
+						}
+					}
+				}else {
+					ItemInstance itemInstance = setItemInstance(column.getKey(), itemModel, value, formInstance.getActivityId());
+					items.add(itemInstance);
+					formInstance.addData(itemModel.getId(), itemInstance.getValue());
+				}
+			}
+			System.out.println(itemModel.getId()+"____end");
 		}
-		formInstance.setItems(items);
-		
+		formInstance.getItems().addAll(items);
 		return formInstance;
+	}
+
+	private ItemInstance setItemInstance(Boolean visiblekey , ItemModelEntity itemModel, Object value, String activityId){
+		ItemInstance itemInstance = new ItemInstance();
+		itemInstance.setId(itemModel.getId());
+		updateValue(itemModel, itemInstance, value);
+		if (visiblekey) {
+			itemInstance.setVisible(false);
+			itemInstance.setReadonly(true);
+		} else {
+			updateActivityInfo(itemModel, itemInstance, activityId);
+		}
+		return itemInstance;
 	}
 
 	protected void updateActivityInfo(ItemModelEntity itemModel, ItemInstance itemInstance, String activityId) {
