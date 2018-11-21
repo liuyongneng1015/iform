@@ -5,8 +5,6 @@ import tech.ascs.icity.iform.api.model.ReferenceType;
 import tech.ascs.icity.iform.api.model.SelectMode;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * 关联表单控件模型
@@ -41,7 +39,7 @@ public class ReferenceItemModelEntity extends ItemModelEntity  {
 	private ListModelEntity referenceList;
 
 	@Column(name="item_model_ids") // 关联数据标识：控件id集合
-	private String itemModelList;
+	private String itemModelIds;
 
 
 	public ReferenceType getReferenceType() {
@@ -92,11 +90,11 @@ public class ReferenceItemModelEntity extends ItemModelEntity  {
 		this.referenceList = referenceList;
 	}
 
-	public String getItemModelList() {
-		return itemModelList;
+	public String getItemModelIds() {
+		return itemModelIds;
 	}
 
-	public void setItemModelList(String itemModelList) {
-		this.itemModelList = itemModelList;
+	public void setItemModelIds(String itemModelIds) {
+		this.itemModelIds = itemModelIds;
 	}
 }

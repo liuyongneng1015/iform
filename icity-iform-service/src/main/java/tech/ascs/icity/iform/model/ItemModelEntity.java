@@ -7,9 +7,8 @@ import java.util.List;
 import javax.persistence.*;
 
 import org.hibernate.annotations.DiscriminatorOptions;
-import org.hibernate.annotations.GenericGenerator;
 import tech.ascs.icity.iform.api.model.ItemType;
-import tech.ascs.icity.iform.api.model.SystemControlType;
+import tech.ascs.icity.iform.api.model.SystemItemType;
 import tech.ascs.icity.jpa.dao.model.BaseEntity;
 
 /**
@@ -20,7 +19,7 @@ import tech.ascs.icity.jpa.dao.model.BaseEntity;
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn(name="discriminator", discriminatorType = DiscriminatorType.STRING)
 @DiscriminatorOptions(force=true)
-@DiscriminatorValue(value = "Input")
+@DiscriminatorValue(value = "baseItemModel")
 public class ItemModelEntity extends  BaseEntity implements Serializable {
 
 	private static final long serialVersionUID = 1L;
@@ -46,12 +45,9 @@ public class ItemModelEntity extends  BaseEntity implements Serializable {
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "itemModel")
 	private List<ItemSelectOption> options = new ArrayList<ItemSelectOption>();
 
-	@Column(name="system_flag")//是否系统控件
-	private Boolean systemFlag = false;
-
-	@JoinColumn(name="system_control_type")//系统控件类型
+	@JoinColumn(name="system_item_type")//系统控件类型
 	@Enumerated(EnumType.STRING)
-	private SystemControlType systemControlType;
+	private SystemItemType systemItemType;
 
 	public FormModelEntity getFormModel() {
 		return formModel;
@@ -101,19 +97,11 @@ public class ItemModelEntity extends  BaseEntity implements Serializable {
 		this.options = options;
 	}
 
-	public Boolean getSystemFlag() {
-		return systemFlag;
+	public SystemItemType getSystemItemType() {
+		return systemItemType;
 	}
 
-	public void setSystemFlag(Boolean systemFlag) {
-		this.systemFlag = systemFlag;
-	}
-
-	public SystemControlType getSystemControlType() {
-		return systemControlType;
-	}
-
-	public void setSystemControlType(SystemControlType systemControlType) {
-		this.systemControlType = systemControlType;
+	public void setSystemItemType(SystemItemType systemItemType) {
+		this.systemItemType = systemItemType;
 	}
 }

@@ -32,7 +32,7 @@ public class SelectItemModelEntity extends ItemModelEntity  {
 
 	@JoinColumn(name="list_model_id") // 关联显示列表模型
 	@ManyToOne(cascade = CascadeType.ALL)
-	private ListModelEntity listModel;
+	private ListModelEntity referenceList;
 
 	public SelectReferenceType getSelectReferenceType() {
 		return selectReferenceType;
@@ -74,11 +74,11 @@ public class SelectItemModelEntity extends ItemModelEntity  {
 		this.referenceValueColumn = referenceValueColumn;
 	}
 
-	public ListModelEntity getListModel() {
-		return listModel;
+	public ListModelEntity getReferenceList() {
+		return referenceList;
 	}
 
-	public void setListModel(ListModelEntity listModel) {
-		this.listModel = listModel;
+	public void setReferenceList(ListModelEntity referenceList) {
+		this.referenceList = referenceList;
 	}
 }

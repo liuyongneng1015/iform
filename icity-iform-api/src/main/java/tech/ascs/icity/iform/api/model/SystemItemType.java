@@ -1,17 +1,35 @@
 package tech.ascs.icity.iform.api.model;
 
 /**
- * 表单控件类型
+ * 系统控件类型
  * 
- * @author Jackie
+ * @author LiuYongneng
  *
  */
-public enum ItemType {
+public enum SystemItemType {
 
-	/** 标签 */
+	/** 主键id */
+	ID("ID"),
+	/** 父级别主键id */
+	MasterID("MasterID"),
+	/** 创建时间 */
+	CreateDate("CreateDate"),
+	/** 更新时间 */
+	UpdataDate("UpdataDate"),
+	/** 创建人 */
+	CreateBy("CreateBy"),
+	/** 更新人 */
+	UpdataBy("UpdataBy"),
+	/** 流水号 */
+	SerialNumber("SerialNumber"),
+	/** 标题 */
 	Label("Label"),
-	/** 单行文本 / 多行文本 */
+	/** 描叙 */
+	Description("Description"),
+	/** 单行文本 */
 	Input("Input"),
+	/** 多行文本 */
+	MoreInput("MoreInput"),
 	/** 数值输入框 */
 	InputNumber("InputNumber"),
 	/** 图片 */
@@ -37,7 +55,7 @@ public enum ItemType {
 	/** 主表自定义（组合控件） */
 	Row("Row");
 	private String value;
-	private ItemType(String value) {
+	private SystemItemType(String value) {
 		this.value= value;
 	}
 

@@ -86,47 +86,11 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 	@Override
 	public IdEntity saveFormModel(@RequestBody FormModel formModel) {
-		FormModelEntity oldEntity = new FormModelEntity();
-		if (StringUtils.hasText(formModel.getId())) {
-			oldEntity = formModelService.find(formModel.getId());
-		}
-		if (StringUtils.hasText(formModel.getId())) {
-			saveDataModel(formModel, oldEntity);
-		}
-
-		BeanUtils.copyProperties(formModel, oldEntity, new String[] {"indexes","dataModels"});
-
-		return new IdEntity(formModelService.save(oldEntity).getId());
+		FormModelEntity oldEntity = formModelService.saveFormModel(formModel);
+		return new IdEntity(oldEntity.getId());
 	}
 
-	//删除或者保存旧的数据建模
-	private void saveDataModel(FormModel formModel, FormModelEntity oldEntity){
-		//新的
-		List<String> newDataModelIds = new ArrayList<>();
-		List<DataModelEntity> newAddDataModel = new ArrayList<>();
-		if(formModel.getDataModels() != null ) {
-			for(DataModel dataModel : formModel.getDataModels()) {
-				if(!dataModel.isNew()) {
-					newDataModelIds.add(dataModel.getId());
-					newAddDataModel.add(dataModelService.find(dataModel.getId()));
-				}else {
-					DataModelEntity dataModelEntity = new DataModelEntity();
-					BeanUtils.copyProperties(dataModel, DataModelEntity.class,new String[]{});
-					dataModelService.save(dataModelEntity);
-					newAddDataModel.add(dataModelEntity);
-				}
-			}
-		}
 
-		List<DataModelEntity> oldDataModelEntities = oldEntity.getDataModels();
-		for(DataModelEntity dataModelEntity : oldDataModelEntities){
-			if(!newDataModelIds.contains(dataModelEntity.getId())){
-				oldDataModelEntities.remove(dataModelEntity);
-			}
-		}
-		oldDataModelEntities.addAll(newAddDataModel);
-		formModelService.save(oldEntity);
-	}
 
 	@Override
 	public IdEntity createFormModel(@RequestBody FormModel formModel) {
@@ -183,7 +147,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		if(!(itemModelEntity instanceof  ReferenceItemModelEntity) || formModelName== null){
 			throw new IFormException(404, "【" + itemModelId + "】控件不是关联类型");
 		}
-		List<String> stringList = Arrays.asList(((ReferenceItemModelEntity) itemModelEntity).getItemModelList().split(","));
+		List<String> stringList = Arrays.asList(((ReferenceItemModelEntity) itemModelEntity).getItemModelIds().split(","));
 		FormModelEntity formModelEntity = formModelService.findUniqueByProperty("name", formModelName);
 		if (formModelEntity == null) {
 			throw new IFormException(404, "【" + formModelName + "】表单模型不存在");
@@ -240,25 +204,16 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		//创建获取主键未持久化到数据库
 		ColumnModelEntity masterIdColumnEntity = columnModelService.saveColumnModelEntity(masterDataModelEntity, "id");
 		//创建获取关联字段未持久化到数据库
-		ColumnModelEntity referenceIdColumnEntity = null;
 		if(masterDataModelEntity.getMasterModel() != null) {
-			referenceIdColumnEntity = columnModelService.saveColumnModelEntity(masterDataModelEntity, "master_id");
+			columnModelService.saveColumnModelEntity(masterDataModelEntity, "master_id");
 		}
 		if(masterDataModelEntity.getModelType() == DataModelType.Single && dataModels.size() > 1) {
 			masterDataModelEntity.setModelType(DataModelType.Master);
 		}
 		masterDataModelEntity.setSynchronized(false);
-		masterDataModelEntity.getColumns().add(masterIdColumnEntity);
-		if(referenceIdColumnEntity != null){
-			masterDataModelEntity.getColumns().add(referenceIdColumnEntity);
-		}
 
 		//设置数据模型行
 		setDataModelEntityColumns(masterDataModel, masterDataModelEntity);
-
-		if(!masterDataModel.getColumns().isEmpty()){
-			//masterDataModelEntity.setColumns(saveColumnModelEntity( masterDataModelEntity, masterDataModel));
-		}
 
 		List<DataModelEntity> slaverDataModelEntities = new ArrayList<>();
 		for(DataModel dataModel : dataModels) {
@@ -284,11 +239,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 				//设置数据模型行
 				setDataModelEntityColumns(dataModel, slaverDataModelEntity);
-				if(!dataModel.getColumns().isEmpty()){
-					//slaverDataModelEntity.setColumns(saveColumnModelEntity( slaverDataModelEntity, dataModel));
-				}
-				slaverDataModelEntity.getColumns().add(idColumnReference);
-				slaverDataModelEntity.getColumns().add(columnReference);
 				slaverDataModelEntities.add(slaverDataModelEntity);
 			}
 		}
@@ -316,11 +266,13 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	private void setDataModelEntityColumns(DataModel newDataModel, DataModelEntity oldDataModelEntity){
 		//待更新的行
 		List<String> newColumnIds = new ArrayList<>();
-		//待保存的行
-		List<ColumnModelEntity> saveModelEntities = new ArrayList<ColumnModelEntity>();
+		ColumnModel idColumnModel= null;
 		for(ColumnModel newColumnModel : newDataModel.getColumns()){
 			if(newColumnModel.getId() != null){
 				newColumnIds.add(newColumnModel.getId());
+			}
+			if(newColumnModel.getColumnName().equals("id")){
+				idColumnModel = newColumnModel;
 			}
 		}
 
@@ -360,6 +312,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			}
 		}
 
+		//待保存的行
+		List<ColumnModelEntity> saveModelEntities = new ArrayList<ColumnModelEntity>();
+
 		for(ColumnModel columnModel : newDataModel.getColumns()){
 			ColumnModelEntity oldColumnModelEntity = setColumn(columnModel);
 			oldColumnModelEntity.getColumnReferences().clear();
@@ -370,7 +325,10 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			}
 			saveModelEntities.add(oldColumnModelEntity);
 		}
-		oldDataModelEntity.getColumns().addAll(saveModelEntities);
+		if(idColumnModel == null){
+			saveModelEntities.add(columnModelService.saveColumnModelEntity(oldDataModelEntity,"id"));
+		}
+		oldDataModelEntity.setColumns(saveModelEntities);
 	}
 
 	private ColumnModelEntity setColumn(ColumnModel columnModel){
@@ -424,25 +382,27 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	private ItemModelEntity wrap(ItemModel itemModel) throws InstantiationException, IllegalAccessException {
 
 		//TODO 根据类型映射对应的item
-		ItemModelEntity entity = getItemModelEntity(itemModel);
+		ItemModelEntity entity = formModelService.getItemModelEntity(itemModel.getType());
 		if(itemModel.getId() != null){
-			entity = itemModelService.find(itemModel.getId());
+			//entity = itemModelService.find(itemModel.getId());
 		}
 		//需要保持column
-		BeanUtils.copyProperties(itemModel, entity, new String[] {"formModel","dataModel", "columnReferences", "activities","options"});
+		BeanUtils.copyProperties(itemModel, entity, new String[] {"itemModelList","formModel","dataModel", "columnReferences", "activities","options"});
 
 		if(itemModel.getColumnModel() == null){
 			entity.setColumnModel(null);
 		}
 
 		if(entity instanceof ReferenceItemModelEntity){
+			((ReferenceItemModelEntity) entity).setItemModelIds(org.apache.commons.lang3.StringUtils.join(itemModel.getItemModelList(),","));
 			((ReferenceItemModelEntity)entity).setReferenceList(setItemModelByListModel(entity));
 		}else if(entity instanceof SelectItemModelEntity){
-			((SelectItemModelEntity)entity).setListModel(setItemModelByListModel(entity));
+			((SelectItemModelEntity)entity).setReferenceList(setItemModelByListModel(entity));
 		}else if(entity instanceof RowItemModelEntity){
 			List<ItemModelEntity> rowList = ((RowItemModelEntity) entity).getItems();
 			for(ItemModelEntity itemModelEntity : rowList) {
 				if(entity instanceof ReferenceItemModelEntity) {
+					((ReferenceItemModelEntity) entity).setItemModelIds(org.apache.commons.lang3.StringUtils.join(itemModel.getItemModelList(),","));
 					((ReferenceItemModelEntity) entity).setReferenceList(setItemModelByListModel(itemModelEntity));
 				}
 			}
@@ -451,6 +411,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			for(SubFormRowItemModelEntity rowItemModelEntity : rowItemModelEntities) {
 				for(ItemModelEntity childrenItem : rowItemModelEntity.getItems()) {
 					if(childrenItem instanceof ReferenceItemModelEntity) {
+						((ReferenceItemModelEntity) entity).setItemModelIds(org.apache.commons.lang3.StringUtils.join(itemModel.getItemModelList(),","));
 						((ReferenceItemModelEntity) entity).setReferenceList(setItemModelByListModel(childrenItem));
 					}
 				}
@@ -476,53 +437,13 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		return entity;
 	}
 
-	private ItemModelEntity getItemModelEntity(ItemModel itemModel){
-		ItemModelEntity entity = null;
-		switch (itemModel.getType()){
-			case Image :
-				entity = new FileItemModelEntity();
-				break;
-			case  Attachment:
-				entity = new FileItemModelEntity();
-				break;
-			case  Select:
-				entity = new SelectItemModelEntity();
-				break;
-			case  RadioGroup:
-				entity = new SelectItemModelEntity();
-				break;
-			case  CheckboxGroup:
-				entity = new SelectItemModelEntity();
-				break;
-			case  DatePicker:
-				entity = new TimeItemModelEntity();
-				break;
-			case  SubForm:
-				entity = new SubFormItemModelEntity();
-				break;
-			case  ReferenceList:
-				entity = new ReferenceItemModelEntity();
-				break;
-			case  ReferenceLabel:
-				entity = new ReferenceItemModelEntity();
-				break;
-			case  RowItem:
-				entity = new SubFormRowItemModelEntity();
-				break;
-			case  Row:
-				entity = new RowItemModelEntity();
-				break;
-			default:
-				entity = new ItemModelEntity();
-				break;
-		}
-		return entity;
-	}
 
 	//关联的列表模型
 	private ListModelEntity setItemModelByListModel(ItemModelEntity itemModelEntity){
 		if(itemModelEntity != null && ((ReferenceItemModelEntity)itemModelEntity).getReferenceList() != null){
-			return listModelService.find(((ReferenceItemModelEntity)itemModelEntity).getReferenceList().getId());
+			ListModelEntity listModelEntity = new ListModelEntity();
+			BeanUtils.copyProperties(((ReferenceItemModelEntity)itemModelEntity).getReferenceList(), listModelEntity, new String[]{"masterForm", "slaverForms","sortItems","searchItems","functions","displayItems"});
+			return listModelEntity;
 		}
 		return null;
 	}
@@ -624,7 +545,12 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 	private ItemModel toDTO(ItemModelEntity entity) throws InstantiationException, IllegalAccessException {
 		//TODO 根据模型找到对应的参数
-		ItemModel itemModel = BeanUtils.copy(entity, ItemModel.class, new String[] {});
+		ItemModel itemModel = BeanUtils.copy(entity, ItemModel.class, new String[] {"itemModelIds"});
+
+		if(entity instanceof ReferenceItemModelEntity && ((ReferenceItemModelEntity) entity).getItemModelIds() != null){
+			List<String> resultList= new ArrayList<>(Arrays.asList(((ReferenceItemModelEntity) entity).getItemModelIds().split(",")));
+			itemModel.setItemModelList(resultList);
+		}
 
 		if (entity.getActivities().size() > 0) {
 			List<ActivityInfo> activities = new ArrayList<ActivityInfo>();

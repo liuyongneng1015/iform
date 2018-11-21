@@ -72,12 +72,12 @@ public class ItemModel extends NameEntity {
 	private String timeFormat;
 
 	//TimeItemModel
-	@ApiModelProperty(value="是否系统空间",position = 28)
-	private Boolean systemFlag;
 	@ApiModelProperty(value="系统控件类型", position = 29)
-	private SystemControlType systemControlType;
+	private SystemItemType systemItemType;
+
+
 	@ApiModelProperty(value="数据标识:控件id集合",position = 30)
-	private String itemModelList;
+	private List<String> itemModelList = new ArrayList<>();
 	@ApiModelProperty(value="是否被选中:true选中，flse未选中",position = 31)
 	private Boolean  selectFlag = false;
 
@@ -273,27 +273,19 @@ public class ItemModel extends NameEntity {
 		this.timeFormat = timeFormat;
 	}
 
-	public Boolean getSystemFlag() {
-		return systemFlag;
+	public SystemItemType getSystemItemType() {
+		return systemItemType;
 	}
 
-	public void setSystemFlag(Boolean systemFlag) {
-		this.systemFlag = systemFlag;
+	public void setSystemItemType(SystemItemType systemItemType) {
+		this.systemItemType = systemItemType;
 	}
 
-	public SystemControlType getSystemControlType() {
-		return systemControlType;
-	}
-
-	public void setSystemControlType(SystemControlType systemControlType) {
-		this.systemControlType = systemControlType;
-	}
-
-	public String getItemModelList() {
+	public List<String> getItemModelList() {
 		return itemModelList;
 	}
 
-	public void setItemModelList(String itemModelList) {
+	public void setItemModelList(List<String> itemModelList) {
 		this.itemModelList = itemModelList;
 	}
 

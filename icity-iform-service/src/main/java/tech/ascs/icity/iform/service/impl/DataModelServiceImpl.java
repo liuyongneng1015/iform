@@ -61,12 +61,16 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		BeanUtils.copyProperties(dataModel, old, new String[] {"masterModel", "slaverModels", "columns", "indexes"});
 		verifyTableName(old, dataModel.getTableName());
 
+		//主从表
 		setReferenceTable(dataModel, old);
 
-		List<ColumnModelEntity> columns = new ArrayList<ColumnModelEntity>();
 		//所以有旧的字段
 		List<String> oldCloumnIds = new ArrayList<String>();
+		String idColumns = "";
 		for (ColumnModelEntity oldColumn : old.getColumns()) {
+			if(oldColumn.getColumnName().equals("id")){
+				idColumns = oldColumn.getId();
+			}
 			oldCloumnIds.add(oldColumn.getId());
 		}
 		//所以带删除的旧的字段
@@ -90,25 +94,32 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 				deleteCloumnIds.add(oldClounm);
 			}
 		}
+		if(deleteCloumnIds.contains(idColumns)){
+			deleteCloumnIds.remove(idColumns);
+		}
 		//检查属性是否被关联
 		checkRelevance(deleteCloumnIds);
-
+		//id行
+		ColumnModelEntity idColumn = null;
+		List<ColumnModelEntity> columnModelEntities = new ArrayList<ColumnModelEntity>();
 		for (ColumnModel column : dataModel.getColumns()) {
-			setColumns(column, old,  columns);
+			ColumnModelEntity columnModelEntity = setColumns(column, old);
+			if(columnModelEntity.getColumnName().equals("id")){
+				idColumn = columnModelEntity;
+			}
+			columnModelEntities.add(columnModelEntity);
 		}
-
-		old.setColumns(columns);
+		if(idColumn == null){
+			columnModelEntities.add(columnModelService.saveColumnModelEntity(old, "id"));
+		}
+		old.setColumns(columnModelEntities);
 
 		List<IndexModelEntity> indexes = new ArrayList<IndexModelEntity>();
 		List<String> indexIds = new ArrayList<String>(); // 用于存放需删除的索引列表
-		setIndex(dataModel,  old,  indexes,  indexIds,  columns);
+		setIndex(dataModel,  old,  indexes,  indexIds);
 
 		old.setIndexes(indexes);
 
-		if(deleteCloumnIds.contains("id")){
-			deleteCloumnIds.remove("id");
-		}
-		columnModelService.saveColumnModelEntity(old, "id");
 		if(dataModel.getModelType() == DataModelType.Slaver){
 			old.setModelType(DataModelType.Slaver);
 			columnModelService.saveColumnModelEntity(old, "master_id");
@@ -117,9 +128,13 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 	}
 
 	//设置column
-	private void setColumns(ColumnModel column,DataModelEntity old, List<ColumnModelEntity> columns){
+	private ColumnModelEntity setColumns(ColumnModel column, DataModelEntity old){
 		//是否为新的模型
-		ColumnModelEntity columnEntity = column.isNew() ? new ColumnModelEntity() : columnManager.get(column.getId());
+		ColumnModelEntity columnEntity = new ColumnModelEntity();
+		if(!column.isNew()){
+			columnEntity = columnModelService.find(column.getId());
+		}
+		BeanUtils.copyProperties(column, columnEntity, new String[]{"dataModel","columnReferences"});
 
 		Map<String, ReferenceType> referenceMap = new HashMap<String, ReferenceType>();
 		List<ReferenceModel> referenceModelList = column.getColumnReferences();
@@ -153,18 +168,17 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		if(!deleteOldToColumnIds.isEmpty()) {
 			columnModelService.deleteOldColumnReferenceEntity(columnEntity, deleteOldToColumnIds, oldReferenceEntityList);
 		}
-		BeanUtils.copyProperties(column, columnEntity, new String[] {"dataModel"});
 		columnEntity.setDataModel(old);
 		columnEntity.setColumnReferences(oldReferenceEntityList);
 		columnManager.save(columnEntity);
 
 		//创建新的关联关系
 		addNewColumnReferenceEntity(columnEntity, newToColumnIds, oldReferenceEntityList, referenceMap);
-		columns.add(columnEntity);
+		return columnEntity;
 	}
 
 	//设置索引
-	private void setIndex(DataModel dataModel, DataModelEntity old, List<IndexModelEntity> indexes, List<String> indexIds, List<ColumnModelEntity> columns){
+	private void setIndex(DataModel dataModel, DataModelEntity old, List<IndexModelEntity> indexes, List<String> indexIds){
 		for (IndexModelEntity oldIndex : old.getIndexes()) {
 			indexIds.add(oldIndex.getId());
 		}
@@ -177,13 +191,14 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 			indexEntity.setDataModel(old);
 			List<ColumnModelEntity> indexColumns = new ArrayList<ColumnModelEntity>();
 			for (ColumnModelInfo column : index.getColumns()) {
-				indexColumns.add(getColumn(column.getColumnName(), columns));
+				indexColumns.add(getColumn(column.getColumnName(), old.getColumns()));
 			}
 			indexEntity.setColumns(indexColumns);
 			indexes.add(indexEntity);
 		}
 	}
 
+	//设置主从表
 	private void setReferenceTable(DataModel dataModel, DataModelEntity old){
 		//主表
 		if (dataModel.getMasterModel() != null) {
@@ -301,7 +316,18 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 	@Transactional(readOnly = false)
 	protected DataModelEntity save(DataModelEntity entity, List<String> deletedCloumnIds, List<String> deletedIndexIds) {
 		if (!deletedCloumnIds.isEmpty()) {
-			columnManager.deleteById(deletedCloumnIds.toArray(new String[] {}));
+			List<ColumnModelEntity> columnModelEntities = columnManager.query().filterIn("id", deletedCloumnIds).list();
+			for(int j = 0;j < columnModelEntities.size() ; j++){
+				List<ColumnReferenceEntity> columnReferences = columnModelEntities.get(j).getColumnReferences();
+				List<String> ids = new ArrayList<>();
+				for(ColumnReferenceEntity columnReferenceEntity : columnReferences){
+					ids.add(columnReferenceEntity.getToColumn().getId());
+				}
+				columnModelService.deleteOldColumnReferenceEntity(columnModelEntities.get(j), ids, columnReferences);
+				columnModelService.delete(columnModelEntities.get(j));
+				columnModelEntities.remove(columnModelEntities.get(j));
+				j--;
+			}
 		}
 		if (deletedIndexIds.size() > 0) {
 			indexManager.deleteById(deletedIndexIds.toArray(new String[] {}));
