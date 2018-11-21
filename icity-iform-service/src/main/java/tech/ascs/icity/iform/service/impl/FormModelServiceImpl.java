@@ -161,7 +161,6 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		}else if(!newItemModelEntity.getName().equals("id")){
 			newItemModelEntity.setColumnModel(null);
 		}
-		itemManager.save(newItemModelEntity);
 		return newItemModelEntity;
 	}
 

@@ -63,6 +63,7 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 				Object value = rs.getObject("f" + column.getColumnName());
 				ItemInstance itemInstance = new ItemInstance();
 				itemInstance.setId(itemModel.getId());
+				itemInstance.setColumnModelId(column.getId());
 				updateValue(itemModel, itemInstance, value);
 				if (column.getKey()) {
 					itemInstance.setVisible(false);

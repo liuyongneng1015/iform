@@ -37,7 +37,7 @@
                 <#else>
                     <set name="${reference.toColumn.dataModel.tableName}_list" table="if_${reference.fromColumn.dataModel.tableName}_${reference.toColumn.dataModel.tableName}_list">
                         <key column="${reference.fromColumn.dataModel.tableName}_id"></key>
-                        <many-to-many class="${reference.toColumn.dataModel.tableName}" column="${reference.toColumn.dataModel.tableName}_id"></many-to-many>
+                        <many-to-many entity-name="${reference.toColumn.dataModel.tableName}" column="${reference.toColumn.dataModel.tableName}_id"></many-to-many>
                     </set>
                 </#if>
             </#list>
@@ -64,10 +64,10 @@
             </column>
         </property>
 		<#list dataModel.slaverModels as slaver>
-		<set name="${slaver.tableName}_list" cascade="all">
-            <key column="${dataModel.tableName}_id" />
-            <one-to-many entity-name="${slaver.tableName}" />
-        </set>
+            <set name="${slaver.tableName}_list" cascade="all" inverse="true">
+                <key column="id" />
+                <one-to-many entity-name="${slaver.tableName}" />
+            </set>
 		</#list>
     </class>
 	<#list dataModel.slaverModels as slaver>
@@ -76,7 +76,7 @@
         <id name="id" type="string" length="32">
             <generator class="uuid" />
         </id>
-        <many-to-one name="${dataModel.tableName}" column="${dataModel.tableName}_id"/>
+        <many-to-one name="${dataModel.tableName}" entity-name="${dataModel.tableName}" column="master_id"/>
 
 		<#list slaver.columns as column>
 		<property name="${column.columnName}" type="${column.dataType?lower_case}">
@@ -121,10 +121,10 @@
                         <key column="id" />
                         <one-to-many entity-name="${reference.toColumn.dataModel.tableName}" />
                     </set>
-                <#else>
+                <#elseif dataModel.tableName != reference.toColumn.dataModel.tableName>
                     <set name="${reference.toColumn.dataModel.tableName}_list" table="if_${reference.fromColumn.dataModel.tableName}_${reference.toColumn.dataModel.tableName}_list">
                         <key column="${reference.fromColumn.dataModel.tableName}_id"></key>
-                        <many-to-many class="${reference.toColumn.dataModel.tableName}" column="${reference.toColumn.dataModel.tableName}_id"></many-to-many>
+                        <many-to-many entity-name="${reference.toColumn.dataModel.tableName}" column="${reference.toColumn.dataModel.tableName}_id"></many-to-many>
                     </set>
                 </#if>
             </#list>

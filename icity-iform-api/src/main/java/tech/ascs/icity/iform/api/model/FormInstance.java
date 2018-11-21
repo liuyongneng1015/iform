@@ -32,8 +32,13 @@ public class FormInstance extends IdEntity {
 	@ApiModelProperty(value = "表单控件实例列表", position = 6)
 	private List<ItemInstance> items = new ArrayList<ItemInstance>();
 
+	@ApiModelProperty(value = "关联表单数据", hidden = true)
+	private List<DataModelInstance> referenceData = new ArrayList<DataModelInstance>();
+
+	@ApiModelProperty(value = "子表单数据", hidden = true)
+	private List<SubFormItemInstance> subFormData = new ArrayList<SubFormItemInstance>();
+
 	@ApiModelProperty(value = "表单实例ID", hidden = true)
-	@JsonIgnore
 	private Map<String, Object> data = new HashMap<String, Object>();
 
 	@ApiModelProperty(value = "表单实例ID", position = 0)
@@ -105,4 +110,22 @@ public class FormInstance extends IdEntity {
 	public Object getData(String key) {
 		return data.get(key);
 	}
+
+	public List<DataModelInstance> getReferenceData() {
+		return referenceData;
+	}
+
+	public void setReferenceData(List<DataModelInstance> referenceData) {
+		this.referenceData = referenceData;
+	}
+
+	public List<SubFormItemInstance> getSubFormData() {
+		return subFormData;
+	}
+
+	public void setSubFormData(List<SubFormItemInstance> subFormData) {
+		this.subFormData = subFormData;
+	}
+
+
 }

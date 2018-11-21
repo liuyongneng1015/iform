@@ -17,6 +17,9 @@ public class ItemInstance extends IdEntity {
 	@ApiModelProperty(value = "是否只读", position = 4)
 	private boolean readonly = false;
 
+	@ApiModelProperty(value = "对应数据模型字段id", position = 5)
+	private String columnModelId;
+
 	@ApiModelProperty(value = "字段模型ID（uuid）", position = 0)
 	@Override
 	public String getId() {
@@ -53,5 +56,13 @@ public class ItemInstance extends IdEntity {
 
 	public void setReadonly(boolean readonly) {
 		this.readonly = readonly;
+	}
+
+	public String getColumnModelId() {
+		return columnModelId;
+	}
+
+	public void setColumnModelId(String columnModelId) {
+		this.columnModelId = columnModelId;
 	}
 }
