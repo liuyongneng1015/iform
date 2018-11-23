@@ -48,7 +48,7 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
 		columnModelEntity.setDataModel(dataModel);
 		columnModelEntity.setColumnName(columnName);
 		if("id".equals(columnName)) {
-			columnModelEntity.setDescription("主键");
+			columnModelEntity.setDescription("主键（自动生成无法删改）");
 			columnModelEntity.setName("主键id");
 		}else{
 			columnModelEntity.setDescription("关联字段");
