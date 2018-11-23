@@ -3,6 +3,7 @@ package tech.ascs.icity.iform.controller;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.swagger.annotations.ApiModelProperty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,6 +17,7 @@ import io.swagger.annotations.Api;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.model.ColumnModelEntity;
+import tech.ascs.icity.iform.model.ColumnReferenceEntity;
 import tech.ascs.icity.iform.model.DataModelEntity;
 import tech.ascs.icity.iform.model.IndexModelEntity;
 import tech.ascs.icity.iform.service.ColumnModelService;
@@ -194,8 +196,7 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 	}
 
 	private DataModel toDTO(DataModelEntity entity) throws InstantiationException, IllegalAccessException {
-		DataModel dataModel = BeanUtils.copy(entity, DataModel.class, new String[] {"columns", "indexes"});
-		dataModel.setSynchronized(entity.getSynchronized());
+		DataModel dataModel = toDataModelDTO(entity);
 
 		if (entity.getColumns() != null && !entity.getColumns().isEmpty()) {
 			List<ColumnModel> columns = new ArrayList<ColumnModel>();
@@ -219,11 +220,40 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 		return dataModel;
 	}
 
+	private DataModel toDataModelDTO(DataModelEntity entity)  {
+		DataModel dataModel = new DataModel();
+		BeanUtils.copyProperties(entity, dataModel, new String[] {"masterModel","slaverModels","columns", "indexes","referencesDataModel"});
+		dataModel.setSynchronized(entity.getSynchronized());
+
+		if(entity.getMasterModel() != null){
+			DataModelInfo masterModel = new DataModelInfo();
+			BeanUtils.copyProperties(entity.getMasterModel(), masterModel, new String[]{});
+			dataModel.setMasterModel(masterModel);
+		}
+
+		if(entity.getSlaverModels() != null){
+			List<DataModelInfo> slaverModels = new ArrayList<>();
+			for(DataModelEntity dataModelEntity : entity.getSlaverModels()) {
+				DataModelInfo dataModelInfo = new DataModelInfo();
+				BeanUtils.copyProperties(dataModelEntity, dataModelInfo, new String[]{});
+				slaverModels.add(dataModelInfo);
+			}
+			dataModel.setSlaverModels(slaverModels);
+		}
+		return dataModel;
+	}
+
 	private ColumnModel toDTO(ColumnModelEntity entity) throws InstantiationException, IllegalAccessException {
-		return BeanUtils.copy(entity, ColumnModel.class, new String[] {"dataModel"});
+		ColumnModel columnModel = new ColumnModel();
+		BeanUtils.copyProperties(entity, columnModel, new String[] {"dataModel","columnReferences"});
+		columnModel.setReferenceTables(columnModelService.getReferenceModel(entity));
+		columnModel.setDataModel(toDataModelDTO(entity.getDataModel()));
+		return columnModel;
 	}
 
 	private IndexModel toDTO(IndexModelEntity entity) throws InstantiationException, IllegalAccessException {
-		return BeanUtils.copy(entity, IndexModel.class, new String[] {"dataModel"});
+		IndexModel indexModel = new IndexModel();
+		BeanUtils.copyProperties(entity, indexModel, new String[] {"dataModel","columns"});
+		return indexModel;
 	}
 }

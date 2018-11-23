@@ -10,8 +10,8 @@ public enum SystemItemType {
 
 	/** 主键id */
 	ID("ID"),
-	/** 父级别主键id */
-	MasterID("MasterID"),
+	/** 子表id */
+	ChildId("ChildId"),
 	/** 创建时间 */
 	CreateDate("CreateDate"),
 	/** 更新时间 */

@@ -1,5 +1,6 @@
 package tech.ascs.icity.iform.service;
 
+import tech.ascs.icity.iform.api.model.ReferenceModel;
 import tech.ascs.icity.iform.api.model.ReferenceType;
 import tech.ascs.icity.iform.model.ColumnModelEntity;
 import tech.ascs.icity.iform.model.ColumnReferenceEntity;
@@ -21,4 +22,7 @@ public interface ColumnModelService extends JPAService<ColumnModelEntity> {
 
     //删除行的关联关系
     void deleteColumnReferenceEntity(ColumnReferenceEntity columnReferenceEntity);
+
+    //获取关联关系
+     List<ReferenceModel> getReferenceModel(ColumnModelEntity entity);
 }

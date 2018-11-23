@@ -361,7 +361,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	private List<TableDataModel> setColumData(Map<String, Object> dataMap, List<ColumnModelEntity> columns){
 		List<TableDataModel> list = new ArrayList<>();
 		for(ColumnModelEntity columnModelEntity : columns){
-			ItemModelEntity modelEntity = itemModelManager.findUniqueByProperty("columnModel.id", columnModelEntity.getId());
+			List<ItemModelEntity> itemModelEntity = itemModelManager.findByProperty("columnModel.id", columnModelEntity.getId());
+			if(itemModelEntity == null || itemModelEntity.size() == 0){
+				continue;
+			}
+			ItemModelEntity modelEntity = itemModelEntity.get(0);
 			String value = null;
 			if(modelEntity.getType() == ItemType.DatePicker){
 				value = DateFormatUtils.format((Date) dataMap.get(columnModelEntity.getColumnName()),((TimeItemModelEntity)modelEntity).getTimeFormat());
@@ -536,6 +540,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 							ItemInstance itemInstance = setItemInstance(columnModelEntity.getKey(), item, map.get("f"+item.getColumnModel()), formInstance.getActivityId());
 							instances.add(itemInstance);
 						}
+						//子表主键id
+						ColumnModelEntity subFormColumnModelEntity  = itemModel.getColumnModel();
+						ItemInstance subFomrItemInstance = setItemInstance(subFormColumnModelEntity.getKey(), itemModel, map.get("id"), formInstance.getActivityId());
+						instances.add(subFomrItemInstance);
+
 						subFormRowItemInstance.setItemInstances(instances);
 						subFormRowItemInstanceList.add(subFormRowItemInstance);
 					}

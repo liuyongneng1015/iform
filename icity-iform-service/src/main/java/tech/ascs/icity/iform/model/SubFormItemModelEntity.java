@@ -31,7 +31,7 @@ public class SubFormItemModelEntity extends ItemModelEntity  {
 	private ReferenceType referenceType = ReferenceType.OneToMany;//主表对子表一对多
 
 	/** 组件子项（由组和字段构成） */
-	@OneToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH },mappedBy = "parentItem") // {CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.REMOVE}
+	@OneToMany(cascade = {CascadeType.ALL}, mappedBy = "parentItem")
 	private List<SubFormRowItemModelEntity> items = new ArrayList<SubFormRowItemModelEntity>();
 
 

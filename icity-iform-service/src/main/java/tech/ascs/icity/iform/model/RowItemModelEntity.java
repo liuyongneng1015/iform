@@ -19,7 +19,7 @@ public class RowItemModelEntity extends ItemModelEntity  {
 
 	/** 组件子项（由组和字段构成） */
 	@JoinColumn(name="parent_id")
-	@OneToMany(cascade ={CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH }) // {CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.REMOVE}
+	@OneToMany(cascade ={CascadeType.ALL}) // {CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.REMOVE}
 	private List<ItemModelEntity> items = new ArrayList<ItemModelEntity>();
 
 	public Integer getRowNumber() {

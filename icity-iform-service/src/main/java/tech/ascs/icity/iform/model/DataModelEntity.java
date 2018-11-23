@@ -30,7 +30,7 @@ public class DataModelEntity extends BaseEntity implements Serializable {
 	@Enumerated(EnumType.STRING)
 	private DataModelType modelType;
 
-	@ManyToOne(cascade = CascadeType.ALL)
+	@ManyToOne(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH })
 	@JoinColumn(name = "master_model")
 	private DataModelEntity masterModel;
 

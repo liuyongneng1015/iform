@@ -134,16 +134,18 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		if(!column.isNew()){
 			columnEntity = columnModelService.find(column.getId());
 		}
-		BeanUtils.copyProperties(column, columnEntity, new String[]{"dataModel","columnReferences"});
+		BeanUtils.copyProperties(column, columnEntity, new String[]{"dataModel","referenceTables"});
 
 		Map<String, ReferenceType> referenceMap = new HashMap<String, ReferenceType>();
-		List<ReferenceModel> referenceModelList = column.getColumnReferences();
+		List<ReferenceModel> referenceModelList = column.getReferenceTables();
 		//新关联行id
 		List<String> newToColumnIds = new ArrayList<>();
 		if(referenceModelList != null && referenceModelList.size() > 0) {
 			for (ReferenceModel model : referenceModelList) {
-				newToColumnIds.add(model.getToColumn().getId());
-				referenceMap.put(model.getToColumn().getId(), model.getReferenceType());
+				DataModelEntity dataModelEntity = findUniqueByProperty("tableName", model.getReferenceTable());
+				ColumnModelEntity columnModelEntity = columnModelService.saveColumnModelEntity(dataModelEntity, model.getReferenceValueColumn());
+				newToColumnIds.add(columnModelEntity.getId());
+				referenceMap.put(columnModelEntity.getId(), model.getReferenceType());
 			}
 		}
 
@@ -263,9 +265,11 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 			//TODO 处理查看行是否被关联,则提示“字段被XXX表单XXX控件关联”
 			for(String id : waitingDeletCloumnIds) {
 				ColumnModelEntity entity = columnManager.get(id);
-				ItemModelEntity itemModelEntity = itemManager.findUniqueByProperty("columnModel.id", id);
-				if(itemModelEntity != null) {
-					throw new IFormException(CommonUtils.exceptionCode, entity.getColumnName() + "字段被" + entity.getDataModel().getTableName() + "表单" + itemModelEntity.getName() + "控件关联");
+				List<ItemModelEntity> itemModelEntity = itemManager.findByProperty("columnModel.id", id);
+				if(itemModelEntity != null && itemModelEntity.size() > 0) {
+					for (ItemModelEntity itemModel : itemModelEntity) {
+						throw new IFormException(CommonUtils.exceptionCode, entity.getColumnName() + "字段被" + entity.getDataModel().getTableName() + "表单" + itemModel.getName() + "控件关联");
+					}
 				}
 			}
 		}
@@ -307,6 +311,7 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		for(ColumnModelEntity columnModelEntity : columnModelEntities){
 			ColumnModel columnModel = new ColumnModel();
 			BeanUtils.copyProperties(columnModelEntity, columnModel, new String[] {"dataModel","columnReferences"});
+			columnModel.setReferenceTables(columnModelService.getReferenceModel(columnModelEntity));
 			columnModels.add(columnModel);
 		}
 		dataModel.setColumns(columnModels);

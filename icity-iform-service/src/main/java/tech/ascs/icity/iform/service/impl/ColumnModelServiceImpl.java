@@ -2,12 +2,14 @@ package tech.ascs.icity.iform.service.impl;
 
 import org.apache.commons.lang3.StringUtils;
 import tech.ascs.icity.iform.api.model.ColumnType;
+import tech.ascs.icity.iform.api.model.ReferenceModel;
 import tech.ascs.icity.iform.api.model.ReferenceType;
 import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.ColumnModelService;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -118,5 +120,22 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
 	@Override
 	public void deleteColumnReferenceEntity(ColumnReferenceEntity columnReferenceEntity) {
 		columnReferenceManager.delete(columnReferenceEntity);
+	}
+
+	@Override
+	public List<ReferenceModel> getReferenceModel(ColumnModelEntity entity){
+		List<ReferenceModel> list = new ArrayList<>();
+		if(entity.getColumnReferences() != null){
+			for(ColumnReferenceEntity columnReferenceEntity : entity.getColumnReferences()){
+				ReferenceModel referenceModel = new ReferenceModel();
+				referenceModel.setReferenceTable(columnReferenceEntity.getToColumn().getDataModel().getTableName());
+				referenceModel.setReferenceType(columnReferenceEntity.getReferenceType());
+				referenceModel.setReferenceValueColumn(columnReferenceEntity.getToColumn().getColumnName());
+				referenceModel.setId(columnReferenceEntity.getId());
+				referenceModel.setName(columnReferenceEntity.getName());
+				list.add(referenceModel);
+			}
+		}
+		return list;
 	}
 }
