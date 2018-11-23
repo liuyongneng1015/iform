@@ -96,7 +96,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			List<String> itemActivityIds = new ArrayList<String>();
 			List<String> itemSelectOptionIds = new ArrayList<String>();
 
-			setOldItems(itemActivityIds,  itemSelectOptionIds ,  old );
+			//setOldItems(itemActivityIds,  itemSelectOptionIds ,  old );
 
 			//包括所有的新的item(包括子item)
 			List<ItemModelEntity> allItems = new ArrayList<>();
@@ -122,10 +122,8 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			}
 
 
-			Collection<String> deletedItemIds = oldItems.parallelStream().map(ItemModelEntity::getId).collect(Collectors.toList());
-
 			//删除item
-			deleteItems(deletedItemIds, itemActivityIds, itemSelectOptionIds);
+			deleteItems(old, oldItems, itemActivityIds, itemSelectOptionIds);
 
 			old.setItems(itemModelEntities);
 
@@ -192,25 +190,46 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 
 	//删除item
-	private void deleteItems(Collection<String> deletedItemIds, Collection<String> deleteItemActivityIds, Collection<String> deleteItemSelectOptionIds){
-		if (deletedItemIds.size() > 0) {
-			List<ItemModelEntity> itemModelEntityList = itemManager.query().filterIn("id", deletedItemIds).list();
-			for(int i = 0 ; i < itemModelEntityList.size() ; i++){
-				ItemModelEntity itemModelEntity = itemModelEntityList.get(i);
+	private void deleteItems(FormModelEntity old, List<ItemModelEntity> deleteItems, Collection<String> deleteItemActivityIds, Collection<String> deleteItemSelectOptionIds){
+		if (deleteItems.size() > 0) {
+			for(int i = 0 ; i < deleteItems.size() ; i++){
+				ItemModelEntity itemModelEntity = deleteItems.get(i);
 				if(itemModelEntity.getColumnModel() != null) {
-					//itemModelEntity.setColumnModel(null);
+					itemModelEntity.setColumnModel(null);
 				}
-				/*itemModelEntity.setFormModel(null);
+				old.getItems().remove(itemModelEntity);
+				itemModelEntity.setFormModel(null);
 				if(itemModelEntity instanceof RowItemModelEntity){
+					List<ItemModelEntity> list = ((RowItemModelEntity) itemModelEntity).getItems();
 					((RowItemModelEntity) itemModelEntity).setItems(null);
+					for(ItemModelEntity itemModelEntity1 : list ) {
+						itemModelEntity1.setColumnModel(null);
+						itemManager.delete(itemModelEntity1);
+					}
 				}
 				if(itemModelEntity instanceof SubFormItemModelEntity){
+					List<SubFormRowItemModelEntity> subFormRowItems = ((SubFormItemModelEntity) itemModelEntity).getItems();
+					for(SubFormRowItemModelEntity itemModel : subFormRowItems) {
+						List<ItemModelEntity> list = itemModel.getItems();
+						itemModel.setItems(null);
+						for(ItemModelEntity itemModelEntity1 : list ) {
+							itemModelEntity1.setColumnModel(null);
+							itemManager.delete(itemModelEntity1);
+						}
+					}
 					((SubFormItemModelEntity) itemModelEntity).setItems(null);
+					itemManager.delete(subFormRowItems.toArray(new ItemModelEntity[]{}));
 				}
 				if(itemModelEntity instanceof SubFormRowItemModelEntity){
 					((SubFormRowItemModelEntity) itemModelEntity).setItems(null);
-				}*/
+					List<ItemModelEntity> list = ((SubFormRowItemModelEntity) itemModelEntity).getItems();
+					for(ItemModelEntity itemModel : list ) {
+						itemModel.setColumnModel(null);
+						itemManager.delete(itemModel);
+					}
+				}
 				itemManager.delete(itemModelEntity);
+				i--;
 			}
 		}
 		if (deleteItemActivityIds.size() > 0) {
