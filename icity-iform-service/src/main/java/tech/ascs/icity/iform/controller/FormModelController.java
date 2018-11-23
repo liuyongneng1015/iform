@@ -549,7 +549,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 		for(DataModelEntity dataModelEntity : dataModelEntities){
 			DataModel dataModel = dataModelService.transitionToModel(dataModelEntity);
-			dataModel.setModelType(DataModelType.Relevance);
 			dataModelList.add(dataModel);
 		}
 		formModel.setDataModels(dataModelList);

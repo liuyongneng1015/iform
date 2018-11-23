@@ -15,10 +15,7 @@ public enum DataModelType {
 	Master("Master"),
 
 	//从表
-	Slaver("Slaver"),
-
-	//关联表
-	Relevance("Relevance");
+	Slaver("Slaver");
 
 	private String value;
 
