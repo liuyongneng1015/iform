@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 import io.swagger.annotations.Api;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.FormInstance;
-import tech.ascs.icity.iform.api.model.TableDataModel;
 import tech.ascs.icity.iform.model.FormModelEntity;
 import tech.ascs.icity.iform.model.ListModelEntity;
 import tech.ascs.icity.iform.service.FormInstanceServiceEx;
@@ -113,8 +112,4 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		formInstanceService.deleteFormInstance(formModel, id);
 	}
 
-	@Override
-	public List<TableDataModel> findTableDataFormInstance(String formId, String id) {
-		return formInstanceService.findTableDataFormInstance(formId, id);
-	}
 }

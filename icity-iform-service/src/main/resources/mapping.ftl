@@ -23,19 +23,19 @@
             <#list column.columnReferences as reference>
                 <#if reference.referenceType.value = "OneToOne">
                     <#if column.columnName != "id">
-                        <many-to-one name="${column.columnName}" entity-name="${reference.toColumn.dataModel.tableName}" column="${column.columnName}" cascade="save-update"  unique="true"/>
+                        <many-to-one name="${column.columnName}" entity-name="${reference.toColumn.dataModel.tableName}" column="${column.columnName}" cascade="save-update" lazy="false" fetch="join"   unique="true"/>
                     <#else >
-                       <one-to-one name="${column.columnName}" entity-name="${reference.toColumn.dataModel.tableName}"  <#if reference.toColumn.columnName != "id"> property-ref="${reference.toColumn.columnName}" </#if> constrained="true"/>
+                       <one-to-one name="${column.columnName}" entity-name="${reference.toColumn.dataModel.tableName}"  <#if reference.toColumn.columnName != "id"> property-ref="${reference.toColumn.columnName}" </#if> lazy="false" constrained="true"/>
                     </#if>
                 <#elseif reference.referenceType.value = "ManyToOne">
-                        <many-to-one name="${column.columnName}" entity-name="${reference.toColumn.dataModel.tableName}" column="${column.columnName}" cascade="save-update"/>
+                        <many-to-one name="${column.columnName}" entity-name="${reference.toColumn.dataModel.tableName}" column="${column.columnName}" cascade="save-update" lazy="false" fetch="join" />
                 <#elseif reference.referenceType.value = "OneToMany">
-                    <set name="${reference.toColumn.dataModel.tableName}_list" inverse="false">
+                    <set name="${reference.toColumn.dataModel.tableName}_list" inverse="false" lazy="false">
                         <key column="${reference.toColumn.columnName}" />
                         <one-to-many entity-name="${reference.toColumn.dataModel.tableName}" />
                     </set>
                 <#else>
-                    <set name="${reference.toColumn.dataModel.tableName}_list" table="if_${reference.fromColumn.dataModel.tableName}_${reference.toColumn.dataModel.tableName}_list">
+                    <set name="${reference.toColumn.dataModel.tableName}_list" table="if_${reference.fromColumn.dataModel.tableName}_${reference.toColumn.dataModel.tableName}_list" lazy="false">
                         <key column="${reference.fromColumn.dataModel.tableName}_id"></key>
                         <many-to-many entity-name="${reference.toColumn.dataModel.tableName}" column="${reference.toColumn.dataModel.tableName}_id"></many-to-many>
                     </set>
@@ -87,19 +87,19 @@
             <#list column.columnReferences as reference>
                 <#if reference.referenceType.value = "OneToOne">
                     <#if column.columnName != "id">
-                         <many-to-one name="${column.columnName}" entity-name="${reference.toColumn.dataModel.tableName}" column="${column.columnName}" unique="true" cascade="save-update"/>
+                         <many-to-one name="${column.columnName}" entity-name="${reference.toColumn.dataModel.tableName}" column="${column.columnName}" unique="true" lazy="false" fetch="join"  cascade="save-update"/>
                     <#else >
-                        <one-to-one name="${column.columnName}" entity-name="${reference.toColumn.dataModel.tableName}" <#if reference.toColumn.columnName != "id"> property-ref="${reference.toColumn.columnName}" </#if> constrained="true" />
+                        <one-to-one name="${column.columnName}" entity-name="${reference.toColumn.dataModel.tableName}" <#if reference.toColumn.columnName != "id"> property-ref="${reference.toColumn.columnName}" </#if> lazy="false" constrained="true" />
                     </#if>
                 <#elseif reference.referenceType.value = "ManyToOne">
-                    <many-to-one name="${column.columnName}" entity-name="${reference.toColumn.dataModel.tableName}" column="${column.columnName}" cascade="save-update" />
+                    <many-to-one name="${column.columnName}" entity-name="${reference.toColumn.dataModel.tableName}" column="${column.columnName}" cascade="save-update" lazy="false" fetch="join"  />
                 <#elseif reference.referenceType.value = "OneToMany">
-                    <set name="${reference.toColumn.dataModel.tableName}_list" inverse="false" >
+                    <set name="${reference.toColumn.dataModel.tableName}_list" inverse="false" lazy="false" >
                         <key column="${reference.toColumn.columnName}" />
                         <one-to-many entity-name="${reference.toColumn.dataModel.tableName}" />
                     </set>
                 <#elseif dataModel.tableName != reference.toColumn.dataModel.tableName>
-                    <set name="${reference.toColumn.dataModel.tableName}_list" table="if_${reference.fromColumn.dataModel.tableName}_${reference.toColumn.dataModel.tableName}_list">
+                    <set name="${reference.toColumn.dataModel.tableName}_list" table="if_${reference.fromColumn.dataModel.tableName}_${reference.toColumn.dataModel.tableName}_list" lazy="false">
                         <key column="${reference.fromColumn.dataModel.tableName}_id"></key>
                         <many-to-many entity-name="${reference.toColumn.dataModel.tableName}" column="${reference.toColumn.dataModel.tableName}_id"></many-to-many>
                     </set>

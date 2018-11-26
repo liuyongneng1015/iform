@@ -16,7 +16,6 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import tech.ascs.icity.iform.api.model.FormInstance;
-import tech.ascs.icity.iform.api.model.TableDataModel;
 import tech.ascs.icity.model.IdEntity;
 import tech.ascs.icity.model.Page;
 
@@ -155,17 +154,4 @@ public interface FormInstanceService {
 	@DeleteMapping("/{formId}/{id}")
 	void removeFormInstance(@PathVariable(name="formId") String formId, @PathVariable(name="id") String id);
 
-	/**
-	 * 查询数据流程
-	 *
-	 * @param formId 表单模型ID
-	 * @param id 表单实例ID
-	 */
-	@ApiOperation(value = "查询表单数据", position = 6)
-	@ApiImplicitParams({
-			@ApiImplicitParam(paramType = "path", name = "formId", value = "表单模型ID", required = true, dataType = "String"),
-			@ApiImplicitParam(paramType = "path", name = "id", value = "数据id", required = true, dataType = "String")
-	})
-	@DeleteMapping("/find_data/{id}")
-	List<TableDataModel> findTableDataFormInstance(@PathVariable(name="formId") String formId, @PathVariable(name="id") String id);
 }

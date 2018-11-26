@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Map;
 
 import tech.ascs.icity.iform.api.model.FormInstance;
-import tech.ascs.icity.iform.api.model.TableDataModel;
 import tech.ascs.icity.iform.model.FormModelEntity;
 import tech.ascs.icity.iform.model.ListModelEntity;
 import tech.ascs.icity.model.Page;
@@ -27,5 +26,4 @@ public interface FormInstanceServiceEx {
 
 	void deleteFormInstance(FormModelEntity formModel, String instanceId);
 
-	List<TableDataModel> findTableDataFormInstance(String formId, String id);
 }
