@@ -323,6 +323,15 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		if (!deletedCloumnIds.isEmpty()) {
 			List<ColumnModelEntity> columnModelEntities = columnManager.query().filterIn("id", deletedCloumnIds).list();
 			for(int j = 0;j < columnModelEntities.size() ; j++){
+				ColumnModelEntity columnModelEntity = columnModelEntities.get(j);
+				List<ItemModelEntity> itemModelEntity = itemManager.findByProperty("columnModel.id", columnModelEntity.getId());
+				if(itemModelEntity != null){
+					for(ItemModelEntity itemModel : itemModelEntity){
+						itemModel.setColumnModel(null);
+						itemManager.save(itemModel);
+					}
+				}
+
 				List<ColumnReferenceEntity> columnReferences = columnModelEntities.get(j).getColumnReferences();
 				List<String> ids = new ArrayList<>();
 				for(ColumnReferenceEntity columnReferenceEntity : columnReferences){
