@@ -548,6 +548,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			dataModelEntities.add(itemModelEntity.getColumnModel().getDataModel());
 		}
 		for(DataModelEntity dataModelEntity : dataModelEntities){
+			if(dataModelEntity == null){
+				continue;
+			}
 			DataModel dataModel = dataModelService.transitionToModel(dataModelEntity);
 			dataModelList.add(dataModel);
 		}

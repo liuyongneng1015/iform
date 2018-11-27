@@ -298,9 +298,13 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		DataModelEntity dataModelEntity = formModelEntity.getDataModels() == null || formModelEntity.getDataModels().size() < 1 ? null : formModelEntity.getDataModels().get(0);
 		if(dataModelEntity != null) {
 			List<DataModelEntity> list = new ArrayList<>();
-			list.add(dataModelEntity.getMasterModel());
+			if(dataModelEntity.getMasterModel() != null ) {
+				list.add(dataModelEntity.getMasterModel());
+			}
 			list.add(dataModelEntity);
-			list.addAll(dataModelEntity.getSlaverModels());
+			if(dataModelEntity.getSlaverModels() != null && dataModelEntity.getSlaverModels().size() > 0) {
+				list.addAll(dataModelEntity.getSlaverModels());
+			}
 			for (DataModelEntity modelEntity : list) {
 				dataModelList.add(transitionToModel(modelEntity));
 			}
