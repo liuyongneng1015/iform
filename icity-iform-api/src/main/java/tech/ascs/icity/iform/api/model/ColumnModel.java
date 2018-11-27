@@ -7,9 +7,7 @@ import io.swagger.annotations.ApiModelProperty;
 import tech.ascs.icity.model.NameEntity;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @ApiModel("数据字段模型")
 public class ColumnModel extends NameEntity {
@@ -44,6 +42,9 @@ public class ColumnModel extends NameEntity {
 
 	@ApiModelProperty(value = " 字段默认值", position = 10)
     private String defaultValue;
+
+	@ApiModelProperty(value = "是否关联:true关联，false未关联", position = 12)
+	private Boolean referenceItem;
 
 	@ApiModelProperty(value = "关联表", position = 11)
 	private List<ReferenceModel> referenceTables = new ArrayList<ReferenceModel>();
@@ -134,5 +135,13 @@ public class ColumnModel extends NameEntity {
 
 	public void setReferenceTables(List<ReferenceModel> referenceTables) {
 		this.referenceTables = referenceTables;
+	}
+
+	public Boolean getReferenceItem() {
+		return referenceItem;
+	}
+
+	public void setReferenceItem(Boolean referenceItem) {
+		this.referenceItem = referenceItem;
 	}
 }

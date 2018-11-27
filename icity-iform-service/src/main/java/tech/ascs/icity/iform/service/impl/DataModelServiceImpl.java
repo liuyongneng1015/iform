@@ -315,9 +315,11 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		List<ColumnModelEntity> columnModelEntities = modelEntity.getColumns();
 		List<ColumnModel> columnModels = new ArrayList<>();
 		for(ColumnModelEntity columnModelEntity : columnModelEntities){
+			List<ItemModelEntity> itemModelEntities = itemManager.findByProperty("columnModel.id", columnModelEntity.getId());
 			ColumnModel columnModel = new ColumnModel();
 			BeanUtils.copyProperties(columnModelEntity, columnModel, new String[] {"dataModel","columnReferences"});
 			columnModel.setReferenceTables(columnModelService.getReferenceModel(columnModelEntity));
+			columnModel.setReferenceItem(itemModelEntities == null || itemModelEntities.size() < 1 ? false : true) ;
 			columnModels.add(columnModel);
 		}
 		dataModel.setColumns(columnModels);
