@@ -108,6 +108,6 @@ public interface ListModelService {
 	 */
 	@ApiOperation(value = "查询列表模型", position = 6)
 	@ApiImplicitParam(paramType = "query", name = "tableName", value = "数据库表", required = true, dataType = "String")
-	@GetMapping("/find")
+	@GetMapping("/list")
 	List<ListModel> findListModelsByTableName(@PathVariable(name="tableName") String tableName);
 }

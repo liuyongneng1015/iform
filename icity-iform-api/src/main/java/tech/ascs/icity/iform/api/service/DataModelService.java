@@ -158,6 +158,6 @@ public interface DataModelService {
 	 */
 	@ApiOperation(value = "查询字段", position = 6)
 	@ApiImplicitParam(paramType = "path", name = "formId", value = "表单模型ID", required = true, dataType = "String")
-	@GetMapping("/find/{formId}")
+	@GetMapping("/column/{formId}")
 	List<DataModel> findDataModelByFormId(@PathVariable(name="formId") String formId);
 }
