@@ -3,6 +3,7 @@ package tech.ascs.icity.iform.controller;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import freemarker.ext.beans.DateModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -258,6 +259,17 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 		List<ItemModelEntity> items = new ArrayList<ItemModelEntity>();
 		for (ItemModel itemModel : formModel.getItems()) {
+			ColumnModelInfo columnModelInfo = itemModel.getColumnModel();
+			DataModel dataModel = null;
+			if(columnModelInfo.getTableName() != null) {
+				DataModelEntity dataModelEntity = dataModelService.findUniqueByProperty("tableName", columnModelInfo.getTableName());
+				if(dataModelEntity != null) {
+					dataModel = new DataModel();
+					BeanUtils.copyProperties(dataModelEntity, dataModel, new String[]{"masterModel","slaverModels","columns","indexes","referencesDataModel"});
+				}
+			}
+			columnModelInfo.setDataModel(dataModel);
+
 			ItemModelEntity itemModelEntity = wrap(itemModel);
 			itemModelEntity.setFormModel(entity);
 			items.add(itemModelEntity);
@@ -380,6 +392,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 					ColumnModelEntity columnModelEntity = columnModelService.saveColumnModelEntity(dataModelEntity, columnReferenceEntity.getReferenceValueColumn());
 					ColumnModel referenceColumnModel = new ColumnModel();
 					referenceColumnModel.setId(columnModelEntity.getId());
+					//referenceColumnModel.sett
 					columnModelService.saveColumnReferenceEntity(oldColumnModelEntity, setColumn(referenceColumnModel), columnReferenceEntity.getReferenceType());
 				}
 			}
