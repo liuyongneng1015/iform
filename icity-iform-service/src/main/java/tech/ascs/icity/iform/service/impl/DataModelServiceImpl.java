@@ -59,6 +59,9 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		boolean flag = dataModel.isNew();
 		DataModelEntity old = flag ? new DataModelEntity() : get(dataModel.getId());
 		BeanUtils.copyProperties(dataModel, old, new String[] {"masterModel", "slaverModels", "columns", "indexes"});
+		if(flag){
+			old.setId(null);
+		}
 		verifyTableName(old, dataModel.getTableName());
 
 		//主从表
@@ -103,10 +106,11 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		ColumnModelEntity idColumn = null;
 		List<ColumnModelEntity> columnModelEntities = new ArrayList<ColumnModelEntity>();
 		for (ColumnModel column : dataModel.getColumns()) {
-			ColumnModelEntity columnModelEntity = setColumns(column, old);
+			ColumnModelEntity columnModelEntity = setColumns(column);
 			if(columnModelEntity.getColumnName().equals("id")){
 				idColumn = columnModelEntity;
 			}
+			columnModelEntity.setDataModel(old);
 			columnModelEntities.add(columnModelEntity);
 		}
 		if(idColumn == null){
@@ -128,14 +132,16 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 	}
 
 	//设置column
-	private ColumnModelEntity setColumns(ColumnModel column, DataModelEntity old){
+	private ColumnModelEntity setColumns(ColumnModel column){
 		//是否为新的模型
 		ColumnModelEntity columnEntity = new ColumnModelEntity();
 		if(!column.isNew()){
 			columnEntity = columnModelService.find(column.getId());
 		}
 		BeanUtils.copyProperties(column, columnEntity, new String[]{"dataModel","referenceTables"});
-
+		if(column.isNew()){
+			columnEntity.setId(null);
+		}
 		Map<String, ReferenceType> referenceMap = new HashMap<String, ReferenceType>();
 		List<ReferenceModel> referenceModelList = column.getReferenceTables();
 		//新关联行id
@@ -170,9 +176,7 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		if(!deleteOldToColumnIds.isEmpty()) {
 			columnModelService.deleteOldColumnReferenceEntity(columnEntity, deleteOldToColumnIds, oldReferenceEntityList);
 		}
-		columnEntity.setDataModel(old);
 		columnEntity.setColumnReferences(oldReferenceEntityList);
-		columnManager.save(columnEntity);
 
 		//创建新的关联关系
 		addNewColumnReferenceEntity(columnEntity, newToColumnIds, oldReferenceEntityList, referenceMap);
