@@ -160,7 +160,10 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 
 	@Override
 	public void removeDataModel(@PathVariable(name="id") String id) {
-		dataModelService.deleteById(id);
+		DataModelEntity dataModelEntity = dataModelService.get(id);
+		if(dataModelEntity != null){
+			dataModelService.deleteDataModel(dataModelEntity);
+		}
 	}
 
 	@Override

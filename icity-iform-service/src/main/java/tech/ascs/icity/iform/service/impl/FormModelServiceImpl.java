@@ -509,6 +509,42 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		return entity;
 	}
 
+	@Override
+	public void deleteFormModelEntity(FormModelEntity formModelEntity) {
+		List<ItemModelEntity> itemModelEntities = formModelEntity.getItems();
+		for(ItemModelEntity itemModelEntity : itemModelEntities){
+			if(itemModelEntity.getColumnModel() != null){
+				itemModelEntity.setColumnModel(null);
+			}
+			if(itemModelEntity instanceof RowItemModelEntity){
+				List<ItemModelEntity> itemModelEntities1 = ((RowItemModelEntity) itemModelEntity).getItems();
+				((RowItemModelEntity) itemModelEntity).setItems(null);
+				if(itemModelEntities1 != null && itemModelEntities1.size() > 0) {
+					itemManager.delete(itemModelEntities1.toArray(new ItemModelEntity[]{}));
+				}
+				itemManager.delete(itemModelEntity);
+			}
+			if(itemModelEntity instanceof SubFormItemModelEntity){
+				List<SubFormRowItemModelEntity> itemModelEntities1 = ((SubFormItemModelEntity) itemModelEntity).getItems();
+				for(int j = 0 ; j < itemModelEntities1.size(); j++){
+					SubFormRowItemModelEntity subFormRowItemModelEntity = itemModelEntities1.get(j);
+					List<ItemModelEntity> itemModelEntities11 =  subFormRowItemModelEntity.getItems();
+					subFormRowItemModelEntity.setItems(null);
+					if(itemModelEntities11 != null && itemModelEntities11.size() > 0) {
+						itemManager.delete(itemModelEntities11.toArray(new ItemModelEntity[]{}));
+					}
+					itemManager.delete(subFormRowItemModelEntity);
+					j--;
+				}
+				((SubFormItemModelEntity) itemModelEntity).setItems(null);
+				if(itemModelEntities1 != null && itemModelEntities1.size() > 0) {
+					itemManager.delete(itemModelEntities1.toArray(new ItemModelEntity[]{}));
+				}
+				itemManager.delete(itemModelEntity);
+			}
+		}
+	}
+
 	//设置旧的item参数
 	private void setItemActivityOption(List<String> itemActivityIds, List<String> itemSelectOptionIds ,ItemModelEntity itemModelEntity){
 		for (ItemActivityInfo itemActivity : itemModelEntity.getActivities()) {

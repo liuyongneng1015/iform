@@ -16,4 +16,6 @@ public interface FormModelService extends JPAService<FormModelEntity> {
      List<ItemModelEntity> getAllColumnItems(List<ItemModelEntity> itemModelEntities);
 
      ItemModelEntity getItemModelEntity(ItemType itemType);
+
+     void deleteFormModelEntity(FormModelEntity formModel);
 }

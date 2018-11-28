@@ -122,7 +122,10 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 	@Override
 	public void removeFormModel(@PathVariable(name="id") String id) {
-		formModelService.deleteById(id);
+		FormModelEntity formModelEntity = formModelService.get(id);
+		if(formModelEntity != null) {
+			formModelService.deleteFormModelEntity(formModelEntity);
+		}
 	}
 
 	@Override

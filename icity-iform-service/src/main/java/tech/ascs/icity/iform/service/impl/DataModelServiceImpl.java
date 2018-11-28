@@ -330,6 +330,27 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		return dataModel;
 	}
 
+	@Override
+	public void deleteDataModel(DataModelEntity modelEntity) {
+		List<ColumnModelEntity> columnModelEntities = modelEntity.getColumns();
+		for(ColumnModelEntity columnModelEntity : columnModelEntities){
+			List<ItemModelEntity> itemModelEntity = itemManager.findByProperty("columnModel.id", columnModelEntity.getId());
+			if(itemModelEntity != null && itemModelEntity.size() > 0){
+				for (ItemModelEntity itemModel : itemModelEntity) {
+					throw new IFormException(CommonUtils.exceptionCode, columnModelEntity.getColumnName() + "字段被" + columnModelEntity.getDataModel().getTableName() + "表单" + itemModel.getName() + "控件关联");
+				}
+			}
+		}
+		for(ColumnModelEntity columnModelEntity : columnModelEntities){
+			List<ColumnReferenceEntity> list = columnModelEntity.getColumnReferences();
+			if(list == null || list.size() < 1){
+				continue;
+			}
+			deleteColumnReferenceEntity(columnModelEntity);
+		}
+		delete(modelEntity);
+	}
+
 	@Transactional(readOnly = false)
 	protected DataModelEntity save(DataModelEntity entity, List<String> deletedCloumnIds, List<String> deletedIndexIds) {
 		if (!deletedCloumnIds.isEmpty()) {
