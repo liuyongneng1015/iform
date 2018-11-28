@@ -517,7 +517,8 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 	@Override
 	public void deleteFormModelEntity(FormModelEntity formModelEntity) {
 		List<ItemModelEntity> itemModelEntities = formModelEntity.getItems();
-		for(ItemModelEntity itemModelEntity : itemModelEntities){
+		for(int i = 0 ; i < itemModelEntities.size() ; i++){
+			ItemModelEntity itemModelEntity = itemModelEntities.get(i);
 			if(itemModelEntity.getColumnModel() != null){
 				itemModelEntity.setColumnModel(null);
 			}
@@ -527,9 +528,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				if(itemModelEntities1 != null && itemModelEntities1.size() > 0) {
 					itemManager.delete(itemModelEntities1.toArray(new ItemModelEntity[]{}));
 				}
-				itemManager.delete(itemModelEntity);
-			}
-			if(itemModelEntity instanceof SubFormItemModelEntity){
+			}else if(itemModelEntity instanceof SubFormItemModelEntity){
 				List<SubFormRowItemModelEntity> itemModelEntities1 = ((SubFormItemModelEntity) itemModelEntity).getItems();
 				for(int j = 0 ; j < itemModelEntities1.size(); j++){
 					SubFormRowItemModelEntity subFormRowItemModelEntity = itemModelEntities1.get(j);
@@ -545,9 +544,11 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				if(itemModelEntities1 != null && itemModelEntities1.size() > 0) {
 					itemManager.delete(itemModelEntities1.toArray(new ItemModelEntity[]{}));
 				}
-				itemManager.delete(itemModelEntity);
 			}
+			itemManager.delete(itemModelEntity);
+			i--;
 		}
+		delete(formModelEntity);
 	}
 
 	//设置旧的item参数
