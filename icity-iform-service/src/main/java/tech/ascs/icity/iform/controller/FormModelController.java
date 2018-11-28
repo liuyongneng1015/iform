@@ -4,6 +4,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import freemarker.ext.beans.DateModel;
+import io.swagger.annotations.ApiModelProperty;
+import org.hibernate.sql.ordering.antlr.ColumnReference;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -79,7 +81,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			throw new IFormException(404, "表单模型【" + id + "】不存在");
 		}
 		try {
-			return toDTO(entity);
+			return toDTODetail(entity);
 		} catch (Exception e) {
 			throw new IFormException("获取表单模型列表失败：" + e.getMessage(), e);
 		}
@@ -264,14 +266,14 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		for (ItemModel itemModel : formModel.getItems()) {
 			ColumnModelInfo columnModelInfo = itemModel.getColumnModel();
 			DataModel dataModel = null;
-			if(columnModelInfo.getTableName() != null) {
+			if(columnModelInfo != null && columnModelInfo.getTableName() != null) {
 				DataModelEntity dataModelEntity = dataModelService.findUniqueByProperty("tableName", columnModelInfo.getTableName());
 				if(dataModelEntity != null) {
 					dataModel = new DataModel();
 					BeanUtils.copyProperties(dataModelEntity, dataModel, new String[]{"masterModel","slaverModels","columns","indexes","referencesDataModel"});
 				}
+				columnModelInfo.setDataModel(dataModel);
 			}
-			columnModelInfo.setDataModel(dataModel);
 
 			ItemModelEntity itemModelEntity = wrap(itemModel);
 			itemModelEntity.setFormModel(entity);
@@ -519,6 +521,16 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		return null;
 	}
 
+	//关联的列表模型
+	private ListModel getItemModelByEntity(ItemModelEntity itemModelEntity){
+		ListModel ListModel = new ListModel();
+		if(itemModelEntity != null && ((ReferenceItemModelEntity)itemModelEntity).getReferenceList() != null){
+			BeanUtils.copyProperties(((ReferenceItemModelEntity)itemModelEntity).getReferenceList(), ListModel, new String[]{"masterForm", "slaverForms","sortItems","searchItems","functions","displayItems"});
+			return ListModel;
+		}
+		return ListModel;
+	}
+
 	private ItemActivityInfo wrap(ActivityInfo activityInfo) {
 		ItemActivityInfo activityInfoEntity = new ItemActivityInfo();
 		activityInfoEntity.setActivityId(activityInfo.getId());
@@ -544,7 +556,24 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	}
 
 	private FormModel toDTO(FormModelEntity entity) throws InstantiationException, IllegalAccessException {
-		FormModel formModel = BeanUtils.copy(entity, FormModel.class, new String[] {"items"});
+		FormModel formModel = new FormModel();
+		BeanUtils.copyProperties(entity, formModel, new String[] {"items","dataModels"});
+		if(entity.getDataModels() != null && entity.getDataModels().size() > 0){
+			List<DataModel> dataModelList = new ArrayList<>();
+			List<DataModelEntity> dataModelEntities = entity.getDataModels();
+			for(DataModelEntity dataModelEntity : dataModelEntities){
+				DataModel  dataModel = new DataModel();
+				BeanUtils.copyProperties(dataModelEntity, dataModel, new String[] {"masterModel","slaverModels","columns","indexes","referencesDataModel"});
+				dataModelList.add(dataModel);
+			}
+			formModel.setDataModels(dataModelList);
+		}
+
+		return formModel;
+	}
+
+	private FormModel toDTODetail(FormModelEntity entity) throws InstantiationException, IllegalAccessException {
+		FormModel formModel = BeanUtils.copy(entity, FormModel.class, new String[] {"items","dataModels"});
 		if (entity.getItems().size() > 0) {
 			List<ItemModel> items = new ArrayList<ItemModel>();
 			for (ItemModelEntity itemModelEntity : entity.getItems()) {
@@ -552,7 +581,54 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			}
 			formModel.setItems(items);
 		}
+		if(entity.getDataModels() != null && entity.getDataModels().size() > 0){
+			List<DataModel> dataModelList = new ArrayList<>();
+			List<DataModelEntity> dataModelEntities = new ArrayList<>();
+			for (DataModelEntity dataModelEntity : entity.getDataModels()) {
+				dataModelEntities.add(dataModelEntity);
+				if(dataModelEntity.getSlaverModels() != null && dataModelEntity.getSlaverModels().size() > 0) {
+					dataModelEntities.addAll(dataModelEntity.getSlaverModels());
+				}
+			}
+			for (DataModelEntity dataModelEntity : dataModelEntities) {
+				dataModelList.add(getDataModel(dataModelEntity));
+			}
+			formModel.setDataModels(dataModelList);
+		}
 		return formModel;
+	}
+
+	private DataModel getDataModel(DataModelEntity dataModelEntity){
+		DataModel  dataModel = new DataModel();
+		BeanUtils.copyProperties(dataModelEntity, dataModel, new String[] {"masterModel","slaverModels","columns","indexes","referencesDataModel"});
+		if(dataModelEntity.getMasterModel() != null) {
+			DataModelInfo masterModel = new DataModelInfo();
+			BeanUtils.copyProperties(dataModelEntity, dataModel, new String[] {"masterModel","slaverModels","columns","indexes","referencesDataModel"});
+			dataModel.setMasterModel(masterModel);
+		}
+		if(dataModelEntity.getColumns() != null && dataModelEntity.getColumns().size() > 0){
+			List<ColumnModel> columnModels = new ArrayList<>();
+			for(ColumnModelEntity columnModelEntity : dataModelEntity.getColumns()) {
+				ColumnModel columnModel = new ColumnModel();
+				BeanUtils.copyProperties(columnModelEntity, columnModel, new String[] {"dataModel","columnReferences"});
+				if(columnModelEntity.getColumnReferences() != null && columnModelEntity.getColumnReferences().size() > 0){
+					List<ReferenceModel> referenceModelList = new ArrayList<>();
+					for(ColumnReferenceEntity referenceEntity : columnModelEntity.getColumnReferences()){
+						ReferenceModel referenceModel = new ReferenceModel();
+						referenceModel.setReferenceType(referenceEntity.getReferenceType());
+						referenceModel.setReferenceTable(referenceEntity.getToColumn().getDataModel().getTableName());
+						referenceModel.setReferenceValueColumn(referenceEntity.getToColumn().getColumnName());
+						referenceModel.setId(referenceEntity.getId());
+						referenceModel.setName(referenceEntity.getName());
+						referenceModelList.add(referenceModel);
+					}
+					columnModel.setReferenceTables(referenceModelList);
+				}
+				columnModels.add(columnModel);
+			}
+			dataModel.setColumns(columnModels);
+		}
+		return dataModel;
 	}
 
 	private PCFormModel toPCDTO(FormModelEntity entity) throws InstantiationException, IllegalAccessException {
@@ -616,13 +692,49 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		return formModel;
 	}
 
-	private ItemModel toDTO(ItemModelEntity entity) throws InstantiationException, IllegalAccessException {
+	private ItemModel toDTO(ItemModelEntity entity)  {
 		//TODO 根据模型找到对应的参数
-		ItemModel itemModel = BeanUtils.copy(entity, ItemModel.class, new String[] {"itemModelIds"});
+		ItemModel itemModel = new ItemModel();
+		BeanUtils.copyProperties(entity, ItemModel.class, new String[] {"formModel","columnModel","activities","options","items","itemModelIds"});
 
 		if(entity instanceof ReferenceItemModelEntity && ((ReferenceItemModelEntity) entity).getItemModelIds() != null){
 			List<String> resultList= new ArrayList<>(Arrays.asList(((ReferenceItemModelEntity) entity).getItemModelIds().split(",")));
 			itemModel.setItemModelList(resultList);
+		}else if(entity instanceof SelectItemModelEntity){
+			itemModel.setReferenceList(getItemModelByEntity(entity));
+		}else if(entity instanceof RowItemModelEntity){
+			List<ItemModel> rows = new ArrayList<>();
+			List<ItemModelEntity> rowList = ((RowItemModelEntity) entity).getItems();
+			for(ItemModelEntity itemModelEntity : rowList) {
+				rows.add(toDTO(itemModelEntity));
+			}
+			itemModel.setItems(rows);
+		}else if(entity instanceof SubFormItemModelEntity){
+			List<ItemModel> subFormRows = new ArrayList<>();
+			List<SubFormRowItemModelEntity> rowItemModelEntities = ((SubFormItemModelEntity) entity).getItems();
+			for(SubFormRowItemModelEntity rowItemModelEntity : rowItemModelEntities) {
+				ItemModel subFormRowItem = new ItemModel();
+				List<ItemModel> rows = new ArrayList<>();
+				for(ItemModelEntity childrenItem : rowItemModelEntity.getItems()) {
+					rows.add(toDTO(childrenItem));
+				}
+				subFormRowItem.setItems(rows);
+				subFormRows.add(subFormRowItem);
+			}
+			itemModel.setItems(subFormRows);
+		}
+
+		if(entity.getColumnModel() != null) {
+			ColumnModelInfo columnModel = new ColumnModelInfo();
+			BeanUtils.copyProperties(entity.getColumnModel(), columnModel, new String[] {"dataModel","columnReferences"});
+			if(entity.getColumnModel().getDataModel() != null){
+				columnModel.setTableName(entity.getColumnModel().getDataModel().getTableName());
+			}
+			if(entity.getColumnModel().getColumnReferences() != null && entity.getColumnModel().getColumnReferences().size() > 0){
+				List<ReferenceModel> referenceModelList = new ArrayList<>();
+				//columnModel.setReferenceTables(referenceModelList);
+			}
+			itemModel.setColumnModel(columnModel);
 		}
 
 		if (entity.getActivities().size() > 0) {
@@ -642,6 +754,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 		return itemModel;
 	}
+
 
 	private ActivityInfo toDTO(ItemActivityInfo entity) {
 		ActivityInfo activityInfo = new ActivityInfo();

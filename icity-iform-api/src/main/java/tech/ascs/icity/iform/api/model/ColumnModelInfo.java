@@ -7,10 +7,16 @@ import io.swagger.annotations.ApiModelProperty;
 
 @ApiModel("数据字段模型摘要信息")
 public class ColumnModelInfo extends ColumnModel {
+	@ApiModelProperty(value = "数据库表名", position = 2)
+	private String tableName;
 
-    @ApiModelProperty(value = "数据库表名", position = 2)
+
 	public String getTableName() {
 		return getDataModel() != null ? getDataModel().getTableName() : null;
+	}
+
+	public void setTableName(String tableName) {
+		 this.tableName = tableName;
 	}
 
 	@JsonIgnore
@@ -36,4 +42,5 @@ public class ColumnModelInfo extends ColumnModel {
 	public Boolean getNotNull() {
 		return super.getNotNull();
 	}
+
 }
