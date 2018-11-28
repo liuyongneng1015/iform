@@ -197,35 +197,40 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				if(itemModelEntity.getColumnModel() != null) {
 					itemModelEntity.setColumnModel(null);
 				}
-				old.getItems().remove(itemModelEntity);
 				itemModelEntity.setFormModel(null);
 				if(itemModelEntity instanceof RowItemModelEntity){
 					List<ItemModelEntity> list = ((RowItemModelEntity) itemModelEntity).getItems();
 					((RowItemModelEntity) itemModelEntity).setItems(null);
-					for(ItemModelEntity itemModelEntity1 : list ) {
+					for(int j = 0 ; j < list.size(); j++ ) {
+						ItemModelEntity itemModelEntity1 = list.get(j);
 						itemModelEntity1.setColumnModel(null);
 						itemManager.delete(itemModelEntity1);
+						j--;
 					}
-				}
-				if(itemModelEntity instanceof SubFormItemModelEntity){
+				}else if(itemModelEntity instanceof SubFormItemModelEntity){
 					List<SubFormRowItemModelEntity> subFormRowItems = ((SubFormItemModelEntity) itemModelEntity).getItems();
-					for(SubFormRowItemModelEntity itemModel : subFormRowItems) {
+					((SubFormItemModelEntity) itemModelEntity).setItems(null);
+					for(int j = 0 ; j < subFormRowItems.size(); j++ ) {
+						SubFormRowItemModelEntity itemModel = subFormRowItems.get(j);
 						List<ItemModelEntity> list = itemModel.getItems();
 						itemModel.setItems(null);
-						for(ItemModelEntity itemModelEntity1 : list ) {
+						for(int n = 0; n < list.size(); n++ ) {
+							ItemModelEntity itemModelEntity1 = list.get(n);
 							itemModelEntity1.setColumnModel(null);
 							itemManager.delete(itemModelEntity1);
+							n--;
 						}
+						itemManager.delete(itemModel);
+						j--;
 					}
-					((SubFormItemModelEntity) itemModelEntity).setItems(null);
-					itemManager.delete(subFormRowItems.toArray(new ItemModelEntity[]{}));
-				}
-				if(itemModelEntity instanceof SubFormRowItemModelEntity){
-					((SubFormRowItemModelEntity) itemModelEntity).setItems(null);
+				}else	if(itemModelEntity instanceof SubFormRowItemModelEntity){
 					List<ItemModelEntity> list = ((SubFormRowItemModelEntity) itemModelEntity).getItems();
-					for(ItemModelEntity itemModel : list ) {
+					((SubFormRowItemModelEntity) itemModelEntity).setItems(null);
+					for( int n = 0 ; n < list.size() ; n++ ) {
+						ItemModelEntity itemModel = list.get(0);
 						itemModel.setColumnModel(null);
 						itemManager.delete(itemModel);
+						n--;
 					}
 				}
 				itemManager.delete(itemModelEntity);
