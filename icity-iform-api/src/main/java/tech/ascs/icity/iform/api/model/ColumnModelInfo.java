@@ -12,11 +12,11 @@ public class ColumnModelInfo extends ColumnModel {
 
 
 	public String getTableName() {
-		return getDataModel() != null ? getDataModel().getTableName() : null;
+		return tableName;
 	}
 
 	public void setTableName(String tableName) {
-		 this.tableName = tableName;
+		this.tableName = tableName;
 	}
 
 	@JsonIgnore
