@@ -695,7 +695,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	private ItemModel toDTO(ItemModelEntity entity)  {
 		//TODO 根据模型找到对应的参数
 		ItemModel itemModel = new ItemModel();
-		BeanUtils.copyProperties(entity, ItemModel.class, new String[] {"formModel","columnModel","activities","options","items","itemModelIds"});
+		BeanUtils.copyProperties(entity, itemModel, new String[] {"formModel","columnModel","activities","options","items","itemModelIds"});
 
 		if(entity instanceof ReferenceItemModelEntity && ((ReferenceItemModelEntity) entity).getItemModelIds() != null){
 			List<String> resultList= new ArrayList<>(Arrays.asList(((ReferenceItemModelEntity) entity).getItemModelIds().split(",")));
