@@ -1,5 +1,8 @@
 package tech.ascs.icity.iform.utils;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class CommonUtils {
     /**
      * hql模糊搜索参数转换,包含添加通配符和转义通配符
@@ -10,6 +13,10 @@ public class CommonUtils {
         return "%" + parameter.replace("%","\\%").replace("_","\\_") + "%";
     }
 
+    public static String date2Str(Date date, String dateFormat){
+        SimpleDateFormat format = new SimpleDateFormat(dateFormat);
+        return format.format(date);
+    }
     //异常编码
     public static int exceptionCode = 404;
 }

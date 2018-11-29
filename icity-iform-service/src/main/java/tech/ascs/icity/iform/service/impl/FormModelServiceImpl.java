@@ -549,6 +549,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 					itemManager.delete(itemModelEntities1.toArray(new ItemModelEntity[]{}));
 				}
 			}
+			itemModelEntities.remove(itemModelEntity);
 			itemManager.delete(itemModelEntity);
 			i--;
 		}

@@ -97,6 +97,12 @@
 			<artifactId>freemarker</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>io.minio</groupId>
+			<artifactId>minio</artifactId>
+			<version>3.0.6</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>
