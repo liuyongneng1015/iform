@@ -640,21 +640,21 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				break;
 			}
 		}
-		if(idItemModelEntity == null){
+		if(idItemModelEntity == null) {
 			idItemModelEntity = new ItemModelEntity();
 			idItemModelEntity.setName(name);
 			idItemModelEntity.setFormModel(entity);
 			idItemModelEntity.setColumnModel(null);
 			idItemModelEntity.setType(ItemType.Input);
-			if("id".equals(name)) {
+			if ("id".equals(name)) {
 				idItemModelEntity.setProps("{id:组件id}");
 				idItemModelEntity.setSystemItemType(SystemItemType.ID);
-			}else{
+			} else {
 				idItemModelEntity.setProps(name);
 				idItemModelEntity.setSystemItemType(SystemItemType.ChildId);
 			}
+			items.add(idItemModelEntity);
 		}
-		items.add(idItemModelEntity);
 		return  idItemModelEntity;
 	}
 

@@ -174,7 +174,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 	}
 
-	private FormModelEntity wrap(FormModel formModel) throws InstantiationException, IllegalAccessException {
+	private FormModelEntity wrap(FormModel formModel) {
 		FormModelEntity entity = new FormModelEntity();
 		BeanUtils.copyProperties(formModel, entity, new String[] {"items","dataModels"});
 
@@ -452,7 +452,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		return null;
 	}
 
-	private ItemModelEntity wrap(ItemModel itemModel) throws InstantiationException, IllegalAccessException {
+	private ItemModelEntity wrap(ItemModel itemModel) {
 
 		//TODO 根据类型映射对应的item
 		ItemModelEntity entity = formModelService.getItemModelEntity(itemModel.getType());
