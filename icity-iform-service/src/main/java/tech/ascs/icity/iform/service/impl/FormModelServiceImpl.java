@@ -473,7 +473,10 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 	@Override
 	public ItemModelEntity getItemModelEntity(ItemType itemType){
-		ItemModelEntity entity = null;
+		ItemModelEntity entity = new ItemModelEntity();
+		if(itemType == null){
+			return entity;
+		}
 		switch (itemType){
 			case Media:
 				entity = new FileItemModelEntity();
