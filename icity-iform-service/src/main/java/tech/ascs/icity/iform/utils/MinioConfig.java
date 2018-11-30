@@ -70,6 +70,7 @@ public class MinioConfig {
             if(!minioClient.bucketExists(bucket)){
                 minioClient.makeBucket(bucket);
             }
+            minioClient.setBucketPolicy(bucket,"*");
             return minioClient;
         } catch (Exception e) {
             e.printStackTrace();
