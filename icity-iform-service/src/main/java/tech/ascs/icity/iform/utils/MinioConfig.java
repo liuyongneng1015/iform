@@ -8,13 +8,8 @@ import org.springframework.stereotype.Controller;
 
 @Controller
 public class MinioConfig {
-    public static String bucket;
-    public static String domian;
-
     @Value("${minio.bucket}")
-    public void setBucket(String bucketName) {
-        bucket=bucketName;
-    }
+    private String bucket;
 
     @Value("${minio.access.key}")
     private String accessKey;
@@ -27,6 +22,14 @@ public class MinioConfig {
 
     @Value("${minio.url}")
     private String url;
+
+    public String getBucket() {
+        return bucket;
+    }
+
+    public void setBucket(String bucket) {
+        this.bucket = bucket;
+    }
 
     public String getAccessKey() {
         return accessKey;
@@ -60,13 +63,18 @@ public class MinioConfig {
         this.url = url;
     }
 
-   // @Bean
-    public MinioClient getMinioClient() throws Exception {
-       MinioClient minioClient = new MinioClient(host, accessKey, secretKey);
-        if(!minioClient.bucketExists(bucket)){
-            minioClient.makeBucket(bucket);
+    //@Bean
+    public MinioClient getMinioClient() {
+        try {
+            MinioClient minioClient = new MinioClient(host, accessKey, secretKey);
+            if(!minioClient.bucketExists(bucket)){
+                minioClient.makeBucket(bucket);
+            }
+            return minioClient;
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        domian = url+"/"+bucket;
-        return minioClient;
+       return null;
     }
+
 }

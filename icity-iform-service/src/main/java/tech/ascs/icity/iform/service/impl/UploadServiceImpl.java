@@ -2,13 +2,11 @@ package tech.ascs.icity.iform.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.minio.MinioClient;
-import io.minio.errors.MinioException;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import tech.ascs.icity.iform.model.ColumnModelEntity;
-import tech.ascs.icity.iform.model.ItemModelEntity;
 import tech.ascs.icity.iform.service.UploadService;
 import tech.ascs.icity.iform.utils.CommonUtils;
 import tech.ascs.icity.iform.utils.ImagesUtils;
@@ -64,7 +62,7 @@ public class UploadServiceImpl extends DefaultJPAService<ColumnModelEntity> impl
 
 	@Override
 	public String getFileUrl(String key) {
-		return minioConfig.getUrl()+"/"+MinioConfig.bucket+"/"+key ;
+		return minioConfig.getUrl()+"/"+minioConfig.getBucket()+"/"+key ;
 	}
 
 	/**
@@ -79,7 +77,7 @@ public class UploadServiceImpl extends DefaultJPAService<ColumnModelEntity> impl
 		String filename = file.getOriginalFilename();
 		String day = CommonUtils.date2Str(new Date(), "yyyy-MM-dd");
 		String filePath = renameFile(day, true, filename);
-		minioClient.putObject(MinioConfig.bucket, filePath, file.getInputStream(), file.getContentType());
+		minioClient.putObject(minioConfig.getBucket(), filePath, file.getInputStream(), file.getContentType());
 		return getFileUrl(filePath);
 	}
 
@@ -116,8 +114,8 @@ public class UploadServiceImpl extends DefaultJPAService<ColumnModelEntity> impl
 										 InputStream inputStream,
 										 boolean rename) throws Exception {
 		String filePath = renameFile(day, rename, filename);
-		minioClient.putObject(MinioConfig.bucket, filePath, inputStream, contentType);
-		return MinioConfig.domian + "/" + filePath;
+		minioClient.putObject(minioConfig.getBucket(), filePath, inputStream, contentType);
+		return minioConfig.getHost()+"/"+minioConfig.getBucket() + "/" + filePath;
 	}
 
 	/**
