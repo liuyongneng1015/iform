@@ -12,7 +12,8 @@ import tech.ascs.icity.model.Page;
 import java.util.List;
 import java.util.Map;
 
-@RequestMapping("/file-upload")
+@RestController
+@RequestMapping("/file")
 public interface FileUploadService {
 
 	/**
@@ -22,11 +23,10 @@ public interface FileUploadService {
 	 * @return
 	 */
 	@ApiOperation(value = "文件上传", notes = "文件上传", position = 0)
-	@GetMapping("/{listId}")
 	@ApiImplicitParams({
 		@ApiImplicitParam(paramType = "query", name = "file", value = "文件", required = false)
 	})
-	@RequestMapping(value="/uploadimg", method = RequestMethod.POST)
+	@RequestMapping(value="/upload", method = RequestMethod.POST)
 	String fileUpload(@RequestParam("file") MultipartFile file) ;
 
 

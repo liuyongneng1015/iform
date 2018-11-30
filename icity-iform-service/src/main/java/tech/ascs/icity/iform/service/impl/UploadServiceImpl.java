@@ -2,6 +2,7 @@ package tech.ascs.icity.iform.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.minio.MinioClient;
+import io.minio.errors.MinioException;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,7 +24,12 @@ import java.util.UUID;
 @Service
 public class UploadServiceImpl extends DefaultJPAService<ColumnModelEntity> implements UploadService {
 
+	//@Autowired
 	private MinioClient minioClient;
+
+	@Autowired
+	private MinioConfig minioConfig;
+
 
 	@Autowired
 	public ObjectMapper mapper;
@@ -56,23 +62,28 @@ public class UploadServiceImpl extends DefaultJPAService<ColumnModelEntity> impl
 		return images;
 	}
 
+	@Override
+	public String getFileUrl(String key) {
+		return minioConfig.getUrl()+"/"+MinioConfig.bucket+"/"+key ;
+	}
+
 	/**
 	 * 上传文件，并显示是否重命名
 	 *
 	 * @param file
-	 * @param rename
 	 * @return
 	 * @throws Exception
 	 */
 	@Override
-	public String uploadOneFileReturnUrl(MultipartFile file, boolean rename) throws Exception {
+	public String uploadOneFileReturnUrl(MultipartFile file) throws Exception {
 		String filename = file.getOriginalFilename();
 		String day = CommonUtils.date2Str(new Date(), "yyyy-MM-dd");
-		String filePath = renameFile(day, rename, filename);
-		//baoan
+		String filePath = renameFile(day, true, filename);
 		minioClient.putObject(MinioConfig.bucket, filePath, file.getInputStream(), file.getContentType());
-		return filePath;
+		return getFileUrl(filePath);
 	}
+
+
 
 	/**
 	 * 图片的base64字符串集合转成图片，并上传到minio，然后返回url
@@ -117,11 +128,11 @@ public class UploadServiceImpl extends DefaultJPAService<ColumnModelEntity> impl
 	 * @return
 	 */
 	private String renameFile(String day, boolean rename, String srcFileName) {
-		String filePath = day + "/" + UUID.randomUUID().toString();
+		String filePath = day + "/" + (UUID.randomUUID().toString().replace("-",""));
 		if (rename) {//判断文件是否要重命名
 			int index = srcFileName.lastIndexOf("."); //先判断文件是否有后缀名
 			if (index != -1) {
-				filePath = day + "/" + srcFileName.substring(index + 1) + "/" + UUID.randomUUID().toString();
+				filePath = day + "/" + srcFileName.substring(index + 1) + "/" + (UUID.randomUUID().toString().replace("-",""));
 				filePath += srcFileName.substring(index);
 			}
 		} else {

@@ -79,4 +79,3 @@ minio:
     key: a+GkkrJLJxv9DxF7oikmgzrTwS3r0pRDpkE/JOzm
   host: http://192.168.100.92:9000
   url: http://192.168.100.92:9000
-  fileurl: http://121.201.65.133:9102/dashboard

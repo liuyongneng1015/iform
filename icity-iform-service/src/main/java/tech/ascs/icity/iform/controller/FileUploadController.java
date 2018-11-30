@@ -38,7 +38,7 @@ public class FileUploadController implements FileUploadService {
 	@Override
 	public String fileUpload(MultipartFile file) {
 		try {
-			return uploadService.uploadOneFileReturnUrl(file, false);
+			return uploadService.uploadOneFileReturnUrl(file);
 		} catch (Exception e) {
 			throw new IFormException("上传文件失败" + e.getMessage());
 		}
