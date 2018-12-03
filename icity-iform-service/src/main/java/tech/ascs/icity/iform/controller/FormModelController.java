@@ -246,7 +246,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				//创建获取主键未持久化到数据库
 				ColumnModelEntity idColumnReference = columnModelService.saveColumnModelEntity(slaverDataModelEntity, "id");
 
-				//创建获取关联字段未持久化到数据库
+				//子表不需要关联
 				setMasterIdColunm(slaverDataModelEntity, masterIdColumnEntity);
 
 				slaverDataModelEntities.add(slaverDataModelEntity);
@@ -306,9 +306,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	}
 	private void setMasterIdColunm(DataModelEntity dataModelEntity, ColumnModelEntity parentIdColumnEntity){
 		//创建一个关联字段
-		ColumnModelEntity masterIdColumn = columnModelService.saveColumnModelEntity(dataModelEntity, "master_id");
+		//ColumnModelEntity masterIdColumn = columnModelService.saveColumnModelEntity(dataModelEntity, "master_id");
 		//关联关系未持久化到数据库
-		columnModelService.saveColumnReferenceEntity(parentIdColumnEntity, masterIdColumn, ReferenceType.OneToMany);
+		//columnModelService.saveColumnReferenceEntity(parentIdColumnEntity, masterIdColumn, ReferenceType.OneToMany);
 	}
 
 	//设置数据模型行
@@ -352,9 +352,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		for(int i = 0 ; i <  oldDataModelEntity.getColumns().size() ; i++ ){
 			ColumnModelEntity columnModelEntity = oldDataModelEntity.getColumns().get(i);
 			if(!newColumnIds.contains(columnModelEntity.getId())){
-				if("id".equals(columnModelEntity.getColumnName()) || (needMasterId && "master_id".equals(columnModelEntity.getColumnName()))){
-					continue;
-				}
 				List<ColumnReferenceEntity> referenceEntityList = columnModelEntity.getColumnReferences();
 				for(int m = 0 ; m < referenceEntityList.size(); m++ ){
 					ColumnReferenceEntity referenceEntity = referenceEntityList.get(m);
@@ -374,6 +371,10 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				}
 				columnModelService.save(columnModelEntity);
 
+				if("id".equals(columnModelEntity.getColumnName()) || (needMasterId && "master_id".equals(columnModelEntity.getColumnName()))){
+					continue;
+				}
+
 				oldDataModelEntity.getColumns().remove(columnModelEntity);
 				i--;
 				List<ItemModelEntity> itemModelEntity = itemModelService.findByProperty("columnModel.id", columnModelEntity.getId());
@@ -389,8 +390,16 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 		for(ColumnModel columnModel : newDataModel.getColumns()){
 			ColumnModelEntity oldColumnModelEntity = setColumn(columnModel);
+			List<ColumnReferenceEntity> oldColumnReferences = oldColumnModelEntity.getColumnReferences();
+			for(int i = 0 ; i < oldColumnReferences.size() ; i++) {
+				ColumnReferenceEntity columnReferenceEntity = oldColumnReferences.get(i);
+				oldColumnReferences.remove(i);
+				i--;
+				columnModelService.deleteColumnReferenceEntity(columnReferenceEntity);
+			}
+			oldColumnModelEntity.setColumnReferences(null);
+
 			oldColumnModelEntity.setDataModel(oldDataModelEntity);
-			oldColumnModelEntity.getColumnReferences().clear();
 			if(columnModel.getReferenceTables() != null){
 				for(ReferenceModel columnReferenceEntity : columnModel.getReferenceTables()){
 					DataModelEntity dataModelEntity = dataModelService.findUniqueByProperty("tableName", columnReferenceEntity.getReferenceTable());

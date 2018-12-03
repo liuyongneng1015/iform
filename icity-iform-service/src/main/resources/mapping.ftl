@@ -41,6 +41,13 @@
                     </set>
                 </#if>
             </#list>
+            <#list dataModel.slaverModels as slaver>
+                  <set name="${slaver.tableName}_list" inverse="false" lazy="false">
+                      <key column="id" />
+                      <one-to-many entity-name="${slaver.tableName}" />
+                  </set>
+            </#list>
+
 		</#list>
 
         <property name="PROCESS_ID" type="string">
@@ -108,6 +115,31 @@
         </#list>
     </class>
     </#if>
+    </#list>
+
+    <#list dataModel.slaverModels as slaver>
+            <class entity-name="${slaver.tableName}" table="if_${slaver.tableName}">
+                <comment>${slaver.name}</comment>
+                <id name="id" type="string" length="32">
+                    <column name="id">
+                        <comment>主键</comment>
+                    </column>
+                    <generator class="uuid" />
+                </id>
+
+                <#list slaver.columns as column>
+                    <#if column.columnName != 'id' &&  (!column.columnReferences?? || (column.columnReferences?size < 1)) >
+                        <#if column.columnName = 'master_id' >
+                            <many-to-one name="${column.columnName}" entity-name="${dataModel.tableName}" column="${column.columnName}" cascade="save-update" lazy="false" fetch="join"  />
+                        </#if>
+                        <property name="${column.columnName}" type="${column.dataType?lower_case}">
+                            <column name="f${column.columnName}" default="${column.defaultValue!'null'}" not-null="${(column.notNull!false)?c}" length="<#if !column.length ?? || column.length = 0>32<#else >${column.length}</#if>" precision="<#if !column.precision ?? || column.precision = 0>32<#else >${column.precision}</#if>" <#if column.dataType?? && column.dataType.value ?? && (column.dataType.value ="Integer" || column.dataType.value = "Long" || column.dataType.value = "Float" || column.dataType.value = "Double")> scale="${column.scale!0}"</#if>>
+                                <comment>${column.name}</comment>
+                            </column>
+                        </property>
+                    </#if>
+                </#list>
+            </class>
     </#list>
 
 </hibernate-mapping>
