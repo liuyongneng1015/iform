@@ -714,6 +714,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			List<SubFormRowItemModelEntity> rowItemModelEntities = ((SubFormItemModelEntity) entity).getItems();
 			for(SubFormRowItemModelEntity rowItemModelEntity : rowItemModelEntities) {
 				ItemModel subFormRowItem = new ItemModel();
+				BeanUtils.copyProperties(rowItemModelEntity, subFormRowItem, new String[] {"formModel","columnModel","activities","options","items","itemModelIds"});
 				List<ItemModel> rows = new ArrayList<>();
 				for(ItemModelEntity childrenItem : rowItemModelEntity.getItems()) {
 					rows.add(toDTO(childrenItem));

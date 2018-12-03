@@ -96,7 +96,12 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			List<String> itemActivityIds = new ArrayList<String>();
 			List<String> itemSelectOptionIds = new ArrayList<String>();
 
-			//setOldItems(itemActivityIds,  itemSelectOptionIds ,  old );
+			setOldItems(itemActivityIds,  itemSelectOptionIds ,  old );
+
+			Map<String, ItemModelEntity> oldMapItmes = new HashMap<>();
+			for(ItemModelEntity itemModelEntity : oldItems){
+				oldMapItmes.put(itemModelEntity.getId(), itemModelEntity);
+			}
 
 			//包括所有的新的item(包括子item)
 			List<ItemModelEntity> allItems = new ArrayList<>();
@@ -116,7 +121,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 			for(ItemModelEntity item : allItems) {
 				if (!item.isNew()) {
-					oldItems.remove(item.getId());
+					if(oldMapItmes.containsKey(item.getId())) {
+						oldItems.remove(oldMapItmes.get(item.getId()));
+					}
 				}
 				setAcitityOption(item);
 			}
@@ -134,6 +141,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		return doSave(entity, dataModelUpdateNeeded);
 
 	}
+
 
 	private ItemModelEntity  getNewItemModel(Map<String, ColumnModelEntity> modelEntityMap, ItemModelEntity oldItemModelEntity){
 		ItemModelEntity newItemModelEntity = getItemModelEntity(oldItemModelEntity.getType());
@@ -200,10 +208,10 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				itemModelEntity.setFormModel(null);
 				if(itemModelEntity instanceof RowItemModelEntity){
 					List<ItemModelEntity> list = ((RowItemModelEntity) itemModelEntity).getItems();
-					((RowItemModelEntity) itemModelEntity).setItems(null);
 					for(int j = 0 ; j < list.size(); j++ ) {
 						ItemModelEntity itemModelEntity1 = list.get(j);
 						itemModelEntity1.setColumnModel(null);
+						list.remove(itemModelEntity1);
 						itemManager.delete(itemModelEntity1);
 						j--;
 					}
@@ -213,23 +221,24 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 					for(int j = 0 ; j < subFormRowItems.size(); j++ ) {
 						SubFormRowItemModelEntity itemModel = subFormRowItems.get(j);
 						List<ItemModelEntity> list = itemModel.getItems();
-						itemModel.setItems(null);
 						for(int n = 0; n < list.size(); n++ ) {
 							ItemModelEntity itemModelEntity1 = list.get(n);
 							itemModelEntity1.setColumnModel(null);
+							list.remove(itemModelEntity1);
 							itemManager.delete(itemModelEntity1);
 							n--;
 						}
+						subFormRowItems.remove(itemModel);
 						itemManager.delete(itemModel);
 						j--;
 					}
 				}else	if(itemModelEntity instanceof SubFormRowItemModelEntity){
 					List<ItemModelEntity> list = ((SubFormRowItemModelEntity) itemModelEntity).getItems();
-					((SubFormRowItemModelEntity) itemModelEntity).setItems(null);
 					for( int n = 0 ; n < list.size() ; n++ ) {
-						ItemModelEntity itemModel = list.get(0);
-						itemModel.setColumnModel(null);
-						itemManager.delete(itemModel);
+						ItemModelEntity itemModelEntity1 = list.get(0);
+						itemModelEntity1.setColumnModel(null);
+						list.remove(itemModelEntity1);
+						itemManager.delete(itemModelEntity1);
 						n--;
 					}
 				}
