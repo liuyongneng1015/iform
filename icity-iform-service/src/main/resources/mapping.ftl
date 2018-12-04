@@ -41,14 +41,14 @@
                     </set>
                 </#if>
             </#list>
-            <#list dataModel.slaverModels as slaver>
+		</#list>
+
+         <#list dataModel.slaverModels as slaver>
                   <set name="${slaver.tableName}_list" inverse="false" lazy="false">
-                      <key column="id" />
+                      <key column="master_id" />
                       <one-to-many entity-name="${slaver.tableName}" />
                   </set>
-            </#list>
-
-		</#list>
+         </#list>
 
         <property name="PROCESS_ID" type="string">
             <column name="PROCESS_ID" length="64">
@@ -131,12 +131,13 @@
                     <#if column.columnName != 'id' &&  (!column.columnReferences?? || (column.columnReferences?size < 1)) >
                         <#if column.columnName = 'master_id' >
                             <many-to-one name="${column.columnName}" entity-name="${dataModel.tableName}" column="${column.columnName}" cascade="save-update" lazy="false" fetch="join"  />
+                        <#else>
+                            <property name="${column.columnName}" type="${column.dataType?lower_case}">
+                                <column name="f${column.columnName}" default="${column.defaultValue!'null'}" not-null="${(column.notNull!false)?c}" length="<#if !column.length ?? || column.length = 0>32<#else >${column.length}</#if>" precision="<#if !column.precision ?? || column.precision = 0>32<#else >${column.precision}</#if>" <#if column.dataType?? && column.dataType.value ?? && (column.dataType.value ="Integer" || column.dataType.value = "Long" || column.dataType.value = "Float" || column.dataType.value = "Double")> scale="${column.scale!0}"</#if>>
+                                    <comment>${column.name}</comment>
+                                </column>
+                            </property>
                         </#if>
-                        <property name="${column.columnName}" type="${column.dataType?lower_case}">
-                            <column name="f${column.columnName}" default="${column.defaultValue!'null'}" not-null="${(column.notNull!false)?c}" length="<#if !column.length ?? || column.length = 0>32<#else >${column.length}</#if>" precision="<#if !column.precision ?? || column.precision = 0>32<#else >${column.precision}</#if>" <#if column.dataType?? && column.dataType.value ?? && (column.dataType.value ="Integer" || column.dataType.value = "Long" || column.dataType.value = "Float" || column.dataType.value = "Double")> scale="${column.scale!0}"</#if>>
-                                <comment>${column.name}</comment>
-                            </column>
-                        </property>
                     </#if>
                 </#list>
             </class>
