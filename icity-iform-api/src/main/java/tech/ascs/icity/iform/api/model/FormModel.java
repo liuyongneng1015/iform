@@ -43,6 +43,9 @@ public class FormModel extends NameEntity {
 	@ApiModelProperty(value = "表单字段列表", position = 5)
 	private List<ItemModel> items = new ArrayList<ItemModel>();
 
+	@ApiModelProperty(value = "应用id", position = 6)
+	private String applicationId;
+
 	public String getDescription() {
 		return description;
 	}
@@ -73,5 +76,13 @@ public class FormModel extends NameEntity {
 
 	public void setItems(List<ItemModel> items) {
 		this.items = items;
+	}
+
+	public String getApplicationId() {
+		return applicationId;
+	}
+
+	public void setApplicationId(String applicationId) {
+		this.applicationId = applicationId;
 	}
 }

@@ -30,6 +30,9 @@ public class DataModelEntity extends BaseEntity implements Serializable {
 	@Enumerated(EnumType.STRING)
 	private DataModelType modelType;
 
+	@Column(name = "application_id")
+	private String applicationId;//应用id
+
 	@ManyToOne(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH })
 	@JoinColumn(name = "master_model")
 	private DataModelEntity masterModel;
@@ -71,6 +74,14 @@ public class DataModelEntity extends BaseEntity implements Serializable {
 
 	public void setModelType(DataModelType modelType) {
 		this.modelType = modelType;
+	}
+
+	public String getApplicationId() {
+		return applicationId;
+	}
+
+	public void setApplicationId(String applicationId) {
+		this.applicationId = applicationId;
 	}
 
 	public DataModelEntity getMasterModel() {

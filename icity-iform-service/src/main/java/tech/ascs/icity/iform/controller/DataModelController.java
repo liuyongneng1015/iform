@@ -40,7 +40,7 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 
 	@Override
 	public List<DataModel> list(@RequestParam(name="name", required=false) String name, @RequestParam(name = "sync", required=false) String sync,
-								@RequestParam(name = "modelType", required=false) String modelType) {
+								@RequestParam(name = "modelType", required=false) String modelType, @RequestParam(name = "applicationId", required=false) String applicationId) {
 		try {
 			Query<DataModelEntity, DataModelEntity> query = dataModelService.query();
 			if (StringUtils.hasText(name)) {
@@ -50,12 +50,10 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 				query.filterEqual("synchronized_", "1".equals(sync));
 			}
 			if (StringUtils.hasText(modelType)) {
-				String[] modelTypeArray = modelType.split(",");
-				List<DataModelType> list = new ArrayList<>();
-				for(String str : modelTypeArray){
-					list.add(DataModelType.valueOf(str));
-				}
-				query.filterIn("modelType", list);
+				query.filterIn("modelType",  getDataModelType(modelType));
+			}
+			if (StringUtils.hasText(applicationId)) {
+				query.filterEqual("applicationId",  applicationId);
 			}
 
 			List<DataModelEntity> entities = query.list();
@@ -67,21 +65,18 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 
 	@Override
 	public List<DataModelInfo> listReferenceDataModel(@RequestParam(name = "tableName", required = false) String tableName,
-													  @RequestParam(name = "modelType", required = false) String modelType) {
+													  @RequestParam(name = "modelType", required = false) String modelType, @RequestParam(name = "applicationId", required=false) String applicationId) {
 		try {
 			Query<DataModelEntity, DataModelEntity> query = dataModelService.query();
 			if (StringUtils.hasText(tableName)) {
 				query.filterNotEqual("tableName",  tableName );
 			}
 			if (StringUtils.hasText(modelType)) {
-				String[] modelTypeArray = modelType.split(",");
-				List<DataModelType> list = new ArrayList<>();
-				for(String str : modelTypeArray){
-					list.add(DataModelType.valueOf(str));
-				}
-				query.filterIn("modelType", list);
+				query.filterIn("modelType", getDataModelType(modelType));
 			}
-
+			if (StringUtils.hasText(applicationId)) {
+				query.filterEqual("applicationId",  applicationId);
+			}
 			List<DataModelEntity> entities = query.list();
 			return DTOTools.wrapList(entities, DataModelInfo.class);
 		} catch (Exception e) {
@@ -89,12 +84,21 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 		}
 	}
 
+	private List<DataModelType> getDataModelType(String modelType){
+		String[] modelTypeArray = modelType.split(",");
+		List<DataModelType> list = new ArrayList<>();
+		for(String str : modelTypeArray){
+			list.add(DataModelType.valueOf(str));
+		}
+		return list;
+	}
+
 	@Override
 	public Page<DataModel> page(
 			@RequestParam(name="name", required=false) String name,
 			@RequestParam(name="sync", required=false) String sync,
 			@RequestParam(name="page", defaultValue="1") int page,
-			@RequestParam(name="pagesize", defaultValue="10") int pagesize) {
+			@RequestParam(name="pagesize", defaultValue="10") int pagesize, @RequestParam(name = "applicationId", required=false) String applicationId) {
 		try {
 			Query<DataModelEntity, DataModelEntity> query = dataModelService.query();
 			if (StringUtils.hasText(name)) {
@@ -102,6 +106,9 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 			}
 			if (StringUtils.hasText(sync)) {
 				query.filterEqual("synchronized_", "1".equals(sync));
+			}
+			if (StringUtils.hasText(applicationId)) {
+				query.filterEqual("applicationId",  applicationId);
 			}
 			Page<DataModelEntity> entities = query.page(page, pagesize).page();
 			return toDTO(entities);
@@ -111,9 +118,15 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 	}
 
 	@Override
-	public List<DataModelInfo> getMasterModels() {
+	public List<DataModelInfo> getMasterModels(@RequestParam(name = "applicationId", required=false) String applicationId) {
 		try {
-			List<DataModelEntity> entities = dataModelService.query().filterNotEqual("modelType", DataModelType.Slaver).list();
+			Query<DataModelEntity, DataModelEntity> query = dataModelService.query();
+			query.filterNotEqual("modelType", DataModelType.Slaver);
+
+			if (StringUtils.hasText(applicationId)) {
+				query.filterEqual("applicationId",  applicationId);
+			}
+			List<DataModelEntity> entities = query.list();
 			return DTOTools.wrapList(entities, DataModelInfo.class);
 		} catch (Exception e) {
 			throw new IFormException("获取数据模型列表失败：" + e.getMessage(), e);

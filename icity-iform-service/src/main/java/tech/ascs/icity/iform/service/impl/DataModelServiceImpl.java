@@ -36,9 +36,6 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 	@Autowired
 	private ColumnModelService columnModelService;
 
-	@Autowired
-	private FormModelService formModelService;
-
 
 	public DataModelServiceImpl() {
 		super(DataModelEntity.class);
@@ -294,6 +291,9 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 	@Override
 	public List<DataModel> findDataModelByFormId(String formId) {
 		FormModelEntity formModelEntity = formManager.find(formId);
+		if(formModelEntity == null) {
+			throw new IFormException("未找到【" + formId + "】表单模型");
+		}
 		List<DataModel> dataModelList = new ArrayList<>();
 		DataModelEntity dataModelEntity = formModelEntity.getDataModels() == null || formModelEntity.getDataModels().size() < 1 ? null : formModelEntity.getDataModels().get(0);
 		if(dataModelEntity != null) {

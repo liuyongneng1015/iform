@@ -36,11 +36,14 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 	private ListModelService listModelService;
 
 	@Override
-	public List<ListModel> list(@RequestParam(name="name", defaultValue="") String name) {
+	public List<ListModel> list(@RequestParam(name="name", defaultValue="") String name, @RequestParam(name = "applicationId", required = false) String applicationId) {
 		try {
 			Query<ListModelEntity, ListModelEntity> query = listModelService.query();
 			if (StringUtils.hasText(name)) {
 				query.filterLike("name", "%" + name + "%");
+			}
+			if (StringUtils.hasText(applicationId)) {
+				query.filterEqual("masterForm.applicationId", applicationId);
 			}
 			List<ListModelEntity> entities = query.list();
 			return toDTO(entities);
@@ -50,11 +53,15 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 	}
 
 	@Override
-	public Page<ListModel> page(@RequestParam(name="name", defaultValue="") String name, @RequestParam(name="page", defaultValue="1") int page, @RequestParam(name="pagesize", defaultValue="10") int pagesize) {
+	public Page<ListModel> page(@RequestParam(name="name", defaultValue="") String name, @RequestParam(name="page", defaultValue="1") int page,
+								@RequestParam(name="pagesize", defaultValue="10") int pagesize, @RequestParam(name = "applicationId", required = false) String applicationId) {
 		try {
 			Query<ListModelEntity, ListModelEntity> query = listModelService.query();
 			if (StringUtils.hasText(name)) {
 				query.filterLike("name", "%" + name + "%");
+			}
+			if (StringUtils.hasText(applicationId)) {
+				query.filterEqual("masterForm.applicationId", applicationId);
 			}
 			Page<ListModelEntity> entities = query.page(page, pagesize).page();
 			return toDTO(entities);

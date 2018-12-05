@@ -38,7 +38,11 @@ public class DataModel extends NameEntity {
     @ApiModelProperty(value = "是否已同步", position = 8)
     private boolean synchronized_;
 
-    @ApiModelProperty(value = "中文名", position = 1)
+	@ApiModelProperty(value = "应用id", position = 9)
+	private String applicationId;
+
+
+	@ApiModelProperty(value = "中文名", position = 1)
 	@Override
 	public String getName() {
 		return super.getName();
@@ -109,4 +113,11 @@ public class DataModel extends NameEntity {
 		this.synchronized_ = synchronized_;
 	}
 
+	public String getApplicationId() {
+		return applicationId;
+	}
+
+	public void setApplicationId(String applicationId) {
+		this.applicationId = applicationId;
+	}
 }

@@ -47,11 +47,14 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	private ColumnModelService columnModelService;
 
 	@Override
-	public List<FormModel> list(@RequestParam(name="name", defaultValue="") String name) {
+	public List<FormModel> list(@RequestParam(name="name", defaultValue="") String name, @RequestParam(name = "applicationId", required = false) String applicationId) {
 		try {
 			Query<FormModelEntity, FormModelEntity> query = formModelService.query();
 			if (StringUtils.hasText(name)) {
 				query.filterLike("name", CommonUtils.convertParamOfFuzzySearch(name));
+			}
+			if (StringUtils.hasText(applicationId)) {
+				query.filterEqual("applicationId",  applicationId);
 			}
 			List<FormModelEntity> entities = query.list();
 			return toDTO(entities);
@@ -61,11 +64,15 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	}
 
 	@Override
-	public Page<FormModel> page(@RequestParam(name="name", defaultValue="") String name, @RequestParam(name="page", defaultValue="1") int page, @RequestParam(name="pagesize", defaultValue="10") int pagesize) {
+	public Page<FormModel> page(@RequestParam(name="name", defaultValue="") String name, @RequestParam(name="page", defaultValue="1") int page,
+								@RequestParam(name="pagesize", defaultValue="10") int pagesize, @RequestParam(name = "applicationId", required = false) String applicationId) {
 		try {
 			Query<FormModelEntity, FormModelEntity> query = formModelService.query();
 			if (StringUtils.hasText(name)) {
 				query.filterLike("name", CommonUtils.convertParamOfFuzzySearch(name));
+			}
+			if (StringUtils.hasText(applicationId)) {
+				query.filterEqual("applicationId",  applicationId);
 			}
 			Page<FormModelEntity> entities = query.page(page, pagesize).page();
 			return toDTO(entities);

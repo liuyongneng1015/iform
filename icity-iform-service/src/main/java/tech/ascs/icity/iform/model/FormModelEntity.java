@@ -4,14 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 import tech.ascs.icity.jpa.dao.model.BaseEntity;
 
@@ -34,6 +27,9 @@ public class FormModelEntity extends BaseEntity implements Serializable {
 	)
 	private List<DataModelEntity> dataModels = new ArrayList<DataModelEntity>();
 
+	@Column(name = "application_id")
+	private String applicationId;//应用id
+
 	@Embedded
 	private FormProcessInfo process;
  
@@ -54,6 +50,14 @@ public class FormModelEntity extends BaseEntity implements Serializable {
 
 	public void setDataModels(List<DataModelEntity> dataModels) {
 		this.dataModels = dataModels;
+	}
+
+	public String getApplicationId() {
+		return applicationId;
+	}
+
+	public void setApplicationId(String applicationId) {
+		this.applicationId = applicationId;
 	}
 
 	public FormProcessInfo getProcess() {

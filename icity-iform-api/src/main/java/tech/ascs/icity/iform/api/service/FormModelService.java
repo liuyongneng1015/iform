@@ -31,10 +31,11 @@ public interface FormModelService {
 	 */
 	@ApiOperation(value = "获取所有表单模型", position = 0)
 	@ApiImplicitParams({
-		@ApiImplicitParam(paramType = "query", name = "name", value = "表单名称", required = false)
+		@ApiImplicitParam(paramType = "query", name = "name", value = "表单名称", required = false),
+		@ApiImplicitParam(paramType = "query", name = "applicationId", value = "应用id", required = false)
 	})
 	@GetMapping
-	List<FormModel> list(@RequestParam(name = "name", defaultValue = "") String name);
+	List<FormModel> list(@RequestParam(name = "name", required = false ) String name, @RequestParam(name = "applicationId", required = false) String applicationId);
 
 
 	/**
@@ -49,10 +50,12 @@ public interface FormModelService {
 	@ApiImplicitParams({
 		@ApiImplicitParam(paramType = "query", name = "name", value = "表单名称", required = false),
 		@ApiImplicitParam(paramType = "query", name = "page", value = "页码", required = false, defaultValue = "1"),
-		@ApiImplicitParam(paramType = "query", name = "pagesize", value = "每页记录数", required = false, defaultValue = "10")
+		@ApiImplicitParam(paramType = "query", name = "pagesize", value = "每页记录数", required = false, defaultValue = "10"),
+		@ApiImplicitParam(paramType = "query", name = "applicationId", value = "应用id", required = false)
 	})
 	@GetMapping("/page")
-	Page<FormModel> page(@RequestParam(name = "name", defaultValue = "") String name, @RequestParam(name = "page", defaultValue = "1") int page, @RequestParam(name="pagesize", defaultValue = "10") int pagesize);
+	Page<FormModel> page(@RequestParam(name = "name", defaultValue = "") String name, @RequestParam(name = "page", defaultValue = "1") int page,
+						 @RequestParam(name="pagesize", defaultValue = "10") int pagesize, @RequestParam(name = "applicationId", required = false) String applicationId);
 
 
 	/**
