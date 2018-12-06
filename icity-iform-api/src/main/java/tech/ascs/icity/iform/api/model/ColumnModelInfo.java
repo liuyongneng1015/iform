@@ -10,6 +10,9 @@ public class ColumnModelInfo extends ColumnModel {
 	@ApiModelProperty(value = "数据库表名", position = 2)
 	private String tableName;
 
+	@ApiModelProperty(value = "控件id", position = 3)
+	private String itemId;
+
 
 	public String getTableName() {
 		return tableName;
@@ -17,6 +20,14 @@ public class ColumnModelInfo extends ColumnModel {
 
 	public void setTableName(String tableName) {
 		this.tableName = tableName;
+	}
+
+	public String getItemId() {
+		return itemId;
+	}
+
+	public void setItemId(String itemId) {
+		this.itemId = itemId;
 	}
 
 	@JsonIgnore

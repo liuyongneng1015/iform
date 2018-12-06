@@ -306,14 +306,13 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 				list.addAll(dataModelEntity.getSlaverModels());
 			}
 			for (DataModelEntity modelEntity : list) {
-				dataModelList.add(transitionToModel(modelEntity));
+				dataModelList.add(entityToModel(modelEntity));
 			}
 		}
 		return dataModelList;
 	}
 
-	@Override
-	public DataModel transitionToModel(DataModelEntity modelEntity){
+	private DataModel entityToModel(DataModelEntity modelEntity){
 		DataModel dataModel = new DataModel();
 		BeanUtils.copyProperties(modelEntity, dataModel, new String[] {"columns","slaverModels","masterModel","parentsModel","childrenModels","indexes"});
 		List<ColumnModelEntity> columnModelEntities = modelEntity.getColumns();
@@ -324,6 +323,30 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 			BeanUtils.copyProperties(columnModelEntity, columnModel, new String[] {"dataModel","columnReferences"});
 			columnModel.setReferenceTables(columnModelService.getReferenceModel(columnModelEntity));
 			columnModel.setReferenceItem(itemModelEntities == null || itemModelEntities.size() < 1 ? false : true) ;
+			columnModels.add(columnModel);
+		}
+		dataModel.setColumns(columnModels);
+		return dataModel;
+	}
+
+	@Override
+	public PCDataModel transitionToModel(String formId, DataModelEntity modelEntity){
+		PCDataModel dataModel = new PCDataModel();
+		BeanUtils.copyProperties(modelEntity, dataModel, new String[] {"columns","slaverModels","masterModel","parentsModel","childrenModels","indexes"});
+		List<ColumnModelEntity> columnModelEntities = modelEntity.getColumns();
+		List<ColumnModelInfo> columnModels = new ArrayList<>();
+		for(ColumnModelEntity columnModelEntity : columnModelEntities){
+			List<ItemModelEntity> itemModelEntities = itemManager.findByProperty("columnModel.id", columnModelEntity.getId());
+			ColumnModelInfo columnModel = new ColumnModelInfo();
+			BeanUtils.copyProperties(columnModelEntity, columnModel, new String[] {"dataModel","columnReferences"});
+			columnModel.setReferenceTables(columnModelService.getReferenceModel(columnModelEntity));
+			columnModel.setReferenceItem(itemModelEntities == null || itemModelEntities.size() < 1 ? false : true) ;
+			columnModel.setTableName(modelEntity.getTableName());
+			for(ItemModelEntity item : itemModelEntities) {
+				if(item.getFormModel().getId().equals(formId)) {
+					columnModel.setItemId(item.getId());
+				}
+			}
 			columnModels.add(columnModel);
 		}
 		dataModel.setColumns(columnModels);

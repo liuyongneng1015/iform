@@ -290,10 +290,11 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			RowItemModelEntity rowItemModelEntity = (RowItemModelEntity)oldItemModelEntity;
 			List<ItemModelEntity> rowItems = new ArrayList<ItemModelEntity>();
 			for(ItemModelEntity rowItem :  rowItemModelEntity.getItems()) {
-				if(rowItem instanceof ReferenceItemModelEntity) {
+				ItemModelEntity newRowItem = getNewItemModel(modelEntityMap, rowItem);
+				if(newRowItem instanceof ReferenceItemModelEntity) {
 					verifyReference((ReferenceItemModelEntity)rowItem);
 				}
-				rowItems.add(getNewItemModel(modelEntityMap, oldItemModelEntity));
+				rowItems.add(newRowItem);
 			}
 			rowItemModelEntity.setItems(rowItems);
 			((RowItemModelEntity)newModelEntity).setItems(rowItems);

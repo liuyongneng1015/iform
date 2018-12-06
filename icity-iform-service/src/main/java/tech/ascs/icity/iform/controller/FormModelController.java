@@ -642,19 +642,28 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		return dataModel;
 	}
 
-	private PCFormModel toPCDTO(FormModelEntity entity) throws InstantiationException, IllegalAccessException {
-		PCFormModel formModel = BeanUtils.copy(entity, PCFormModel.class, new String[] {"dataModels","items"});
-		List<DataModel> dataModelList = dataModelService.findDataModelByFormId(formModel.getId());
-		List<ItemModelEntity> itemModelEntities = formModelService.getAllColumnItems(entity.getItems());
-		Set<DataModelEntity> dataModelEntities = new HashSet<DataModelEntity>();
-		for(ItemModelEntity itemModelEntity : itemModelEntities){
-			dataModelEntities.add(itemModelEntity.getColumnModel().getDataModel());
-		}
-		for(DataModelEntity dataModelEntity : dataModelEntities){
-			if(dataModelEntity == null){
-				continue;
+	private PCFormModel toPCDTO(FormModelEntity entity) {
+		PCFormModel formModel = new PCFormModel();
+		BeanUtils.copyProperties(entity, PCFormModel.class, new String[] {"dataModels","items"});
+
+		if (entity.getItems().size() > 0) {
+			List<ItemModel> items = new ArrayList<ItemModel>();
+			for (ItemModelEntity itemModelEntity : entity.getItems()) {
+				items.add(toDTO(itemModelEntity));
 			}
-			DataModel dataModel = dataModelService.transitionToModel(dataModelEntity);
+			formModel.setItems(items);
+		}
+
+		List<PCDataModel> dataModelList = new ArrayList<>();
+		List<ItemModelEntity> itemModelEntities = formModelService.getAllColumnItems(entity.getItems());
+		Map<String, DataModelEntity> dataModelEntities = new HashMap<>();
+		for(ItemModelEntity itemModelEntity : itemModelEntities){
+			if(itemModelEntity instanceof ReferenceItemModelEntity && ((ReferenceItemModelEntity) itemModelEntity).getReferenceList() != null) {
+				dataModelEntities.put(((ReferenceItemModelEntity) itemModelEntity).getReferenceList().getMasterForm().getId(), itemModelEntity.getColumnModel().getDataModel());
+			}
+		}
+		for(String formId : dataModelEntities.keySet()){
+			PCDataModel dataModel = dataModelService.transitionToModel(formId, dataModelEntities.get(formId));
 			dataModelList.add(dataModel);
 		}
 		formModel.setDataModels(dataModelList);

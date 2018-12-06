@@ -1,9 +1,6 @@
 package tech.ascs.icity.iform.service;
 
-import tech.ascs.icity.iform.api.model.DataModel;
-import tech.ascs.icity.iform.api.model.DataModelInfo;
-import tech.ascs.icity.iform.api.model.DataModelType;
-import tech.ascs.icity.iform.api.model.ReferenceType;
+import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.model.ColumnModelEntity;
 import tech.ascs.icity.iform.model.ColumnReferenceEntity;
 import tech.ascs.icity.iform.model.DataModelEntity;
@@ -24,7 +21,7 @@ public interface DataModelService extends JPAService<DataModelEntity> {
 
 	void addColumnReferenceEntity(ColumnModelEntity columnEntity, Map<String, ReferenceType> referenceMap);
 
-	DataModel transitionToModel(DataModelEntity modelEntity);
+	PCDataModel transitionToModel(String formId, DataModelEntity modelEntity);
 
 	void deleteDataModel(DataModelEntity modelEntity);
 }

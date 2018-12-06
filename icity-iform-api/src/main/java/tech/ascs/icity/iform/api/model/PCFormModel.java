@@ -37,8 +37,13 @@ public class PCFormModel extends NameEntity {
 	private String description;
 
 	@ApiModelProperty(value = "关联表数据模型列表", position = 3)
-	private List<DataModel> dataModels = new ArrayList<DataModel>();
+	private List<PCDataModel> dataModels = new ArrayList<PCDataModel>();
 
+	@ApiModelProperty(value = "表单字段列表", position = 5)
+	private List<ItemModel> items = new ArrayList<ItemModel>();
+
+	@ApiModelProperty(value = "应用id", position = 6)
+	private String applicationId;
 
 	public PCProceeeModel getProcess() {
 		return process;
@@ -56,11 +61,27 @@ public class PCFormModel extends NameEntity {
 		this.description = description;
 	}
 
-	public List<DataModel> getDataModels() {
+	public List<PCDataModel> getDataModels() {
 		return dataModels;
 	}
 
-	public void setDataModels(List<DataModel> dataModels) {
+	public void setDataModels(List<PCDataModel> dataModels) {
 		this.dataModels = dataModels;
+	}
+
+	public List<ItemModel> getItems() {
+		return items;
+	}
+
+	public void setItems(List<ItemModel> items) {
+		this.items = items;
+	}
+
+	public String getApplicationId() {
+		return applicationId;
+	}
+
+	public void setApplicationId(String applicationId) {
+		this.applicationId = applicationId;
 	}
 }
