@@ -35,9 +35,9 @@
                         <one-to-many entity-name="${reference.toColumn.dataModel.tableName}" />
                     </set>
                 <#else>
-                    <set name="${reference.toColumn.dataModel.tableName}_list" table="if_${reference.fromColumn.dataModel.tableName}_${reference.toColumn.dataModel.tableName}_list" lazy="false">
+                    <set name="${reference.toColumn.dataModel.tableName}_list" <#if reference.referenceMiddleTableName?? && reference.referenceMiddleTableName!=""> table="if_${reference.referenceMiddleTableName}_list" <#else > table="if_${reference.fromColumn.dataModel.tableName}_${reference.toColumn.dataModel.tableName}_list" </#if>  lazy="false">
                         <key column="${reference.fromColumn.dataModel.tableName}_id"></key>
-                        <many-to-many entity-name="${reference.toColumn.dataModel.tableName}" column="${reference.toColumn.dataModel.tableName}_id"></many-to-many>
+                        <many-to-many entity-name="${reference.toColumn.dataModel.tableName}" column="id"></many-to-many>
                     </set>
                 </#if>
             </#list>
@@ -105,11 +105,13 @@
                         <key column="${reference.toColumn.columnName}" />
                         <one-to-many entity-name="${reference.toColumn.dataModel.tableName}" />
                     </set>
-                <#elseif dataModel.tableName != reference.toColumn.dataModel.tableName>
-                    <set name="${reference.toColumn.dataModel.tableName}_list" table="if_${reference.fromColumn.dataModel.tableName}_${reference.toColumn.dataModel.tableName}_list" lazy="false">
-                        <key column="${reference.fromColumn.dataModel.tableName}_id"></key>
-                        <many-to-many entity-name="${reference.toColumn.dataModel.tableName}" column="${reference.toColumn.dataModel.tableName}_id"></many-to-many>
-                    </set>
+                <#else>
+                    <#if dataModel.tableName = reference.toColumn.dataModel.tableName>
+                        <set name="${reference.toColumn.dataModel.tableName}_list" <#if reference.referenceMiddleTableName?? && reference.referenceMiddleTableName!=""> table="if_${reference.referenceMiddleTableName}_list" <#else > table="if_${reference.toColumn.dataModel.tableName}_${reference.fromColumn.dataModel.tableName}_list" </#if> lazy="false">
+                            <key column="${reference.fromColumn.dataModel.tableName}_id"></key>
+                            <many-to-many entity-name="${reference.toColumn.dataModel.tableName}" column="id"></many-to-many>
+                        </set>
+                    </#if>
                 </#if>
             </#list>
         </#list>

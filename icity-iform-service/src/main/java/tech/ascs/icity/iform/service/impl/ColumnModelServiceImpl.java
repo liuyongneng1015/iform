@@ -96,7 +96,7 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
 	}
 
 	@Override
-	public void saveColumnReferenceEntity(ColumnModelEntity fromColumnEntity, ColumnModelEntity toColumnEntity, ReferenceType referenceType) {
+	public void saveColumnReferenceEntity(ColumnModelEntity fromColumnEntity, ColumnModelEntity toColumnEntity, ReferenceType referenceType, String referenceMiddleTableName) {
 		//关联关系
 		List<ColumnReferenceEntity> columnReferenceEntityList = toColumnEntity.getColumnReferences();
 		List<String> referenceColumnName = columnReferenceEntityList.parallelStream().map(ColumnReferenceEntity::getFromColumn).map(ColumnModelEntity::getColumnName).collect(Collectors.toList());
@@ -106,6 +106,9 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
 			columnReferenceEntity.setFromColumn(fromColumnEntity);
 			columnReferenceEntity.setToColumn(toColumnEntity);
 			columnReferenceEntity.setReferenceType(referenceType);
+			if(StringUtils.isNotEmpty(referenceMiddleTableName)){
+                columnReferenceEntity.setReferenceMiddleTableName(referenceMiddleTableName);
+            }
 			fromColumnEntity.getColumnReferences().add(columnReferenceEntity);
 
 			//反向关联
@@ -113,6 +116,9 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
 			reverseColumnReferenceEntity.setFromColumn(toColumnEntity);
 			reverseColumnReferenceEntity.setToColumn(fromColumnEntity);
 			reverseColumnReferenceEntity.setReferenceType(ReferenceType.getReverseReferenceType(referenceType));
+            if(StringUtils.isNotEmpty(referenceMiddleTableName)){
+                reverseColumnReferenceEntity.setReferenceMiddleTableName(referenceMiddleTableName);
+            }
 			columnReferenceEntityList.add(reverseColumnReferenceEntity);
 		}
 	}
@@ -136,6 +142,7 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
 				referenceModel.setReferenceValueColumn(columnReferenceEntity.getToColumn().getColumnName());
 				referenceModel.setId(columnReferenceEntity.getId());
 				referenceModel.setName(columnReferenceEntity.getName());
+                referenceModel.setReferenceMiddleTableName(columnReferenceEntity.getReferenceMiddleTableName());
 				list.add(referenceModel);
 			}
 		}

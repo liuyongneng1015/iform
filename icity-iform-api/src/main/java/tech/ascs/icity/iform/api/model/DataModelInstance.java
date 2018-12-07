@@ -2,6 +2,7 @@ package tech.ascs.icity.iform.api.model;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import org.apache.commons.lang3.StringUtils;
 import tech.ascs.icity.model.NameEntity;
 
 import java.util.ArrayList;
@@ -63,5 +64,14 @@ public class DataModelInstance extends NameEntity {
 
 	public void setReferenceValueColumn(String referenceValueColumn) {
 		this.referenceValueColumn = referenceValueColumn;
+	}
+
+	@Override
+	public String getId() {
+		String id = super.getId();
+		if(StringUtils.isBlank(id)){
+			return null;
+		}
+		return id;
 	}
 }

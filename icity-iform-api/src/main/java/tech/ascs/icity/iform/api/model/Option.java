@@ -2,6 +2,7 @@ package tech.ascs.icity.iform.api.model;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -27,10 +28,6 @@ public class Option implements Serializable {
 	@ApiModelProperty(value = "值", position = 3)
 	private String value;
 
-	public String getId() {
-		return id;
-	}
-
 	public void setId(String id) {
 		this.id = id;
 	}
@@ -49,5 +46,12 @@ public class Option implements Serializable {
 
 	public void setValue(String value) {
 		this.value = value;
+	}
+
+	public String getId() {
+		if(StringUtils.isBlank(id)){
+			return null;
+		}
+		return id;
 	}
 }

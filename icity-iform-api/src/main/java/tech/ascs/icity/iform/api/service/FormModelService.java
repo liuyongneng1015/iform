@@ -72,13 +72,13 @@ public interface FormModelService {
 	FormModel get(@PathVariable(name="id") String id);
 
 	/**
-	 * 保存列表模型
+	 * 保存表单数据模型
 	 *
 	 * @param formModel 表单模型
 	 */
-	@ApiOperation(value = "保存列表模型", position = 3)
-	@PostMapping("/save")
-	IdEntity saveFormModel(@RequestBody FormModel formModel);
+	@ApiOperation(value = "保存表单数据模型", position = 3)
+	@PostMapping("/form-data")
+	IdEntity saveFormDataModel(@RequestBody FormModel formModel);
 
 
 	/**

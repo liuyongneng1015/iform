@@ -2,6 +2,7 @@ package tech.ascs.icity.iform.api.model;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,4 +61,12 @@ public class SubFormItemModel extends BaseItemModel {
 		this.items = items;
 	}
 
+	@Override
+	public String getId() {
+		String id = super.getId();
+		if(StringUtils.isBlank(id)){
+			return null;
+		}
+		return id;
+	}
 }

@@ -2,6 +2,7 @@ package tech.ascs.icity.iform.api.model;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import org.apache.commons.lang3.StringUtils;
 import tech.ascs.icity.model.NameEntity;
 
 import java.util.ArrayList;
@@ -52,5 +53,14 @@ public class BaseItemModel extends NameEntity {
 
 	public void setActivities(List<ActivityInfo> activities) {
 		this.activities = activities;
+	}
+
+	@Override
+	public String getId() {
+		String id = super.getId();
+		if(StringUtils.isBlank(id)){
+			return null;
+		}
+		return id;
 	}
 }

@@ -18,7 +18,7 @@ public interface ColumnModelService extends JPAService<ColumnModelEntity> {
     void deleteOldColumnReferenceEntity(ColumnModelEntity columnEntity, List<String> deleteOldToColumnIds, List<ColumnReferenceEntity> oldReferenceEntityList);
 
     //保存关系持久化到数据库
-    void saveColumnReferenceEntity(ColumnModelEntity fromColumnEntity, ColumnModelEntity toColumnEntity, ReferenceType referenceType);
+    void saveColumnReferenceEntity(ColumnModelEntity fromColumnEntity, ColumnModelEntity toColumnEntity, ReferenceType referenceType, String referenceMiddleTableName);
 
     //删除行的关联关系
     void deleteColumnReferenceEntity(ColumnReferenceEntity columnReferenceEntity);

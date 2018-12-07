@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import org.apache.commons.lang3.StringUtils;
 import tech.ascs.icity.model.IdEntity;
 
 @ApiModel("表单实例FormInstance")
@@ -40,12 +41,6 @@ public class FormInstance extends IdEntity {
 
 	@ApiModelProperty(value = "表单实例ID", hidden = true)
 	private Map<String, Object> data = new HashMap<String, Object>();
-
-	@ApiModelProperty(value = "表单实例ID", position = 0)
-	@Override
-	public String getId() {
-		return super.getId();
-	}
 
 	public String getFormId() {
 		return formId;
@@ -127,5 +122,13 @@ public class FormInstance extends IdEntity {
 		this.subFormData = subFormData;
 	}
 
-
+	@ApiModelProperty(value = "表单实例ID", position = 0)
+	@Override
+	public String getId() {
+		String id = super.getId();
+		if(StringUtils.isBlank(id)){
+			return null;
+		}
+		return id;
+	}
 }

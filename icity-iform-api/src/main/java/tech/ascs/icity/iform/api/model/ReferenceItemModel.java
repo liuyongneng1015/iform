@@ -2,6 +2,7 @@ package tech.ascs.icity.iform.api.model;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import org.apache.commons.lang3.StringUtils;
 
 @ApiModel("关联表单控件模型ItemModel")
 public class ReferenceItemModel extends BaseItemModel {
@@ -71,6 +72,15 @@ public class ReferenceItemModel extends BaseItemModel {
 
 	public void setReferenceList(ListModel referenceList) {
 		this.referenceList = referenceList;
+	}
+
+	@Override
+	public String getId() {
+		String id = super.getId();
+		if(StringUtils.isBlank(id)){
+			return null;
+		}
+		return id;
 	}
 
 }

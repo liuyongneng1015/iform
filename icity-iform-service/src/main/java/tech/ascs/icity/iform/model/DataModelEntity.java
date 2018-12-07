@@ -47,7 +47,7 @@ public class DataModelEntity extends BaseEntity implements Serializable {
     private List<IndexModelEntity> indexes = new ArrayList<IndexModelEntity>();
 
 	@Column(name="synchronized_")
-	private Boolean synchronized_;
+	private Boolean synchronized_ = false;
 
 	@Transient//关联数据模型不存数据库
 	private List<DataModelEntity> referencesDataModel = new ArrayList<DataModelEntity>();

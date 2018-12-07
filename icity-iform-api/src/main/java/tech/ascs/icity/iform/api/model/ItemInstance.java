@@ -1,6 +1,7 @@
 package tech.ascs.icity.iform.api.model;
 
 import io.swagger.annotations.ApiModelProperty;
+import org.apache.commons.lang3.StringUtils;
 import tech.ascs.icity.model.IdEntity;
 
 public class ItemInstance extends IdEntity {
@@ -19,12 +20,6 @@ public class ItemInstance extends IdEntity {
 
 	@ApiModelProperty(value = "对应数据模型字段id", position = 5)
 	private String columnModelId;
-
-	@ApiModelProperty(value = "字段模型ID（uuid）", position = 0)
-	@Override
-	public String getId() {
-		return super.getId();
-	}
 
 	public Object getValue() {
 		return value;
@@ -64,5 +59,15 @@ public class ItemInstance extends IdEntity {
 
 	public void setColumnModelId(String columnModelId) {
 		this.columnModelId = columnModelId;
+	}
+
+	@ApiModelProperty(value = "字段模型ID（uuid）", position = 0)
+	@Override
+	public String getId() {
+		String id = super.getId();
+		if(StringUtils.isBlank(id)){
+			return null;
+		}
+		return id;
 	}
 }

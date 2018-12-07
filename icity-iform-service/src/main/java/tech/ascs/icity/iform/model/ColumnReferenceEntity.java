@@ -1,9 +1,13 @@
 package tech.ascs.icity.iform.model;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import javax.persistence.*;
 
+import org.apache.commons.lang3.StringUtils;
 import tech.ascs.icity.iform.api.model.ReferenceType;
 import tech.ascs.icity.jpa.dao.model.BaseEntity;
 import tech.ascs.icity.jpa.dao.model.JPAEntity;
@@ -25,6 +29,8 @@ public class ColumnReferenceEntity extends BaseEntity implements Serializable {
 
 	@Enumerated(EnumType.STRING)
 	private ReferenceType referenceType;
+
+	private String referenceMiddleTableName;
 
 	public ColumnModelEntity getFromColumn() {
 		return fromColumn;
@@ -48,5 +54,20 @@ public class ColumnReferenceEntity extends BaseEntity implements Serializable {
 
 	public void setReferenceType(ReferenceType referenceType) {
 		this.referenceType = referenceType;
+	}
+
+	public String getReferenceMiddleTableName() {
+		if(StringUtils.isEmpty(referenceMiddleTableName) && this.referenceType == ReferenceType.ManyToMany){
+			List<String> list = new ArrayList<>();
+			list.add(fromColumn.getDataModel().getTableName());
+			list.add(toColumn.getDataModel().getTableName());
+			Collections.sort(list);
+			return list.get(0)+"_"+list.get(0);
+		}
+		return referenceMiddleTableName;
+	}
+
+	public void setReferenceMiddleTableName(String referenceMiddleTableName) {
+		this.referenceMiddleTableName = referenceMiddleTableName;
 	}
 }

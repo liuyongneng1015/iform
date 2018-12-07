@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import org.apache.commons.lang3.StringUtils;
 import tech.ascs.icity.model.Codeable;
 import tech.ascs.icity.model.NameEntity;
 
@@ -57,5 +58,14 @@ public class DictionaryModel extends NameEntity implements Codeable {
 
 	public void setDescription(String description) {
 		this.description = description;
+	}
+
+	@Override
+	public String getId() {
+		String id = super.getId();
+		if(StringUtils.isBlank(id)){
+			return null;
+		}
+		return id;
 	}
 }

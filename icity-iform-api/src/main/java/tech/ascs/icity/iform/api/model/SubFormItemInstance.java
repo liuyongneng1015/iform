@@ -1,6 +1,7 @@
 package tech.ascs.icity.iform.api.model;
 
 import io.swagger.annotations.ApiModelProperty;
+import org.apache.commons.lang3.StringUtils;
 import tech.ascs.icity.model.IdEntity;
 
 import java.util.ArrayList;
@@ -17,7 +18,11 @@ public class SubFormItemInstance extends IdEntity {
 	@ApiModelProperty(value = "字段模型ID（uuid）", position = 0)
 	@Override
 	public String getId() {
-		return super.getId();
+		String id = super.getId();
+		if(StringUtils.isBlank(id)){
+			return null;
+		}
+		return id;
 	}
 
 	public List<List<SubFormRowItemInstance>> getItemInstances() {

@@ -414,41 +414,36 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 		List<String> newDataModelIds = new ArrayList<>();
 		List<DataModelEntity> newAddDataModel = new ArrayList<>();
-		for(DataModel dataModel : formModel.getDataModels()) {
-			DataModelEntity dataModelEntity = new DataModelEntity();
-			if(!dataModel.isNew()){
-				dataModelEntity = dataModelService.get(dataModel.getId());
-			}
-			BeanUtils.copyProperties(dataModel, dataModelEntity, new String[] {"masterModel","slaverModels","columns","indexes","referencesDataModel"});
-			columnModelService.saveColumnModelEntity(dataModelEntity, "id");
-			dataModelService.save(dataModelEntity);
-			newDataModelIds.add(dataModelEntity.getId());
-			newAddDataModel.add(dataModelEntity);
-		}
+		if(formModel.getDataModels() != null && formModel.getDataModels().size() > 0) {
+            DataModel dataModel = formModel.getDataModels().get(0);
+            DataModelEntity dataModelEntity = new DataModelEntity();
+            if (!dataModel.isNew()) {
+                dataModelEntity = dataModelService.get(dataModel.getId());
+            }
+            BeanUtils.copyProperties(dataModel, dataModelEntity, new String[]{"masterModel", "slaverModels", "columns", "indexes", "referencesDataModel"});
+            if (dataModel.isNew()) {
+                dataModelEntity.setId(null);
+            }
+            columnModelService.saveColumnModelEntity(dataModelEntity, "id");
+            dataModelService.save(dataModelEntity);
+            newDataModelIds.add(dataModelEntity.getId());
+            newAddDataModel.add(dataModelEntity);
+        }
 		BeanUtils.copyProperties(formModel, oldEntity, new String[] {"items","indexes","dataModels"});
-		if(formModel.getItems() != null){
-			for(ItemModel itemModel : formModel.getItems()){
-				ItemModelEntity itemModelEntity = new ItemModelEntity();
-				if(!itemModel.isNew()){
-					itemModelEntity = itemManager.get(itemModel.getId());
-					if(itemModelEntity.getColumnModel() != null &&  !itemModelEntity.getColumnModel().getDataModel().getId().equals(newAddDataModel.get(0).getId())){
-						itemModelEntity.setColumnModel(null);
-					}
-				}
-				BeanUtils.copyProperties(itemModel, itemModelEntity, new String[] {"columnModel", "formModel", "activities", "options"});
-				itemManager.save(itemModelEntity);
-			}
-		}
+        if(formModel.isNew()){
+            oldEntity.setId(null);
+        }
 
-		List<DataModelEntity> oldDataModelEntities = oldEntity.getDataModels();
-		for(DataModelEntity dataModelEntity : oldDataModelEntities){
-			if(!newDataModelIds.contains(dataModelEntity.getId())){
-				oldDataModelEntities.remove(dataModelEntity);
-			}
-		}
-		oldDataModelEntities.addAll(newAddDataModel);
-		oldEntity.setDataModels(oldDataModelEntities);
-		return this.save(oldEntity);
+        List<DataModelEntity> oldDataModelEntities = oldEntity.getDataModels();
+        for(int i = 0 ; i < oldDataModelEntities.size() ; i ++){
+            DataModelEntity dataModelEntity = oldDataModelEntities.get(i);
+            if(!newDataModelIds.contains(dataModelEntity.getId())){
+                oldDataModelEntities.remove(dataModelEntity);
+                i--;
+            }
+        }
+        oldEntity.setDataModels(newAddDataModel);
+        return this.doSave(oldEntity,dataModelUpdateNeeded(oldEntity));
 	}
 	//获取关联行的控件
 	@Override
@@ -576,34 +571,6 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		}
 	}
 
-	//处理item关联关系
-	private void setReferenceItems(Collection<String> deletedItemIds, ColumnModelEntity idColumnModelEntity, List<ItemModelEntity> allItems) {
-		for(ItemModelEntity entity : allItems) {
-			if(deletedItemIds.contains(entity)){
-				return;
-			}
-			if (entity instanceof ReferenceItemModelEntity && ((ReferenceItemModelEntity) entity).getSelectMode() == SelectMode.Inverse) {
-				//主表行
-				ColumnModelEntity columnEntity = idColumnModelEntity;
-				//关联表行
-				ColumnModelEntity addToEntity =
-						columnModelManager.query().filterEqual("columnName", ((ReferenceItemModelEntity) entity).getReferenceValueColumn()).filterEqual("dataModel.tableName",((ReferenceItemModelEntity) entity).getReferenceTable()).unique();
-
-				if(addToEntity != null && addToEntity.getColumnReferences() != null){
-					for(ColumnReferenceEntity columnReferenceEntity : addToEntity.getColumnReferences()){
-						if(columnReferenceEntity.getFromColumn().getId().equals(columnEntity.getId())){
-							//关联关系存在了
-							return;
-						}
-					}
-				}
-				//保存关系持久化到数据库
-				columnModelService.saveColumnReferenceEntity(columnEntity, addToEntity, ((ReferenceItemModelEntity) entity).getReferenceType());
-				columnModelManager.save(columnEntity);
-				columnModelManager.save(addToEntity);
-			}
-		}
-	}
 
 	@Transactional(readOnly = false)
 	protected FormModelEntity doUpdate(FormModelEntity entity, boolean dataModelUpdateNeeded, Collection<String> deleteItemActivityIds, Collection<String> deleteItemSelectOptionIds) {

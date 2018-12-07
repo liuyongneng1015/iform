@@ -29,4 +29,5 @@ public class SubFormRowItemModel extends BaseItemModel {
 	public void setItems(List<ItemModel> items) {
 		this.items = items;
 	}
+
 }

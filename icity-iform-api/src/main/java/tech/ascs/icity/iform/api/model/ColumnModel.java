@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import org.apache.commons.lang3.StringUtils;
 import tech.ascs.icity.model.NameEntity;
 
 import java.util.ArrayList;
@@ -143,5 +144,14 @@ public class ColumnModel extends NameEntity {
 
 	public void setReferenceItem(Boolean referenceItem) {
 		this.referenceItem = referenceItem;
+	}
+
+	@Override
+	public String getId() {
+		String id = super.getId();
+		if(StringUtils.isBlank(id)){
+			return null;
+		}
+		return id;
 	}
 }

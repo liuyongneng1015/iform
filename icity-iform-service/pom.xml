@@ -66,6 +66,10 @@
 
 		<dependency>
 			<groupId>tech.ascs.icity</groupId>
+			<artifactId>icity-rbac</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>tech.ascs.icity</groupId>
 			<artifactId>icity-jpa</artifactId>
 		</dependency>
 		<dependency>

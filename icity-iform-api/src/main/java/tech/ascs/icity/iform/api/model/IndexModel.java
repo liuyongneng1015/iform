@@ -6,6 +6,7 @@ import io.swagger.annotations.ApiModelProperty;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import tech.ascs.icity.model.NameEntity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -59,5 +60,14 @@ public class IndexModel extends NameEntity {
 
 	public void setDescription(String description) {
 		this.description = description;
+	}
+
+	@Override
+	public String getId() {
+		String id = super.getId();
+		if(StringUtils.isBlank(id)){
+			return null;
+		}
+		return id;
 	}
 }

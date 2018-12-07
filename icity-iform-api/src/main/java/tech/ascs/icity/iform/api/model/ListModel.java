@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import org.apache.commons.lang3.StringUtils;
 import tech.ascs.icity.model.NameEntity;
 
 @ApiModel("列表模型ListModel")
@@ -102,7 +103,7 @@ public class ListModel extends NameEntity {
 	private String description;
 
 	@ApiModelProperty(value = "是否支持多选", position = 3)
-	private boolean multiSelect;
+	private boolean multiSelect = false;
 
 	@ApiModelProperty(value = "主表单模型", position = 4)
 	private FormModelInfo masterForm;
@@ -184,5 +185,14 @@ public class ListModel extends NameEntity {
 
 	public void setDisplayItems(List<DisplayItem> displayItems) {
 		this.displayItems = displayItems;
+	}
+
+	@Override
+	public String getId() {
+		String id = super.getId();
+		if(StringUtils.isBlank(id)){
+			return null;
+		}
+		return id;
 	}
 }

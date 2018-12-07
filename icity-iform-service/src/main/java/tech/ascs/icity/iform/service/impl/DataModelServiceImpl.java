@@ -56,9 +56,6 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		boolean flag = dataModel.isNew();
 		DataModelEntity old = flag ? new DataModelEntity() : get(dataModel.getId());
 		BeanUtils.copyProperties(dataModel, old, new String[] {"masterModel", "slaverModels", "columns", "indexes"});
-		if(flag){
-			old.setId(null);
-		}
 		verifyTableName(old, dataModel.getTableName());
 
 		//主从表
@@ -139,7 +136,7 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		if(column.isNew()){
 			columnEntity.setId(null);
 		}
-		Map<String, ReferenceType> referenceMap = new HashMap<String, ReferenceType>();
+		Map<String, ReferenceModel> referenceMap = new HashMap<String, ReferenceModel>();
 		List<ReferenceModel> referenceModelList = column.getReferenceTables();
 		//新关联行id
 		List<String> newToColumnIds = new ArrayList<>();
@@ -148,7 +145,7 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 				DataModelEntity dataModelEntity = findUniqueByProperty("tableName", model.getReferenceTable());
 				ColumnModelEntity columnModelEntity = columnModelService.saveColumnModelEntity(dataModelEntity, model.getReferenceValueColumn());
 				newToColumnIds.add(columnModelEntity.getId());
-				referenceMap.put(columnModelEntity.getId(), model.getReferenceType());
+				referenceMap.put(columnModelEntity.getId(), model);
 			}
 		}
 
@@ -236,7 +233,6 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		columnModelService.deleteOldColumnReferenceEntity( columnEntity, deleteOldToColumnIds,  oldReferenceEntityList);
 	}
 
-	@Override
 	public void addColumnReferenceEntity(ColumnModelEntity columnEntity, Map<String, ReferenceType> referenceMap) {
 		List<ColumnReferenceEntity> oldReferenceEntityList = columnEntity.getColumnReferences();
 		//新增的关联
@@ -244,15 +240,15 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		for(ColumnReferenceEntity columnReferenceEntity : oldReferenceEntityList){
 			addNewToColumnIds.add(columnReferenceEntity.getToColumn().getId());
 		}
-		addNewColumnReferenceEntity(columnEntity, addNewToColumnIds,  oldReferenceEntityList, referenceMap);
+		//addNewColumnReferenceEntity(columnEntity, addNewToColumnIds,  oldReferenceEntityList, referenceMap);
 	}
 
 	//创建新的关联关系
-	private void addNewColumnReferenceEntity(ColumnModelEntity columnEntity, List<String> newToColumnIds, List<ColumnReferenceEntity> oldReferenceEntityList, Map<String, ReferenceType> referenceMap){
+	private void addNewColumnReferenceEntity(ColumnModelEntity columnEntity, List<String> newToColumnIds, List<ColumnReferenceEntity> oldReferenceEntityList, Map<String, ReferenceModel> referenceMap){
 		if(!newToColumnIds.isEmpty()){
 			List<ColumnModelEntity> newToColumnModelEntityList = columnManager.query().filterIn("id",newToColumnIds).list();
 			for(ColumnModelEntity addToEntity : newToColumnModelEntityList){
-				columnModelService.saveColumnReferenceEntity(columnEntity, addToEntity, referenceMap.get(addToEntity.getId()));
+				columnModelService.saveColumnReferenceEntity(columnEntity, addToEntity, referenceMap.get(addToEntity.getId()).getReferenceType(), referenceMap.get(addToEntity.getId()).getReferenceMiddleTableName());
 				columnManager.save(columnEntity);
 				columnManager.save(addToEntity);
 			}

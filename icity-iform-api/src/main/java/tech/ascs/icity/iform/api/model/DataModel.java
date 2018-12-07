@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import org.apache.commons.lang3.StringUtils;
 import tech.ascs.icity.model.NameEntity;
 
 @ApiModel("数据模型")
@@ -36,11 +37,10 @@ public class DataModel extends NameEntity {
     private List<IndexModel> indexes = new ArrayList<IndexModel>();
 
     @ApiModelProperty(value = "是否已同步", position = 8)
-    private boolean synchronized_;
+    private boolean synchronized_= false;
 
 	@ApiModelProperty(value = "应用id", position = 9)
 	private String applicationId;
-
 
 	@ApiModelProperty(value = "中文名", position = 1)
 	@Override
@@ -119,5 +119,14 @@ public class DataModel extends NameEntity {
 
 	public void setApplicationId(String applicationId) {
 		this.applicationId = applicationId;
+	}
+
+	@Override
+	public String getId() {
+		String id = super.getId();
+		if(StringUtils.isBlank(id)){
+			return null;
+		}
+		return id;
 	}
 }

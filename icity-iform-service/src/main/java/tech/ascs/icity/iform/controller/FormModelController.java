@@ -95,7 +95,15 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	}
 
 	@Override
-	public IdEntity saveFormModel(@RequestBody FormModel formModel) {
+	public IdEntity saveFormDataModel(@RequestBody FormModel formModel) {
+		//校验表名
+		if(formModel != null && formModel.getDataModels() != null && formModel.getDataModels().size() > 0) {
+			DataModel dataModel = formModel.getDataModels().get(0);
+			DataModelEntity dataModelEntity = new DataModelEntity();
+			dataModelEntity.setId(dataModel.isNew()? null : dataModel.getId());
+			dataModelEntity.setTableName(dataModel.getTableName());
+			veryTableName(dataModelEntity);
+		}
 		FormModelEntity oldEntity = formModelService.saveFormModel(formModel);
 		return new IdEntity(oldEntity.getId());
 	}
@@ -307,14 +315,18 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		//columnModelService.saveColumnReferenceEntity(parentIdColumnEntity, masterIdColumn, ReferenceType.OneToMany);
 	}
 
-	//设置数据模型行
-	private void setDataModelEntityColumns(DataModel newDataModel, DataModelEntity oldDataModelEntity, boolean needMasterId){
-
+	private void veryTableName(DataModelEntity oldDataModelEntity){
 		List<DataModelEntity> list = dataModelService.findByProperty("tableName", oldDataModelEntity.getTableName());
 		List<String> dataList = list.parallelStream().map(DataModelEntity::getId).collect(Collectors.toList());
 		if(dataList != null && !dataList.isEmpty() && (dataList.size() > 1 || !dataList.get(0).equals(oldDataModelEntity.getId()))){
 			throw new IFormException("表名重复了");
 		}
+	}
+
+	//设置数据模型行
+	private void setDataModelEntityColumns(DataModel newDataModel, DataModelEntity oldDataModelEntity, boolean needMasterId){
+
+		veryTableName(oldDataModelEntity);
 
 		//待更新的行
 		List<String> newColumnIds = new ArrayList<>();
@@ -402,8 +414,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 					ColumnModelEntity columnModelEntity = columnModelService.saveColumnModelEntity(dataModelEntity, columnReferenceEntity.getReferenceValueColumn());
 					ColumnModel referenceColumnModel = new ColumnModel();
 					referenceColumnModel.setId(columnModelEntity.getId());
-					//referenceColumnModel.sett
-					columnModelService.saveColumnReferenceEntity(oldColumnModelEntity, setColumn(referenceColumnModel), columnReferenceEntity.getReferenceType());
+					columnModelService.saveColumnReferenceEntity(oldColumnModelEntity, setColumn(referenceColumnModel), columnReferenceEntity.getReferenceType(), columnReferenceEntity.getReferenceMiddleTableName());
 				}
 			}
 			saveModelEntities.add(oldColumnModelEntity);
@@ -631,6 +642,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 						referenceModel.setReferenceValueColumn(referenceEntity.getToColumn().getColumnName());
 						referenceModel.setId(referenceEntity.getId());
 						referenceModel.setName(referenceEntity.getName());
+						referenceModel.setReferenceMiddleTableName(referenceEntity.getReferenceMiddleTableName());
 						referenceModelList.add(referenceModel);
 					}
 					columnModel.setReferenceTables(referenceModelList);

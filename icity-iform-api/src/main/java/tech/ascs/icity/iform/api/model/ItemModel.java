@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import org.apache.commons.lang3.StringUtils;
 import tech.ascs.icity.model.NameEntity;
 
 @ApiModel("表单控件模型ItemModel")
@@ -295,5 +296,14 @@ public class ItemModel extends NameEntity {
 
 	public void setSelectFlag(Boolean selectFlag) {
 		this.selectFlag = selectFlag;
+	}
+
+	@Override
+	public String getId() {
+		String id = super.getId();
+		if(StringUtils.isBlank(id)){
+			return null;
+		}
+		return id;
 	}
 }
