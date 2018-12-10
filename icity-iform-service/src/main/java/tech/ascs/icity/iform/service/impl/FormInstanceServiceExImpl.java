@@ -562,7 +562,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					}
 					DataModelInstance dataModelInstance = setDataModelInstance(toModelEntity, entity, listMap);
 					dataModelInstance.setReferenceType(fromItem.getReferenceType());
-					dataModelInstance.setReferenceValueColumn(columnModelEntity.getColumnName());
+					dataModelInstance.setReferenceValueColumn(fromItem.getReferenceValueColumn());
 					referenceDataModelList.add(dataModelInstance);
 				}
 			}else if(itemModel instanceof SubFormItemModelEntity) {

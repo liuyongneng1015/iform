@@ -32,6 +32,9 @@ public class ColumnReferenceEntity extends BaseEntity implements Serializable {
 
 	private String referenceMiddleTableName;
 
+	@Transient
+	private String inverse;
+
 	public ColumnModelEntity getFromColumn() {
 		return fromColumn;
 	}
@@ -58,16 +61,37 @@ public class ColumnReferenceEntity extends BaseEntity implements Serializable {
 
 	public String getReferenceMiddleTableName() {
 		if(StringUtils.isEmpty(referenceMiddleTableName) && this.referenceType == ReferenceType.ManyToMany){
-			List<String> list = new ArrayList<>();
-			list.add(fromColumn.getDataModel().getTableName());
-			list.add(toColumn.getDataModel().getTableName());
-			Collections.sort(list);
-			return list.get(0)+"_"+list.get(0);
+			List<String> list = getTableNames();
+			return list.get(0)+"_"+list.get(1);
 		}
 		return referenceMiddleTableName;
 	}
 
+	private List<String> getTableNames(){
+		List<String> list = new ArrayList<>();
+		list.add(fromColumn.getDataModel().getTableName());
+		list.add(toColumn.getDataModel().getTableName());
+		Collections.sort(list);
+		return list;
+	}
+
 	public void setReferenceMiddleTableName(String referenceMiddleTableName) {
 		this.referenceMiddleTableName = referenceMiddleTableName;
+	}
+
+	public String getInverse() {
+		if(StringUtils.isEmpty(referenceMiddleTableName) && this.referenceType == ReferenceType.ManyToMany){
+			List<String> list = getTableNames();
+			if(list.get(0).equals(fromColumn.getDataModel().getTableName())){
+				return "true";
+			}else{
+				return "false";
+			}
+		}
+		return null;
+	}
+
+	public void setInverse(String inverse) {
+		this.inverse = inverse;
 	}
 }
