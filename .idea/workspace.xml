@@ -3,7 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="ee3eff9e-d21a-48e8-a487-7855c9b210e7" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/icity-iform-service/src/main/resources/mapping.ftl" beforeDir="false" afterPath="$PROJECT_DIR$/icity-iform-service/src/main/resources/mapping.ftl" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/icity-iform-service/target/" />
     <ignored path="$PROJECT_DIR$/target/" />
@@ -545,7 +544,7 @@
     <property name="RequestMappingsPanelWidth1" value="75" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
-    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1544423538189" />
+    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1544427074275" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/icity-iform-service/lib/icity-admin-service-1.0.0-SNAPSHOT.jar!/" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
@@ -669,7 +668,7 @@
       <workItem from="1543542545295" duration="45211000" />
       <workItem from="1543913151701" duration="5066000" />
       <workItem from="1543918732180" duration="7120000" />
-      <workItem from="1544068938361" duration="42126000" />
+      <workItem from="1544068938361" duration="42777000" />
     </task>
     <servers />
   </component>
@@ -685,7 +684,7 @@
     </history-entry>
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="733698000" />
+    <option name="totallyTimeSpent" value="734349000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -700,7 +699,7 @@
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.19829424" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.19829424" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Designer" order="2" />
       <window_info id="Image Layers" order="3" />
@@ -716,7 +715,7 @@
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" weight="0.32936078" />
       <window_info anchor="bottom" id="Spring" order="7" weight="0.32936078" />
-      <window_info anchor="bottom" id="Terminal" order="8" sideWeight="0.49946696" visible="true" weight="0.32936078" />
+      <window_info active="true" anchor="bottom" id="Terminal" order="8" sideWeight="0.49946696" visible="true" weight="0.32936078" />
       <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.50053304" side_tool="true" weight="0.30227518" />
       <window_info anchor="bottom" id="Messages" order="10" weight="0.32936078" />
       <window_info anchor="bottom" id="Java Enterprise" order="11" weight="0.32936078" />
