@@ -117,6 +117,9 @@ public class DataModelEntity extends BaseEntity implements Serializable {
 	}
 
 	public Boolean getSynchronized() {
+		if(synchronized_ == null){
+			return false;
+		}
 		return synchronized_;
 	}
 
