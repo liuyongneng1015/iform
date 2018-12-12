@@ -79,11 +79,10 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	}
 
 	@Override
-	public IdEntity createFormInstance(@PathVariable(name="formId") String formId, @RequestBody FormInstance formInstance) {
-		if (StringUtils.hasText(formInstance.getId())) {
-			throw new IFormException("表单实例ID不为空，请使用更新操作");
+	public IdEntity createFormInstance(@PathVariable(name="formId", required = true) String formId, @RequestBody FormInstance formInstance) {
+		if (!formInstance.getId().equals(formInstance.getFormId())) {
+			throw new IFormException("表单id不一致");
 		}
-
 		FormModelEntity formModel = formModelService.find(formId);
 		if (formModel == null) {
 			throw new IFormException(404, "表单模型【" + formId + "】不存在");

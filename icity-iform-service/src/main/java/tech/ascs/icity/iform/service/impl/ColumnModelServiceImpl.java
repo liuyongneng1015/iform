@@ -60,7 +60,7 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
 		columnModelEntity.setScale(null);
 		columnModelEntity.setNotNull(true);
 		columnModelEntity.setKey(true);
-		columnModelEntity.setDefaultValue("-1");
+		columnModelEntity.setDefaultValue(null);
 		dataModel.getColumns().add(columnModelEntity);
 		return columnModelEntity;
 	}

@@ -121,7 +121,7 @@ public interface FormInstanceService {
 		@ApiImplicitParam(paramType = "path", name = "formId", value = "表单模型ID", required = true, dataType = "String")
 	})
 	@PostMapping("/{formId}")
-	IdEntity createFormInstance(@PathVariable(name="formId") String formId, @RequestBody FormInstance formInstance);
+	IdEntity createFormInstance(@PathVariable(name="formId", required = true) String formId, @RequestBody FormInstance formInstance);
 
 
 	/**
