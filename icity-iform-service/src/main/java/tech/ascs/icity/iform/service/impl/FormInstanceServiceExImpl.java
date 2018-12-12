@@ -451,8 +451,18 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	public void deleteFormInstance(FormModelEntity formModel, String instanceId) {
 		DataModelEntity dataModel = formModel.getDataModels().get(0);
 		Session session = getSession(dataModel);
-		Map<String, Object> entity = (Map<String, Object>) session.load(dataModel.getTableName(), instanceId);
-		session.delete(dataModel.getTableName(), entity);
+		try {
+			Map<String, Object> entity = (Map<String, Object>) session.load(dataModel.getTableName(), instanceId);
+			session.beginTransaction();
+			session.delete(dataModel.getTableName(), entity);
+			session.getTransaction().commit();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}finally {
+			if(session != null){
+				session.close();
+			}
+		}
 	}
 
 	protected void updateProcessInfo(FormModelEntity formModel, Map<String, Object> entity, String processInstanceId) {
