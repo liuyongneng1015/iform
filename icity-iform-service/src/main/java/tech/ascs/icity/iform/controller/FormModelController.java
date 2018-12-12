@@ -104,7 +104,8 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			dataModelEntity.setTableName(dataModel.getTableName());
 			veryTableName(dataModelEntity);
 		}
-		FormModelEntity oldEntity = formModelService.saveFormModel(formModel);
+		verifyFormModelName(formModel);
+ 		FormModelEntity oldEntity = formModelService.saveFormModel(formModel);
 		return new IdEntity(oldEntity.getId());
 	}
 
@@ -188,10 +189,27 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			throw new IFormException("获取表单模型列表失败：" + e.getMessage(), e);
 		}
 	}
-
+	private void verifyFormModelName(FormModel formModel){
+		if(formModel == null || StringUtils.isEmpty(formModel.getName())){
+			return;
+		}
+		List<FormModelEntity> list  = formModelService.findByProperty("name", formModel.getName());
+		if(list != null){
+			if(list.size() > 0 && formModel.isNew()){
+				throw new IFormException("表单名称重复了");
+			}
+			for(FormModelEntity formModelEntity : list) {
+				if(!formModelEntity.getId().equals(formModel.getId())) {
+					throw new IFormException("表单名称重复了");
+				}
+			}
+		}
+	}
 	private FormModelEntity wrap(FormModel formModel) {
 		FormModelEntity entity = new FormModelEntity();
 		BeanUtils.copyProperties(formModel, entity, new String[] {"items","dataModels"});
+
+		verifyFormModelName(formModel);
 
 		List<DataModel> dataModels = formModel.getDataModels();
 		if(dataModels == null || dataModels.isEmpty()){
@@ -667,11 +685,15 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 
 		List<PCDataModel> dataModelList = new ArrayList<>();
-		List<ItemModelEntity> itemModelEntities = formModelService.getAllColumnItems(entity.getItems());
+		List<ItemModelEntity> itemModelEntities = formModelService.findAllItems(entity);
 		Map<String, DataModelEntity> dataModelEntities = new HashMap<>();
 		for(ItemModelEntity itemModelEntity : itemModelEntities){
 			if(itemModelEntity instanceof ReferenceItemModelEntity && ((ReferenceItemModelEntity) itemModelEntity).getReferenceList() != null) {
-				dataModelEntities.put(((ReferenceItemModelEntity) itemModelEntity).getReferenceList().getMasterForm().getId(), itemModelEntity.getColumnModel().getDataModel());
+				ListModelEntity listModelEntity = ((ReferenceItemModelEntity) itemModelEntity).getReferenceList();
+				if(listModelEntity == null || listModelEntity.getMasterForm() == null){
+					continue;
+				}
+				dataModelEntities.put(listModelEntity.getMasterForm().getId(), listModelEntity.getMasterForm().getDataModels().get(0));
 			}
 		}
 		for(String formId : dataModelEntities.keySet()){

@@ -18,7 +18,7 @@ public class DataModelInstance extends NameEntity {
 	@ApiModelProperty(value = "数据条数", position = 4)
 	private Integer size;
 
-	@ApiModelProperty(value = "表名", position = 5)
+	@ApiModelProperty(value = "关联类型", position = 5)
 	private ReferenceType referenceType;
 
 	@ApiModelProperty(value = " 关联表单模型", position = 6)

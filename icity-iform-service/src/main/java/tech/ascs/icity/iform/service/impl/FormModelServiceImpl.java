@@ -561,6 +561,28 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		delete(formModelEntity);
 	}
 
+	@Override
+	public List<ItemModelEntity> findAllItems(FormModelEntity entity) {
+		List<ItemModelEntity> itemModels = new ArrayList<>();
+		for(ItemModelEntity itemModelEntity : entity.getItems()){
+			itemModels.add(itemModelEntity);
+			if(itemModelEntity instanceof SubFormItemModelEntity){
+				List<SubFormRowItemModelEntity> subRowItems = ((SubFormItemModelEntity) itemModelEntity).getItems();
+				for(SubFormRowItemModelEntity rowItemModelEntity : subRowItems){
+					itemModels.add(rowItemModelEntity);
+					for(ItemModelEntity itemModel : rowItemModelEntity.getItems()) {
+						itemModels.add(itemModel);
+					}
+				}
+			}else if(itemModelEntity instanceof RowItemModelEntity){
+				for(ItemModelEntity itemModel : ((RowItemModelEntity) itemModelEntity).getItems()) {
+					itemModels.add(itemModel);
+				}
+			}
+		}
+		return itemModels;
+	}
+
 	//设置旧的item参数
 	private void setItemActivityOption(List<String> itemActivityIds, List<String> itemSelectOptionIds ,ItemModelEntity itemModelEntity){
 		for (ItemActivityInfo itemActivity : itemModelEntity.getActivities()) {
