@@ -200,9 +200,13 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			DataModelEntity dataModel = formModel.getDataModels().get(0);
 			session = getSession(dataModel);
 			Map<String, Object> map = (Map<String, Object>) session.load(dataModel.getTableName(), instanceId);
+			if(map == null || map.keySet() == null){
+				throw new IFormException("没有查询到【" + dataModel.getTableName() + "】表，id【"+instanceId+"】的数据");
+			}
 			formInstance = wrapEntity(formModel, map, instanceId, true);
 		} catch (Exception e) {
 			e.printStackTrace();
+			throw new IFormException("没有查询到【" + formModel.getName() + "】表单，instanceId【"+instanceId+"】的数据");
 		}finally {
 			if(session != null){
 				session.close();
@@ -213,7 +217,13 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	private Map<String, Object> createDataModel(DataModelEntity dataModel, String instanceId){
 		Session session = getSession(dataModel);
-		Map<String, Object> map = (Map<String, Object>) session.load(dataModel.getTableName(), instanceId);
+		Map<String, Object> map = null;
+
+		map = (Map<String, Object>) session.load(dataModel.getTableName(), instanceId);
+		if(map == null || map.keySet() == null) {
+			throw new IFormException("没有查询到【" + dataModel.getTableName() + "】表，id【"+instanceId+"】的数据");
+		}
+
 		for(String key : map.keySet()){
 			map.put(dataModel.getTableName() + "_" + key, map.get(key));
 		}
@@ -271,6 +281,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			session.getTransaction().commit();
 		} catch (Exception e) {
 			e.printStackTrace();
+			throw new IFormException("没有查询到【" + dataModel.getTableName() + "】表，id【"+instanceId+"】的数据");
 		}finally {
 			if(session != null){
 				session.close();
@@ -286,7 +297,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			DataModelEntity dataModelEntity = dataModelManager.findUniqueByProperty("tableName", subFormItemInstance.getTableName());
 
 			//新的数据
-			Set<Map<String, Object>> newListMap = new HashSet<>();
+			List<Map<String, Object>> newListMap = new ArrayList<>();
 			for(List<SubFormRowItemInstance> subFormRowItemInstanceList : subFormItemInstance.getItemInstances()){
 				Map<String, Object> map = new HashMap<>();
 				for(SubFormRowItemInstance instance : subFormRowItemInstanceList){
@@ -299,14 +310,14 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			List<String> idList = new ArrayList<>();
 			for(Map<String, Object> newMap : newListMap){
 				String id = String.valueOf(newMap.get("id"));
-				if(id != null) {
+				if(!StringUtils.isEmpty(id)) {
 					idList.add(id);
 				}
 			}
 
 			//旧的数据
-			Set<Map<String, Object>> oldListMap = (Set<Map<String, Object>>)data.get(key);
-			Set<Map<String, Object>> saveListMap = getNewMapData("master_id",session, data, dataModelEntity,  oldListMap,  idList,  newListMap);
+			List<Map<String, Object>> oldListMap = (List<Map<String, Object>>)data.get(key);
+			List<Map<String, Object>> saveListMap = getNewMapData("master_id",session, data, dataModelEntity,  oldListMap,  idList,  newListMap);
 
 			data.put(key, saveListMap);
 		}
@@ -319,18 +330,18 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				key = dataModelInstance.getReferenceValueColumn();
 				flag = true;
 			}
-			Set<Map<String, Object>> oldListMap = new HashSet<Map<String, Object>>();
+			List<Map<String, Object>> oldListMap = new ArrayList<>();
 			//旧的数据
 			Object oldData = data.get(key);
 			if (flag) {
 				oldListMap.add((Map<String, Object>) oldData);
 			} else {
-				oldListMap = (Set<Map<String, Object>>) oldData;
+				oldListMap = (List<Map<String, Object>>) oldData;
 			}
 			DataModelEntity dataModelEntity = dataModelManager.findUniqueByProperty("tableName", dataModelInstance.getReferenceTable());
 
 
-			Set<Map<String, Object>> newListMap = new HashSet<>();
+			List<Map<String, Object>> newListMap = new ArrayList<>();
 			for (List<ItemInstance> instances : dataModelInstance.getItems()) {
 				Map<String, Object> map = new HashMap<>();
 				for (ItemInstance itemModelService : instances) {
@@ -353,12 +364,12 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			if (flag) {
 				o = data;
 			}else{
-				Set<Map<String, Object>> map = new HashSet<>();
+				List<Map<String, Object>> map = new ArrayList<>();
 				map.add(data);
 				o = map;
 			}
 			//新的数据
-			Set<Map<String, Object>> saveListMap = getNewMapData(keyStr, session, o, dataModelEntity,  oldListMap,  idList,  newListMap);
+			List<Map<String, Object>> saveListMap = getNewMapData(keyStr, session, o, dataModelEntity,  oldListMap,  idList,  newListMap);
 			if (flag && saveListMap.size() > 0) {
 				data.put(key, new ArrayList<>(saveListMap).get(0));
 			}else{
@@ -367,8 +378,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 	}
 
-	private Set<Map<String, Object>> getNewMapData(String referenceKey, Session session, Object data, DataModelEntity dataModelEntity, Set<Map<String, Object>> oldListMap, List<String> idList, Set<Map<String, Object>> newListMap){
-		Set<Map<String, Object>> saveListMap = new HashSet<>();
+	private List<Map<String, Object>> getNewMapData(String referenceKey, Session session, Object data, DataModelEntity dataModelEntity, List<Map<String, Object>> oldListMap, List<String> idList, List<Map<String, Object>> newListMap){
+		List<Map<String, Object>> saveListMap = new ArrayList<>();
 		//旧的数据
 		if(oldListMap != null && oldListMap.size() > 0) {
 			for (Map<String, Object> map : oldListMap) {
@@ -378,6 +389,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				Session subFormSession = session;//getSession(dataModelEntity);
 				Map<String, Object> subFormData = (Map<String, Object>) subFormSession.load(dataModelEntity.getTableName(), String.valueOf(map.get("id")));
 				//子表数据
+				if(subFormData == null || subFormData.keySet() == null) {
+					throw new IFormException("没有查询到【" + dataModelEntity.getTableName() + "】表，id【"+String.valueOf(map.get("id"))+"】的数据");
+				}
 				subFormData.remove(referenceKey);
 				subFormData.put(referenceKey, null);
 				//saveListMap.add(subFormData);
@@ -390,6 +404,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				Session subFormSession = session;//getSession(dataModelEntity);
 				if (id != null) {
 					subFormData = (Map<String, Object>) subFormSession.load(dataModelEntity.getTableName(), id);
+					if(subFormData == null || subFormData.keySet() == null) {
+						throw new IFormException("没有查询到【" + dataModelEntity.getTableName() + "】表，id【"+ id +"】的数据");
+					}
 				} else {
 					Map<String, Object> dataMap = new HashMap<>();
 					for (String keyString : newMap.keySet()) {
@@ -419,7 +436,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		if (itemModel.getType() == ItemType.DatePicker) {
 			value = new Date((Long) itemInstance.getValue());
 		} else {
-			value = itemInstance.getValue();
+			value = (itemInstance.getValue() == null || itemInstance.getValue().equals("")) ? null : itemInstance.getValue();
 		}
 		data.put(itemModel.getColumnModel().getColumnName(), value);
 	}
@@ -451,16 +468,29 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	public void deleteFormInstance(FormModelEntity formModel, String instanceId) {
 		DataModelEntity dataModel = formModel.getDataModels().get(0);
 		Session session = getSession(dataModel);
+		Map<String, Object> entity = null;
 		try {
-			Map<String, Object> entity = (Map<String, Object>) session.load(dataModel.getTableName(), instanceId);
-			session.beginTransaction();
-			session.delete(dataModel.getTableName(), entity);
-			session.getTransaction().commit();
+			 entity = (Map<String, Object>) session.load(dataModel.getTableName(), instanceId);
+			if(entity == null || entity.keySet() == null) {
+				throw new IFormException("没有查询到【" + dataModel.getTableName() + "】表，id【"+ instanceId +"】的数据");
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
+			throw new IFormException("删除【" + formModel.getName() + "】表单，instanceId【"+ instanceId +"】的数据失败");
 		}finally {
-			if(session != null){
-				session.close();
+			try {
+				if(entity != null) {
+					session.beginTransaction();
+					session.delete(dataModel.getTableName(), entity);
+					session.getTransaction().commit();
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				throw new IFormException("删除【" + formModel.getName() + "】表单，instanceId【"+ instanceId +"】的数据失败");
+			}finally {
+				if(session != null){
+					session.close();
+				}
 			}
 		}
 	}
@@ -589,7 +619,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					if(fromItem.getReferenceType() == ReferenceType.OneToMany){
 						key = toItemModel.getColumnModel().getColumnName();
 					}
-					Set<Map<String, Object>> listMap = (Set<Map<String, Object>>)entity.get(key);
+					List<Map<String, Object>> listMap = (List<Map<String, Object>>)entity.get(key);
 					if( listMap == null || listMap.size() == 0) {
 						continue;
 					}
@@ -605,7 +635,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				//TODO 子表数据结构
 				SubFormItemModelEntity itemModelEntity = (SubFormItemModelEntity)itemModel;
 				String key =((SubFormItemModelEntity) itemModel).getTableName()+"_list";
-				Set<Map<String, Object>> listMap = (Set<Map<String, Object>>)entity.get(key);
+				List<Map<String, Object>> listMap = (List<Map<String, Object>>)entity.get(key);
 				if( listMap == null || listMap.size() == 0) {
 					continue;
 				}
@@ -649,7 +679,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		return formInstance;
 	}
 
-	private DataModelInstance setDataModelInstance(FormModelEntity toModelEntity, Map<String, Object> entity, Set<Map<String, Object>> listMap){
+	private DataModelInstance setDataModelInstance(FormModelEntity toModelEntity, Map<String, Object> entity, List<Map<String, Object>> listMap){
 
 		List<Map<String, Object>> listData = new ArrayList<>(listMap);
 		int pageIndex = 1;
