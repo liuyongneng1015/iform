@@ -529,13 +529,19 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				activityInfoEntity.setItemModel(entity);
 				activities.add(activityInfoEntity);
 			}
+			entity.setActivities(activities);
 		}
-		entity.setActivities(activities);
 
 		if (itemModel.getOptions() != null) {
-			for (ItemSelectOption option : entity.getOptions()) {
-				option.setItemModel(entity);
+			List<ItemSelectOption> options = new ArrayList<>();
+			for (Option option : itemModel.getOptions()) {
+				ItemSelectOption itemSelectOption = new ItemSelectOption();
+				itemSelectOption.setItemModel(entity);
+				itemSelectOption.setLabel(option.getLabel());
+				itemSelectOption.setValue(option.getValue());
+				options.add(itemSelectOption);
 			}
+			entity.setOptions(options);
 		}
 
 		return entity;
@@ -573,11 +579,10 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 	private ItemActivityInfo wrap(ActivityInfo activityInfo) {
 		ItemActivityInfo activityInfoEntity = new ItemActivityInfo();
-		activityInfoEntity.setActivityId(activityInfo.getId());
+		//activityInfoEntity.setActivityId(activityInfo.getId());
 		activityInfoEntity.setActivityName(activityInfo.getName());
 		activityInfoEntity.setVisible(activityInfo.isVisible());
 		activityInfoEntity.setReadonly(activityInfo.isReadonly());
-		
 		return activityInfoEntity;
 	}
 
