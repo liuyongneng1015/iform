@@ -12,11 +12,17 @@ import java.util.List;
 @ApiModel("环节摘要信息")
 public class ActivityInfo extends Activity {
 
-	@ApiModelProperty(value = "是否可见", position = 7)
+	@ApiModelProperty(value = "是否可见", position = 2)
 	private boolean visible;
 
-	@ApiModelProperty(value = "是否只读", position = 7)
+	@ApiModelProperty(value = "是否只读", position = 3)
 	private boolean readonly;
+
+	@ApiModelProperty(value = "流程id", position = 4)
+	private String activityId;
+
+	@ApiModelProperty(value = "流程名称", position = 5)
+	private String activityName;
 
 	@JsonIgnore
 	@Override
@@ -47,5 +53,21 @@ public class ActivityInfo extends Activity {
 			return null;
 		}
 		return id;
+	}
+
+	public String getActivityId() {
+		return activityId;
+	}
+
+	public void setActivityId(String activityId) {
+		this.activityId = activityId;
+	}
+
+	public String getActivityName() {
+		return activityName;
+	}
+
+	public void setActivityName(String activityName) {
+		this.activityName = activityName;
 	}
 }

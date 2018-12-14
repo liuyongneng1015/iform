@@ -579,8 +579,10 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 	private ItemActivityInfo wrap(ActivityInfo activityInfo) {
 		ItemActivityInfo activityInfoEntity = new ItemActivityInfo();
-		//activityInfoEntity.setActivityId(activityInfo.getId());
-		activityInfoEntity.setActivityName(activityInfo.getName());
+		//activityInfoEntity.setId(activityInfo.getId());
+		activityInfoEntity.setName(activityInfo.getName());
+		activityInfoEntity.setActivityId(activityInfo.getActivityId());
+		activityInfoEntity.setActivityName(activityInfo.getActivityName());
 		activityInfoEntity.setVisible(activityInfo.isVisible());
 		activityInfoEntity.setReadonly(activityInfo.isReadonly());
 		return activityInfoEntity;
@@ -818,8 +820,10 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 	private ActivityInfo toDTO(ItemActivityInfo entity) {
 		ActivityInfo activityInfo = new ActivityInfo();
-		activityInfo.setId(entity.getActivityId());
-		activityInfo.setName(entity.getActivityName());
+		activityInfo.setId(entity.getId());
+		activityInfo.setName(entity.getName());
+		activityInfo.setActivityId(entity.getActivityId());
+		activityInfo.setActivityName(entity.getActivityName());
 		activityInfo.setVisible(entity.isVisible());
 		activityInfo.setReadonly(entity.isReadonly());
 		
