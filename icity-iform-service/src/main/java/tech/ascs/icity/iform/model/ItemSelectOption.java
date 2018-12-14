@@ -19,8 +19,10 @@ public class ItemSelectOption extends JPAEntity implements Serializable {
 	@JoinColumn(name="item_id")
 	private ItemModelEntity itemModel;
 
+	//描叙内容比如说男，女
 	private String label;
 
+	//值比如说0，1
 	private String value;
 
 	public ItemModelEntity getItemModel() {

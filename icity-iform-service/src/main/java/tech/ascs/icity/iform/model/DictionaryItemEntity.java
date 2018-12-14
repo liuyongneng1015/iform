@@ -25,13 +25,13 @@ public class DictionaryItemEntity extends BaseEntity implements Codeable {
 	private DictionaryEntity dictionary;
 
 	/**
-	 * 编码
+	 * 编码比如0,1
 	 */
 	@Column(name = "code")
 	private String code;
 	
 	/**
-	 * 描述
+	 * 描述比如男，女
 	 */
 	@Column(name = "description")
 	private String description;

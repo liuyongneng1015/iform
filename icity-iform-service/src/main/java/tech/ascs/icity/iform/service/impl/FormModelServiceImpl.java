@@ -125,7 +125,6 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 						oldItems.remove(oldMapItmes.get(item.getId()));
 					}
 				}
-				setAcitityOption(item);
 			}
 
 
@@ -158,6 +157,8 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			ListModelEntity listModelEntity = listModelManager.find(((ReferenceItemModelEntity) oldItemModelEntity).getReferenceList().getId());
 			((ReferenceItemModelEntity)newItemModelEntity).setReferenceList(listModelEntity);
 		}
+
+		setAcitityOption(newItemModelEntity, oldItemModelEntity);
 
 
 		if(oldItemModelEntity.getColumnModel() != null && oldItemModelEntity.getColumnModel().getDataModel() != null){
@@ -257,22 +258,22 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 
 	//得到最新的item
-	private ItemModelEntity setAcitityOption(ItemModelEntity item){
+	private ItemModelEntity setAcitityOption(ItemModelEntity newEntity, ItemModelEntity oldEntity){
 		List<ItemActivityInfo> activities = new ArrayList<ItemActivityInfo>();
-		for (ItemActivityInfo activity : item.getActivities()) {
+		for (ItemActivityInfo activity : oldEntity.getActivities()) {
 			activity.setId(null);
-			activity.setItemModel(item);
+			activity.setItemModel(newEntity);
 			activities.add(activity);
 		}
-		item.setActivities(activities);
+		newEntity.setActivities(activities);
 		List<ItemSelectOption> options = new ArrayList<ItemSelectOption>();
-		for (ItemSelectOption option : item.getOptions()) {
+		for (ItemSelectOption option : oldEntity.getOptions()) {
 			option.setId(null);
-			option.setItemModel(item);
+			option.setItemModel(newEntity);
 			options.add(option);
 		}
-		item.setOptions(options);
-		return item;
+		newEntity.setOptions(options);
+		return newEntity;
 	}
 
 	//初始化item的值
