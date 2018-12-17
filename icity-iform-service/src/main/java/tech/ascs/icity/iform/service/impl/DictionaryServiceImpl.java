@@ -1,8 +1,10 @@
 package tech.ascs.icity.iform.service.impl;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.jpa.domain.Specification;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.model.DictionaryEntity;
 import tech.ascs.icity.iform.model.DictionaryItemEntity;
@@ -10,6 +12,11 @@ import tech.ascs.icity.iform.service.DictionaryService;
 import tech.ascs.icity.jpa.dao.exception.NotFoundException;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> implements DictionaryService {
 
@@ -26,7 +33,7 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 	}
 
 	@Override
-	public List<DictionaryItemEntity> getDictionaryItems(String dictionaryId) {
+	public List<DictionaryItemEntity> findDictionaryItems(String dictionaryId) {
 		DictionaryEntity dictionary = get(dictionaryId);
 		return dictionary.getDictionaryItems();
 	}
@@ -93,4 +100,13 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 		return dictionaryItemManager.save(itemEntity);
 	}
 
+
+	@Override
+	public Integer maxOrderNo() {
+		 Map<String, Object> map =	dictionaryItemManager.getJdbcTemplate().queryForMap("select max(order_no) as order_no from ifm_dictionary_item ");
+		 if(map != null && map.get("order_no") != null){
+			return Integer.parseInt(String.valueOf(map.get("order_no")));
+		 }
+		 return 0;
+	}
 }

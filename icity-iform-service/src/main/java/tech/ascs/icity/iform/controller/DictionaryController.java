@@ -1,6 +1,9 @@
 package tech.ascs.icity.iform.controller;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +20,8 @@ import tech.ascs.icity.iform.service.DictionaryService;
 import tech.ascs.icity.jpa.tools.DTOTools;
 import tech.ascs.icity.model.Page;
 
+import javax.transaction.Transactional;
+
 @RestController
 @Api(tags = "字典表管理服务",description = "字典表管理")
 public class DictionaryController implements tech.ascs.icity.iform.api.service.DictionaryService {
@@ -26,7 +31,24 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 
 	@Override
 	public List<DictionaryModel> list() {
-		return DTOTools.wrapList(dictionaryService.query().list(), DictionaryModel.class);
+		List<DictionaryEntity> list = dictionaryService.query().list();
+		for(DictionaryEntity dictionaryEntity : list){
+			dictionaryEntity.setDictionaryItems(sortedItem(dictionaryEntity.getDictionaryItems()));
+		}
+		return DTOTools.wrapList(list, DictionaryModel.class);
+	}
+
+	private List<DictionaryItemEntity> sortedItem(List<DictionaryItemEntity> list){
+		if(list == null || list.size() < 1){
+			return null;
+		}
+		List<DictionaryItemEntity> dictionaryItemEntities = list.parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
+		for(DictionaryItemEntity dictionaryItemEntity : dictionaryItemEntities){
+			if(dictionaryItemEntity.getChildrenItem() != null && dictionaryItemEntity.getChildrenItem().size() > 0){
+				dictionaryItemEntity.setChildrenItem(sortedItem(dictionaryItemEntity.getChildrenItem()));
+			}
+		}
+		return dictionaryItemEntities;
 	}
 
 	@Override
@@ -98,6 +120,7 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
     	DictionaryItemEntity item  = new DictionaryItemEntity();
     	item.setName(name);
     	item.setCode(code);
+		item.setOrderNo(dictionaryService.maxOrderNo() + 1);
     	item.setDescription(description);
     	if(dictionary != null) {
 			item.setDictionary(dictionary);
@@ -127,4 +150,45 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
     public void deleteItem(String id, String itemId) {
     	dictionaryService.deleteDictionaryItem(id, itemId);
     }
+
+	@Override
+	@Transactional
+	public void updateItemOrderNo(String itemId, int number) {
+		DictionaryItemEntity itemEntity = dictionaryService.getDictionaryItemById(itemId);
+		if(itemEntity == null && itemEntity == null){
+			throw new IFormException("查询关联对象失败");
+		}
+		Integer orderNo = itemEntity.getOrderNo();
+		List<DictionaryItemEntity> list = new ArrayList<>();
+		if(itemEntity.getParentItem() == null){
+			list = dictionaryService.findDictionaryItems(itemEntity.getDictionary().getId());
+		}else{
+			list = itemEntity.getParentItem().getChildrenItem();
+		}
+		List<DictionaryItemEntity> dictionaryItemEntities = list.parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
+
+		for(int i = 0 ; i < dictionaryItemEntities.size(); i++){
+			DictionaryItemEntity dictionaryItemEntity = dictionaryItemEntities.get(i);
+			if(dictionaryItemEntity.getId().equals(itemId)){
+				//上移-1
+				if(number < 0 && i > 0){
+					DictionaryItemEntity dictionaryItem = dictionaryItemEntities.get(i-1);
+					dictionaryItem.setOrderNo(orderNo);
+					dictionaryService.saveDictionaryItem(dictionaryItem);
+
+					dictionaryItemEntity.setOrderNo(dictionaryItem.getOrderNo());
+					dictionaryService.saveDictionaryItem(dictionaryItemEntity);
+				}else if(number > 0 && i+1 < dictionaryItemEntities.size()){
+					//下移
+					DictionaryItemEntity dictionaryItem = dictionaryItemEntities.get(i+1);
+					dictionaryItem.setOrderNo(orderNo);
+					dictionaryService.saveDictionaryItem(dictionaryItem);
+
+					dictionaryItemEntity.setOrderNo(dictionaryItem.getOrderNo());
+					dictionaryService.saveDictionaryItem(dictionaryItemEntity);
+				}
+			}
+		}
+
+	}
 }

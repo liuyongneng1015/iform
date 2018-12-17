@@ -12,6 +12,7 @@ public enum SystemItemType {
 	ID("ID"),
 	/** 子表id */
 	ChildId("ChildId"),
+
 	/** 创建时间 */
 	CreateDate("CreateDate"),
 	/** 更新时间 */
@@ -22,6 +23,7 @@ public enum SystemItemType {
 	UpdataBy("UpdataBy"),
 	/** 流水号 */
 	SerialNumber("SerialNumber"),
+
 	/** 标题 */
 	Label("Label"),
 	/** 描叙 */

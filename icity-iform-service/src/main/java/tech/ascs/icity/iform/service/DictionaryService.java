@@ -12,10 +12,10 @@ public interface DictionaryService extends JPAService<DictionaryEntity> {
 	/**
 	 * 获取字典表选项列表
 	 * 
-	 * @param dictionaryId 字典表ID
+	 * @param parentItemId 父数据字典id
 	 * @return
 	 */
-	List<DictionaryItemEntity> getDictionaryItems(String dictionaryId);
+	List<DictionaryItemEntity> findDictionaryItems(String parentItemId);
 
 	/**
 	 * 更新字典表选项
@@ -51,5 +51,7 @@ public interface DictionaryService extends JPAService<DictionaryEntity> {
 	 * @return
 	 */
 	DictionaryItemEntity saveDictionaryItem(DictionaryItemEntity itemEntity);
+
+	Integer maxOrderNo();
 }
 

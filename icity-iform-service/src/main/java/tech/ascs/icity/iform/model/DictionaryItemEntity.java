@@ -36,6 +36,12 @@ public class DictionaryItemEntity extends BaseEntity implements Codeable {
 	private String description;
 
 	/**
+	 * 排序号
+	 */
+	@Column(name = "order_no")
+	private Integer orderNo = 0;
+
+	/**
 	 * 父类字典
 	 */
 	@ManyToOne(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
@@ -68,6 +74,14 @@ public class DictionaryItemEntity extends BaseEntity implements Codeable {
 
 	public void setDescription(String description) {
 		this.description = description;
+	}
+
+	public Integer getOrderNo() {
+		return orderNo;
+	}
+
+	public void setOrderNo(Integer orderNo) {
+		this.orderNo = orderNo;
 	}
 
 	public DictionaryItemEntity getParentItem() {

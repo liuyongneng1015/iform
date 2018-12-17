@@ -232,6 +232,32 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	@Override
 	public String createFormInstance(FormModelEntity formModel, FormInstance formInstance) {
+		FormModelEntity formModelEntity = formModelService.get(formInstance.getFormId());
+		List<ItemInstance> list = formInstance.getItems();
+		Map<String, ItemInstance> itemMap = new HashMap<>();
+		for(ItemInstance itemInstance : list){
+			itemMap.put(itemInstance.getId(), itemInstance);
+		}
+		for(ItemModelEntity itemModelEntity : formModelEntity.getItems()){
+			if(itemModelEntity.getSystemItemType() != SystemItemType.CreateDate){
+				if(itemMap.keySet().contains(itemModelEntity.getId())){
+					list.remove(itemMap.get(itemModelEntity.getId()));
+				}
+				list.add(getItemInstance(itemModelEntity.getId(), new Date()));
+			}else if(itemModelEntity.getSystemItemType() != SystemItemType.CreateBy){
+				if(itemMap.keySet().contains(itemModelEntity.getId())){
+					list.remove(itemMap.get(itemModelEntity.getId()));
+				}
+				list.add(getItemInstance(itemModelEntity.getId(),"-1"));
+			}else if(itemModelEntity.getSystemItemType() != SystemItemType.SerialNumber){
+				if(itemMap.keySet().contains(itemModelEntity.getId())){
+					list.remove(itemMap.get(itemModelEntity.getId()));
+				}
+				list.add(getItemInstance(itemModelEntity.getId(),System.currentTimeMillis()+"_"+new Random().nextInt(10000)));
+			}
+		}
+
+
 		DataModelEntity dataModel = formModel.getDataModels().get(0);
 		Session session = getSession(dataModel);
 		session.beginTransaction();
@@ -254,9 +280,40 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		return newId;
 	}
 
+	private ItemInstance getItemInstance(String id, Object value){
+		ItemInstance itemInstance = new ItemInstance();
+		itemInstance.setId(id);
+		itemInstance.setReadonly(true);
+		itemInstance.setVisible(true);
+		itemInstance.setValue(value);
+		itemInstance.setDisplayValue(value);
+		return itemInstance;
+	}
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public void updateFormInstance(FormModelEntity formModel, String instanceId, FormInstance formInstance) {
+
+		FormModelEntity formModelEntity = formModelService.get(formInstance.getFormId());
+		List<ItemInstance> list = formInstance.getItems();
+		Map<String, ItemInstance> itemMap = new HashMap<>();
+		for(ItemInstance itemInstance : list){
+			itemMap.put(itemInstance.getId(), itemInstance);
+		}
+		for(ItemModelEntity itemModelEntity : formModelEntity.getItems()){
+			if(itemModelEntity.getSystemItemType() != SystemItemType.UpdataDate){
+				if(itemMap.keySet().contains(itemModelEntity.getId())){
+					list.remove(itemMap.get(itemModelEntity.getId()));
+				}
+				list.add(getItemInstance(itemModelEntity.getId(), new Date()));
+			}else if(itemModelEntity.getSystemItemType() != SystemItemType.UpdataBy){
+				if(itemMap.keySet().contains(itemModelEntity.getId())){
+					list.remove(itemMap.get(itemModelEntity.getId()));
+				}
+				list.add(getItemInstance(itemModelEntity.getId(),"-1"));
+			}
+		}
+
 		DataModelEntity dataModel = formModel.getDataModels().get(0);
 		Session session = null;
 		try {
@@ -794,8 +851,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
                     valuelist.add(valueString);
                     itemInstance.setDisplayValue(valuelist);
                 }
-                itemInstance.setValue(valuelist);
-                break;
+				itemInstance.setValue(valuelist);
+				break;
 			default:
                 String valueStr = value == null || StringUtils.isEmpty(value) ?  null : String.valueOf(value);
                 itemInstance.setValue(value);
