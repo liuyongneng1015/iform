@@ -26,7 +26,7 @@ public interface DictionaryService extends JPAService<DictionaryEntity> {
 	 * @param name 名称
 	 * @param description 描述
 	 */
-	void updateDictionaryItem(String dictionaryId, String itemId, String code, String name, String description);
+	void updateDictionaryItem(String dictionaryId, String itemId, String code, String name, String description, String parentItemId);
 
 	/**
 	 * 删除字典表选项
@@ -35,10 +35,21 @@ public interface DictionaryService extends JPAService<DictionaryEntity> {
 	 * @param itemId 选项ID
 	 */
 	void deleteDictionaryItem(String dictionaryId, String itemId);
-	
-//	
-//	void postDicData(Long id, String name, String description, Long parentId);
-//
-//	void deleteDicData(Long id);
+
+	/**
+	 * 获取字典表选项列表
+	 *
+	 * @param itemId 字典表ID
+	 * @return
+	 */
+	DictionaryItemEntity getDictionaryItemById(String itemId);
+
+	/**
+	 * 保存数据字典项
+	 *
+	 * @param itemEntity 数据字典
+	 * @return
+	 */
+	DictionaryItemEntity saveDictionaryItem(DictionaryItemEntity itemEntity);
 }
 

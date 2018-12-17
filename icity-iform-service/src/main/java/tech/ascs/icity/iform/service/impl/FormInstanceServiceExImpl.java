@@ -435,9 +435,16 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		Object value;
 		if (itemModel.getType() == ItemType.DatePicker) {
 			value = new Date((Long) itemInstance.getValue());
-		} else {
-			value = (itemInstance.getValue() == null || itemInstance.getValue().equals("")) ? null : itemInstance.getValue();
-		}
+		} else if (itemModel.getType() == ItemType.Select) {
+            Object o = itemInstance.getValue();
+            if(o != null && o instanceof List){
+                value = org.apache.commons.lang3.StringUtils.join(o, ",");
+            }else{
+                value = o == null || StringUtils.isEmpty(o) ? null : o;
+            }
+		} else{
+            value = itemInstance.getValue() == null || StringUtils.isEmpty(itemInstance.getValue()) ? null : itemInstance.getValue();
+        }
 		data.put(itemModel.getColumnModel().getColumnName(), value);
 	}
 
@@ -746,7 +753,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 	}
 
-	protected void updateValue(ItemModelEntity itemModel, ItemInstance itemInstance, Object value) {
+	@Override
+	public void updateValue(ItemModelEntity itemModel, ItemInstance itemInstance, Object value) {
 		if (value == null) {
 			return;
 		}
@@ -757,34 +765,41 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				itemInstance.setDisplayValue(DateFormatUtils.format(date,((TimeItemModelEntity)itemModel).getTimeFormat()));
 				break;
 			case Select:
-				itemInstance.setValue(String.valueOf(value));
+			    String valueString = value == null || StringUtils.isEmpty(value) ?  null : String.valueOf(value);
+			    String[] values = valueString == null ?  null : valueString.split(",");
+                List<String> list = new ArrayList<>();
+                if(values != null){
+                    list = Arrays.asList(values);
+                }
+                List<String> valuelist = new ArrayList<>();
 				if(((SelectItemModelEntity)itemModel).getSelectReferenceType() == SelectReferenceType.Dictionary){
 					DictionaryEntity dictionary = dictionaryEntityJPAManager.find(((SelectItemModelEntity) itemModel).getReferenceDictionaryId());
 					if(dictionary != null) {
 						List<DictionaryItemEntity> dictionaryItemEntities = dictionary.getDictionaryItems();
 						for(DictionaryItemEntity dictionaryItemEntity : dictionaryItemEntities){
-							if (dictionaryItemEntity.getCode().equals(String.valueOf(value))) {
-								itemInstance.setDisplayValue(dictionaryItemEntity.getDescription());
-								break;
+							if (list.contains(dictionaryItemEntity.getCode())) {
+                                valuelist.add(dictionaryItemEntity.getName());
 							}
 						}
+                        itemInstance.setDisplayValue(valuelist);
 					}
 				}else if(((SelectItemModelEntity)itemModel).getSelectReferenceType() == SelectReferenceType.Fixed) {
 					for (ItemSelectOption option : itemModel.getOptions()) {
-						if (option.getValue().equals(String.valueOf(value))) {
-							itemInstance.setDisplayValue(option.getLabel());
-							break;
+						if (valuelist.contains(option.getValue())) {
+                            valuelist.add(option.getLabel());
 						}
 					}
-				}
-				itemInstance.setValue(value);
-				itemInstance.setDisplayValue(String.valueOf(value));
-				break;
-//			case InputNumber:
-//				break;
+                    itemInstance.setDisplayValue(valuelist);
+				}else {
+                    valuelist.add(valueString);
+                    itemInstance.setDisplayValue(valuelist);
+                }
+                itemInstance.setValue(valuelist);
+                break;
 			default:
-				itemInstance.setValue(value);
-				itemInstance.setDisplayValue(String.valueOf(value));
+                String valueStr = value == null || StringUtils.isEmpty(value) ?  null : String.valueOf(value);
+                itemInstance.setValue(value);
+				itemInstance.setDisplayValue(valueStr);
 				break;
 		}
 	}

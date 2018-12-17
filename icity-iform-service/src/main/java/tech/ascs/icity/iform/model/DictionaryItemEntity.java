@@ -2,12 +2,11 @@ package tech.ascs.icity.iform.model;
 
 import javax.persistence.*;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
 import tech.ascs.icity.jpa.dao.model.BaseEntity;
 import tech.ascs.icity.model.Codeable;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 数据字典项
@@ -20,21 +19,31 @@ public class DictionaryItemEntity extends BaseEntity implements Codeable {
 	/**
 	 * 所属数据字典
 	 */
-	@ManyToOne
+	@ManyToOne(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
     @JoinColumn(name = "parent_id")
 	private DictionaryEntity dictionary;
 
 	/**
-	 * 编码比如0,1
+	 * 编码比如0,1 对应name字段男女
 	 */
 	@Column(name = "code")
 	private String code;
 	
 	/**
-	 * 描述比如男，女
+	 * 描述
 	 */
 	@Column(name = "description")
 	private String description;
+
+	/**
+	 * 父类字典
+	 */
+	@ManyToOne(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
+	@JoinColumn(name = "parent_item_id")
+	private DictionaryItemEntity parentItem;
+
+	@OneToMany(mappedBy = "parentItem",cascade = CascadeType.ALL )
+	private List<DictionaryItemEntity> childrenItem = new ArrayList<>();
 	
 	public DictionaryEntity getDictionary() {
 		return dictionary;
@@ -60,5 +69,20 @@ public class DictionaryItemEntity extends BaseEntity implements Codeable {
 	public void setDescription(String description) {
 		this.description = description;
 	}
-	
+
+	public DictionaryItemEntity getParentItem() {
+		return parentItem;
+	}
+
+	public void setParentItem(DictionaryItemEntity parentItem) {
+		this.parentItem = parentItem;
+	}
+
+	public List<DictionaryItemEntity> getChildrenItem() {
+		return childrenItem;
+	}
+
+	public void setChildrenItem(List<DictionaryItemEntity> childrenItem) {
+		this.childrenItem = childrenItem;
+	}
 }

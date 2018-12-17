@@ -8,6 +8,9 @@ import org.apache.commons.lang3.StringUtils;
 import tech.ascs.icity.model.Codeable;
 import tech.ascs.icity.model.NameEntity;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * 数据字典项
  */
@@ -32,6 +35,18 @@ public class DictionaryItemModel extends NameEntity implements Codeable {
 	 */
 	@ApiModelProperty(value = "描述", position = 4)
 	private String description;
+
+	/**
+	 * 描述
+	 */
+	@ApiModelProperty(value = "描述", position = 5)
+	private DictionaryItemModel paraentItem ;
+
+	/**
+	 * 描述
+	 */
+	@ApiModelProperty(value = "描述", position = 5)
+	private List<DictionaryItemModel> childrenItem = new ArrayList<>();
 	
 	public DictionaryModel getDictionary() {
 		return dictionary;
@@ -56,6 +71,22 @@ public class DictionaryItemModel extends NameEntity implements Codeable {
 
 	public void setDescription(String description) {
 		this.description = description;
+	}
+
+	public DictionaryItemModel getParaentItem() {
+		return paraentItem;
+	}
+
+	public void setParaentItem(DictionaryItemModel paraentItem) {
+		this.paraentItem = paraentItem;
+	}
+
+	public List<DictionaryItemModel> getChildrenItem() {
+		return childrenItem;
+	}
+
+	public void setChildrenItem(List<DictionaryItemModel> childrenItem) {
+		this.childrenItem = childrenItem;
 	}
 
 	@Override

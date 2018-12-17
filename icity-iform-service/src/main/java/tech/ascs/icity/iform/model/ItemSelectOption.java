@@ -25,6 +25,9 @@ public class ItemSelectOption extends JPAEntity implements Serializable {
 	//值比如说0，1
 	private String value;
 
+	//是否默认
+	private Boolean defaultFlag = false;
+
 	public ItemModelEntity getItemModel() {
 		return itemModel;
 	}
@@ -47,5 +50,13 @@ public class ItemSelectOption extends JPAEntity implements Serializable {
 
 	public void setValue(String value) {
 		this.value = value;
+	}
+
+	public Boolean getDefaultFlag() {
+		return defaultFlag;
+	}
+
+	public void setDefaultFlag(Boolean defaultFlag) {
+		this.defaultFlag = defaultFlag;
 	}
 }

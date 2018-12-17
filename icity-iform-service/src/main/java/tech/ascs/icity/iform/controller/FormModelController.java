@@ -3,9 +3,6 @@ package tech.ascs.icity.iform.controller;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import freemarker.ext.beans.DateModel;
-import io.swagger.annotations.ApiModelProperty;
-import org.hibernate.sql.ordering.antlr.ColumnReference;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -499,6 +496,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			((ReferenceItemModelEntity) entity).setItemModelIds(org.apache.commons.lang3.StringUtils.join(itemModel.getItemModelList(),","));
 			((ReferenceItemModelEntity) entity).setReferenceList(setItemModelByListModel(itemModel));
 		}else if(entity instanceof SelectItemModelEntity){
+			if(itemModel.getDefaultValue() != null && itemModel.getDefaultValue().size() > 0){
+				((SelectItemModelEntity) entity).setDefaultReferenceValue(org.apache.commons.lang3.StringUtils.join(itemModel.getDefaultValue(),","));
+			}
 			((SelectItemModelEntity)entity).setReferenceList(setItemModelByListModel(itemModel));
 		}else if(entity instanceof RowItemModelEntity){
 			List<ItemModelEntity> rowList = new ArrayList<>() ;
@@ -762,6 +762,10 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			List<String> resultList= new ArrayList<>(Arrays.asList(((ReferenceItemModelEntity) entity).getItemModelIds().split(",")));
 			itemModel.setItemModelList(resultList);
 		}else if(entity instanceof SelectItemModelEntity){
+			String defaultValue = ((SelectItemModelEntity) entity).getDefaultReferenceValue();
+			if( defaultValue != null && !StringUtils.isEmpty(defaultValue)) {
+				itemModel.setDefaultValue(Arrays.asList(defaultValue.split(",")));
+			}
 			itemModel.setReferenceList(getItemModelByEntity(entity));
 		}else if(entity instanceof RowItemModelEntity){
 			List<ItemModel> rows = new ArrayList<>();

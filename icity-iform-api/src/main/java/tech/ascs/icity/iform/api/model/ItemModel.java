@@ -45,6 +45,9 @@ public class ItemModel extends NameEntity {
 	private String referenceTable;
 	@ApiModelProperty(value = " 关联字段模型（比如“ID”）", position = 15)
 	private String referenceValueColumn;
+	@ApiModelProperty(value = "默认值(数据字典的默认值)", position = 15)
+	private List<String> defaultValue = new ArrayList<>();
+
 	@ApiModelProperty(value="控件类型选择框还是列表", position = 16)
 	private ControlType controlType;
 	@ApiModelProperty(value = "关联显示列表模型",position = 17)
@@ -192,6 +195,14 @@ public class ItemModel extends NameEntity {
 
 	public void setReferenceValueColumn(String referenceValueColumn) {
 		this.referenceValueColumn = referenceValueColumn;
+	}
+
+	public List<String> getDefaultValue() {
+		return defaultValue;
+	}
+
+	public void setDefaultValue(List<String> defaultValue) {
+		this.defaultValue = defaultValue;
 	}
 
 	public ControlType getControlType() {

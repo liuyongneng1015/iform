@@ -28,6 +28,9 @@ public class Option implements Serializable {
 	@ApiModelProperty(value = "值", position = 3)
 	private String value;
 
+	@ApiModelProperty(value = "是否默认标识", position = 4)
+	private Boolean defaultFlag = false;
+
 	public void setId(String id) {
 		this.id = id;
 	}
@@ -46,6 +49,17 @@ public class Option implements Serializable {
 
 	public void setValue(String value) {
 		this.value = value;
+	}
+
+	public Boolean getDefaultFlag() {
+		if(defaultFlag == null){
+			defaultFlag = false;
+		}
+		return defaultFlag;
+	}
+
+	public void setDefaultFlag(Boolean defaultFlag) {
+		this.defaultFlag = defaultFlag;
 	}
 
 	public String getId() {

@@ -2,13 +2,7 @@ package tech.ascs.icity.iform.service.impl;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -25,6 +19,7 @@ import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.DataModelService;
 import tech.ascs.icity.iform.service.FormInstanceService;
+import tech.ascs.icity.iform.service.FormInstanceServiceEx;
 import tech.ascs.icity.iform.service.FormModelService;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
@@ -32,9 +27,7 @@ import tech.ascs.icity.model.Page;
 
 public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> implements FormInstanceService {
 
-	public static class FormInstanceRowMapper implements RowMapper<FormInstance> {
-
-		private static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+	public class FormInstanceRowMapper implements RowMapper<FormInstance> {
 
 		private FormModelEntity formModel;
 
@@ -121,31 +114,7 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 		}
 
 		protected void updateValue(ItemModelEntity itemModel, ItemInstance itemInstance, Object value) {
-			if (value == null) {
-				return;
-			}
-			switch(itemModel.getType()) {
-				case DatePicker:
-					Date date = (Date) value;
-					itemInstance.setValue(date);
-					itemInstance.setDisplayValue(dateFormat.format(date));
-					break;
-				case Select:
-					itemInstance.setValue(String.valueOf(value));
-					for (ItemSelectOption option : itemModel.getOptions()) {
-						if (option.getValue().equals(String.valueOf(value))) {
-							itemInstance.setDisplayValue(option.getLabel());
-							break;
-						}
-					}
-					break;
-//				case InputNumber:
-//					break;
-				default:
-					itemInstance.setValue(value);
-					itemInstance.setDisplayValue(String.valueOf(value));
-					break;
-			}
+			formInstanceServiceEx.updateValue(itemModel, itemInstance, value);
 		}
 	}
 
@@ -157,6 +126,10 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 
 	@Autowired
 	private TaskService taskService;
+
+	@Autowired
+	public FormInstanceServiceEx formInstanceServiceEx;
+
 
 	public FormInstanceServiceImpl() {
 		super(FormModelEntity.class);
@@ -513,7 +486,7 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 	}
 
 	@Transactional(readOnly = false)
-	private void doUpdate(String sql, @Nullable Object... args) {
+	public void doUpdate(String sql, @Nullable Object... args) {
 		jdbcTemplate.update(sql, args);
 	}
 }

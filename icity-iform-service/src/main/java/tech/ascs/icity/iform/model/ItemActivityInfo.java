@@ -26,10 +26,10 @@ public class ItemActivityInfo extends BaseEntity implements Serializable {
 	@Column(name="activity_name")
 	private String activityName;
 
-	@Column(name="visible")
+	@Column(name="visible")//是否可见
 	private boolean visible = true;
 
-	@Column(name="readonly")
+	@Column(name="readonly")//是否只读
 	private boolean readonly = false;
 
 	public ItemModelEntity getItemModel() {

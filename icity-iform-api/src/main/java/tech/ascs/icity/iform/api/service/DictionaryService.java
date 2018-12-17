@@ -56,31 +56,33 @@ public interface DictionaryService {
 
 	@ApiOperation("新增字典表选项")
 	@ApiImplicitParams({
-			@ApiImplicitParam(paramType="path", name = "id", value = "字典表ID", required = true, dataType = "String"),
+			@ApiImplicitParam(paramType="query", name = "id", value = "字典表ID", required = false, dataType = "String"),
 			@ApiImplicitParam(paramType="query", name = "name", value = "名称", required = true),
 			@ApiImplicitParam(paramType="query", name = "code", value = "编码", required = true),
-			@ApiImplicitParam(paramType="query", name = "description", value = "描述", required = false)
+			@ApiImplicitParam(paramType="query", name = "description", value = "描述", required = false),
+			@ApiImplicitParam(paramType="query", name = "parentItemId", value = "父级字典项", required = false)
 	})
-	@PostMapping("/{id}/items")
+	@PostMapping("/add/items")
 	void addItem(
-			@PathVariable(name="id") String id,
+			@RequestParam(name="id") String id,
 			@RequestParam(name="name") String name,
 			@RequestParam(name="code") String code,
-			@RequestParam(name="description", required=false) String description);
+			@RequestParam(name="description", required = false) String description, @RequestParam(name="parentItemId", required = false) String parentItemId);
 
 	@ApiOperation("更新字典表选项")
 	@ApiImplicitParams({
-			@ApiImplicitParam(paramType="path", name = "id", value = "字典表ID", required = true, dataType = "String"),
+			@ApiImplicitParam(paramType="query", name = "id", value = "字典表ID", required = false, dataType = "String"),
 			@ApiImplicitParam(paramType="path", name = "itemId", value = "字典表选项ID", required = true, dataType = "String"),
 			@ApiImplicitParam(paramType="query", name = "name", value = "名称", required = false),
 			@ApiImplicitParam(paramType="query", name = "code", value = "编码", required = false),
-			@ApiImplicitParam(paramType="query", name = "description", value = "描述", required = false)
+			@ApiImplicitParam(paramType="query", name = "description", value = "描述", required = false),
+			@ApiImplicitParam(paramType="query", name = "parentItemId", value = "父级字典项", required = false)
 	})
-	@PutMapping("/{id}/items/{itemId}")
-	void updateItem(@PathVariable(name="id") String id, @PathVariable(name="itemId") String itemId,
+	@PutMapping("/update/items/{itemId}")
+	void updateItem(@RequestParam(name="id") String id, @PathVariable(name="itemId", required = true) String itemId,
 					@RequestParam(name="name", required=false) String name,
 					@RequestParam(name="code", required=false) String code,
-					@RequestParam(name="description", required=false) String description);
+					@RequestParam(name="description", required=false) String description, @RequestParam(name="parentItemId", required = false) String parentItemId);
 
 	@ApiOperation("删除字典表选项")
 	@ApiImplicitParams({

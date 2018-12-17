@@ -10,7 +10,7 @@ public class ItemInstance extends IdEntity {
 	private Object value;
 
 	@ApiModelProperty(value = "显示值（通常只有Select才需要用）", position = 2)
-	private String displayValue;
+	private Object displayValue;
 
 	@ApiModelProperty(value = "是否可见", position = 3)
 	private boolean visible = true;
@@ -29,15 +29,15 @@ public class ItemInstance extends IdEntity {
 		this.value = value;
 	}
 
-	public String getDisplayValue() {
-		return displayValue;
-	}
+    public Object getDisplayValue() {
+        return displayValue;
+    }
 
-	public void setDisplayValue(String displayValue) {
-		this.displayValue = displayValue;
-	}
+    public void setDisplayValue(Object displayValue) {
+        this.displayValue = displayValue;
+    }
 
-	public boolean isVisible() {
+    public boolean isVisible() {
 		return visible;
 	}
 
