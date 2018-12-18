@@ -186,6 +186,33 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			throw new IFormException("获取表单模型列表失败：" + e.getMessage(), e);
 		}
 	}
+
+	@Override
+	public void saveFormModelPermission(String id, FormModel formModel) {
+		if (!StringUtils.hasText(formModel.getId()) || !id.equals(formModel.getId())) {
+			throw new IFormException("表单模型ID不一致");
+		}
+		try {
+			FormModelEntity entity = wrapPermission(formModel);
+			formModelService.saveFormModelPermission(entity);
+		} catch (Exception e) {
+			throw new IFormException("保存表单模型列表失败：" + e.getMessage(), e);
+		}
+	}
+
+	@Override
+	public void saveFormModelSubmitCheck(String id, FormModel formModel) {
+		if (!StringUtils.hasText(formModel.getId()) || !id.equals(formModel.getId())) {
+			throw new IFormException("表单模型ID不一致");
+		}
+		try {
+			FormModelEntity entity = wrapSubmitCheck(formModel);
+			formModelService.saveFormModelSubmitCheck(entity);
+		} catch (Exception e) {
+			throw new IFormException("保存表单模型列表失败：" + e.getMessage(), e);
+		}
+	}
+
 	private void verifyFormModelName(FormModel formModel){
 		if(formModel == null || StringUtils.isEmpty(formModel.getName())){
 			return;
@@ -204,7 +231,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	}
 	private FormModelEntity wrap(FormModel formModel) {
 		FormModelEntity entity = new FormModelEntity();
-		BeanUtils.copyProperties(formModel, entity, new String[] {"items","dataModels"});
+		BeanUtils.copyProperties(formModel, entity, new String[] {"items","dataModels","permissions","submitChecks"});
 
 		verifyFormModelName(formModel);
 
@@ -293,12 +320,55 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 
 		List<ItemModelEntity> items = new ArrayList<ItemModelEntity>();
+		Map<String, ItemModelEntity> itemMap = new HashMap<>();
 		for (ItemModel itemModel : formModel.getItems()) {
 			ItemModelEntity itemModelEntity = wrap(itemModel);
 			itemModelEntity.setFormModel(entity);
 			items.add(itemModelEntity);
+			itemMap.put(itemModel.getName(), itemModelEntity);
 		}
 		entity.setItems(items);
+		return entity;
+	}
+
+	private FormModelEntity wrapPermission(FormModel formModel) {
+		FormModelEntity entity = new FormModelEntity();
+		BeanUtils.copyProperties(formModel, entity, new String[] {"items","dataModels","permissions","submitChecks"});
+
+		if(formModel.getPermissions() != null){
+			List<ItemPermissionInfo> permissionInfos = new ArrayList<>();
+			for(ItemPermissionModel model : formModel.getPermissions()){
+				ItemPermissionInfo permissionInfo = new ItemPermissionInfo();
+				BeanUtils.copyProperties(model, permissionInfo, new String[]{"formModel" ,"itemModel"});
+				if(model.getItemModel() != null){
+					ItemModelEntity itemModelEntity = new ItemModelEntity();
+					BeanUtils.copyProperties(model.getItemModel(), itemModelEntity, new String[] {"formModel","columnModel","activities","options","permission"});
+					permissionInfo.setItemModel(itemModelEntity);
+					itemModelEntity.setPermission(permissionInfo);
+				}
+				permissionInfo.setFormModel(entity);
+				permissionInfos.add(permissionInfo);
+			}
+			entity.setPermissions(permissionInfos);
+		}
+
+		return entity;
+	}
+
+	private FormModelEntity wrapSubmitCheck(FormModel formModel) {
+		FormModelEntity entity = new FormModelEntity();
+		BeanUtils.copyProperties(formModel, entity, new String[] {"items","dataModels","permissions","submitChecks"});
+
+		if(formModel.getSubmitChecks() != null){
+			List<FormSubmitCheckInfo> checkInfos = new ArrayList<>();
+			for(FormSubmitCheckModel model : formModel.getSubmitChecks()){
+				FormSubmitCheckInfo checkInfo =  new FormSubmitCheckInfo();
+				BeanUtils.copyProperties(model, checkInfo, new String[]{"formModel"});
+				checkInfo.setFormModel(entity);
+				checkInfos.add(checkInfo);
+			}
+			entity.setSubmitChecks(checkInfos);
+		}
 		return entity;
 	}
 
@@ -488,7 +558,20 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		//TODO 根据类型映射对应的item
 		ItemModelEntity entity = formModelService.getItemModelEntity(itemModel.getType());
 		//需要保持column
-		BeanUtils.copyProperties(itemModel, entity, new String[] {"items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});
+		BeanUtils.copyProperties(itemModel, entity, new String[] {"permission", "items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});
+
+		if(!itemModel.isNew()){
+			ItemModelEntity itemModelEntity = itemModelService.find(itemModel.getId());
+			if(itemModelEntity != null && itemModelEntity.getPermission() != null){
+				ItemPermissionInfo itemPermissionInfo = new ItemPermissionInfo();
+				BeanUtils.copyProperties(itemModelEntity.getPermission(), itemPermissionInfo, new String[]{"formModel", "itemModel"});
+				entity.setPermission(itemPermissionInfo);
+				itemPermissionInfo.setItemModel(entity);
+				FormModelEntity formModelEntity = new FormModelEntity();
+				BeanUtils.copyProperties(itemModelEntity.getFormModel(), formModelEntity, new String[] {"dataModels", "items","permissions","submitChecks"});
+				itemPermissionInfo.setFormModel(formModelEntity);
+			}
+		}
 
 		setColumnModel(entity, itemModel);
 
@@ -619,8 +702,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		return formModel;
 	}
 
-	private FormModel toDTODetail(FormModelEntity entity) throws InstantiationException, IllegalAccessException {
-		FormModel formModel = BeanUtils.copy(entity, FormModel.class, new String[] {"items","dataModels"});
+	private FormModel toDTODetail(FormModelEntity entity)  {
+        FormModel formModel = new FormModel();
+		BeanUtils.copyProperties(entity, formModel, new String[] {"items","dataModels","permissions","submitChecks"});
 		if (entity.getItems().size() > 0) {
 			List<ItemModel> items = new ArrayList<ItemModel>();
 			for (ItemModelEntity itemModelEntity : entity.getItems()) {
@@ -628,6 +712,34 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			}
 			formModel.setItems(items);
 		}
+
+		if(entity.getSubmitChecks() != null){
+            List<FormSubmitCheckModel> submitCheckModels = new ArrayList<>();
+            for(FormSubmitCheckInfo info : entity.getSubmitChecks()){
+                FormSubmitCheckModel checkModel = new FormSubmitCheckModel();
+                BeanUtils.copyProperties(info, checkModel, new String[] {"formModel"});
+                checkModel.setFormModel(formModel);
+                submitCheckModels.add(checkModel);
+            }
+            formModel.setSubmitChecks(submitCheckModels);
+        }
+
+        if(entity.getPermissions() != null){
+            List<ItemPermissionModel> permissionModels = new ArrayList<>();
+            for(ItemPermissionInfo info : entity.getPermissions()){
+                ItemPermissionModel permissionModel = new ItemPermissionModel();
+                BeanUtils.copyProperties(info, permissionModel, new String[] {"formModel","itemModel"});
+                permissionModel.setFormModel(formModel);
+                if(info.getItemModel() != null){
+                    ItemModel itemModel = new ItemModel();
+                    BeanUtils.copyProperties(info.getItemModel(), itemModel, new String[] {"formModel","columnModel","defaultValue","activities","options","items","permission","referenceList"});
+                    permissionModel.setItemModel(itemModel);
+                }
+                permissionModels.add(permissionModel);
+            }
+            formModel.setPermissions(permissionModels);
+        }
+
 		if(entity.getDataModels() != null && entity.getDataModels().size() > 0){
 			List<DataModel> dataModelList = new ArrayList<>();
 			List<DataModelEntity> dataModelEntities = new ArrayList<>();
@@ -756,7 +868,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	private ItemModel toDTO(ItemModelEntity entity)  {
 		//TODO 根据模型找到对应的参数
 		ItemModel itemModel = new ItemModel();
-		BeanUtils.copyProperties(entity, itemModel, new String[] {"formModel","columnModel","activities","options","items","itemModelIds"});
+		BeanUtils.copyProperties(entity, itemModel, new String[] {"formModel","columnModel","activities","options","items","itemModelIds","permission"});
 
 		if(entity instanceof ReferenceItemModelEntity && ((ReferenceItemModelEntity) entity).getItemModelIds() != null){
 			List<String> resultList= new ArrayList<>(Arrays.asList(((ReferenceItemModelEntity) entity).getItemModelIds().split(",")));

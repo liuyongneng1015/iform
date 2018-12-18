@@ -28,6 +28,9 @@ public class ItemModel extends NameEntity {
 	@ApiModelProperty(value = "文件路径", position = 8)
 	private String filePath;
 
+	@ApiModelProperty(value = "隐藏条件", position = 8)
+	private String hiddenCondition;
+
 	//File/selectItemModel
 	@ApiModelProperty(value = "关联类型", position = 9)
 	private ReferenceType referenceType;
@@ -85,6 +88,10 @@ public class ItemModel extends NameEntity {
 	@ApiModelProperty(value="是否被选中:true选中，flse未选中",position = 31)
 	private Boolean  selectFlag = false;
 
+	@ApiModelProperty(value="控件权限",position = 31)
+	private ItemPermissionModel  permission;
+
+
 	public ItemType getType() {
 		return type;
 	}
@@ -131,6 +138,14 @@ public class ItemModel extends NameEntity {
 
 	public void setFilePath(String filePath) {
 		this.filePath = filePath;
+	}
+
+	public String getHiddenCondition() {
+		return hiddenCondition;
+	}
+
+	public void setHiddenCondition(String hiddenCondition) {
+		this.hiddenCondition = hiddenCondition;
 	}
 
 	public ReferenceType getReferenceType() {

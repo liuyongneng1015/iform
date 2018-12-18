@@ -39,11 +39,17 @@ public class ItemModelEntity extends  BaseEntity implements Serializable {
 	@JoinColumn(name="props")
 	private String props;
 
+	@Column(name="hidden_condition",length = 2048)//隐藏条件
+	private String hiddenCondition;
+
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "itemModel")
 	private List<ItemActivityInfo> activities = new ArrayList<ItemActivityInfo>();
 
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "itemModel")
 	private List<ItemSelectOption> options = new ArrayList<ItemSelectOption>();
+
+	@OneToOne(cascade = CascadeType.ALL, mappedBy = "itemModel")
+	private ItemPermissionInfo permission;
 
 	@JoinColumn(name="system_item_type")//系统控件类型
 	@Enumerated(EnumType.STRING)
@@ -81,8 +87,24 @@ public class ItemModelEntity extends  BaseEntity implements Serializable {
 		this.props = props;
 	}
 
+	public ItemPermissionInfo getPermission() {
+		return permission;
+	}
+
+	public void setPermission(ItemPermissionInfo permission) {
+		this.permission = permission;
+	}
+
 	public List<ItemActivityInfo> getActivities() {
 		return activities;
+	}
+
+	public String getHiddenCondition() {
+		return hiddenCondition;
+	}
+
+	public void setHiddenCondition(String hiddenCondition) {
+		this.hiddenCondition = hiddenCondition;
 	}
 
 	public void setActivities(List<ItemActivityInfo> activities) {

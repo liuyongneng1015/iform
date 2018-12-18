@@ -31,6 +31,11 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 	private JPAManager<ItemSelectOption> itemSelectOptionManager;
 
+	private JPAManager<ItemPermissionInfo> itemPermissionManager;
+
+	private JPAManager<FormSubmitCheckInfo> formSubmitCheckManager;
+
+	private JPAManager<FormModelEntity> formModelManager;
 
 	@Autowired
 	ProcessService processService;
@@ -55,6 +60,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		listModelManager = getJPAManagerFactory().getJPAManager(ListModelEntity.class);
 		itemActivityManager = getJPAManagerFactory().getJPAManager(ItemActivityInfo.class);
 		itemSelectOptionManager = getJPAManagerFactory().getJPAManager(ItemSelectOption.class);
+		itemPermissionManager = getJPAManagerFactory().getJPAManager(ItemPermissionInfo.class);
+		formSubmitCheckManager = getJPAManagerFactory().getJPAManager(FormSubmitCheckInfo.class);
+		formModelManager = getJPAManagerFactory().getJPAManager(FormModelEntity.class);
 	}
 
 	@Override
@@ -89,9 +97,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				modelEntityMap.put(columnModelEntity.getDataModel().getTableName() + "_" + columnModelEntity.getColumnName(), columnModelEntity);
 			}
 
-
-
-			BeanUtils.copyProperties(entity, old, new String[] {"dataModels", "items"});
+			BeanUtils.copyProperties(entity, old, new String[] {"dataModels", "items", "permissions", "submitChecks"});
 			List<ItemModelEntity> oldItems = old.getItems();
 			List<String> itemActivityIds = new ArrayList<String>();
 			List<String> itemSelectOptionIds = new ArrayList<String>();
@@ -148,7 +154,22 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			newItemModelEntity = itemManager.get(oldItemModelEntity.getId());
 		}
 
-		BeanUtils.copyProperties(oldItemModelEntity, newItemModelEntity, new String[]{"referenceList","items","formModel","columnModel","activities","options"});
+		BeanUtils.copyProperties(oldItemModelEntity, newItemModelEntity, new String[]{"permission", "referenceList","items","formModel","columnModel","activities","options"});
+
+		/*//保存控件权限
+		if(oldItemModelEntity.getPermission() != null){
+			ItemPermissionInfo itemPermissionInfo =  null;
+			if(oldItemModelEntity.getPermission().isNew()){
+				itemPermissionInfo = new ItemPermissionInfo();
+				newItemModelEntity.setPermission(oldItemModelEntity.getPermission());
+				itemPermissionInfo.setItemModel(newItemModelEntity);
+				//itemPermissionInfo.setFormModel(oldItemModelEntity.getFormModel());
+			}else{
+				itemPermissionInfo =  itemPermissionManager.get(oldItemModelEntity.getPermission().getId());
+				itemPermissionInfo.setItemModel(newItemModelEntity);
+				newItemModelEntity.setPermission(itemPermissionInfo);
+			}
+		}*/
 
 		newItemModelEntity.setFormModel(oldItemModelEntity.getFormModel());
 
@@ -582,6 +603,85 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			}
 		}
 		return itemModels;
+	}
+
+	@Override
+	public FormModelEntity saveFormModelPermission(FormModelEntity entity) {
+		FormModelEntity formModelEntity = new FormModelEntity();
+		BeanUtils.copyProperties(entity, formModelEntity, new String[] {"items","dataModels","permissions","submitChecks"});
+
+		Map<String, ItemPermissionInfo> oldMap = new HashMap<>();
+		List<ItemPermissionInfo> oldItemPermission = formModelEntity.getPermissions();
+		for(ItemPermissionInfo info : oldItemPermission){
+			oldMap.put(info.getId(), info);
+		}
+
+		Map<String, ItemModelEntity> oldItemMap = new HashMap<>();
+		for(ItemModelEntity itemModelEntity : formModelEntity.getItems()){
+			oldItemMap.put(itemModelEntity.getId(), itemModelEntity);
+		}
+
+		List<ItemPermissionInfo> newItemPermission = entity.getPermissions();
+
+
+		if(newItemPermission != null){
+			List<ItemPermissionInfo> permissionInfos = new ArrayList<>();
+			for(ItemPermissionInfo model : newItemPermission){
+				ItemPermissionInfo permissionInfo = null;
+				if(model.isNew()){
+					permissionInfo = new ItemPermissionInfo();
+				}else{
+					permissionInfo = oldMap.remove(model.getId());
+				}
+				BeanUtils.copyProperties(model, permissionInfo, new String[]{"formModel" ,"itemModel"});
+				if(model.getItemModel() != null){
+					ItemModelEntity itemModelEntity = oldItemMap.get(model.getItemModel().getId());
+					permissionInfo.setItemModel(itemModelEntity);
+					itemModelEntity.setPermission(permissionInfo);
+				}
+				permissionInfo.setFormModel(entity);
+				permissionInfos.add(permissionInfo);
+			}
+			entity.setPermissions(permissionInfos);
+		}
+		for(String key : oldMap.keySet()){
+			itemPermissionManager.deleteById(key);
+		}
+		formModelManager.save(entity);
+		return entity;
+	}
+
+	@Override
+	public FormModelEntity saveFormModelSubmitCheck(FormModelEntity entity) {
+		FormModelEntity formModelEntity = new FormModelEntity();
+		BeanUtils.copyProperties(entity, formModelEntity, new String[] {"items","dataModels","permissions","submitChecks"});
+
+		Map<String, FormSubmitCheckInfo> oldMap = new HashMap<>();
+		List<FormSubmitCheckInfo> oldSubmitCheck = formModelEntity.getSubmitChecks();
+		for(FormSubmitCheckInfo info : oldSubmitCheck){
+			oldMap.put(info.getId(), info);
+		}
+		List<FormSubmitCheckInfo> newSubmitCheck = entity.getSubmitChecks();
+		if(newSubmitCheck != null){
+			List<FormSubmitCheckInfo> submitCheckInfos = new ArrayList<>();
+			for(FormSubmitCheckInfo formSubmitCheckInfo : newSubmitCheck){
+				FormSubmitCheckInfo checkInfo = null;
+				if(!formSubmitCheckInfo.isNew()){
+					checkInfo = oldMap.remove(formSubmitCheckInfo.getId());
+				}else{
+					 checkInfo = new FormSubmitCheckInfo() ;
+				}
+				BeanUtils.copyProperties(formSubmitCheckInfo, checkInfo, new String[]{"formModel"});
+				checkInfo.setFormModel(entity);
+				submitCheckInfos.add(checkInfo);
+			}
+			entity.setSubmitChecks(submitCheckInfos);
+		}
+		for(String key : oldMap.keySet()){
+			formSubmitCheckManager.deleteById(key);
+		}
+		formModelManager.save(entity);
+		return entity;
 	}
 
 	//设置旧的item参数

@@ -39,20 +39,20 @@ public class DictionaryItemModel extends NameEntity implements Codeable {
 	/**
 	 * 排序号
 	 */
-	@ApiModelProperty(value = "排序号", position = 4)
-	private Integer orderNo;
+	@ApiModelProperty(value = "排序号", position = 5)
+	private Integer orderNo = 0;
 
 
 	/**
-	 * 描述
+	 * 父选项
 	 */
-	@ApiModelProperty(value = "描述", position = 5)
+	@ApiModelProperty(value = "父选项", position = 6)
 	private DictionaryItemModel paraentItem ;
 
 	/**
-	 * 描述
+	 * 子选项描述
 	 */
-	@ApiModelProperty(value = "描述", position = 5)
+	@ApiModelProperty(value = "子选项描述", position = 7)
 	private List<DictionaryItemModel> childrenItem = new ArrayList<>();
 	
 	public DictionaryModel getDictionary() {

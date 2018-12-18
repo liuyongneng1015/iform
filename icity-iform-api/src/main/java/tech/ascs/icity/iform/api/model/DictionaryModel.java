@@ -25,14 +25,13 @@ public class DictionaryModel extends NameEntity implements Codeable {
 	/**
 	 * 描述
 	 */
-	@ApiModelProperty(value = "描述", position = 3)
+	@ApiModelProperty(value = "描述", position = 4)
 	private String description;
 
 	/**
 	 * 数据字典项
 	 */
-    @JsonManagedReference
-	@ApiModelProperty(hidden = true)
+	@ApiModelProperty(value = "数据字典项", position = 5)
 	private List<DictionaryItemModel> dictionaryItems = new ArrayList<DictionaryItemModel>();
 
 	public List<DictionaryItemModel> getDictionaryItems() {

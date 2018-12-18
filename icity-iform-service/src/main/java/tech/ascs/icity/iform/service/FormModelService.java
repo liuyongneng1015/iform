@@ -20,4 +20,10 @@ public interface FormModelService extends JPAService<FormModelEntity> {
      void deleteFormModelEntity(FormModelEntity formModel);
 
      List<ItemModelEntity> findAllItems(FormModelEntity entity);
+
+     //保存控件权限
+     FormModelEntity saveFormModelPermission(FormModelEntity entity);
+
+     //保存检查校验
+     FormModelEntity saveFormModelSubmitCheck(FormModelEntity entity);
 }

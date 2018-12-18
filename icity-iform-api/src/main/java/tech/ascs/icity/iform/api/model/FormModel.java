@@ -47,6 +47,12 @@ public class FormModel extends NameEntity {
 	@ApiModelProperty(value = "应用id", position = 6)
 	private String applicationId;
 
+    @ApiModelProperty(value = "控件权限", position = 7)
+    private List<ItemPermissionModel> permissions = new ArrayList<ItemPermissionModel>();
+
+    @ApiModelProperty(value = "表单提交校验", position = 8)
+    private List<FormSubmitCheckModel> submitChecks = new ArrayList<FormSubmitCheckModel>();
+
 	public String getDescription() {
 		return description;
 	}
@@ -87,7 +93,23 @@ public class FormModel extends NameEntity {
 		this.applicationId = applicationId;
 	}
 
-	@Override
+    public List<ItemPermissionModel> getPermissions() {
+        return permissions;
+    }
+
+    public void setPermissions(List<ItemPermissionModel> permissions) {
+        this.permissions = permissions;
+    }
+
+    public List<FormSubmitCheckModel> getSubmitChecks() {
+        return submitChecks;
+    }
+
+    public void setSubmitChecks(List<FormSubmitCheckModel> submitChecks) {
+        this.submitChecks = submitChecks;
+    }
+
+    @Override
 	public String getId() {
 		String id = super.getId();
 		if(StringUtils.isBlank(id)){

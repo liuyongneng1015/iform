@@ -8,7 +8,6 @@ import tech.ascs.icity.iform.api.model.DictionaryItemModel;
 import tech.ascs.icity.iform.api.model.DictionaryModel;
 import tech.ascs.icity.model.Page;
 
-import java.util.Dictionary;
 import java.util.List;
 
 
@@ -26,7 +25,7 @@ public interface DictionaryService {
 			@ApiImplicitParam(paramType = "query", name = "pageSize", value = "每页记录数", required = false, defaultValue = "10")
 	})
 	@GetMapping("/page")
-	Page<DictionaryModel> page(@RequestParam(name = "page", defaultValue = "1") int page, @RequestParam(name="pageSize", defaultValue = "10") int pageSize);
+    Page<DictionaryModel> page(@RequestParam(name = "page", defaultValue = "1") int page, @RequestParam(name="pageSize", defaultValue = "10") int pageSize);
 
 	@ApiOperation("新增字典表")
 	@ApiImplicitParams({
@@ -96,8 +95,8 @@ public interface DictionaryService {
 	@ApiOperation("上下移动字典表选项")
 	@ApiImplicitParams({
 			@ApiImplicitParam(paramType="path", name = "itemId", value = "字典表选项ID", required = true, dataType = "String"),
-			@ApiImplicitParam(paramType="query", name = "number", value = "上移-1，下移+1", required = true, dataType = "Integer")
+			@ApiImplicitParam(paramType="query", name = "number", value = "上移-1，下移+1", required = false)
 	})
 	@PutMapping("/items/orderno/{itemId}")
-	void updateItemOrderNo( @PathVariable(name="itemId",required = true) String itemId, @RequestParam(name="number", required = true) Integer number);
+	void updateItemOrderNo( @PathVariable(name="itemId",required = true) String itemId, @RequestParam(name="number", defaultValue = "0") int number);
 }

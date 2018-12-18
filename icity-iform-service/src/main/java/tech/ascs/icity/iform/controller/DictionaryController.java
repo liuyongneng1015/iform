@@ -1,15 +1,11 @@
 package tech.ascs.icity.iform.controller;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
+import io.swagger.annotations.Api;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import io.swagger.annotations.Api;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.transaction.annotation.Transactional;
+import tech.ascs.icity.model.Page;
 import org.springframework.web.bind.annotation.RestController;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.DictionaryItemModel;
@@ -18,11 +14,14 @@ import tech.ascs.icity.iform.model.DictionaryEntity;
 import tech.ascs.icity.iform.model.DictionaryItemEntity;
 import tech.ascs.icity.iform.service.DictionaryService;
 import tech.ascs.icity.jpa.tools.DTOTools;
-import tech.ascs.icity.model.Page;
 
-import javax.transaction.Transactional;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
-@Api(tags = "字典表管理服务",description = "字典表管理")
+
+
+@Api(tags = "字典表管理",description = "字典表管理服务")
 @RestController
 public class DictionaryController implements tech.ascs.icity.iform.api.service.DictionaryService {
 
@@ -83,8 +82,15 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 	}
 
 	@Override
-	public Page<DictionaryModel> page(int page,int pageSize) {
-		return DTOTools.wrapPage(dictionaryService.query().page(page, pageSize).page(), DictionaryModel.class);
+	public Page<DictionaryModel> page(int page, int pageSize) {
+		Page<DictionaryEntity> pageEntity = dictionaryService.query().page(page, pageSize).page();
+		List<DictionaryEntity> dictionaryModels = new ArrayList<>();
+		for(DictionaryEntity dictionaryEntity : pageEntity.getResults()){
+			dictionaryEntity.setDictionaryItems(sortedItem(dictionaryEntity.getDictionaryItems()));
+			dictionaryModels.add(dictionaryEntity);
+		}
+		pageEntity.setContent(dictionaryModels);
+		return DTOTools.wrapPage(pageEntity, DictionaryModel.class);
 	}
 
 	@Override
@@ -133,7 +139,6 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
     }
 
 	@Override
-    @ResponseBody
 	public List<DictionaryItemModel> listItem(String id) {
     	DictionaryEntity dictionary = dictionaryService.get(id);
 		dictionary.setDictionaryItems(sortedItem(dictionary.getDictionaryItems()));
@@ -186,8 +191,7 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
     }
 
 	@Override
-	@Transactional
-	public void updateItemOrderNo(String itemId, Integer number) {
+	public void updateItemOrderNo(String itemId, int number) {
 		DictionaryItemEntity itemEntity = dictionaryService.getDictionaryItemById(itemId);
 		if(itemEntity == null && itemEntity == null){
 			throw new IFormException("查询关联对象失败");

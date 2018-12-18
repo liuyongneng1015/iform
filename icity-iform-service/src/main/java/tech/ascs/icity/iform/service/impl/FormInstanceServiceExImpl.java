@@ -4,7 +4,6 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import io.swagger.annotations.ApiModelProperty;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
