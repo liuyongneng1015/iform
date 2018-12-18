@@ -13,6 +13,7 @@ import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.ColumnModelService;
 import tech.ascs.icity.iform.service.DataModelService;
 import tech.ascs.icity.iform.service.FormModelService;
+import tech.ascs.icity.iform.service.FormSubmitCheckService;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 import tech.ascs.icity.utils.BeanUtils;
@@ -46,6 +47,8 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 	@Autowired
 	DataModelService dataModelService;
 
+    @Autowired
+    FormSubmitCheckService formSubmitCheckService;
 
 	public FormModelServiceImpl() {
 		super(FormModelEntity.class);
@@ -607,7 +610,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 	@Override
 	public FormModelEntity saveFormModelPermission(FormModelEntity entity) {
-		FormModelEntity formModelEntity = new FormModelEntity();
+		FormModelEntity formModelEntity = get(entity.getId());
 		BeanUtils.copyProperties(entity, formModelEntity, new String[] {"items","dataModels","permissions","submitChecks"});
 
 		Map<String, ItemPermissionInfo> oldMap = new HashMap<>();
@@ -639,21 +642,21 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 					permissionInfo.setItemModel(itemModelEntity);
 					itemModelEntity.setPermission(permissionInfo);
 				}
-				permissionInfo.setFormModel(entity);
+				permissionInfo.setFormModel(formModelEntity);
 				permissionInfos.add(permissionInfo);
 			}
-			entity.setPermissions(permissionInfos);
+            formModelEntity.setPermissions(permissionInfos);
 		}
 		for(String key : oldMap.keySet()){
 			itemPermissionManager.deleteById(key);
 		}
-		formModelManager.save(entity);
-		return entity;
+		formModelManager.save(formModelEntity);
+		return formModelEntity;
 	}
 
 	@Override
 	public FormModelEntity saveFormModelSubmitCheck(FormModelEntity entity) {
-		FormModelEntity formModelEntity = new FormModelEntity();
+        FormModelEntity formModelEntity = get(entity.getId());
 		BeanUtils.copyProperties(entity, formModelEntity, new String[] {"items","dataModels","permissions","submitChecks"});
 
 		Map<String, FormSubmitCheckInfo> oldMap = new HashMap<>();
@@ -666,22 +669,27 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			List<FormSubmitCheckInfo> submitCheckInfos = new ArrayList<>();
 			for(FormSubmitCheckInfo formSubmitCheckInfo : newSubmitCheck){
 				FormSubmitCheckInfo checkInfo = null;
-				if(!formSubmitCheckInfo.isNew()){
+				boolean isNew = formSubmitCheckInfo.isNew();
+				if(!isNew){
 					checkInfo = oldMap.remove(formSubmitCheckInfo.getId());
 				}else{
 					 checkInfo = new FormSubmitCheckInfo() ;
 				}
 				BeanUtils.copyProperties(formSubmitCheckInfo, checkInfo, new String[]{"formModel"});
-				checkInfo.setFormModel(entity);
+				if(isNew){
+                    Integer orderNo = formSubmitCheckService.getMaxOrderNo();
+                    checkInfo.setOrderNo(orderNo == null ? 1 : orderNo + 1);
+                }
+				checkInfo.setFormModel(formModelEntity);
 				submitCheckInfos.add(checkInfo);
 			}
-			entity.setSubmitChecks(submitCheckInfos);
+            formModelEntity.setSubmitChecks(submitCheckInfos);
 		}
 		for(String key : oldMap.keySet()){
 			formSubmitCheckManager.deleteById(key);
 		}
-		formModelManager.save(entity);
-		return entity;
+		formModelManager.save(formModelEntity);
+		return formModelEntity;
 	}
 
 	//设置旧的item参数
