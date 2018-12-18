@@ -12,6 +12,7 @@ import java.util.Dictionary;
 import java.util.List;
 
 
+@RestController
 @RequestMapping("/dictionary")
 public interface DictionaryService {
 
@@ -97,6 +98,6 @@ public interface DictionaryService {
 			@ApiImplicitParam(paramType="path", name = "itemId", value = "字典表选项ID", required = true, dataType = "String"),
 			@ApiImplicitParam(paramType="query", name = "number", value = "上移-1，下移+1", required = true, dataType = "Integer")
 	})
-	@DeleteMapping("/items/orderno/{itemId}")
-	void updateItemOrderNo( @PathVariable(name="itemId",required = true) String itemId, @PathVariable(name="number", required = true) int number);
+	@PutMapping("/items/orderno/{itemId}")
+	void updateItemOrderNo( @PathVariable(name="itemId",required = true) String itemId, @RequestParam(name="number", required = true) Integer number);
 }

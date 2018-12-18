@@ -1,16 +1,16 @@
 package tech.ascs.icity.iform.controller;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.annotations.Api;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.DictionaryItemModel;
 import tech.ascs.icity.iform.api.model.DictionaryModel;
@@ -22,8 +22,8 @@ import tech.ascs.icity.model.Page;
 
 import javax.transaction.Transactional;
 
-@RestController
 @Api(tags = "字典表管理服务",description = "字典表管理")
+@RestController
 public class DictionaryController implements tech.ascs.icity.iform.api.service.DictionaryService {
 
 	@Autowired
@@ -35,8 +35,39 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 		for(DictionaryEntity dictionaryEntity : list){
 			dictionaryEntity.setDictionaryItems(sortedItem(dictionaryEntity.getDictionaryItems()));
 		}
-		return DTOTools.wrapList(list, DictionaryModel.class);
+        List<DictionaryModel> dictionaryModels = new ArrayList<>();
+		for(DictionaryEntity dictionaryEntity : list){
+            dictionaryModels.add(getByEntity(dictionaryEntity));
+        }
+		return dictionaryModels;
 	}
+
+
+    private DictionaryModel getByEntity(DictionaryEntity dictionaryEntity){
+        DictionaryModel dictionaryModel = new DictionaryModel();
+        BeanUtils.copyProperties(dictionaryEntity, dictionaryModel, new String[]{"dictionaryItems"});
+        if(dictionaryEntity.getDictionaryItems() != null){
+            List<DictionaryItemModel> itemModelList = new ArrayList<>();
+            for(DictionaryItemEntity entity : dictionaryEntity.getDictionaryItems()){
+                itemModelList.add(getByEntity(entity));
+            }
+            dictionaryModel.setDictionaryItems(itemModelList);
+        }
+        return dictionaryModel;
+    }
+
+	private DictionaryItemModel getByEntity(DictionaryItemEntity dictionaryItemEntity){
+        DictionaryItemModel dictionaryItemModel = new DictionaryItemModel();
+        BeanUtils.copyProperties(dictionaryItemEntity, dictionaryItemModel, new String[]{"dictionary", "paraentItem", "childrenItem"});
+        if(dictionaryItemEntity.getChildrenItem() != null) {
+            List<DictionaryItemModel> list = new ArrayList<>();
+            for (DictionaryItemEntity childDictionaryItemEntity : dictionaryItemEntity.getChildrenItem()) {
+                list.add(getByEntity(childDictionaryItemEntity));
+            }
+            dictionaryItemModel.setChildrenItem(list);
+        }
+        return dictionaryItemModel;
+    }
 
 	private List<DictionaryItemEntity> sortedItem(List<DictionaryItemEntity> list){
 		if(list == null || list.size() < 1){
@@ -102,9 +133,11 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
     }
 
 	@Override
+    @ResponseBody
 	public List<DictionaryItemModel> listItem(String id) {
     	DictionaryEntity dictionary = dictionaryService.get(id);
-		return DTOTools.wrapList(dictionary.getDictionaryItems(), DictionaryItemModel.class);
+		List<DictionaryItemModel> list = DTOTools.wrapList(dictionary.getDictionaryItems(), DictionaryItemModel.class);
+		return list;
 	}
 
 	@Override
@@ -153,7 +186,7 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 
 	@Override
 	@Transactional
-	public void updateItemOrderNo(String itemId, int number) {
+	public void updateItemOrderNo(String itemId, Integer number) {
 		DictionaryItemEntity itemEntity = dictionaryService.getDictionaryItemById(itemId);
 		if(itemEntity == null && itemEntity == null){
 			throw new IFormException("查询关联对象失败");

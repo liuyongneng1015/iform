@@ -3,14 +3,7 @@ package tech.ascs.icity.iform.api.service;
 import java.util.List;
 
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -22,6 +15,7 @@ import tech.ascs.icity.iform.api.model.DataModelInfo;
 import tech.ascs.icity.model.IdEntity;
 import tech.ascs.icity.model.Page;
 
+@RestController
 @RequestMapping("/data-models")
 public interface DataModelService {
 
