@@ -136,6 +136,7 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
     @ResponseBody
 	public List<DictionaryItemModel> listItem(String id) {
     	DictionaryEntity dictionary = dictionaryService.get(id);
+		dictionary.setDictionaryItems(sortedItem(dictionary.getDictionaryItems()));
 		List<DictionaryItemModel> list = DTOTools.wrapList(dictionary.getDictionaryItems(), DictionaryItemModel.class);
 		return list;
 	}
@@ -206,18 +207,20 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 				//上移-1
 				if(number < 0 && i > 0){
 					DictionaryItemEntity dictionaryItem = dictionaryItemEntities.get(i-1);
+					Integer otherNo = dictionaryItem.getOrderNo();
 					dictionaryItem.setOrderNo(orderNo);
 					dictionaryService.saveDictionaryItem(dictionaryItem);
 
-					dictionaryItemEntity.setOrderNo(dictionaryItem.getOrderNo());
+					dictionaryItemEntity.setOrderNo(otherNo);
 					dictionaryService.saveDictionaryItem(dictionaryItemEntity);
 				}else if(number > 0 && i+1 < dictionaryItemEntities.size()){
 					//下移
 					DictionaryItemEntity dictionaryItem = dictionaryItemEntities.get(i+1);
+					Integer otherNo = dictionaryItem.getOrderNo();
 					dictionaryItem.setOrderNo(orderNo);
 					dictionaryService.saveDictionaryItem(dictionaryItem);
 
-					dictionaryItemEntity.setOrderNo(dictionaryItem.getOrderNo());
+					dictionaryItemEntity.setOrderNo(otherNo);
 					dictionaryService.saveDictionaryItem(dictionaryItemEntity);
 				}
 			}
