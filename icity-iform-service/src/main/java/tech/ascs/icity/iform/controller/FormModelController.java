@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.annotations.Api;
+import tech.ascs.icity.admin.api.model.Application;
+import tech.ascs.icity.admin.api.service.ApplicationService;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.model.*;
@@ -42,6 +44,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 	@Autowired
 	private ColumnModelService columnModelService;
+
+	@Autowired
+	private ApplicationService applicationService;
 
 	@Override
 	public List<FormModel> list(@RequestParam(name="name", defaultValue="") String name, @RequestParam(name = "applicationId", required = false) String applicationId) {
@@ -241,13 +246,16 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			Set<String> c = map.keySet();
 			String[] applicationIds =  new String[c.size()];
 			c.toArray(applicationIds);
-
+			List<Application> applicationList = applicationService.queryAppsByIds(new ArrayList<>(c));
+			for(Application application : applicationList){
+				ApplicationFormModel applicationFormModel = new ApplicationFormModel();
+				applicationFormModel.setId(application.getId());
+				applicationFormModel.setName(application.getApplicationName());
+				applicationFormModel.setFormModels(map.get(application.getId()));
+				applicationFormModels.add(applicationFormModel);
+			}
 		}
-		ApplicationFormModel applicationFormModel = new ApplicationFormModel();
-		applicationFormModel.setId("zzz");
-		applicationFormModel.setName("本地应用");
-		applicationFormModel.setFormModels(formModelList);
-		applicationFormModels.add(applicationFormModel);
+
 		return applicationFormModels;
 	}
 

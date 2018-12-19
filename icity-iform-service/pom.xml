@@ -83,6 +83,10 @@
 			<artifactId>icity-iflow-client</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>tech.ascs.icity</groupId>
+			<artifactId>icity-admin-client</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
 			<scope>runtime</scope>
