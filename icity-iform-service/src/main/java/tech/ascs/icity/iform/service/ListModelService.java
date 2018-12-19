@@ -11,4 +11,12 @@ public interface ListModelService extends JPAService<ListModelEntity> {
     //查询列表模型
     List<ListModel> findListModelsByTableName(String tableName);
 
+    //删除排序
+    void deleteSort(String id);
+
+    //删除排序
+    void deleteSearch(String id);
+
+    //删除排序
+    void deleteFunction(String id);
 }

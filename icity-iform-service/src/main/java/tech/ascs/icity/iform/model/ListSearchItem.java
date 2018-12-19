@@ -8,6 +8,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import tech.ascs.icity.jpa.dao.model.BaseEntity;
 import tech.ascs.icity.jpa.dao.model.JPAEntity;
 
 /**
@@ -15,7 +16,7 @@ import tech.ascs.icity.jpa.dao.model.JPAEntity;
  */
 @Entity
 @Table(name = "ifm_list_search_item")
-public class ListSearchItem extends JPAEntity implements Serializable {
+public class ListSearchItem extends BaseEntity implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 

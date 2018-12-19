@@ -102,6 +102,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			veryTableName(dataModelEntity);
 		}
 		verifyFormModelName(formModel);
+		verifyItemModelName(formModel);
  		FormModelEntity oldEntity = formModelService.saveFormModel(formModel);
 		return new IdEntity(oldEntity.getId());
 	}
@@ -213,6 +214,43 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 	}
 
+	@Override
+	public List<ApplicationFormModel> findApplicationFormModel() {
+		List<FormModelEntity> formModels = formModelService.findAll();
+		List<FormModel> formModelList = new ArrayList<>();
+		Map<String, List<FormModel>> map = new HashMap<>();
+		for(FormModelEntity entity : formModels){
+
+			FormModel formModel = new FormModel();
+			BeanUtils.copyProperties(entity, formModel, new String[] {"items","dataModels","permissions","submitChecks"});
+			formModelList.add(formModel);
+
+			if(!StringUtils.hasText(entity.getApplicationId())){
+				continue;
+			}
+			List<FormModel> list = map.get(entity.getApplicationId());
+			if(list == null){
+				list = new ArrayList<>();
+			}
+			list.add(formModel);
+			map.put(entity.getApplicationId(), list);
+		}
+		List<ApplicationFormModel> applicationFormModels = new ArrayList<>();
+		if(map != null && map.size() > 0) {
+			//TODO 查询应用
+			Set<String> c = map.keySet();
+			String[] applicationIds =  new String[c.size()];
+			c.toArray(applicationIds);
+
+		}
+		ApplicationFormModel applicationFormModel = new ApplicationFormModel();
+		applicationFormModel.setId("zzz");
+		applicationFormModel.setName("本地应用");
+		applicationFormModel.setFormModels(formModelList);
+		applicationFormModels.add(applicationFormModel);
+		return applicationFormModels;
+	}
+
 	private void verifyFormModelName(FormModel formModel){
 		if(formModel == null || StringUtils.isEmpty(formModel.getName())){
 			return;
@@ -229,11 +267,31 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			}
 		}
 	}
+
+	private void verifyItemModelName(FormModel formModel){
+		if(formModel == null){
+			return;
+		}
+		List<ItemModel> list  = formModel.getItems();
+		if(list != null){
+			Map<String, Object> map = new HashMap<>();
+			for(ItemModel itemModel : list){
+				if(itemModel.getName() != null){
+					if(map.get(itemModel.getName()) != null){
+						throw new IFormException("控件名称不能重复");
+					}
+					map.put(itemModel.getName(), itemModel.getName());
+				}
+			}
+		}
+	}
+
 	private FormModelEntity wrap(FormModel formModel) {
 		FormModelEntity entity = new FormModelEntity();
 		BeanUtils.copyProperties(formModel, entity, new String[] {"items","dataModels","permissions","submitChecks"});
 
 		verifyFormModelName(formModel);
+		verifyItemModelName(formModel);
 
 		List<DataModel> dataModels = formModel.getDataModels();
 		if(dataModels == null || dataModels.isEmpty()){
@@ -653,9 +711,17 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	//关联的列表模型
 	private ListModel getItemModelByEntity(ItemModelEntity itemModelEntity){
 		ListModel ListModel = new ListModel();
-		if(itemModelEntity != null && ((ReferenceItemModelEntity)itemModelEntity).getReferenceList() != null){
-			BeanUtils.copyProperties(((ReferenceItemModelEntity)itemModelEntity).getReferenceList(), ListModel, new String[]{"masterForm", "slaverForms","sortItems","searchItems","functions","displayItems"});
+		if(itemModelEntity == null){
 			return ListModel;
+		}
+		ListModelEntity listModelEntity = null;
+		if (itemModelEntity instanceof  ReferenceItemModelEntity){
+			listModelEntity = ((ReferenceItemModelEntity) itemModelEntity).getReferenceList();
+		}else if(itemModelEntity instanceof  SelectItemModelEntity){
+			listModelEntity = ((SelectItemModelEntity) itemModelEntity).getReferenceList();
+		}
+		if(listModelEntity != null){
+			BeanUtils.copyProperties(listModelEntity , ListModel, new String[]{"masterForm", "slaverForms","sortItems","searchItems","functions","displayItems"});
 		}
 		return ListModel;
 	}
@@ -687,7 +753,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 	private FormModel toDTO(FormModelEntity entity) throws InstantiationException, IllegalAccessException {
 		FormModel formModel = new FormModel();
-		BeanUtils.copyProperties(entity, formModel, new String[] {"items","dataModels"});
+		BeanUtils.copyProperties(entity, formModel, new String[] {"items","dataModels","permissions","submitChecks"});
 		if(entity.getDataModels() != null && entity.getDataModels().size() > 0){
 			List<DataModel> dataModelList = new ArrayList<>();
 			List<DataModelEntity> dataModelEntities = entity.getDataModels();

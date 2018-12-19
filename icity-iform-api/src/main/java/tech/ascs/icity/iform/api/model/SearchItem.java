@@ -6,9 +6,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import tech.ascs.icity.model.NameEntity;
 
 @ApiModel("列表搜索字段信息")
-public class SearchItem extends ItemModel {
+public class SearchItem extends NameEntity {
 
 	public static class Search {
 		@ApiModelProperty(value = "查询类型", position = 0)
@@ -40,6 +41,9 @@ public class SearchItem extends ItemModel {
 	@ApiModelProperty(value = "查询定义，用于列表中的查询条件", position = 6)
 	private Search search;
 
+	@ApiModelProperty(value = "关联控件", position = 6)
+	private ItemModel itemModel;
+
 	public Search getSearch() {
 		return search;
 	}
@@ -48,16 +52,11 @@ public class SearchItem extends ItemModel {
 		this.search = search;
 	}
 
-	@JsonIgnore
-	@Override
-	public ColumnModelInfo getColumnModel() {
-		return super.getColumnModel();
+	public ItemModel getItemModel() {
+		return itemModel;
 	}
 
-	@JsonIgnore
-	@Override
-	public List<ActivityInfo> getActivities() {
-		return super.getActivities();
+	public void setItemModel(ItemModel itemModel) {
+		this.itemModel = itemModel;
 	}
-
 }

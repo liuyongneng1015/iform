@@ -103,6 +103,21 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 		}
 	}
 
+	@Override
+	public void deleteSort(String id) {
+		sortItemManager.deleteById(id);
+	}
+
+	@Override
+	public void deleteSearch(String id) {
+		searchItemManager.deleteById(id);
+	}
+
+	@Override
+	public void deleteFunction(String id) {
+		listFunctionManager.deleteById(id);
+	}
+
 	@Transactional(readOnly = false)
 	protected ListModelEntity doUpdate(ListModelEntity entity, List<String> deletedSortItemIds, List<String> searchItemIds, List<String> deletedFunctionIds) {
 		if (deletedSortItemIds.size() > 0) {

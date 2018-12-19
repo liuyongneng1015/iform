@@ -11,6 +11,16 @@ public enum SystemItemType {
 	/** 未知类型 */
 	NONE(""),
 
+	/** 人员单选 */
+	PersonnelRadio("PersonnelRadio"),
+	/** 人员多选 */
+	PersonnelMore("PersonnelMore"),
+
+	/** 部门单选 */
+	DepartmentRadio("DepartmentRadio"),
+	/** 部门多选 */
+	DepartmentMore("DepartmentMore"),
+
 	/** 主键id */
 	ID("ID"),
 	/** 子表id */

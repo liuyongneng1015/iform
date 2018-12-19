@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import tech.ascs.icity.iform.api.model.ApplicationFormModel;
 import tech.ascs.icity.iform.api.model.FormModel;
 import tech.ascs.icity.iform.api.model.PCFormModel;
 import tech.ascs.icity.model.IdEntity;
@@ -162,5 +163,15 @@ public interface FormModelService {
 	})
 	@PutMapping(value = "/submit_check/{id}", consumes = {MediaType.APPLICATION_JSON_UTF8_VALUE})
 	void saveFormModelSubmitCheck(@PathVariable(name="id") String id, @RequestBody FormModel formModel);
+
+
+	/**
+	 * 应用表单模型
+	 *
+	 */
+	@ApiOperation(value = "应用表单模型", position = 3)
+	@ApiImplicitParams({})
+	@GetMapping(value = "/application")
+	List<ApplicationFormModel> findApplicationFormModel();
 
 }

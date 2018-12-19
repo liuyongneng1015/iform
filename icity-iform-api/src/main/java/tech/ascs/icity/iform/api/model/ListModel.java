@@ -13,29 +13,22 @@ import tech.ascs.icity.model.NameEntity;
 @ApiModel("列表模型ListModel")
 public class ListModel extends NameEntity {
 
-	@ApiModel("表单模型摘要信息")
-	public static class FormModelInfo extends FormModel {
-		@JsonIgnore
-		@Override
-		public List<DataModel> getDataModels() {
-			return super.getDataModels();
-		}
-		@JsonIgnore
-		@Override
-		public ProceeeModel getProcess() {
-			return super.getProcess();
-		}
-		@JsonIgnore
-		@Override
-		public List<ItemModel> getItems() {
-			return super.getItems();
-		}
-	}
 
 	@ApiModel("列表排序字段摘要信息")
 	public static class SortItem extends NameEntity {
-		@ApiModelProperty(value = "是否正序", position = 2)
+		@ApiModelProperty(value = "关联控件", position = 2)
+		private ItemModel itemModel;
+		@ApiModelProperty(value = "是否正序", position = 3)
 		private boolean asc;
+
+		public ItemModel getItemModel() {
+			return itemModel;
+		}
+
+		public void setItemModel(ItemModel itemModel) {
+			this.itemModel = itemModel;
+		}
+
 		public boolean isAsc() {
 			return asc;
 		}
@@ -44,7 +37,7 @@ public class ListModel extends NameEntity {
 		}
 	}
 
-	public static class Function {
+	public static class Function extends NameEntity {
 		@ApiModelProperty(value = "显示名称，如“新增”、“删除”等等", position = 0)
 		private String label;
 		@ApiModelProperty(value = "操作，由后端提供可供选择的操作列表，现在支持操作有：add、edit、delete", position = 1)
@@ -95,9 +88,6 @@ public class ListModel extends NameEntity {
 		}
 	}
 
-	@ApiModel("列表显示字段摘要信息")
-	public static class DisplayItem extends NameEntity {
-	}
 
 	@ApiModelProperty(value = "描述", position = 2)
 	private String description;
@@ -106,10 +96,10 @@ public class ListModel extends NameEntity {
 	private boolean multiSelect = false;
 
 	@ApiModelProperty(value = "主表单模型", position = 4)
-	private FormModelInfo masterForm;
+	private FormModel masterForm;
 
 	@ApiModelProperty(value = "附加表单模型列表", position = 5)
-	private List<FormModelInfo> slaverForms = new ArrayList<FormModelInfo>();
+	private List<FormModel> slaverForms = new ArrayList<FormModel>();
 
 	@ApiModelProperty(value = "排序字段列表", position = 6)
 	private List<SortItem> sortItems = new ArrayList<SortItem>();
@@ -121,7 +111,10 @@ public class ListModel extends NameEntity {
 	private List<SearchItem> searchItems = new ArrayList<SearchItem>();
 
 	@ApiModelProperty(value = "显示字段列表", position = 9)
-	private List<DisplayItem> displayItems = new ArrayList<DisplayItem>();
+	private List<ItemModel> displayItems = new ArrayList<ItemModel>();
+
+	@ApiModelProperty(value = "应用id", position = 10)
+	private String applicationId;
 
 	public String getDescription() {
 		return description;
@@ -139,19 +132,19 @@ public class ListModel extends NameEntity {
 		this.multiSelect = multiSelect;
 	}
 
-	public FormModelInfo getMasterForm() {
+	public FormModel getMasterForm() {
 		return masterForm;
 	}
 
-	public void setMasterForm(FormModelInfo masterForm) {
+	public void setMasterForm(FormModel masterForm) {
 		this.masterForm = masterForm;
 	}
 
-	public List<FormModelInfo> getSlaverForms() {
+	public List<FormModel> getSlaverForms() {
 		return slaverForms;
 	}
 
-	public void setSlaverForms(List<FormModelInfo> slaverForms) {
+	public void setSlaverForms(List<FormModel> slaverForms) {
 		this.slaverForms = slaverForms;
 	}
 
@@ -179,12 +172,20 @@ public class ListModel extends NameEntity {
 		this.searchItems = searchItems;
 	}
 
-	public List<DisplayItem> getDisplayItems() {
+	public List<ItemModel> getDisplayItems() {
 		return displayItems;
 	}
 
-	public void setDisplayItems(List<DisplayItem> displayItems) {
+	public void setDisplayItems(List<ItemModel> displayItems) {
 		this.displayItems = displayItems;
+	}
+
+	public String getApplicationId() {
+		return applicationId;
+	}
+
+	public void setApplicationId(String applicationId) {
+		this.applicationId = applicationId;
 	}
 
 	@Override

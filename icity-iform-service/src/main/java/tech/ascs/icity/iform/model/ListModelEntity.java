@@ -4,14 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 import tech.ascs.icity.jpa.dao.model.BaseEntity;
 
@@ -31,6 +24,9 @@ public class ListModelEntity extends BaseEntity implements Serializable {
 	@ManyToOne
 	@JoinColumn(name="master_form")
 	private FormModelEntity masterForm;
+
+	@Column(name = "application_id")
+	private String applicationId;//应用id
 
 	@ManyToMany
 	@JoinTable(
@@ -79,6 +75,14 @@ public class ListModelEntity extends BaseEntity implements Serializable {
 
 	public void setMasterForm(FormModelEntity masterForm) {
 		this.masterForm = masterForm;
+	}
+
+	public String getApplicationId() {
+		return applicationId;
+	}
+
+	public void setApplicationId(String applicationId) {
+		this.applicationId = applicationId;
 	}
 
 	public List<FormModelEntity> getSlaverForms() {
