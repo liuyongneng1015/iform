@@ -82,7 +82,7 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 					if(itemModel.isNew()){
 						continue;
 					}
-					ItemModelEntity itemModelEntity = oldItemMap.remove(itemModel.getId());
+					ItemModelEntity itemModelEntity = itemModelService.find(itemModel.getId());
 					itemModels.add(itemModelEntity);
 				}
 			}
@@ -122,8 +122,10 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 			if (entity.getSearchItems() != null) {
 				List<ListSearchItem> searchItems = new ArrayList<ListSearchItem>();
 				for (ListSearchItem searchItem : entity.getSearchItems()) {
-					ListSearchItem searchItemEntity = searchItem.isNew() ? new ListSearchItem() : oldSearchItemMap.remove(searchItem.getId());
-					searchItemEntity.setItemModel(searchItem.getItemModel() == null || searchItem.getItemModel().isNew() ? null : itemModelService.get(searchItem.getItemModel().getId()));
+					ListSearchItem searchItemEntity =  new ListSearchItem();
+					if(searchItem.getItemModel() != null) {
+						searchItemEntity.setItemModel(itemModelService.get(searchItem.getItemModel().getId()));
+					}
 					searchItemEntity.setListModel(old);
 					if (searchItem.getSearch() == null) {
 						throw new IFormException("控件【" + searchItemEntity.getItemModel().getName() + "】未定义搜索属性");

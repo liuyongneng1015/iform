@@ -1,9 +1,8 @@
 package tech.ascs.icity.iform.controller;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
@@ -177,17 +176,24 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			List<ListSearchItem> searchItems = new ArrayList<ListSearchItem>();
 			for (SearchItem searchItem : listModel.getSearchItems()) {
 				ListSearchItem searchItemEntity =  new ListSearchItem();
-				if(searchItem.getItemModel() != null){
+				ItemModelEntity itemModelEntity = new ItemModelEntity();
+				itemModelEntity.setId(searchItem.getId());
+				itemModelEntity.setName(searchItem.getName());
+				searchItemEntity.setItemModel(itemModelEntity);
+				/*if(searchItem.getItemModel() != null){
 					ItemModelEntity itemModelEntity = new ItemModelEntity();
 					BeanUtils.copyProperties(searchItem.getItemModel(), itemModelEntity, new String[]{"formModel", "columnModel", "activities", "options", "permission","items","parentItem","referenceList"});
 					searchItemEntity.setItemModel(itemModelEntity);
-				}
+				}*/
 				searchItemEntity.setListModel(entity);
 				if (searchItem.getSearch() == null) {
 					throw new IFormException("控件【" + searchItemEntity.getItemModel().getName() + "】未定义搜索属性");
 				}
 				ItemSearchInfo searchInfo = new ItemSearchInfo();
-				BeanUtils.copyProperties(searchItem.getSearch(), searchInfo);
+				BeanUtils.copyProperties(searchItem.getSearch(), searchInfo, new String[]{"defaultValue"});
+				if(searchItem.getSearch().getDefaultValue() != null){
+					searchInfo.setDefaultValue(org.apache.commons.lang3.StringUtils.join(searchItem.getSearch().getDefaultValue(),","));
+				}
 				searchItemEntity.setSearch(searchInfo);
 				searchItems.add(searchItemEntity);
 			}
@@ -229,12 +235,22 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 
 	private ListModel toDTO(ListModelEntity entity) {
 		ListModel listModel = new ListModel();
-		BeanUtils.copyProperties(entity, listModel, new String[] {"masterForm","sortItems", "functions","searchItems","slaverForms"});
+		BeanUtils.copyProperties(entity, listModel, new String[] {"displayItems", "masterForm","sortItems", "functions","searchItems","slaverForms"});
 
 		if(entity.getMasterForm() != null){
 			FormModel masterForm = new FormModel();
 			BeanUtils.copyProperties(entity.getMasterForm(), masterForm, new String[] {"items","dataModels","permissions","submitChecks"});
 			listModel.setMasterForm(masterForm);
+		}
+
+		if(entity.getDisplayItems() != null){
+			List<ItemModel> list  = new ArrayList<>();
+			for(ItemModelEntity itemModelEntity : entity.getDisplayItems()){
+				ItemModel itemModel = new ItemModel();
+				BeanUtils.copyProperties(itemModelEntity, itemModel, new String[] {"permission", "items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});
+				list.add(itemModel);
+			}
+			listModel.setDisplayItems(list);
 		}
 
 		if(entity.getSlaverForms() != null){
@@ -261,9 +277,12 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			List<SortItem> sortItems = new ArrayList<SortItem>();
 			for (ListSortItem sortItemEntity: entity.getSortItems()) {
 				SortItem sortItem = new SortItem();
-				sortItem.setId(sortItemEntity.getItemModel().getId());
-				sortItem.setName(sortItemEntity.getItemModel().getName());
-				sortItem.setAsc(sortItemEntity.isAsc());
+				BeanUtils.copyProperties(sortItemEntity, sortItem, new String[]{"listModel","itemModel"});
+				if(sortItemEntity.getItemModel() != null){
+					ItemModel itemModel = new ItemModel();
+					BeanUtils.copyProperties(sortItemEntity.getItemModel(), itemModel, new String[] {"permission", "items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});
+					sortItem.setItemModel(itemModel);
+				}
 				sortItems.add(sortItem);
 			}
 			listModel.setSortItems(sortItems);
@@ -273,10 +292,17 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			List<SearchItem> searchItems = new ArrayList<SearchItem>();
 			for (ListSearchItem searchItemEntity : entity.getSearchItems()) {
 				SearchItem searchItem = new SearchItem();
-				BeanUtils.copyProperties(searchItemEntity.getItemModel(), searchItem, new String[] {"columnModel", "activities"});
-				Search search = new Search();
-				BeanUtils.copyProperties(searchItemEntity.getSearch(), search);
-				searchItem.setSearch(search);
+				if(searchItemEntity.getItemModel() != null){
+					BeanUtils.copyProperties(searchItemEntity.getItemModel(), searchItem, new String[] {"permission", "items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});
+				}
+				if(searchItemEntity.getSearch() != null){
+					Search search = new Search();
+					BeanUtils.copyProperties(searchItemEntity.getSearch(), search, new String[] {"search","defaultValue"});
+					if(StringUtils.hasText(searchItemEntity.getSearch().getDefaultValue())){
+						search.setDefaultValue(Arrays.asList(searchItemEntity.getSearch().getDefaultValue().split(",")));
+					}
+					searchItem.setSearch(search);
+				}
 				searchItems.add(searchItem);
 			}
 			listModel.setSearchItems(searchItems);

@@ -24,7 +24,6 @@ import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.FormInstanceServiceEx;
 import tech.ascs.icity.iform.service.FormModelService;
-import tech.ascs.icity.iform.service.ItemModelService;
 import tech.ascs.icity.iform.support.IFormSessionFactoryBuilder;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;

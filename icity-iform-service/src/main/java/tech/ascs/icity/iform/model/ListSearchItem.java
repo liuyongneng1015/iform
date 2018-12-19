@@ -9,7 +9,6 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import tech.ascs.icity.jpa.dao.model.BaseEntity;
-import tech.ascs.icity.jpa.dao.model.JPAEntity;
 
 /**
  * 列表排序字段
