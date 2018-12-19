@@ -39,7 +39,7 @@ public class ItemModelEntity extends  BaseEntity implements Serializable {
 	@JoinColumn(name="props")
 	private String props;
 
-	@Column(name="hidden_condition",length = 2048)//隐藏条件
+	@Column(name="hidden_conditions",columnDefinition="text")//隐藏条件
 	private String hiddenCondition;
 
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "itemModel")

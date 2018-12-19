@@ -8,6 +8,9 @@ package tech.ascs.icity.iform.api.model;
  */
 public enum SystemItemType {
 
+	/** 未知类型 */
+	NONE(""),
+
 	/** 主键id */
 	ID("ID"),
 	/** 子表id */
