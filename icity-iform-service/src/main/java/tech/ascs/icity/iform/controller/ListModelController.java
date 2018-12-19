@@ -128,37 +128,45 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 	}
 
 	private ListModelEntity wrap(ListModel listModel)  {
-		ListModelEntity entity = listModel.isNew() ? new ListModelEntity() : listModelService.get(listModel.getId()) ;
-		BeanUtils.copyProperties(listModel, entity, new String[] {"masterForm","slaverForms","sortItems", "searchItems","functions"});
+		ListModelEntity entity =  new ListModelEntity() ;
+		BeanUtils.copyProperties(listModel, entity, new String[] {"masterForm","slaverForms","sortItems", "searchItems","functions","displayItems"});
 
 		if(listModel.getMasterForm() != null && !listModel.getMasterForm().isNew()){
-			entity.setMasterForm(formModelService.get(listModel.getMasterForm().getId()));
+			FormModelEntity formModelEntity = new FormModelEntity();
+			BeanUtils.copyProperties(listModel.getMasterForm(), formModelEntity, new String[] {"dataModels","process","items", "permissions","submitChecks"});
+			entity.setMasterForm(formModelEntity);
 		}
 
-		List<ListSortItem> oldSortItems = entity.getSortItems();
-		Map<String, ListSortItem> oldSortMap = new HashMap<>();
-		for(ListSortItem sortItem : oldSortItems){
-			oldSortMap.put(sortItem.getId(), sortItem);
+		if(listModel.getSlaverForms() != null) {
+			List<FormModelEntity> formModelEntities = new ArrayList<>();
+			for (FormModel formModel : listModel.getSlaverForms()){
+				FormModelEntity formModelEntity = new FormModelEntity();
+				BeanUtils.copyProperties(formModel, formModelEntity, new String[]{"dataModels", "process", "items", "permissions", "submitChecks"});
+				formModelEntities.add(formModelEntity);
+			}
+			entity.setSlaverForms(formModelEntities);
 		}
 
-		List<ListFunction> oldFunctions = entity.getFunctions();
-		Map<String, ListFunction> oldFunctionMap = new HashMap<>();
-		for(ListFunction function : oldFunctions){
-			oldFunctionMap.put(function.getId(), function);
-		}
-
-		List<ListSearchItem> oldSearchItems = entity.getSearchItems();
-		Map<String, ListSearchItem> oldSearchItemMap = new HashMap<>();
-		for(ListSearchItem searchItem : oldSearchItems){
-			oldSearchItemMap.put(searchItem.getId(), searchItem);
+		if(listModel.getDisplayItems() != null) {
+			List<ItemModelEntity> itemModelEntities = new ArrayList<>();
+			for (ItemModel itemModel : listModel.getDisplayItems()){
+				ItemModelEntity itemModelEntity = new ItemModelEntity();
+				BeanUtils.copyProperties(itemModel, itemModelEntity, new String[]{"formModel", "columnModel", "activities", "options", "permission","items","parentItem","referenceList"});
+				itemModelEntities.add(itemModelEntity);
+			}
+			entity.setDisplayItems(itemModelEntities);
 		}
 
 		if (listModel.getSortItems() != null) {
 			List<ListSortItem> sortItems = new ArrayList<ListSortItem>();
 			for (SortItem sortItem : listModel.getSortItems()) {
-				ListSortItem sortItemEntity = sortItem.isNew() ?  new ListSortItem() : oldSortMap.remove(sortItem.getId());
+				ListSortItem sortItemEntity = new ListSortItem();
 				sortItemEntity.setListModel(entity);
-				sortItemEntity.setItemModel(sortItem.getItemModel() == null || sortItem.getItemModel().isNew() ? null : itemModelService.get(sortItem.getItemModel().getId()));
+				if(sortItem.getItemModel() != null){
+					ItemModelEntity itemModelEntity = new ItemModelEntity();
+					BeanUtils.copyProperties(sortItem.getItemModel(), itemModelEntity, new String[]{"formModel", "columnModel", "activities", "options", "permission","items","parentItem","referenceList"});
+					sortItemEntity.setItemModel(itemModelEntity);
+				}
 				sortItemEntity.setAsc(sortItem.isAsc());
 				sortItems.add(sortItemEntity);
 			}
@@ -168,8 +176,12 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		if (listModel.getSearchItems() != null) {
 			List<ListSearchItem> searchItems = new ArrayList<ListSearchItem>();
 			for (SearchItem searchItem : listModel.getSearchItems()) {
-				ListSearchItem searchItemEntity = searchItem.isNew() ? new ListSearchItem() : oldSearchItemMap.remove(searchItem.getId());
-				searchItemEntity.setItemModel(searchItem.getItemModel() == null || searchItem.getItemModel().isNew() ? null : itemModelService.get(searchItem.getItemModel().getId()));
+				ListSearchItem searchItemEntity =  new ListSearchItem();
+				if(searchItem.getItemModel() != null){
+					ItemModelEntity itemModelEntity = new ItemModelEntity();
+					BeanUtils.copyProperties(searchItem.getItemModel(), itemModelEntity, new String[]{"formModel", "columnModel", "activities", "options", "permission","items","parentItem","referenceList"});
+					searchItemEntity.setItemModel(itemModelEntity);
+				}
 				searchItemEntity.setListModel(entity);
 				if (searchItem.getSearch() == null) {
 					throw new IFormException("控件【" + searchItemEntity.getItemModel().getName() + "】未定义搜索属性");
@@ -184,26 +196,14 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		if (listModel.getFunctions() != null) {
 			List<ListFunction> functions = new ArrayList<>();
 			for (ListModel.Function function : listModel.getFunctions()) {
-				ListFunction listFunction = function.isNew() ? new ListFunction() : oldFunctionMap.get(function.getId());
+				ListFunction listFunction = new ListFunction() ;
 				BeanUtils.copyProperties(function, listFunction, new String[]{"listModel"});
 				listFunction.setListModel(entity);
 				functions.add(listFunction);
 			}
 			entity.setFunctions(functions);
 		}
-		try {
-			for(String str : oldSortMap.keySet()){
-				listModelService.deleteSort(str);
-			}
-			for(String str : oldSearchItemMap.keySet()){
-				listModelService.deleteSearch(str);
-			}
-			for(String str : oldFunctionMap.keySet()){
-				listModelService.deleteFunction(str);
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+
 		return entity;
 	}
 

@@ -2,8 +2,7 @@ package tech.ascs.icity.iform.service.impl;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -11,10 +10,10 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.transaction.annotation.Transactional;
 
 import tech.ascs.icity.iform.IFormException;
-import tech.ascs.icity.iform.api.model.DataModelInfo;
-import tech.ascs.icity.iform.api.model.ItemType;
-import tech.ascs.icity.iform.api.model.ListModel;
+import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.model.*;
+import tech.ascs.icity.iform.service.FormModelService;
+import tech.ascs.icity.iform.service.ItemModelService;
 import tech.ascs.icity.iform.service.ListModelService;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
@@ -30,6 +29,13 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
+
+	@Autowired
+	private FormModelService formModelService;
+
+	@Autowired
+	private ItemModelService itemModelService;
+
 
 	public ListModelServiceImpl() {
 		super(ListModelEntity.class);
@@ -47,36 +53,100 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 	public ListModelEntity save(ListModelEntity entity) {
 		validate(entity);
 		if (!entity.isNew()) { // 先删除所有搜索字段及列表功能然后重建
-			ListModelEntity old = get(entity.getId());
+			ListModelEntity old = get(entity.getId()) ;
+			BeanUtils.copyProperties(entity, old, new String[] {"masterForm","slaverForms","sortItems", "searchItems","functions","displayItems"});
 
-			List<String> sortItemIds = new ArrayList<String>();
-			for (ListSortItem item : old.getSortItems()) {
-				sortItemIds.add(item.getId());
+			if(entity.getMasterForm() != null && !entity.getMasterForm().isNew()){
+				old.setMasterForm(formModelService.get(entity.getMasterForm().getId()));
 			}
 
-			List<String> searchItemIds = new ArrayList<String>();
-			for (ListSearchItem item : old.getSearchItems()) {
-				searchItemIds.add(item.getId());
+			if(entity.getSlaverForms() != null){
+				List<FormModelEntity> list = new ArrayList<>();
+				for(FormModelEntity formModelEntity : entity.getSlaverForms()) {
+					if(!formModelEntity.isNew()) {
+						list.add(formModelService.get(entity.getMasterForm().getId()));
+					}
+				}
+				old.getSlaverForms().clear();
+				old.setSlaverForms(list);
 			}
 
-			List<String> functionIds = new ArrayList<String>();
-			for (ListFunction item : old.getFunctions()) {
-				functionIds.add(item.getId());
+			List<ItemModelEntity> oldItemModelEntities = old.getDisplayItems();
+			Map<String, ItemModelEntity> oldItemMap = new HashMap<>();
+			for(ItemModelEntity itemModel : oldItemModelEntities){
+				oldItemMap.put(itemModel.getId(), itemModel);
+			}
+			List<ItemModelEntity> itemModels = new ArrayList<ItemModelEntity>();
+			if(entity.getDisplayItems() != null){
+				for (ItemModelEntity itemModel : entity.getDisplayItems()) {
+					if(itemModel.isNew()){
+						continue;
+					}
+					ItemModelEntity itemModelEntity = oldItemMap.remove(itemModel.getId());
+					itemModels.add(itemModelEntity);
+				}
+			}
+			old.getDisplayItems().clear();
+			old.setDisplayItems(itemModels);
+
+			List<ListSortItem> oldSortItems = old.getSortItems();
+			Map<String, ListSortItem> oldSortMap = new HashMap<>();
+			for(ListSortItem sortItem : oldSortItems){
+				oldSortMap.put(sortItem.getId(), sortItem);
 			}
 
-			for (ListFunction function : entity.getFunctions()) {
-				function.setId(null);
+			List<ListFunction> oldFunctions = old.getFunctions();
+			Map<String, ListFunction> oldFunctionMap = new HashMap<>();
+			for(ListFunction function : oldFunctions){
+				oldFunctionMap.put(function.getId(), function);
 			}
-			old.setName(entity.getName());
-			old.setMultiSelect(entity.isMultiSelect());
-			old.setMasterForm(entity.getMasterForm());
-			old.setSlaverForms(entity.getSlaverForms());
-			old.setSortItems(entity.getSortItems());
-			old.setFunctions(entity.getFunctions());
-			old.setSearchItems(entity.getSearchItems());
-			old.setDisplayItems(entity.getDisplayItems());
 
-			return doUpdate(old, sortItemIds, searchItemIds, functionIds);
+			List<ListSearchItem> oldSearchItems = old.getSearchItems();
+			Map<String, ListSearchItem> oldSearchItemMap = new HashMap<>();
+			for(ListSearchItem searchItem : oldSearchItems){
+				oldSearchItemMap.put(searchItem.getId(), searchItem);
+			}
+
+			if (entity.getSortItems() != null) {
+				List<ListSortItem> sortItems = new ArrayList<ListSortItem>();
+				for (ListSortItem sortItem : entity.getSortItems()) {
+					ListSortItem sortItemEntity =  sortItem.isNew() ? new ListSortItem() : oldSortMap.remove(sortItem.getId());
+					sortItemEntity.setListModel(old);
+					sortItemEntity.setItemModel(sortItem.getItemModel() == null || sortItem.getItemModel().isNew() ? null : itemModelService.get(sortItem.getItemModel().getId()));
+					sortItemEntity.setAsc(sortItem.isAsc());
+					sortItems.add(sortItemEntity);
+				}
+				old.setSortItems(sortItems);
+			}
+
+			if (entity.getSearchItems() != null) {
+				List<ListSearchItem> searchItems = new ArrayList<ListSearchItem>();
+				for (ListSearchItem searchItem : entity.getSearchItems()) {
+					ListSearchItem searchItemEntity = searchItem.isNew() ? new ListSearchItem() : oldSearchItemMap.remove(searchItem.getId());
+					searchItemEntity.setItemModel(searchItem.getItemModel() == null || searchItem.getItemModel().isNew() ? null : itemModelService.get(searchItem.getItemModel().getId()));
+					searchItemEntity.setListModel(old);
+					if (searchItem.getSearch() == null) {
+						throw new IFormException("控件【" + searchItemEntity.getItemModel().getName() + "】未定义搜索属性");
+					}
+					ItemSearchInfo searchInfo = new ItemSearchInfo();
+					BeanUtils.copyProperties(searchItem.getSearch(), searchInfo);
+					searchItemEntity.setSearch(searchInfo);
+					searchItems.add(searchItemEntity);
+				}
+				old.setSearchItems(searchItems);
+			}
+			if (entity.getFunctions() != null) {
+				List<ListFunction> functions = new ArrayList<>();
+				for (ListFunction function : entity.getFunctions()) {
+					ListFunction listFunction = function.isNew() ? new ListFunction() : oldFunctionMap.get(function.getId());
+					BeanUtils.copyProperties(function, listFunction, new String[]{"listModel"});
+					listFunction.setListModel(old);
+					functions.add(listFunction);
+				}
+				old.setFunctions(functions);
+			}
+
+			return doUpdate(old, oldSortMap.keySet(), oldSearchItemMap.keySet(), oldFunctionMap.keySet());
 		} else {
 			return super.save(entity);
 		}
@@ -119,7 +189,7 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 	}
 
 	@Transactional(readOnly = false)
-	protected ListModelEntity doUpdate(ListModelEntity entity, List<String> deletedSortItemIds, List<String> searchItemIds, List<String> deletedFunctionIds) {
+	protected ListModelEntity doUpdate(ListModelEntity entity, Set<String> deletedSortItemIds, Set<String> searchItemIds, Set<String> deletedFunctionIds) {
 		if (deletedSortItemIds.size() > 0) {
 			sortItemManager.deleteById(deletedSortItemIds.toArray(new String[] {}));
 		}
