@@ -52,6 +52,10 @@ public interface DictionaryService extends JPAService<DictionaryEntity> {
 	 */
 	DictionaryItemEntity saveDictionaryItem(DictionaryItemEntity itemEntity);
 
-	Integer maxOrderNo();
+	//查找系统代码最大排序号
+	Integer maxDictionaryItemOrderNo();
+
+	//查找系统代码分类最大排序号
+	Integer maxDictionaryOrderNo();
 }
 

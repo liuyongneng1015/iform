@@ -23,6 +23,12 @@ public class DictionaryEntity extends BaseEntity {
 	 */
     @Column(name = "description")
 	private String description;
+
+	/**
+	 * 排序号
+	 */
+	@Column(name = "order_no")
+	private Integer orderNo;
 	
 	/**
 	 * 数据字典项
@@ -45,5 +51,12 @@ public class DictionaryEntity extends BaseEntity {
 	public void setDescription(String description) {
 		this.description = description;
 	}
-	
+
+	public Integer getOrderNo() {
+		return orderNo;
+	}
+
+	public void setOrderNo(Integer orderNo) {
+		this.orderNo = orderNo;
+	}
 }

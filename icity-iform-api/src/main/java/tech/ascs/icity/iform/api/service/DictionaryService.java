@@ -92,11 +92,19 @@ public interface DictionaryService {
 	@DeleteMapping("/{id}/items/{itemId}")
 	void deleteItem(@PathVariable(name="id") String id, @PathVariable(name="itemId") String itemId);
 
-	@ApiOperation("上下移动字典表选项")
+	@ApiOperation("上下移动系统代码")
 	@ApiImplicitParams({
 			@ApiImplicitParam(paramType="path", name = "itemId", value = "字典表选项ID", required = true, dataType = "String"),
-			@ApiImplicitParam(paramType="query", name = "number", value = "上移-1，下移+1", required = false)
+			@ApiImplicitParam(paramType="query", name = "orderNo", value = "上移-1，下移+1", required = false)
 	})
 	@PutMapping("/items/orderno/{itemId}")
-	void updateItemOrderNo( @PathVariable(name="itemId",required = true) String itemId, @RequestParam(name="number", defaultValue = "0") int number);
+	void updateItemOrderNo( @PathVariable(name="itemId",required = true) String itemId, @RequestParam(name="orderNo", defaultValue = "0") int orderNo);
+
+	@ApiOperation("上下移动系统代码分类")
+	@ApiImplicitParams({
+			@ApiImplicitParam(paramType="path", name = "id", value = "字典表选项ID", required = true, dataType = "String"),
+			@ApiImplicitParam(paramType="query", name = "orderNo", value = "上移-1，下移+1", required = false)
+	})
+	@PutMapping("/orderno/{id}")
+	void updateDictionaryOrderNo( @PathVariable(name="id",required = true) String id, @RequestParam(name="orderNo", defaultValue = "0") int orderNo);
 }

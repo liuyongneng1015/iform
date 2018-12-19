@@ -29,6 +29,12 @@ public class DictionaryModel extends NameEntity implements Codeable {
 	private String description;
 
 	/**
+	 * 排序号
+	 */
+	@ApiModelProperty(value = "排序号", position = 4)
+	private Integer orderNo;
+
+	/**
 	 * 数据字典项
 	 */
 	@ApiModelProperty(value = "数据字典项", position = 5)
@@ -57,6 +63,14 @@ public class DictionaryModel extends NameEntity implements Codeable {
 
 	public void setDescription(String description) {
 		this.description = description;
+	}
+
+	public Integer getOrderNo() {
+		return orderNo;
+	}
+
+	public void setOrderNo(Integer orderNo) {
+		this.orderNo = orderNo;
 	}
 
 	@Override

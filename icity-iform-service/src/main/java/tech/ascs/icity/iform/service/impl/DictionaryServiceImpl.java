@@ -102,11 +102,20 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 
 
 	@Override
-	public Integer maxOrderNo() {
+	public Integer maxDictionaryItemOrderNo() {
 		 Map<String, Object> map =	dictionaryItemManager.getJdbcTemplate().queryForMap("select max(order_no) as order_no from ifm_dictionary_item ");
 		 if(map != null && map.get("order_no") != null){
 			return Integer.parseInt(String.valueOf(map.get("order_no")));
 		 }
 		 return 0;
+	}
+
+	@Override
+	public Integer maxDictionaryOrderNo() {
+		Map<String, Object> map =	dictionaryItemManager.getJdbcTemplate().queryForMap("select max(order_no) as order_no from ifm_dictionary ");
+		if(map != null && map.get("order_no") != null){
+			return Integer.parseInt(String.valueOf(map.get("order_no")));
+		}
+		return 0;
 	}
 }
