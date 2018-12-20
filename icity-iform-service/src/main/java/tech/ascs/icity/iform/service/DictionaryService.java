@@ -31,10 +31,9 @@ public interface DictionaryService extends JPAService<DictionaryEntity> {
 	/**
 	 * 删除字典表选项
 	 * 
-	 * @param dictionaryId 字典表ID
 	 * @param itemId 选项ID
 	 */
-	void deleteDictionaryItem(String dictionaryId, String itemId);
+	void deleteDictionaryItem(String itemId);
 
 	/**
 	 * 获取字典表选项列表

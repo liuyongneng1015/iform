@@ -56,20 +56,20 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 			ListModelEntity old = get(entity.getId()) ;
 			BeanUtils.copyProperties(entity, old, new String[] {"masterForm","slaverForms","sortItems", "searchItems","functions","displayItems"});
 
-			if(entity.getMasterForm() != null && !entity.getMasterForm().isNew()){
-				old.setMasterForm(formModelService.get(entity.getMasterForm().getId()));
-			}
+            if(entity.getMasterForm() != null && !entity.getMasterForm().isNew()){
+                old.setMasterForm(formModelService.get(entity.getMasterForm().getId()));
+            }
 
-			if(entity.getSlaverForms() != null){
-				List<FormModelEntity> list = new ArrayList<>();
-				for(FormModelEntity formModelEntity : entity.getSlaverForms()) {
-					if(!formModelEntity.isNew()) {
-						list.add(formModelService.get(entity.getMasterForm().getId()));
-					}
-				}
-				old.getSlaverForms().clear();
-				old.setSlaverForms(list);
-			}
+            if(entity.getSlaverForms() != null){
+                List<FormModelEntity> list = new ArrayList<>();
+                for(FormModelEntity formModelEntity : entity.getSlaverForms()) {
+                    if(!formModelEntity.isNew()) {
+                        list.add(formModelService.get(entity.getMasterForm().getId()));
+                    }
+                }
+                old.getSlaverForms().clear();
+                old.setSlaverForms(list);
+            }
 
 			List<ItemModelEntity> oldItemModelEntities = old.getDisplayItems();
 			Map<String, ItemModelEntity> oldItemMap = new HashMap<>();
@@ -150,9 +150,27 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 
 			return doUpdate(old, oldSortMap.keySet(), oldSearchItemMap.keySet(), oldFunctionMap.keySet());
 		} else {
-			return super.save(entity);
+            setFormModel(entity);
+            return super.save(entity);
 		}
 	}
+
+	private  void setFormModel(ListModelEntity entity){
+        if(entity.getMasterForm() != null && !entity.getMasterForm().isNew()){
+            entity.setMasterForm(formModelService.get(entity.getMasterForm().getId()));
+        }
+
+        if(entity.getSlaverForms() != null){
+            List<FormModelEntity> list = new ArrayList<>();
+            for(FormModelEntity formModelEntity : entity.getSlaverForms()) {
+                if(!formModelEntity.isNew()) {
+                    list.add(formModelService.get(entity.getMasterForm().getId()));
+                }
+            }
+            entity.getSlaverForms().clear();
+            entity.setSlaverForms(list);
+        }
+    }
 
 	@Override
 	public List<ListModel> findListModelsByTableName(String tableName) {

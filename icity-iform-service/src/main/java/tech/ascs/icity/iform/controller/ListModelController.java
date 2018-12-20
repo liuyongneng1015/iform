@@ -182,19 +182,17 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 					itemModelEntity.setName(searchItem.getName());
 					searchItemEntity.setItemModel(itemModelEntity);
 				}
-				/*if(searchItem.getItemModel() != null){
-					ItemModelEntity itemModelEntity = new ItemModelEntity();
-					BeanUtils.copyProperties(searchItem.getItemModel(), itemModelEntity, new String[]{"formModel", "columnModel", "activities", "options", "permission","items","parentItem","referenceList"});
-					searchItemEntity.setItemModel(itemModelEntity);
-				}*/
 				searchItemEntity.setListModel(entity);
 				if (searchItem.getSearch() == null) {
 					throw new IFormException("控件【" + searchItemEntity.getItemModel().getName() + "】未定义搜索属性");
 				}
 				ItemSearchInfo searchInfo = new ItemSearchInfo();
 				BeanUtils.copyProperties(searchItem.getSearch(), searchInfo, new String[]{"defaultValue"});
-				if(searchItem.getSearch().getDefaultValue() != null){
+				Object defalueValue = searchItem.getSearch().getDefaultValue();
+				if(defalueValue != null && defalueValue instanceof List){
 					searchInfo.setDefaultValue(org.apache.commons.lang3.StringUtils.join(searchItem.getSearch().getDefaultValue(),","));
+				}else if(defalueValue != null && defalueValue instanceof String){
+					searchInfo.setDefaultValue(StringUtils.isEmpty(defalueValue) ? null : (String)defalueValue);
 				}
 				searchItemEntity.setSearch(searchInfo);
 				searchItems.add(searchItemEntity);

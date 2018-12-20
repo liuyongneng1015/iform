@@ -1,7 +1,5 @@
 package tech.ascs.icity.iform.api.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import org.apache.commons.lang3.StringUtils;
@@ -18,11 +16,10 @@ import java.util.List;
 public class DictionaryItemModel extends NameEntity implements Codeable {
 	
 	/**
-	 * 所属数据字典
+	 * 所属数据字典id
 	 */
-	@JsonBackReference
     @ApiModelProperty(hidden = true)
-	private DictionaryModel dictionary;
+	private String dictionaryId;
 
 	/**
 	 * 编码
@@ -47,20 +44,20 @@ public class DictionaryItemModel extends NameEntity implements Codeable {
 	 * 父选项
 	 */
 	@ApiModelProperty(value = "父选项", position = 6)
-	private DictionaryItemModel paraentItem ;
+	private String paraentItemId ;
 
 	/**
 	 * 子选项描述
 	 */
 	@ApiModelProperty(value = "子选项描述", position = 7)
-	private List<DictionaryItemModel> childrenItem = new ArrayList<>();
-	
-	public DictionaryModel getDictionary() {
-		return dictionary;
+	private List<DictionaryItemModel> resources = new ArrayList<>();
+
+	public String getDictionaryId() {
+		return dictionaryId;
 	}
 
-	public void setDictionary(DictionaryModel dictionary) {
-		this.dictionary = dictionary;
+	public void setDictionaryId(String dictionaryId) {
+		this.dictionaryId = dictionaryId;
 	}
 
 	@Override
@@ -88,20 +85,20 @@ public class DictionaryItemModel extends NameEntity implements Codeable {
 		this.orderNo = orderNo;
 	}
 
-	public DictionaryItemModel getParaentItem() {
-		return paraentItem;
+	public String getParaentItemId() {
+		return paraentItemId;
 	}
 
-	public void setParaentItem(DictionaryItemModel paraentItem) {
-		this.paraentItem = paraentItem;
+	public void setParaentItemId(String paraentItemId) {
+		this.paraentItemId = paraentItemId;
 	}
 
-	public List<DictionaryItemModel> getChildrenItem() {
-		return childrenItem;
+	public List<DictionaryItemModel> getResources() {
+		return resources;
 	}
 
-	public void setChildrenItem(List<DictionaryItemModel> childrenItem) {
-		this.childrenItem = childrenItem;
+	public void setResources(List<DictionaryItemModel> resources) {
+		this.resources = resources;
 	}
 
 	@Override

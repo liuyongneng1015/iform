@@ -28,6 +28,7 @@ import tech.ascs.icity.iform.support.IFormSessionFactoryBuilder;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 import tech.ascs.icity.model.Page;
+import tech.ascs.icity.rbac.feign.model.UserInfo;
 
 @Service
 public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity> implements FormInstanceServiceEx {
@@ -236,6 +237,12 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		for(ItemInstance itemInstance : list){
 			itemMap.put(itemInstance.getId(), itemInstance);
 		}
+		UserInfo user = null;
+		try {
+			user = tech.ascs.icity.rbac.util.Application.getCurrentUser();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		for(ItemModelEntity itemModelEntity : formModelEntity.getItems()){
 			if(itemModelEntity.getSystemItemType() != SystemItemType.CreateDate){
 				if(itemMap.keySet().contains(itemModelEntity.getId())){
@@ -246,7 +253,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				if(itemMap.keySet().contains(itemModelEntity.getId())){
 					list.remove(itemMap.get(itemModelEntity.getId()));
 				}
-				list.add(getItemInstance(itemModelEntity.getId(),"-1"));
+				list.add(getItemInstance(itemModelEntity.getId(), user != null ? user.getId() : "-1"));
 			}else if(itemModelEntity.getSystemItemType() != SystemItemType.SerialNumber){
 				if(itemMap.keySet().contains(itemModelEntity.getId())){
 					list.remove(itemMap.get(itemModelEntity.getId()));
@@ -298,6 +305,12 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		for(ItemInstance itemInstance : list){
 			itemMap.put(itemInstance.getId(), itemInstance);
 		}
+		UserInfo user = null;
+		try {
+			user = tech.ascs.icity.rbac.util.Application.getCurrentUser();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		for(ItemModelEntity itemModelEntity : formModelEntity.getItems()){
 			if(itemModelEntity.getSystemItemType() != SystemItemType.UpdataDate){
 				if(itemMap.keySet().contains(itemModelEntity.getId())){
@@ -308,7 +321,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				if(itemMap.keySet().contains(itemModelEntity.getId())){
 					list.remove(itemMap.get(itemModelEntity.getId()));
 				}
-				list.add(getItemInstance(itemModelEntity.getId(),"-1"));
+				list.add(getItemInstance(itemModelEntity.getId(),user != null ? user.getId() : "-1"));
 			}
 		}
 

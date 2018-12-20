@@ -18,7 +18,7 @@ public class SearchItem extends ItemModel {
 		@ApiModelProperty(value = "是否可见", position = 1)
 		private boolean visible;
 		@ApiModelProperty(value = "查询条件默认值", position = 2)
-		private List<String> defaultValue = new ArrayList<>();
+		private Object defaultValue;
 		public SearchType getSearchType() {
 			return searchType;
 		}
@@ -32,11 +32,11 @@ public class SearchItem extends ItemModel {
 			this.visible = visible;
 		}
 
-		public List<String> getDefaultValue() {
+		public Object getDefaultValue() {
 			return defaultValue;
 		}
 
-		public void setDefaultValue(List<String> defaultValue) {
+		public void setDefaultValue(Object defaultValue) {
 			this.defaultValue = defaultValue;
 		}
 	}

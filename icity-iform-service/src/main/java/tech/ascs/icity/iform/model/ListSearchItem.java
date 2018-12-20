@@ -2,12 +2,9 @@ package tech.ascs.icity.iform.model;
 
 import java.io.Serializable;
 
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 
+import org.hibernate.annotations.Cascade;
 import tech.ascs.icity.jpa.dao.model.BaseEntity;
 
 /**
@@ -19,11 +16,11 @@ public class ListSearchItem extends BaseEntity implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	@ManyToOne
+	@ManyToOne(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
 	@JoinColumn(name="list_id")
 	private ListModelEntity listModel;
 
-	@ManyToOne
+	@ManyToOne(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
 	@JoinColumn(name="item_id")
 	private ItemModelEntity itemModel;
 

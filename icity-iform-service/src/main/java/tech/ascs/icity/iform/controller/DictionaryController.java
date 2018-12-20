@@ -5,17 +5,14 @@ import io.swagger.annotations.Api;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import tech.ascs.icity.model.Page;
-import org.springframework.web.bind.annotation.RestController;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.DictionaryItemModel;
 import tech.ascs.icity.iform.api.model.DictionaryModel;
 import tech.ascs.icity.iform.model.DictionaryEntity;
 import tech.ascs.icity.iform.model.DictionaryItemEntity;
 import tech.ascs.icity.iform.service.DictionaryService;
-import tech.ascs.icity.jpa.tools.DTOTools;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,20 +61,35 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
             for(DictionaryItemEntity entity : dictionaryEntity.getDictionaryItems()){
                 itemModelList.add(getByEntity(entity));
             }
-            dictionaryModel.setDictionaryItems(itemModelList);
+            dictionaryModel.setResources(itemModelList);
         }
         return dictionaryModel;
     }
 
+	private DictionaryModel getDictionaryModelByEntity(DictionaryEntity dictionaryEntity){
+		DictionaryModel dictionaryModel = new DictionaryModel();
+		BeanUtils.copyProperties(dictionaryEntity, dictionaryModel, new String[]{"dictionaryItems"});
+		return dictionaryModel;
+	}
+
 	private DictionaryItemModel getByEntity(DictionaryItemEntity dictionaryItemEntity){
         DictionaryItemModel dictionaryItemModel = new DictionaryItemModel();
         BeanUtils.copyProperties(dictionaryItemEntity, dictionaryItemModel, new String[]{"dictionary", "paraentItem", "childrenItem"});
+
+        if(dictionaryItemEntity.getDictionary() != null){
+			dictionaryItemModel.setDictionaryId(dictionaryItemEntity.getDictionary().getId());
+		}
+
+		if(dictionaryItemEntity.getParentItem() != null){
+			dictionaryItemModel.setParaentItemId(dictionaryItemEntity.getParentItem().getId());
+		}
+
         if(dictionaryItemEntity.getChildrenItem() != null) {
             List<DictionaryItemModel> list = new ArrayList<>();
             for (DictionaryItemEntity childDictionaryItemEntity : dictionaryItemEntity.getChildrenItem()) {
                 list.add(getByEntity(childDictionaryItemEntity));
             }
-            dictionaryItemModel.setChildrenItem(list);
+            dictionaryItemModel.setResources(list);
         }
         return dictionaryItemModel;
     }
@@ -104,21 +116,21 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 	@Override
 	public Page<DictionaryModel> page(@RequestParam(name = "page", defaultValue = "1") int page, @RequestParam(name="pageSize", defaultValue = "10") int pageSize) {
 		Page<DictionaryEntity> pageEntity = dictionaryService.query().sort(Sort.asc("orderNo")).page(page, pageSize).page();
-		List<DictionaryEntity> dictionaryModels = new ArrayList<>();
+		List<DictionaryModel> dictionaryModels = new ArrayList<>();
 		for(DictionaryEntity dictionaryEntity : pageEntity.getResults()){
-			dictionaryEntity.setDictionaryItems(sortedItem(dictionaryEntity.getDictionaryItems()));
-			dictionaryModels.add(dictionaryEntity);
+			dictionaryModels.add(getDictionaryModelByEntity(dictionaryEntity));
 		}
-		pageEntity.setContent(dictionaryModels);
-		return DTOTools.wrapPage(pageEntity, DictionaryModel.class);
+		Page<DictionaryModel> listModels = Page.get(page, pageSize);
+		listModels.data(pageEntity.getTotalCount(), dictionaryModels);
+		return listModels;
 	}
 
 	@Override
-    public void add(@RequestParam(name = "name") String name, @RequestParam(name = "description", required = false) String description) {
-		veryDictionaryByName(null, name);
+    public void add(@RequestBody(required = true) DictionaryModel dictionaryModel) {
+		veryDictionaryByName(null, dictionaryModel.getName());
 		DictionaryEntity dictionary = new DictionaryEntity();
-    	dictionary.setName(name);
-    	dictionary.setDescription(description);
+    	dictionary.setName(dictionaryModel.getName());
+    	dictionary.setDescription(dictionaryModel.getDescription());
 		dictionary.setOrderNo(dictionaryService.maxDictionaryOrderNo() + 1);
     	dictionaryService.save(dictionary);
     }
@@ -141,17 +153,20 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 	}
 
 	@Override
-    public void update(@PathVariable(name="id") String id, @RequestParam(name="name", required=false) String name, @RequestParam(name="description", required=false) String description) {
-		veryDictionaryByName(id, name);
+    public void update(@PathVariable(name="id") String id, @RequestBody(required = true) DictionaryModel dictionaryModel) {
+		if(StringUtils.equals(id, dictionaryModel.getId())){
+			throw new IFormException("更新系统分类失败，id不一致");
+		}
+		veryDictionaryByName(id, dictionaryModel.getName());
     	DictionaryEntity dictionary = dictionaryService.get(id);
     	if(dictionary == null){
 			throw new IFormException("未查到对应的系统代码分类");
 		}
-    	if (name != null) {
-        	dictionary.setName(name);
+    	if (StringUtils.isNoneBlank(dictionaryModel.getName())) {
+        	dictionary.setName(dictionaryModel.getName());
     	}
-    	if (description != null) {
-        	dictionary.setDescription(description);
+    	if (StringUtils.isNoneBlank(dictionaryModel.getDescription())) {
+        	dictionary.setDescription(dictionaryModel.getDescription());
     	}
     	dictionaryService.save(dictionary);
     }
@@ -166,29 +181,34 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 	public List<DictionaryItemModel> listItem(@PathVariable(name="id") String id) {
     	DictionaryEntity dictionary = dictionaryService.get(id);
 		dictionary.setDictionaryItems(sortedItem(dictionary.getDictionaryItems()));
-		List<DictionaryItemModel> list = DTOTools.wrapList(dictionary.getDictionaryItems(), DictionaryItemModel.class);
+		List<DictionaryItemModel> list = new ArrayList<>();
+		if(dictionary.getDictionaryItems() != null) {
+			for (DictionaryItemEntity dictionaryItem : dictionary.getDictionaryItems()){
+				list.add(getByEntity(dictionaryItem));
+			}
+		}
 		return list;
 	}
 
 	@Override
-    public void addItem(@RequestParam(name="id") String id,
-						@RequestParam(name="name") String name,
-						@RequestParam(name="code") String code,
-						@RequestParam(name="description", required = false) String description, @RequestParam(name="parentItemId", required = false) String parentItemId) {
-		DictionaryItemEntity parentItemEntity = dictionaryService.getDictionaryItemById(parentItemId);
+    public void addItem(@RequestBody(required = true) DictionaryItemModel dictionaryItemModel ) {
+		DictionaryItemEntity parentItemEntity = null;
+		if(StringUtils.isNoneBlank(dictionaryItemModel.getParaentItemId())) {
+			parentItemEntity = dictionaryService.getDictionaryItemById(dictionaryItemModel.getParaentItemId());
+		}
 		DictionaryEntity dictionary = null;
-		if(StringUtils.isNoneBlank(id)) {
-			dictionary = dictionaryService.get(id);
+		if(StringUtils.isNoneBlank(dictionaryItemModel.getDictionaryId())) {
+			dictionary = dictionaryService.get(dictionaryItemModel.getDictionaryId());
 		}
 		if(parentItemEntity == null && dictionary == null){
 			throw new IFormException("查询关联对象失败");
 		}
     	DictionaryItemEntity item  = new DictionaryItemEntity();
-    	item.setName(name);
-    	item.setCode(code);
+    	item.setName(dictionaryItemModel.getName());
+    	item.setCode(dictionaryItemModel.getCode());
     	Integer maxOrderNo = dictionaryService.maxDictionaryItemOrderNo();
 		item.setOrderNo(maxOrderNo == null ? 1 :  maxOrderNo + 1);
-    	item.setDescription(description);
+    	item.setDescription(dictionaryItemModel.getDescription());
     	if(dictionary != null) {
 			item.setDictionary(dictionary);
 			dictionary.getDictionaryItems().add(item);
@@ -201,28 +221,32 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
     }
 
 	@Override
-    public void updateItem(@RequestParam(name="id") String id, @PathVariable(name="itemId", required = true) String itemId,
-						   @RequestParam(name="name", required=false) String name,
-						   @RequestParam(name="code", required=false) String code,
-						   @RequestParam(name="description", required=false) String description, @RequestParam(name="parentItemId", required = false) String parentItemId) {
-		DictionaryItemEntity itemEntity = dictionaryService.getDictionaryItemById(parentItemId);
-		DictionaryEntity dictionary = null;
-		if(StringUtils.isNoneBlank(id)) {
-			dictionary = dictionaryService.get(id);
+    public void updateItem(@PathVariable(name="id", required = true) String id,
+						   @RequestBody(required = true) DictionaryItemModel dictionaryItemModel) {
+		if(StringUtils.equals(id, dictionaryItemModel.getId())){
+			throw new IFormException("更新系统变量失败，id不一致");
 		}
-		if(itemEntity == null && dictionary == null){
+		DictionaryItemEntity parentItemEntity = null;
+		if(StringUtils.isNoneBlank(dictionaryItemModel.getParaentItemId())) {
+			parentItemEntity = dictionaryService.getDictionaryItemById(dictionaryItemModel.getParaentItemId());
+		}
+		DictionaryEntity dictionary = null;
+		if(StringUtils.isNoneBlank(dictionaryItemModel.getDictionaryId())) {
+			dictionary = dictionaryService.get(dictionaryItemModel.getDictionaryId());
+		}
+		if(parentItemEntity == null && dictionary == null){
 			throw new IFormException("查询关联对象失败");
 		}
-    	dictionaryService.updateDictionaryItem(id, itemId, code, name, description, parentItemId);
+    	dictionaryService.updateDictionaryItem(dictionaryItemModel.getDictionaryId(), id, dictionaryItemModel.getCode(), dictionaryItemModel.getName(), dictionaryItemModel.getDescription(), dictionaryItemModel.getParaentItemId());
     }
 
 	@Override
-    public void deleteItem(@PathVariable(name="id") String id, @PathVariable(name="itemId") String itemId) {
-    	dictionaryService.deleteDictionaryItem(id, itemId);
+    public void deleteItem(@PathVariable(name="id") String id) {
+    	dictionaryService.deleteDictionaryItem(id);
     }
 
 	@Override
-	public void updateItemOrderNo(@PathVariable(name="itemId",required = true) String itemId, @RequestParam(name="orderNo", defaultValue = "0") int orderNo) {
+	public void updateItemOrderNo(@PathVariable(name="itemId",required = true) String itemId, @PathVariable(name="status", required = true) String status) {
 		DictionaryItemEntity itemEntity = dictionaryService.getDictionaryItemById(itemId);
 		if(itemEntity == null && itemEntity == null){
 			throw new IFormException("查询系统分类代码失败");
@@ -242,8 +266,8 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 		for(int i = 0 ; i < dictionaryItemEntities.size(); i++){
 			DictionaryItemEntity dictionaryItemEntity = dictionaryItemEntities.get(i);
 			if(dictionaryItemEntity.getId().equals(itemId)){
-				//上移-1
-				if(orderNo < 0 && i > 0){
+				//上移up
+				if("up".equals(status) && i > 0){
 					DictionaryItemEntity dictionaryItem = dictionaryItemEntities.get(i-1);
 					Integer newOrderNo = dictionaryItem.getOrderNo();
 					dictionaryItem.setOrderNo(oldOrderNo);
@@ -251,7 +275,7 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 
 					dictionaryItemEntity.setOrderNo(newOrderNo);
 					dictionaryService.saveDictionaryItem(dictionaryItemEntity);
-				}else if(orderNo > 0 && i+1 < dictionaryItemEntities.size()){
+				}else if("down".equals(status) && i+1 < dictionaryItemEntities.size()){
 					//下移
 					DictionaryItemEntity dictionaryItem = dictionaryItemEntities.get(i+1);
 					Integer newOrderNo = dictionaryItem.getOrderNo();
@@ -267,7 +291,7 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 	}
 
 	@Override
-	public void updateDictionaryOrderNo(@PathVariable(name="id",required = true) String id, @RequestParam(name="orderNo", defaultValue = "0") int orderNo) {
+	public void updateDictionaryOrderNo(@PathVariable(name="id",required = true) String id, @PathVariable(name="status", required = true) String status) {
 		DictionaryEntity dictionaryEntity = dictionaryService.get(id);
 		if(dictionaryEntity == null && dictionaryEntity == null){
 			throw new IFormException("查询系统分类失败");
@@ -282,8 +306,8 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 		for(int i = 0 ; i < dictionaryEntities.size(); i++){
 			DictionaryEntity dictionary = dictionaryEntities.get(i);
 			if(dictionary.getId().equals(id)){
-				//上移-1
-				if(orderNo < 0 && i > 0){
+				//上移up
+				if("up".equals(status) && i > 0){
 					DictionaryEntity dictionaryEntity1 = dictionaryEntities.get(i-1);
 					Integer newOrderNo = dictionaryEntity1.getOrderNo();
 					dictionaryEntity1.setOrderNo(oldOrderNo);
@@ -291,7 +315,7 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 
 					dictionary.setOrderNo(newOrderNo);
 					dictionaryService.save(dictionary);
-				}else if(orderNo > 0 && i+1 < dictionaryEntities.size()){
+				}else if("down".equals(status) && i+1 < dictionaryEntities.size()){
 					//下移
 					DictionaryEntity dictionaryEntity2 = dictionaryEntities.get(i+1);
 					Integer newOrderNo = dictionaryEntity2.getOrderNo();

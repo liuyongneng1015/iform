@@ -107,7 +107,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			veryTableName(dataModelEntity);
 		}
 		verifyFormModelName(formModel);
-		verifyItemModelName(formModel);
  		FormModelEntity oldEntity = formModelService.saveFormModel(formModel);
 		return new IdEntity(oldEntity.getId());
 	}
@@ -624,7 +623,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		//TODO 根据类型映射对应的item
 		ItemModelEntity entity = formModelService.getItemModelEntity(itemModel.getType());
 		//需要保持column
-		BeanUtils.copyProperties(itemModel, entity, new String[] {"permission", "items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});
+		BeanUtils.copyProperties(itemModel, entity, new String[] {"searchItems","sortItems", "permission", "items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});
 
 		if(!itemModel.isNew()){
 			ItemModelEntity itemModelEntity = itemModelService.find(itemModel.getId());

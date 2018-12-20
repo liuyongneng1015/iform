@@ -4,6 +4,7 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
+import tech.ascs.icity.iform.api.model.DataModel;
 import tech.ascs.icity.iform.api.model.DictionaryItemModel;
 import tech.ascs.icity.iform.api.model.DictionaryModel;
 import tech.ascs.icity.model.Page;
@@ -33,20 +34,16 @@ public interface DictionaryService {
 
 	@ApiOperation("新增字典表")
 	@ApiImplicitParams({
-			@ApiImplicitParam(paramType="query", name = "name", value = "名称", required = true),
-			@ApiImplicitParam(paramType="query", name = "description", value = "描述", required = false)
 	})
 	@PostMapping
-	void add(@RequestParam(name = "name") String name, @RequestParam(name = "description", required = false) String description);
+	void add(@RequestBody(required = true) DictionaryModel dictionaryModel);
 
 	@ApiOperation("更新字典表")
 	@ApiImplicitParams({
-			@ApiImplicitParam(paramType="path", name = "id", value = "字典表ID", required = true, dataType = "String"),
-			@ApiImplicitParam(paramType="query", name = "name", value = "名称", required = false),
-			@ApiImplicitParam(paramType="query", name = "description", value = "描述", required = false)
+			@ApiImplicitParam(paramType="path", name = "id", value = "字典表ID", required = true, dataType = "String")
 	})
 	@PutMapping("/{id}")
-	void update(@PathVariable(name="id") String id, @RequestParam(name="name", required=false) String name, @RequestParam(name="description", required=false) String description);
+	void update(@PathVariable(name="id") String id,@RequestBody(required = true) DictionaryModel dictionaryModel);
 
 	@ApiOperation("删除字典表")
 	@ApiImplicitParam(paramType="path", name = "id", value = "字典表ID", required = true, dataType = "String")
@@ -59,56 +56,38 @@ public interface DictionaryService {
 	List<DictionaryItemModel> listItem(@PathVariable(name="id") String id);
 
 	@ApiOperation("新增字典表选项")
-	@ApiImplicitParams({
-			@ApiImplicitParam(paramType="query", name = "id", value = "字典表ID", required = false, dataType = "String"),
-			@ApiImplicitParam(paramType="query", name = "name", value = "名称", required = true),
-			@ApiImplicitParam(paramType="query", name = "code", value = "编码", required = true),
-			@ApiImplicitParam(paramType="query", name = "description", value = "描述", required = false),
-			@ApiImplicitParam(paramType="query", name = "parentItemId", value = "父级字典项", required = false)
-	})
+	@ApiImplicitParams({})
 	@PostMapping("/add/items")
-	void addItem(
-			@RequestParam(name="id") String id,
-			@RequestParam(name="name") String name,
-			@RequestParam(name="code") String code,
-			@RequestParam(name="description", required = false) String description, @RequestParam(name="parentItemId", required = false) String parentItemId);
+	void addItem(@RequestBody DictionaryItemModel dictionaryItemModel);
 
 	@ApiOperation("更新字典表选项")
 	@ApiImplicitParams({
-			@ApiImplicitParam(paramType="query", name = "id", value = "字典表ID", required = false, dataType = "String"),
-			@ApiImplicitParam(paramType="path", name = "itemId", value = "字典表选项ID", required = true, dataType = "String"),
-			@ApiImplicitParam(paramType="query", name = "name", value = "名称", required = false),
-			@ApiImplicitParam(paramType="query", name = "code", value = "编码", required = false),
-			@ApiImplicitParam(paramType="query", name = "description", value = "描述", required = false),
-			@ApiImplicitParam(paramType="query", name = "parentItemId", value = "父级字典项", required = false)
+			@ApiImplicitParam(paramType="path", name = "id", value = "字典表选项ID", required = true, dataType = "String")
 	})
-	@PutMapping("/update/items/{itemId}")
-	void updateItem(@RequestParam(name="id") String id, @PathVariable(name="itemId", required = true) String itemId,
-					@RequestParam(name="name", required=false) String name,
-					@RequestParam(name="code", required=false) String code,
-					@RequestParam(name="description", required=false) String description, @RequestParam(name="parentItemId", required = false) String parentItemId);
+	@PutMapping("/update/items/{id}")
+	void updateItem(@PathVariable(name="id", required = true) String id,
+					@RequestBody(required = true) DictionaryItemModel dictionaryItemModel);
 
 	@ApiOperation("删除字典表选项")
 	@ApiImplicitParams({
-			@ApiImplicitParam(paramType="path", name = "id", value = "字典表ID", required = true, dataType = "String"),
-			@ApiImplicitParam(paramType="path", name = "itemId", value = "字典表选项ID", required = true, dataType = "String")
+			@ApiImplicitParam(paramType="path", name = "id", value = "字典表选项ID", required = true, dataType = "String")
 	})
-	@DeleteMapping("/{id}/items/{itemId}")
-	void deleteItem(@PathVariable(name="id") String id, @PathVariable(name="itemId") String itemId);
+	@DeleteMapping("/items/{id}")
+	void deleteItem(@PathVariable(name="id") String id);
 
 	@ApiOperation("上下移动系统代码")
 	@ApiImplicitParams({
-			@ApiImplicitParam(paramType="path", name = "itemId", value = "字典表选项ID", required = true, dataType = "String"),
-			@ApiImplicitParam(paramType="query", name = "orderNo", value = "上移-1，下移+1", required = false)
+			@ApiImplicitParam(paramType="path", name = "id", value = "字典表选项ID", required = true, dataType = "String"),
+			@ApiImplicitParam(paramType="path", name = "status", value = "上移up，下移down", required = true)
 	})
-	@PutMapping("/items/orderno/{itemId}")
-	void updateItemOrderNo( @PathVariable(name="itemId",required = true) String itemId, @RequestParam(name="orderNo", defaultValue = "0") int orderNo);
+	@PutMapping("/items/{id}/{status}")
+	void updateItemOrderNo( @PathVariable(name="id",required = true) String id, @PathVariable(name="status", required = true) String status);
 
 	@ApiOperation("上下移动系统代码分类")
 	@ApiImplicitParams({
 			@ApiImplicitParam(paramType="path", name = "id", value = "字典表选项ID", required = true, dataType = "String"),
-			@ApiImplicitParam(paramType="query", name = "orderNo", value = "上移-1，下移+1", required = false)
+			@ApiImplicitParam(paramType="path", name = "status", value = "上移up，下移down", required = true)
 	})
-	@PutMapping("/orderno/{id}")
-	void updateDictionaryOrderNo( @PathVariable(name="id",required = true) String id, @RequestParam(name="orderNo", defaultValue = "0") int orderNo);
+	@PutMapping("/{id}/{status}")
+	void updateDictionaryOrderNo( @PathVariable(name="id",required = true) String id, @PathVariable(name="status", required = true) String status);
 }

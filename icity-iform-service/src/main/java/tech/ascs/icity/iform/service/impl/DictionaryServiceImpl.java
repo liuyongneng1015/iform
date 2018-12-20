@@ -5,7 +5,6 @@ import java.util.Map;
 
 import com.googlecode.genericdao.search.Sort;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.data.jpa.domain.Specification;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.model.DictionaryEntity;
 import tech.ascs.icity.iform.model.DictionaryItemEntity;
@@ -13,11 +12,6 @@ import tech.ascs.icity.iform.service.DictionaryService;
 import tech.ascs.icity.jpa.dao.exception.NotFoundException;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
-
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 
 public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> implements DictionaryService {
 
@@ -51,7 +45,7 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 		item.setName(name);
 		item.setDescription(description);
 		if(parentItem != null){
-			for( int i= 0; i < parentItem.getChildrenItem().size() ; i++){
+			for(int i = 0; i < parentItem.getChildrenItem().size() ; i++){
 				DictionaryItemEntity itemEntity = parentItem.getChildrenItem().get(i);
 				if(itemEntity.getId().equals(itemId)){
 					parentItem.getChildrenItem().remove(itemEntity);
@@ -63,7 +57,7 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 			item.setDictionary(null);
 		}
 		if(dictionaryEntity != null){
-			for( int i= 0; i < dictionaryEntity.getDictionaryItems().size() ; i++){
+			for(int i = 0; i < dictionaryEntity.getDictionaryItems().size() ; i++){
 				DictionaryItemEntity itemEntity = dictionaryEntity.getDictionaryItems().get(i);
 				if(itemEntity.getId().equals(itemId)){
 					parentItem.getChildrenItem().remove(itemEntity);
@@ -76,8 +70,8 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 	}
 
 	@Override
-	public void deleteDictionaryItem(String dictionaryId, String itemId) {
-		DictionaryItemEntity item = dictionaryItemManager.query().filterEqual("dictionary.id", dictionaryId).filterEqual("id", itemId).first();
+	public void deleteDictionaryItem(String itemId) {
+		DictionaryItemEntity item = dictionaryItemManager.get(itemId);
 		if (item == null) {
 			throw new NotFoundException(DictionaryItemEntity.class, itemId, null);
 		}

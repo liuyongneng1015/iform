@@ -3,8 +3,6 @@ package tech.ascs.icity.iform.api.model;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import org.apache.commons.lang3.StringUtils;
@@ -38,14 +36,14 @@ public class DictionaryModel extends NameEntity implements Codeable {
 	 * 数据字典项
 	 */
 	@ApiModelProperty(value = "数据字典项", position = 5)
-	private List<DictionaryItemModel> dictionaryItems = new ArrayList<DictionaryItemModel>();
+	private List<DictionaryItemModel> resources = new ArrayList<DictionaryItemModel>();
 
-	public List<DictionaryItemModel> getDictionaryItems() {
-		return dictionaryItems;
+	public List<DictionaryItemModel> getResources() {
+		return resources;
 	}
 
-	public void setDictionaryItems(List<DictionaryItemModel> dictionaryItems) {
-		this.dictionaryItems = dictionaryItems;
+	public void setResources(List<DictionaryItemModel> resources) {
+		this.resources = resources;
 	}
 
 	@Override

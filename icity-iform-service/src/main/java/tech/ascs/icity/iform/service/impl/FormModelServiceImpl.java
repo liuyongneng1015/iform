@@ -157,7 +157,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			newItemModelEntity = itemManager.get(oldItemModelEntity.getId());
 		}
 
-		BeanUtils.copyProperties(oldItemModelEntity, newItemModelEntity, new String[]{"permission", "referenceList","items","formModel","columnModel","activities","options"});
+		BeanUtils.copyProperties(oldItemModelEntity, newItemModelEntity, new String[]{"searchItems","sortItems","permission", "referenceList","items","formModel","columnModel","activities","options"});
 
 		/*//保存控件权限
 		if(oldItemModelEntity.getPermission() != null){

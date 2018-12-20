@@ -48,6 +48,12 @@ public class ItemModelEntity extends  BaseEntity implements Serializable {
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "itemModel")
 	private List<ItemSelectOption> options = new ArrayList<ItemSelectOption>();
 
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "itemModel")
+	private List<ListSearchItem> searchItems = new ArrayList<ListSearchItem>();
+
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "itemModel")
+	private List<ListSortItem> sortItems = new ArrayList<ListSortItem>();
+
 	@OneToOne(cascade = CascadeType.ALL, mappedBy = "itemModel")
 	private ItemPermissionInfo permission;
 
@@ -125,5 +131,21 @@ public class ItemModelEntity extends  BaseEntity implements Serializable {
 
 	public void setSystemItemType(SystemItemType systemItemType) {
 		this.systemItemType = systemItemType;
+	}
+
+	public List<ListSearchItem> getSearchItems() {
+		return searchItems;
+	}
+
+	public void setSearchItems(List<ListSearchItem> searchItems) {
+		this.searchItems = searchItems;
+	}
+
+	public List<ListSortItem> getSortItems() {
+		return sortItems;
+	}
+
+	public void setSortItems(List<ListSortItem> sortItems) {
+		this.sortItems = sortItems;
 	}
 }
