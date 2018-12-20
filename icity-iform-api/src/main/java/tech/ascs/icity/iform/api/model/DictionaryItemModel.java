@@ -44,7 +44,7 @@ public class DictionaryItemModel extends NameEntity implements Codeable {
 	 * 父选项
 	 */
 	@ApiModelProperty(value = "父选项", position = 6)
-	private String paraentItemId ;
+	private String parentItemId;
 
 	/**
 	 * 子选项描述
@@ -85,12 +85,12 @@ public class DictionaryItemModel extends NameEntity implements Codeable {
 		this.orderNo = orderNo;
 	}
 
-	public String getParaentItemId() {
-		return paraentItemId;
+	public String getParentItemId() {
+		return parentItemId;
 	}
 
-	public void setParaentItemId(String paraentItemId) {
-		this.paraentItemId = paraentItemId;
+	public void setParentItemId(String parentItemId) {
+		this.parentItemId = parentItemId;
 	}
 
 	public List<DictionaryItemModel> getResources() {

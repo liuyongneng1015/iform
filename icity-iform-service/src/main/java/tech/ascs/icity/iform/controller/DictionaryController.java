@@ -81,7 +81,7 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 		}
 
 		if(dictionaryItemEntity.getParentItem() != null){
-			dictionaryItemModel.setParaentItemId(dictionaryItemEntity.getParentItem().getId());
+			dictionaryItemModel.setParentItemId(dictionaryItemEntity.getParentItem().getId());
 		}
 
         if(dictionaryItemEntity.getChildrenItem() != null) {
@@ -193,8 +193,8 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 	@Override
     public void addItem(@RequestBody(required = true) DictionaryItemModel dictionaryItemModel ) {
 		DictionaryItemEntity parentItemEntity = null;
-		if(StringUtils.isNoneBlank(dictionaryItemModel.getParaentItemId())) {
-			parentItemEntity = dictionaryService.getDictionaryItemById(dictionaryItemModel.getParaentItemId());
+		if(StringUtils.isNoneBlank(dictionaryItemModel.getParentItemId())) {
+			parentItemEntity = dictionaryService.getDictionaryItemById(dictionaryItemModel.getParentItemId());
 		}
 		DictionaryEntity dictionary = null;
 		if(StringUtils.isNoneBlank(dictionaryItemModel.getDictionaryId())) {
@@ -213,10 +213,12 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 		item.setOrderNo(maxOrderNo == null ? 1 :  maxOrderNo + 1);
     	item.setDescription(dictionaryItemModel.getDescription());
     	if(dictionary != null) {
+			item.setParentItem(null);
 			item.setDictionary(dictionary);
 			dictionary.getDictionaryItems().add(item);
     		dictionaryService.save(dictionary);
 		}else{
+			item.setDictionary(null);
 			item.setParentItem(parentItemEntity);
 			parentItemEntity.getChildrenItem().add(item);
 			dictionaryService.saveDictionaryItem(parentItemEntity);
@@ -229,21 +231,7 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 		if(StringUtils.equals(id, dictionaryItemModel.getId())){
 			throw new IFormException("更新系统变量失败，id不一致");
 		}
-		DictionaryItemEntity parentItemEntity = null;
-		if(StringUtils.isNoneBlank(dictionaryItemModel.getParaentItemId())) {
-			parentItemEntity = dictionaryService.getDictionaryItemById(dictionaryItemModel.getParaentItemId());
-		}
-		DictionaryEntity dictionary = null;
-		if(StringUtils.isNoneBlank(dictionaryItemModel.getDictionaryId())) {
-			dictionary = dictionaryService.get(dictionaryItemModel.getDictionaryId());
-		}
-		if(parentItemEntity == null && dictionary == null){
-			throw new IFormException("查询关联对象失败");
-		}
-		if(parentItemEntity != null){
-			dictionary = null;
-		}
-    	dictionaryService.updateDictionaryItem(dictionaryItemModel.getDictionaryId(), id, dictionaryItemModel.getCode(), dictionaryItemModel.getName(), dictionaryItemModel.getDescription(), dictionaryItemModel.getParaentItemId());
+    	dictionaryService.updateDictionaryItem(dictionaryItemModel.getDictionaryId(), id, dictionaryItemModel.getCode(), dictionaryItemModel.getName(), dictionaryItemModel.getDescription(), dictionaryItemModel.getParentItemId());
     }
 
 	@Override

@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
-import tech.ascs.icity.iform.api.model.ApplicationFormModel;
+import tech.ascs.icity.iform.api.model.ApplicationModel;
 import tech.ascs.icity.iform.api.model.FormModel;
 import tech.ascs.icity.iform.api.model.PCFormModel;
 import tech.ascs.icity.model.IdEntity;
@@ -172,6 +172,6 @@ public interface FormModelService {
 	@ApiOperation(value = "应用表单模型", position = 3)
 	@ApiImplicitParams({})
 	@GetMapping(value = "/application")
-	List<ApplicationFormModel> findApplicationFormModel();
+	List<ApplicationModel> findApplicationFormModel();
 
 }

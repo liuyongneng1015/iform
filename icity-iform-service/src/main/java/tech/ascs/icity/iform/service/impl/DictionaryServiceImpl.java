@@ -35,36 +35,46 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 
 	@Override
 	public void updateDictionaryItem(String dictionaryId, String itemId, String code, String name, String description, String parentItemId) {
-		DictionaryItemEntity item = getDictionaryItemById(itemId);
-		DictionaryItemEntity parentItem = getDictionaryItemById(parentItemId);
-		DictionaryEntity dictionaryEntity = null;
-		if(StringUtils.isNoneBlank(dictionaryId)){
-			dictionaryEntity = get(dictionaryId);
+		DictionaryItemEntity parentItemEntity = null;
+		if(StringUtils.isNoneBlank(parentItemId)) {
+			parentItemEntity = getDictionaryItemById(parentItemId);
 		}
+		DictionaryEntity dictionary = null;
+		if(StringUtils.isNoneBlank(dictionaryId)) {
+			dictionary = get(dictionaryId);
+		}
+		if(parentItemEntity == null && dictionary == null){
+			throw new IFormException("查询关联对象失败");
+		}
+		if(parentItemEntity != null){
+			dictionary = null;
+		}
+		DictionaryItemEntity item = getDictionaryItemById(itemId);
 		item.setCode(code);
 		item.setName(name);
 		item.setDescription(description);
-		if(parentItem != null){
-			for(int i = 0; i < parentItem.getChildrenItem().size() ; i++){
-				DictionaryItemEntity itemEntity = parentItem.getChildrenItem().get(i);
+		if(parentItemEntity != null){
+			for(int i = 0; i < parentItemEntity.getChildrenItem().size() ; i++){
+				DictionaryItemEntity itemEntity = parentItemEntity.getChildrenItem().get(i);
 				if(itemEntity.getId().equals(itemId)){
-					parentItem.getChildrenItem().remove(itemEntity);
+					parentItemEntity.getChildrenItem().remove(itemEntity);
 					i--;
 				}
 			}
-			parentItem.getChildrenItem().add(item);
-			item.setParentItem(parentItem);
+			parentItemEntity.getChildrenItem().add(item);
+			item.setParentItem(parentItemEntity);
 			item.setDictionary(null);
 		}
-		if(dictionaryEntity != null){
-			for(int i = 0; i < dictionaryEntity.getDictionaryItems().size() ; i++){
-				DictionaryItemEntity itemEntity = dictionaryEntity.getDictionaryItems().get(i);
+		if(dictionary != null){
+			for(int i = 0; i < dictionary.getDictionaryItems().size() ; i++){
+				DictionaryItemEntity itemEntity = dictionary.getDictionaryItems().get(i);
 				if(itemEntity.getId().equals(itemId)){
-					parentItem.getChildrenItem().remove(itemEntity);
+					parentItemEntity.getChildrenItem().remove(itemEntity);
 					i--;
 				}
 			}
-			dictionaryEntity.getDictionaryItems().add(item);
+			item.setParentItem(null);
+			dictionary.getDictionaryItems().add(item);
 		}
 		dictionaryItemManager.save(item);
 	}

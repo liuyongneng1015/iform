@@ -8,10 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
-import tech.ascs.icity.iform.api.model.ColumnModel;
-import tech.ascs.icity.iform.api.model.ColumnModelInfo;
-import tech.ascs.icity.iform.api.model.DataModel;
-import tech.ascs.icity.iform.api.model.DataModelInfo;
+import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.model.IdEntity;
 import tech.ascs.icity.model.Page;
 
@@ -49,9 +46,9 @@ public interface DataModelService {
 			@ApiImplicitParam(paramType = "query", name = "applicationId", value = "应用id", required = false)
 	})
 	@GetMapping("/list/reference")
-	List<DataModelInfo> listReferenceDataModel(@RequestParam(name = "tableName", required = false) String tableName,
-											   @RequestParam(name = "modelType", required = false) String modelType,
-											   @RequestParam(name = "applicationId", required = false) String applicationId);
+	List<ApplicationModel> listReferenceDataModel(@RequestParam(name = "tableName", required = false) String tableName,
+												  @RequestParam(name = "modelType", required = false) String modelType,
+												  @RequestParam(name = "applicationId", required = false) String applicationId);
 
 
 	/**

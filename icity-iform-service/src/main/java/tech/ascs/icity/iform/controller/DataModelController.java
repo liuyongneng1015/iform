@@ -1,7 +1,6 @@
 package tech.ascs.icity.iform.controller;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import io.swagger.annotations.ApiModelProperty;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,12 +13,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.googlecode.genericdao.search.Filter;
 
 import io.swagger.annotations.Api;
+import tech.ascs.icity.admin.api.model.Application;
+import tech.ascs.icity.admin.client.ApplicationService;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
-import tech.ascs.icity.iform.model.ColumnModelEntity;
-import tech.ascs.icity.iform.model.ColumnReferenceEntity;
-import tech.ascs.icity.iform.model.DataModelEntity;
-import tech.ascs.icity.iform.model.IndexModelEntity;
+import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.ColumnModelService;
 import tech.ascs.icity.iform.service.DataModelService;
 import tech.ascs.icity.jpa.dao.Query;
@@ -36,6 +34,9 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 	private DataModelService dataModelService;
 	@Autowired
 	private ColumnModelService columnModelService;
+
+	@Autowired
+	private ApplicationService applicationService;
 
 
 	@Override
@@ -64,7 +65,7 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 	}
 
 	@Override
-	public List<DataModelInfo> listReferenceDataModel(@RequestParam(name = "tableName", required = false) String tableName,
+	public List<ApplicationModel> listReferenceDataModel(@RequestParam(name = "tableName", required = false) String tableName,
 													  @RequestParam(name = "modelType", required = false) String modelType, @RequestParam(name = "applicationId", required=false) String applicationId) {
 		try {
 			Query<DataModelEntity, DataModelEntity> query = dataModelService.query();
@@ -78,10 +79,43 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 				query.filterEqual("applicationId",  applicationId);
 			}
 			List<DataModelEntity> entities = query.list();
-			return DTOTools.wrapList(entities, DataModelInfo.class);
+			return list(DTOTools.wrapList(entities, DataModelInfo.class));
 		} catch (Exception e) {
 			throw new IFormException("获取数据模型列表失败：" + e.getMessage(), e);
 		}
+	}
+
+	private List<ApplicationModel> list(List<DataModelInfo> entities){
+		Map<String, List<DataModelInfo>> map = new HashMap<>();
+		for(DataModelInfo entity : entities){
+
+			if(!StringUtils.hasText(entity.getApplicationId())){
+				continue;
+			}
+			List<DataModelInfo> list = map.get(entity.getApplicationId());
+			if(list == null){
+				list = new ArrayList<>();
+			}
+			list.add(entity);
+			map.put(entity.getApplicationId(), list);
+		}
+		List<ApplicationModel> applicationFormModels = new ArrayList<>();
+		if(map != null && map.size() > 0) {
+			//TODO 查询应用
+			Set<String> c = map.keySet();
+			String[] applicationIds =  new String[c.size()];
+			c.toArray(applicationIds);
+			List<Application> applicationList = applicationService.queryAppsByIds(new ArrayList<>(c));
+			for(Application application : applicationList){
+				ApplicationModel applicationFormModel = new ApplicationModel();
+				applicationFormModel.setId(application.getId());
+				applicationFormModel.setName(application.getApplicationName());
+				applicationFormModel.setDataModels(map.get(application.getId()));
+				applicationFormModels.add(applicationFormModel);
+			}
+		}
+
+		return applicationFormModels;
 	}
 
 	private List<DataModelType> getDataModelType(String modelType){

@@ -9,11 +9,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 @ApiModel("应用表单模型")
-public class ApplicationFormModel extends NameEntity {
+public class ApplicationModel extends NameEntity {
 
 
 	@ApiModelProperty(value="表单模型",position = 3)
 	private List<FormModel> formModels = new ArrayList<>();
+
+	@ApiModelProperty(value="数据模型",position = 3)
+	private List<DataModelInfo> dataModels = new ArrayList<>();
+
+	@ApiModelProperty(value="列表模型",position = 3)
+	private List<ListModel> listModels = new ArrayList<>();
 
 	public List<FormModel> getFormModels() {
 		return formModels;
@@ -21,6 +27,22 @@ public class ApplicationFormModel extends NameEntity {
 
 	public void setFormModels(List<FormModel> formModels) {
 		this.formModels = formModels;
+	}
+
+	public List<DataModelInfo> getDataModels() {
+		return dataModels;
+	}
+
+	public void setDataModels(List<DataModelInfo> dataModels) {
+		this.dataModels = dataModels;
+	}
+
+	public List<ListModel> getListModels() {
+		return listModels;
+	}
+
+	public void setListModels(List<ListModel> listModels) {
+		this.listModels = listModels;
 	}
 
 	@Override

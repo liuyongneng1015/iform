@@ -219,7 +219,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	}
 
 	@Override
-	public List<ApplicationFormModel> findApplicationFormModel() {
+	public List<ApplicationModel> findApplicationFormModel() {
 		List<FormModelEntity> formModels = formModelService.findAll();
 		List<FormModel> formModelList = new ArrayList<>();
 		Map<String, List<FormModel>> map = new HashMap<>();
@@ -239,7 +239,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			list.add(formModel);
 			map.put(entity.getApplicationId(), list);
 		}
-		List<ApplicationFormModel> applicationFormModels = new ArrayList<>();
+		List<ApplicationModel> applicationFormModels = new ArrayList<>();
 		if(map != null && map.size() > 0) {
 			//TODO 查询应用
 			Set<String> c = map.keySet();
@@ -247,7 +247,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			c.toArray(applicationIds);
 			List<Application> applicationList = applicationService.queryAppsByIds(new ArrayList<>(c));
 			for(Application application : applicationList){
-				ApplicationFormModel applicationFormModel = new ApplicationFormModel();
+				ApplicationModel applicationFormModel = new ApplicationModel();
 				applicationFormModel.setId(application.getId());
 				applicationFormModel.setName(application.getApplicationName());
 				applicationFormModel.setFormModels(map.get(application.getId()));

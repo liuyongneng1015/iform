@@ -11,12 +11,23 @@ public class DataModelInfo extends NameEntity {
     @ApiModelProperty(value = "表名称", position = 2)
 	private String tableName;
 
+	@ApiModelProperty(value = "应用id", position = 2)
+	private String applicationId;
+
 	public String getTableName() {
 		return tableName;
 	}
 
 	public void setTableName(String tableName) {
 		this.tableName = tableName;
+	}
+
+	public String getApplicationId() {
+		return applicationId;
+	}
+
+	public void setApplicationId(String applicationId) {
+		this.applicationId = applicationId;
 	}
 
 	@Override
