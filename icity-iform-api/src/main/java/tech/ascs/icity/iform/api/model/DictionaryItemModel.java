@@ -18,7 +18,7 @@ public class DictionaryItemModel extends NameEntity implements Codeable {
 	/**
 	 * 所属数据字典id
 	 */
-    @ApiModelProperty(hidden = true)
+    @ApiModelProperty(value = "分类id", position = 3)
 	private String dictionaryId;
 
 	/**

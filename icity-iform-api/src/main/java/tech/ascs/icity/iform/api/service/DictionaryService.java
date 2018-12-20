@@ -64,7 +64,7 @@ public interface DictionaryService {
 	@ApiImplicitParams({
 			@ApiImplicitParam(paramType="path", name = "id", value = "字典表选项ID", required = true, dataType = "String")
 	})
-	@PutMapping("/update/items/{id}")
+	@PutMapping("/items/{id}")
 	void updateItem(@PathVariable(name="id", required = true) String id,
 					@RequestBody(required = true) DictionaryItemModel dictionaryItemModel);
 
