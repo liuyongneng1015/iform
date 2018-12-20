@@ -154,7 +154,7 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 
 	@Override
     public void update(@PathVariable(name="id") String id, @RequestBody(required = true) DictionaryModel dictionaryModel) {
-		if(StringUtils.equals(id, dictionaryModel.getId())){
+		if(!StringUtils.equals(id, dictionaryModel.getId())){
 			throw new IFormException("更新系统分类失败，id不一致");
 		}
 		veryDictionaryByName(id, dictionaryModel.getName());
@@ -174,6 +174,9 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 	@Override
     public void delete(@PathVariable(name="id") String id) {
     	DictionaryEntity dictionary = dictionaryService.get(id);
+		if(dictionary == null){
+			throw new IFormException("未查到对应的系统代码分类");
+		}
     	dictionaryService.delete(dictionary);
     }
 
@@ -228,7 +231,7 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 	@Override
     public void updateItem(@PathVariable(name="id", required = true) String id,
 						   @RequestBody(required = true) DictionaryItemModel dictionaryItemModel) {
-		if(StringUtils.equals(id, dictionaryItemModel.getId())){
+		if(!StringUtils.equals(id, dictionaryItemModel.getId())){
 			throw new IFormException("更新系统变量失败，id不一致");
 		}
     	dictionaryService.updateDictionaryItem(dictionaryItemModel.getDictionaryId(), id, dictionaryItemModel.getCode(), dictionaryItemModel.getName(), dictionaryItemModel.getDescription(), dictionaryItemModel.getParentItemId());

@@ -88,7 +88,6 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 	private List<ApplicationModel> list(List<DataModelInfo> entities){
 		Map<String, List<DataModelInfo>> map = new HashMap<>();
 		for(DataModelInfo entity : entities){
-
 			if(!StringUtils.hasText(entity.getApplicationId())){
 				continue;
 			}
@@ -96,6 +95,7 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 			if(list == null){
 				list = new ArrayList<>();
 			}
+			entity.setName(entity.getTableName());
 			list.add(entity);
 			map.put(entity.getApplicationId(), list);
 		}
