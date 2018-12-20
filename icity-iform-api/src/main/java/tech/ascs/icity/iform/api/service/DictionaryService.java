@@ -19,6 +19,10 @@ public interface DictionaryService {
 	@GetMapping
 	List<DictionaryModel> list();
 
+	@ApiOperation(value = "查询所有节点")
+	@GetMapping("/items")
+	List<DictionaryItemModel> listDictionaryItemMode();
+
 	@ApiOperation("获取字典表分页数据")
 	@ApiImplicitParams({
 			@ApiImplicitParam(paramType = "query", name = "page", value = "页码", required = false, defaultValue = "1"),

@@ -43,8 +43,20 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 		return dictionaryModels;
 	}
 
+	@Override
+	public List<DictionaryItemModel> listDictionaryItemMode() {
+		List<DictionaryItemEntity> list = dictionaryService.findAllDictionaryItems();
+		List<DictionaryItemModel> itemModels = new ArrayList<>();
+		if(list != null) {
+			for (DictionaryItemEntity itemEntity : list) {
+				itemModels.add(getItemModelByEntity(itemEntity));
+			}
+		}
+		return itemModels;
+	}
 
-    private DictionaryModel getByEntity(DictionaryEntity dictionaryEntity){
+
+	private DictionaryModel getByEntity(DictionaryEntity dictionaryEntity){
         DictionaryModel dictionaryModel = new DictionaryModel();
         BeanUtils.copyProperties(dictionaryEntity, dictionaryModel, new String[]{"dictionaryItems"});
         if(dictionaryEntity.getDictionaryItems() != null){
@@ -69,6 +81,12 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
         }
         return dictionaryItemModel;
     }
+
+	private DictionaryItemModel getItemModelByEntity(DictionaryItemEntity dictionaryItemEntity){
+		DictionaryItemModel dictionaryItemModel = new DictionaryItemModel();
+		BeanUtils.copyProperties(dictionaryItemEntity, dictionaryItemModel, new String[]{"dictionary", "paraentItem", "childrenItem"});
+		return dictionaryItemModel;
+	}
 
 	private List<DictionaryItemEntity> sortedItem(List<DictionaryItemEntity> list){
 		if(list == null || list.size() < 1){

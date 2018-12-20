@@ -3,6 +3,7 @@ package tech.ascs.icity.iform.service.impl;
 import java.util.List;
 import java.util.Map;
 
+import com.googlecode.genericdao.search.Sort;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
 import tech.ascs.icity.iform.IFormException;
@@ -117,5 +118,10 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 			return Integer.parseInt(String.valueOf(map.get("order_no")));
 		}
 		return 0;
+	}
+
+	@Override
+	public List<DictionaryItemEntity> findAllDictionaryItems() {
+		return dictionaryItemManager.query().sort(Sort.asc("orderNo")).list();
 	}
 }
