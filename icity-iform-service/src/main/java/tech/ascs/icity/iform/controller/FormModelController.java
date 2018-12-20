@@ -797,7 +797,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
                 checkModel.setFormModel(perimissionFormModel);
                 submitCheckModels.add(checkModel);
             }
-			List<FormSubmitCheckModel> formSubmitCheckModels = submitCheckModels.parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
+			List<FormSubmitCheckModel> formSubmitCheckModels = submitCheckModels.size() < 2 ? submitCheckModels : submitCheckModels.parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
             formModel.setSubmitChecks(formSubmitCheckModels);
         }
 

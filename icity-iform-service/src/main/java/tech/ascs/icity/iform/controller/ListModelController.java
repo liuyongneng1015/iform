@@ -176,10 +176,12 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			List<ListSearchItem> searchItems = new ArrayList<ListSearchItem>();
 			for (SearchItem searchItem : listModel.getSearchItems()) {
 				ListSearchItem searchItemEntity =  new ListSearchItem();
-				ItemModelEntity itemModelEntity = new ItemModelEntity();
-				itemModelEntity.setId(searchItem.getId());
-				itemModelEntity.setName(searchItem.getName());
-				searchItemEntity.setItemModel(itemModelEntity);
+				if(searchItem.getId() != null) {
+					ItemModelEntity itemModelEntity = new ItemModelEntity();
+					itemModelEntity.setId(searchItem.getId());
+					itemModelEntity.setName(searchItem.getName());
+					searchItemEntity.setItemModel(itemModelEntity);
+				}
 				/*if(searchItem.getItemModel() != null){
 					ItemModelEntity itemModelEntity = new ItemModelEntity();
 					BeanUtils.copyProperties(searchItem.getItemModel(), itemModelEntity, new String[]{"formModel", "columnModel", "activities", "options", "permission","items","parentItem","referenceList"});

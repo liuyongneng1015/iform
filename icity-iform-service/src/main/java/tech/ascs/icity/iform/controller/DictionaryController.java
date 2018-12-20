@@ -89,8 +89,8 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 	}
 
 	private List<DictionaryItemEntity> sortedItem(List<DictionaryItemEntity> list){
-		if(list == null || list.size() < 1){
-			return null;
+		if(list == null || list.size() < 2){
+			return list;
 		}
 		List<DictionaryItemEntity> dictionaryItemEntities = list.parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
 		for(DictionaryItemEntity dictionaryItemEntity : dictionaryItemEntities){
@@ -234,7 +234,10 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 		}else{
 			list = itemEntity.getParentItem().getChildrenItem();
 		}
-		List<DictionaryItemEntity> dictionaryItemEntities = list.parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
+		if(list == null){
+			list = new ArrayList<>();
+		}
+		List<DictionaryItemEntity> dictionaryItemEntities = list.size() < 2 ? list : list.parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
 
 		for(int i = 0 ; i < dictionaryItemEntities.size(); i++){
 			DictionaryItemEntity dictionaryItemEntity = dictionaryItemEntities.get(i);
@@ -271,8 +274,10 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 		}
 		Integer oldOrderNo = dictionaryEntity.getOrderNo();
 		List<DictionaryEntity> list = dictionaryService.query().sort(Sort.asc("orderNo")).list();
-
-		List<DictionaryEntity> dictionaryEntities = list.parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
+		if(list == null){
+			list = new ArrayList<>();
+		}
+		List<DictionaryEntity> dictionaryEntities = list.size() < 2 ? list : list.parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
 
 		for(int i = 0 ; i < dictionaryEntities.size(); i++){
 			DictionaryEntity dictionary = dictionaryEntities.get(i);
