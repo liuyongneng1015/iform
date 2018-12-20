@@ -252,8 +252,8 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
     }
 
 	@Override
-	public void updateItemOrderNo(@PathVariable(name="itemId",required = true) String itemId, @PathVariable(name="status", required = true) String status) {
-		DictionaryItemEntity itemEntity = dictionaryService.getDictionaryItemById(itemId);
+	public void updateItemOrderNo(@PathVariable(name="id",required = true) String id, @PathVariable(name="status", required = true) String status) {
+		DictionaryItemEntity itemEntity = dictionaryService.getDictionaryItemById(id);
 		if(itemEntity == null && itemEntity == null){
 			throw new IFormException("查询系统分类代码失败");
 		}
@@ -271,7 +271,7 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 
 		for(int i = 0 ; i < dictionaryItemEntities.size(); i++){
 			DictionaryItemEntity dictionaryItemEntity = dictionaryItemEntities.get(i);
-			if(dictionaryItemEntity.getId().equals(itemId)){
+			if(dictionaryItemEntity.getId().equals(id)){
 				//上移up
 				if("up".equals(status) && i > 0){
 					DictionaryItemEntity dictionaryItem = dictionaryItemEntities.get(i-1);

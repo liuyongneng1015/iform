@@ -143,9 +143,11 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		if(referenceModelList != null && referenceModelList.size() > 0) {
 			for (ReferenceModel model : referenceModelList) {
 				DataModelEntity dataModelEntity = findUniqueByProperty("tableName", model.getReferenceTable());
-				ColumnModelEntity columnModelEntity = columnModelService.saveColumnModelEntity(dataModelEntity, model.getReferenceValueColumn());
-				newToColumnIds.add(columnModelEntity.getId());
-				referenceMap.put(columnModelEntity.getId(), model);
+				if(dataModelEntity != null) {
+					ColumnModelEntity columnModelEntity = columnModelService.saveColumnModelEntity(dataModelEntity, model.getReferenceValueColumn());
+					newToColumnIds.add(columnModelEntity.getId());
+					referenceMap.put(columnModelEntity.getId(), model);
+				}
 			}
 		}
 
