@@ -1,8 +1,6 @@
 package tech.ascs.icity.iform.controller;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
@@ -12,12 +10,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.annotations.Api;
+import tech.ascs.icity.admin.api.model.Application;
+import tech.ascs.icity.admin.client.ApplicationService;
 import tech.ascs.icity.iform.IFormException;
-import tech.ascs.icity.iform.api.model.FormModel;
-import tech.ascs.icity.iform.api.model.ItemModel;
-import tech.ascs.icity.iform.api.model.ListModel;
+import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.api.model.ListModel.SortItem;
-import tech.ascs.icity.iform.api.model.SearchItem;
 import tech.ascs.icity.iform.api.model.SearchItem.Search;
 import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.FormModelService;
@@ -40,6 +37,10 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 
 	@Autowired
 	private ItemModelService itemModelService ;
+
+	@Autowired
+	private ApplicationService applicationService ;
+
 
 	@Override
 	public List<ListModel> list(@RequestParam(name="name", defaultValue="") String name, @RequestParam(name = "applicationId", required = false) String applicationId) {
@@ -124,6 +125,46 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 	@Override
 	public List<ListModel> findListModelsByTableName(String tableName) {
 		return listModelService.findListModelsByTableName(tableName);
+	}
+
+	@Override
+	public List<ApplicationModel> findListApplicationModel() {
+		return list(listModelService.findListModels());
+	}
+
+	private List<ApplicationModel> list(List<ListModel> entities){
+		if(entities == null){
+			return new ArrayList<>();
+		}
+		Map<String, List<ListModel>> map = new HashMap<>();
+		for(ListModel entity : entities){
+			if(!StringUtils.hasText(entity.getApplicationId())){
+				continue;
+			}
+			List<ListModel> list = map.get(entity.getApplicationId());
+			if(list == null){
+				list = new ArrayList<>();
+			}
+			list.add(entity);
+			map.put(entity.getApplicationId(), list);
+		}
+		List<ApplicationModel> applicationFormModels = new ArrayList<>();
+		if(map != null && map.size() > 0) {
+			//TODO 查询应用
+			Set<String> c = map.keySet();
+			String[] applicationIds =  new String[c.size()];
+			c.toArray(applicationIds);
+			List<Application> applicationList = applicationService.queryAppsByIds(new ArrayList<>(c));
+			for(Application application : applicationList){
+				ApplicationModel applicationFormModel = new ApplicationModel();
+				applicationFormModel.setId(application.getId());
+				applicationFormModel.setName(application.getApplicationName());
+				applicationFormModel.setListModels(map.get(application.getId()));
+				applicationFormModels.add(applicationFormModel);
+			}
+		}
+
+		return applicationFormModels;
 	}
 
 	private ListModelEntity wrap(ListModel listModel)  {

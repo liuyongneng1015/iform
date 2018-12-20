@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import tech.ascs.icity.iform.api.model.ApplicationModel;
 import tech.ascs.icity.iform.api.model.ListModel;
 import tech.ascs.icity.model.IdEntity;
 import tech.ascs.icity.model.Page;
@@ -107,4 +108,12 @@ public interface ListModelService {
 	@ApiImplicitParam(paramType = "query", name = "tableName", value = "数据库表", required = true, dataType = "String")
 	@GetMapping("/list")
 	List<ListModel> findListModelsByTableName(@PathVariable(name="tableName") String tableName);
+
+	/**
+	 * 查询列表应用模型
+	 *
+	 */
+	@ApiOperation(value = "查询列表应用模型", position = 6)
+	@GetMapping("/application")
+	List<ApplicationModel> findListApplicationModel();
 }

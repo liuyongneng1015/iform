@@ -208,6 +208,18 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 		listFunctionManager.deleteById(id);
 	}
 
+	@Override
+	public List<ListModel> findListModels() {
+		List<ListModelEntity> listModelEntities = query().list();
+		List<ListModel> list = new ArrayList<>();
+		for(ListModelEntity listModelEntity : listModelEntities){
+			ListModel listModel  = new ListModel();
+			BeanUtils.copyProperties(listModelEntity, listModel, new String[]{"displayItems","searchItems","functions","sortItems","slaverForms","masterForm"});
+			list.add(listModel);
+		}
+		return list;
+	}
+
 	@Transactional(readOnly = false)
 	protected ListModelEntity doUpdate(ListModelEntity entity, Set<String> deletedSortItemIds, Set<String> searchItemIds, Set<String> deletedFunctionIds) {
 		if (deletedSortItemIds.size() > 0) {

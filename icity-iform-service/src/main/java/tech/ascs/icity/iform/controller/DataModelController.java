@@ -86,6 +86,9 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 	}
 
 	private List<ApplicationModel> list(List<DataModelInfo> entities){
+		if(entities == null){
+			return new ArrayList<>();
+		}
 		Map<String, List<DataModelInfo>> map = new HashMap<>();
 		for(DataModelInfo entity : entities){
 			if(!StringUtils.hasText(entity.getApplicationId())){
