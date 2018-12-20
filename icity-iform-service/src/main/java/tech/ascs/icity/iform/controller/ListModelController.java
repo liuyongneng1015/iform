@@ -155,12 +155,14 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			String[] applicationIds =  new String[c.size()];
 			c.toArray(applicationIds);
 			List<Application> applicationList = applicationService.queryAppsByIds(new ArrayList<>(c));
-			for(Application application : applicationList){
-				ApplicationModel applicationFormModel = new ApplicationModel();
-				applicationFormModel.setId(application.getId());
-				applicationFormModel.setName(application.getApplicationName());
-				applicationFormModel.setListModels(map.get(application.getId()));
-				applicationFormModels.add(applicationFormModel);
+			if(applicationList != null) {
+				for (Application application : applicationList) {
+					ApplicationModel applicationFormModel = new ApplicationModel();
+					applicationFormModel.setId(application.getId());
+					applicationFormModel.setName(application.getApplicationName());
+					applicationFormModel.setListModels(map.get(application.getId()));
+					applicationFormModels.add(applicationFormModel);
+				}
 			}
 		}
 

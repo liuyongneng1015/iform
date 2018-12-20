@@ -109,12 +109,14 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 			String[] applicationIds =  new String[c.size()];
 			c.toArray(applicationIds);
 			List<Application> applicationList = applicationService.queryAppsByIds(new ArrayList<>(c));
-			for(Application application : applicationList){
-				ApplicationModel applicationFormModel = new ApplicationModel();
-				applicationFormModel.setId(application.getId());
-				applicationFormModel.setName(application.getApplicationName());
-				applicationFormModel.setDataModels(map.get(application.getId()));
-				applicationFormModels.add(applicationFormModel);
+			if(applicationList != null) {
+				for (Application application : applicationList) {
+					ApplicationModel applicationFormModel = new ApplicationModel();
+					applicationFormModel.setId(application.getId());
+					applicationFormModel.setName(application.getApplicationName());
+					applicationFormModel.setDataModels(map.get(application.getId()));
+					applicationFormModels.add(applicationFormModel);
+				}
 			}
 		}
 
