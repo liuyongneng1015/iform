@@ -203,6 +203,9 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 		if(parentItemEntity == null && dictionary == null){
 			throw new IFormException("查询关联对象失败");
 		}
+		if(parentItemEntity != null){
+			dictionary = null;
+		}
     	DictionaryItemEntity item  = new DictionaryItemEntity();
     	item.setName(dictionaryItemModel.getName());
     	item.setCode(dictionaryItemModel.getCode());
@@ -236,6 +239,9 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 		}
 		if(parentItemEntity == null && dictionary == null){
 			throw new IFormException("查询关联对象失败");
+		}
+		if(parentItemEntity != null){
+			dictionary = null;
 		}
     	dictionaryService.updateDictionaryItem(dictionaryItemModel.getDictionaryId(), id, dictionaryItemModel.getCode(), dictionaryItemModel.getName(), dictionaryItemModel.getDescription(), dictionaryItemModel.getParaentItemId());
     }
