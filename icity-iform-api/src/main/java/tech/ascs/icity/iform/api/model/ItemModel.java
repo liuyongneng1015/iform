@@ -101,6 +101,11 @@ public class ItemModel extends NameEntity {
 	@ApiModelProperty(value="控件权限",position = 31)
 	private ItemPermissionModel  permission;
 
+	@ApiModelProperty(value="前缀业务标识",position = 32)
+	private String prefix;
+
+	@ApiModelProperty(value="后缀自增长数字位数",position = 33)
+	private Integer suffix;
 
 	public ItemType getType() {
 		return type;
@@ -372,6 +377,22 @@ public class ItemModel extends NameEntity {
 
 	public void setSelectFlag(Boolean selectFlag) {
 		this.selectFlag = selectFlag;
+	}
+
+	public String getPrefix() {
+		return prefix;
+	}
+
+	public void setPrefix(String prefix) {
+		this.prefix = prefix;
+	}
+
+	public Integer getSuffix() {
+		return suffix;
+	}
+
+	public void setSuffix(Integer suffix) {
+		this.suffix = suffix;
 	}
 
 	@Override

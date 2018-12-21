@@ -244,17 +244,17 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			e.printStackTrace();
 		}
 		for(ItemModelEntity itemModelEntity : formModelEntity.getItems()){
-			if(itemModelEntity.getSystemItemType() != SystemItemType.CreateDate){
+			if(itemModelEntity.getSystemItemType() == SystemItemType.CreateDate){
 				if(itemMap.keySet().contains(itemModelEntity.getId())){
 					list.remove(itemMap.get(itemModelEntity.getId()));
 				}
 				list.add(getItemInstance(itemModelEntity.getId(), new Date()));
-			}else if(itemModelEntity.getSystemItemType() != SystemItemType.CreateBy){
+			}else if(itemModelEntity.getSystemItemType() == SystemItemType.CreateBy){
 				if(itemMap.keySet().contains(itemModelEntity.getId())){
 					list.remove(itemMap.get(itemModelEntity.getId()));
 				}
 				list.add(getItemInstance(itemModelEntity.getId(), user != null ? user.getId() : "-1"));
-			}else if(itemModelEntity.getSystemItemType() != SystemItemType.SerialNumber){
+			}else if(itemModelEntity.getSystemItemType() == SystemItemType.SerialNumber){
 				if(itemMap.keySet().contains(itemModelEntity.getId())){
 					list.remove(itemMap.get(itemModelEntity.getId()));
 				}
@@ -312,12 +312,12 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			e.printStackTrace();
 		}
 		for(ItemModelEntity itemModelEntity : formModelEntity.getItems()){
-			if(itemModelEntity.getSystemItemType() != SystemItemType.UpdataDate){
+			if(itemModelEntity.getSystemItemType() == SystemItemType.UpdataDate){
 				if(itemMap.keySet().contains(itemModelEntity.getId())){
 					list.remove(itemMap.get(itemModelEntity.getId()));
 				}
 				list.add(getItemInstance(itemModelEntity.getId(), new Date()));
-			}else if(itemModelEntity.getSystemItemType() != SystemItemType.UpdataBy){
+			}else if(itemModelEntity.getSystemItemType() == SystemItemType.UpdataBy){
 				if(itemMap.keySet().contains(itemModelEntity.getId())){
 					list.remove(itemMap.get(itemModelEntity.getId()));
 				}

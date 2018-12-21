@@ -153,6 +153,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 	private ItemModelEntity  getNewItemModel(Map<String, ColumnModelEntity> modelEntityMap, ItemModelEntity oldItemModelEntity){
 		ItemModelEntity newItemModelEntity = getItemModelEntity(oldItemModelEntity.getType());
+		if(oldItemModelEntity.getSystemItemType() == SystemItemType.SerialNumber){
+			newItemModelEntity = new SerialNumberItemModelEntity();
+		}
 		if(!oldItemModelEntity.isNew()){
 			newItemModelEntity = itemManager.get(oldItemModelEntity.getId());
 		}
