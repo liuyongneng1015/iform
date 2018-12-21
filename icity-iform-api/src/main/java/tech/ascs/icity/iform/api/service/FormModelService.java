@@ -10,6 +10,7 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import tech.ascs.icity.iform.api.model.ApplicationModel;
 import tech.ascs.icity.iform.api.model.FormModel;
+import tech.ascs.icity.iform.api.model.ItemModel;
 import tech.ascs.icity.iform.api.model.PCFormModel;
 import tech.ascs.icity.model.IdEntity;
 import tech.ascs.icity.model.Page;
@@ -170,8 +171,23 @@ public interface FormModelService {
 	 *
 	 */
 	@ApiOperation(value = "应用表单模型", position = 3)
-	@ApiImplicitParams({})
+	@ApiImplicitParams({
+			@ApiImplicitParam(paramType = "query", name = "applicationId", value = "应用id", required = true, dataType = "String")
+	})
 	@GetMapping(value = "/application")
-	List<ApplicationModel> findApplicationFormModel();
+	List<ApplicationModel> findApplicationFormModel(@RequestParam(name="applicationId", required = true) String applicationId);
+
+
+	/**
+	 * 查询关联表单的控件模型
+	 *
+	 */
+	@ApiOperation(value = "查询关联表单的控件模型", position = 3)
+	@ApiImplicitParams({
+			@ApiImplicitParam(paramType = "query", name = "id", value = "表单模型ID", required = true, dataType = "String"),
+			@ApiImplicitParam(paramType = "query", name = "itemId", value = "控件id", required = false, dataType = "String")
+	})
+	@GetMapping(value = "/form-item")
+	List<ItemModel> findItemsByFormId(@RequestParam(name="id", required = true) String id, @RequestParam(name="itemId", required = false) String itemId);
 
 }

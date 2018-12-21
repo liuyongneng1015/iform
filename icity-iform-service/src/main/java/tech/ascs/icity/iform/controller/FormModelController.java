@@ -167,14 +167,14 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		if (itemModelEntity == null) {
 			throw new IFormException(404, "控件【" + itemModelId + "】不存在");
 		}
-		String formModelName = ((ReferenceItemModelEntity) itemModelEntity).getReferenceTable();
-		if(!(itemModelEntity instanceof  ReferenceItemModelEntity) || formModelName== null){
+		String referenceFormId = ((ReferenceItemModelEntity) itemModelEntity).getReferenceFormId();
+		if(!(itemModelEntity instanceof  ReferenceItemModelEntity) || !StringUtils.hasText(referenceFormId)){
 			throw new IFormException(404, "【" + itemModelId + "】控件不是关联类型");
 		}
 		List<String> stringList = Arrays.asList(((ReferenceItemModelEntity) itemModelEntity).getItemModelIds().split(","));
-		FormModelEntity formModelEntity = formModelService.findUniqueByProperty("name", formModelName);
+		FormModelEntity formModelEntity = formModelService.find( referenceFormId);
 		if (formModelEntity == null) {
-			throw new IFormException(404, "【" + formModelName + "】表单模型不存在");
+			throw new IFormException(404, "【" + referenceFormId + "】表单模型不存在");
 		}
 		formModelEntity.setItems(formModelService.getAllColumnItems(formModelEntity.getItems()));
 		try {
@@ -219,7 +219,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	}
 
 	@Override
-	public List<ApplicationModel> findApplicationFormModel() {
+	public List<ApplicationModel> findApplicationFormModel(@RequestParam(name="applicationId", required = true) String applicationId) {
 		List<FormModelEntity> formModels = formModelService.findAll();
 		List<FormModel> formModelList = new ArrayList<>();
 		Map<String, List<FormModel>> map = new HashMap<>();
@@ -247,12 +247,19 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			c.toArray(applicationIds);
 			List<Application> applicationList = applicationService.queryAppsByIds(new ArrayList<>(c));
 			if(applicationList != null) {
-				for (Application application : applicationList) {
-					ApplicationModel applicationFormModel = new ApplicationModel();
-					applicationFormModel.setId(application.getId());
-					applicationFormModel.setName(application.getApplicationName());
-					applicationFormModel.setFormModels(map.get(application.getId()));
-					applicationFormModels.add(applicationFormModel);
+				for (int i = 0 ; i <  applicationList.size(); i++) {
+					Application application  = applicationList.get(i);
+					if(application.getId().equals(applicationId)){
+						applicationFormModels.add(createApplicationModel(application, map));
+						break;
+					}
+				}
+				for (int i = 0 ; i <  applicationList.size(); i++) {
+					Application application  = applicationList.get(i);
+					if(application.getId().equals(applicationId)){
+						continue;
+					}
+					applicationFormModels.add(createApplicationModel(application, map));
 				}
 			}
 		}
@@ -260,38 +267,60 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		return applicationFormModels;
 	}
 
+	private ApplicationModel createApplicationModel(Application application, Map<String, List<FormModel>> map){
+		ApplicationModel applicationFormModel = new ApplicationModel();
+		applicationFormModel.setId(application.getId());
+		applicationFormModel.setName(application.getApplicationName());
+		applicationFormModel.setFormModels(map.get(application.getId()));
+		return applicationFormModel;
+	}
+
+	@Override
+	public List<ItemModel> findItemsByFormId(@RequestParam(name="id", required = true) String id, @RequestParam(name="itemId", required = false) String itemId) {
+		FormModelEntity formModelEntity = formModelService.get(id);
+		if(formModelEntity == null){
+			throw new IFormException("未找到【"+id+"】对应的表单");
+		}
+		List<ItemModel> itemModelList = new ArrayList<>();
+		List<ItemModelEntity> list =  formModelService.getAllColumnItems(formModelEntity.getItems());
+		if(list != null) {
+			for (ItemModelEntity itemModelEntity : list){
+				if(itemId != null && itemModelEntity.getId().equals(itemId)) {
+					ItemModel itemModel = new ItemModel();
+					BeanUtils.copyProperties(itemModelEntity, itemModel, new String[]{"formModel", "columnModel", "activities", "options", "permission", "items", "parentItem", "referenceList"});
+					itemModelList.add(itemModel);
+					break;
+				}
+			}
+			for (ItemModelEntity itemModelEntity : list){
+				if(itemId != null && itemModelEntity.getId().equals(itemId)) {
+					continue;
+				}
+				ItemModel itemModel = new ItemModel();
+				BeanUtils.copyProperties(itemModelEntity, itemModel, new String[]{"formModel", "columnModel", "activities", "options", "permission","items","parentItem","referenceList"});
+				itemModelList.add(itemModel);
+			}
+		}
+		return itemModelList;
+	}
+
 	private void verifyFormModelName(FormModel formModel){
 		if(formModel == null || StringUtils.isEmpty(formModel.getName())){
 			return;
 		}
-		List<FormModelEntity> list  = formModelService.findByProperty("name", formModel.getName());
-		if(list != null){
-			if(list.size() > 0 && formModel.isNew()){
-				throw new IFormException("表单名称重复了");
-			}
-			for(FormModelEntity formModelEntity : list) {
-				if(!formModelEntity.getId().equals(formModel.getId())) {
-					throw new IFormException("表单名称重复了");
-				}
-			}
+		if(StringUtils.isEmpty(formModel.getApplicationId())){
+			throw new IFormException("表单未关联应用");
 		}
-	}
-
-	private void verifyItemModelName(FormModel formModel){
-		if(formModel == null){
+		List<FormModelEntity> list  = formModelService.query().filterEqual("name", formModel.getName()).filterEqual("applicationId", formModel.getApplicationId()).list();
+		if(list == null || list.size() < 1){
 			return;
 		}
-		List<ItemModel> list  = formModel.getItems();
-		if(list != null){
-			Map<String, Object> map = new HashMap<>();
-			for(ItemModel itemModel : list){
-				if(itemModel.getName() != null){
-					if(map.get(itemModel.getName()) != null){
-						throw new IFormException("控件名称不能重复");
-					}
-					map.put(itemModel.getName(), itemModel.getName());
-				}
-			}
+		if(list.size() > 0 && formModel.isNew()){
+			throw new IFormException("表单名称重复了");
+		}
+		List<String> idList = list.parallelStream().map(FormModelEntity::getId).collect(Collectors.toList());
+		if(!formModel.isNew() && !idList.contains(formModel.getId())) {
+			throw new IFormException("表单名称重复了");
 		}
 	}
 
@@ -300,7 +329,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		BeanUtils.copyProperties(formModel, entity, new String[] {"items","dataModels","permissions","submitChecks"});
 
 		verifyFormModelName(formModel);
-		verifyItemModelName(formModel);
 
 		List<DataModel> dataModels = formModel.getDataModels();
 		if(dataModels == null || dataModels.isEmpty()){
@@ -434,7 +462,8 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				checkInfo.setFormModel(entity);
 				checkInfos.add(checkInfo);
 			}
-			entity.setSubmitChecks(checkInfos);
+			List<FormSubmitCheckInfo> checkInfoList = checkInfos.size() < 2 ? checkInfos : checkInfos.parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
+			entity.setSubmitChecks(checkInfoList);
 		}
 		return entity;
 	}
@@ -953,6 +982,16 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		if(entity instanceof ReferenceItemModelEntity && ((ReferenceItemModelEntity) entity).getItemModelIds() != null){
 			List<String> resultList= new ArrayList<>(Arrays.asList(((ReferenceItemModelEntity) entity).getItemModelIds().split(",")));
 			itemModel.setItemModelList(resultList);
+			String referenceItemId = ((ReferenceItemModelEntity) entity).getReferenceItemId();
+			if(referenceItemId != null){
+				ItemModelEntity itemModelEntity = itemModelService.get(referenceItemId);
+				itemModel.setReferenceItemName(itemModelEntity == null ? null : itemModelEntity.getName());
+			}
+			String referenceFormId = ((ReferenceItemModelEntity) entity).getReferenceFormId();
+			if(referenceFormId != null){
+				FormModelEntity formModelEntity = formModelService.get(referenceFormId);
+				itemModel.setReferenceFormName(formModelEntity == null ? null : formModelEntity.getName());
+			}
 		}else if(entity instanceof SelectItemModelEntity){
 			String defaultValue = ((SelectItemModelEntity) entity).getDefaultReferenceValue();
 			if( defaultValue != null && !StringUtils.isEmpty(defaultValue)) {

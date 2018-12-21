@@ -24,11 +24,11 @@ public class ReferenceItemModelEntity extends ItemModelEntity  {
 	@Enumerated(EnumType.STRING)
 	private SelectMode selectMode;
 
-	@Column(name="reference_table")// 关联表单模型
-	private String referenceTable;
+	@Column(name="reference_form_id")// 关联表单模型id
+	private String referenceFormId;
 
-	@Column(name="reference_value_column")// 关联字段模型（比如“ID”）
-	private String referenceValueColumn;
+	@Column(name="reference_item_id")// 关联控件模型id
+	private String referenceItemId;
 
 	@Column(name="control_type")//控件类型选择框还是列表
 	@Enumerated(EnumType.STRING)
@@ -58,20 +58,20 @@ public class ReferenceItemModelEntity extends ItemModelEntity  {
 		this.selectMode = selectMode;
 	}
 
-	public String getReferenceTable() {
-		return referenceTable;
+	public String getReferenceFormId() {
+		return referenceFormId;
 	}
 
-	public void setReferenceTable(String referenceTable) {
-		this.referenceTable = referenceTable;
+	public void setReferenceFormId(String referenceFormId) {
+		this.referenceFormId = referenceFormId;
 	}
 
-	public String getReferenceValueColumn() {
-		return referenceValueColumn;
+	public String getReferenceItemId() {
+		return referenceItemId;
 	}
 
-	public void setReferenceValueColumn(String referenceValueColumn) {
-		this.referenceValueColumn = referenceValueColumn;
+	public void setReferenceItemId(String referenceItemId) {
+		this.referenceItemId = referenceItemId;
 	}
 
 	public ControlType getControlType() {

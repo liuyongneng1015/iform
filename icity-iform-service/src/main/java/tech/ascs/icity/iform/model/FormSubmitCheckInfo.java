@@ -22,7 +22,7 @@ public class FormSubmitCheckInfo extends JPAEntity implements Serializable {
 	private String cueWords;
 
 	//排序号
-	private Integer orderNo;
+	private Integer orderNo = 0;
 
 	public FormModelEntity getFormModel() {
 		return formModel;

@@ -66,7 +66,8 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 
 	@Override
 	public List<ApplicationModel> listReferenceDataModel(@RequestParam(name = "tableName", required = false) String tableName,
-													  @RequestParam(name = "modelType", required = false) String modelType, @RequestParam(name = "applicationId", required=false) String applicationId) {
+													 	 @RequestParam(name = "modelType", required = false) String modelType,
+														 @RequestParam(name = "applicationId", required = true) String applicationId) {
 		try {
 			Query<DataModelEntity, DataModelEntity> query = dataModelService.query();
 			if (StringUtils.hasText(tableName)) {
@@ -79,13 +80,13 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 				query.filterEqual("applicationId",  applicationId);
 			}
 			List<DataModelEntity> entities = query.list();
-			return list(DTOTools.wrapList(entities, DataModelInfo.class));
+			return list(applicationId, DTOTools.wrapList(entities, DataModelInfo.class));
 		} catch (Exception e) {
 			throw new IFormException("获取数据模型列表失败：" + e.getMessage(), e);
 		}
 	}
 
-	private List<ApplicationModel> list(List<DataModelInfo> entities){
+	private List<ApplicationModel> list(String applictionId, List<DataModelInfo> entities){
 		if(entities == null){
 			return new ArrayList<>();
 		}
@@ -111,16 +112,30 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 			List<Application> applicationList = applicationService.queryAppsByIds(new ArrayList<>(c));
 			if(applicationList != null) {
 				for (Application application : applicationList) {
-					ApplicationModel applicationFormModel = new ApplicationModel();
-					applicationFormModel.setId(application.getId());
-					applicationFormModel.setName(application.getApplicationName());
-					applicationFormModel.setDataModels(map.get(application.getId()));
-					applicationFormModels.add(applicationFormModel);
+					if(application.getId().equals(applictionId)){
+						applicationFormModels.add(createApplicationModel(application, map));
+						break;
+					}
+				}
+
+				for (Application application : applicationList) {
+					if(application.getId().equals(applictionId)){
+						continue;
+					}
+					applicationFormModels.add(createApplicationModel(application, map));
 				}
 			}
 		}
 
 		return applicationFormModels;
+	}
+
+	private ApplicationModel createApplicationModel(Application application, Map<String, List<DataModelInfo>> map){
+		ApplicationModel applicationFormModel = new ApplicationModel();
+		applicationFormModel.setId(application.getId());
+		applicationFormModel.setName(application.getApplicationName());
+		applicationFormModel.setDataModels(map.get(application.getId()));
+		return applicationFormModel;
 	}
 
 	private List<DataModelType> getDataModelType(String modelType){

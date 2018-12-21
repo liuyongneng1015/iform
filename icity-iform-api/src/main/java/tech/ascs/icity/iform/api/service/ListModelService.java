@@ -114,6 +114,7 @@ public interface ListModelService {
 	 *
 	 */
 	@ApiOperation(value = "查询列表应用模型", position = 6)
+	@ApiImplicitParam(paramType = "query", name = "applicationId", value = "应用id", required = true, dataType = "String")
 	@GetMapping("/application")
-	List<ApplicationModel> findListApplicationModel();
+	List<ApplicationModel> findListApplicationModel(@RequestParam(name="applicationId", required = true) String applicationId);
 }

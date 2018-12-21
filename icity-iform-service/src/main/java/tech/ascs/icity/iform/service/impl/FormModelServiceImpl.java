@@ -361,22 +361,21 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 	//校验关联
 	private void verifyReference(ReferenceItemModelEntity rowItem){
-		FormModelEntity formModelEntity = findUniqueByName(rowItem.getReferenceTable());
+		FormModelEntity formModelEntity = find(rowItem.getReferenceFormId());
 		if(formModelEntity == null){
-			throw new IFormException(404, "表单【" + rowItem.getReferenceTable() +"】， 未找到");
+			throw new IFormException(404, "表单【" + rowItem.getReferenceFormId() +"】， 未找到");
 		}
 		List<ItemModelEntity> itemModels = getAllColumnItems(formModelEntity.getItems());
 
 		//关联表行
 		ColumnModelEntity addToEntity = null;
-		for(ItemModelEntity itemModelEntity : itemModels){
-			if(itemModelEntity.getName().equals(rowItem.getReferenceValueColumn())){
-				addToEntity = itemModelEntity.getColumnModel();
-			}
+		ItemModelEntity itemModelEntity = itemManager.find(rowItem.getReferenceItemId());
+		if(itemModelEntity != null){
+			addToEntity = itemModelEntity.getColumnModel();
 		}
 
 		if(addToEntity == null){
-			throw new IFormException(404, "表单【" + rowItem.getReferenceTable() +"】， 未找到对应的【"+ rowItem.getReferenceValueColumn() +"】控件");
+			throw new IFormException(404, "表单【" + rowItem.getReferenceFormId() +"】， 未找到对应的【"+ rowItem.getReferenceItemId() +"】控件");
 		}
 
 		//关联表行

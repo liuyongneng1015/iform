@@ -1,6 +1,7 @@
 package tech.ascs.icity.iform.controller;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
@@ -128,11 +129,11 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 	}
 
 	@Override
-	public List<ApplicationModel> findListApplicationModel() {
-		return list(listModelService.findListModels());
+	public List<ApplicationModel> findListApplicationModel(@RequestParam(name="applicationId", required = true) String applicationId) {
+		return list(applicationId, listModelService.findListModels());
 	}
 
-	private List<ApplicationModel> list(List<ListModel> entities){
+	private List<ApplicationModel> list(String applicationId, List<ListModel> entities){
 		if(entities == null){
 			return new ArrayList<>();
 		}
@@ -157,11 +158,16 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			List<Application> applicationList = applicationService.queryAppsByIds(new ArrayList<>(c));
 			if(applicationList != null) {
 				for (Application application : applicationList) {
-					ApplicationModel applicationFormModel = new ApplicationModel();
-					applicationFormModel.setId(application.getId());
-					applicationFormModel.setName(application.getApplicationName());
-					applicationFormModel.setListModels(map.get(application.getId()));
-					applicationFormModels.add(applicationFormModel);
+					if(application.getId().equals(applicationId)){
+						applicationFormModels.add(createApplicationModel(application, map));
+						break;
+					}
+				}
+				for (Application application : applicationList) {
+					if(application.getId().equals(applicationId)){
+						continue;
+					}
+					applicationFormModels.add(createApplicationModel(application, map));
 				}
 			}
 		}
@@ -169,7 +175,18 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		return applicationFormModels;
 	}
 
+	private ApplicationModel createApplicationModel(Application application, Map<String, List<ListModel>> map){
+		ApplicationModel applicationFormModel = new ApplicationModel();
+		applicationFormModel.setId(application.getId());
+		applicationFormModel.setName(application.getApplicationName());
+		applicationFormModel.setListModels(map.get(application.getId()));
+		return applicationFormModel;
+	}
+
 	private ListModelEntity wrap(ListModel listModel)  {
+
+		verfyListName(listModel);
+
 		ListModelEntity entity =  new ListModelEntity() ;
 		BeanUtils.copyProperties(listModel, entity, new String[] {"masterForm","slaverForms","sortItems", "searchItems","functions","displayItems"});
 
@@ -256,10 +273,22 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		return entity;
 	}
 
-	private ItemModelEntity createItemModelEntity(String id) {
-		ItemModelEntity itemModelEntity = new ItemModelEntity();
-		itemModelEntity.setId(id);
-		return itemModelEntity;
+	private void verfyListName(ListModel listModel) {
+		if(!StringUtils.hasText(listModel.getName()) || StringUtils.hasText(listModel.getApplicationId())){
+			throw new IFormException("名称或关联应用为空");
+		}
+		List<ListModelEntity> list = listModelService.query().filterEqual("name", listModel.getName()).filterEqual("applicationId", listModel.getApplicationId()).list();
+		if(list == null || list.size() < 1){
+			return;
+		}
+		if(list.size() > 0 && !StringUtils.hasText(listModel.getId())){
+			throw new IFormException("名称重复了");
+		}
+
+		List<String> idList = list.parallelStream().map(ListModelEntity::getId).collect(Collectors.toList());
+		if(StringUtils.hasText(listModel.getId()) && !idList.contains(listModel.getId())){
+			throw new IFormException("列表名重复了");
+		}
 	}
 
 	private Page<ListModel> toDTO(Page<ListModelEntity> entities) throws InstantiationException, IllegalAccessException {

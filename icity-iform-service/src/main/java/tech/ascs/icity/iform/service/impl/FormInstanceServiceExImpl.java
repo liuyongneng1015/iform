@@ -666,16 +666,20 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				}
 
 				//关联的item
-				ItemModelEntity toItemModel = itemModelManager.query().filterEqual("name", fromItem.getReferenceValueColumn()).filterEqual("formModel.id", toModelEntity.getId()).unique();
+				ItemModelEntity toItemModel = itemModelManager.find(fromItem.getReferenceItemId());
 
 				ColumnModelEntity columnModelEntity = fromItem.getColumnModel();
 				if(fromItem.getReferenceType() != ReferenceType.ManyToMany && columnModelEntity == null){
 					continue;
 				}
-
+				ItemModelEntity item = itemModelManager.find(fromItem.getReferenceItemId());
+				if(item == null || item.getColumnModel() == null){
+					continue;
+				}
+				//关联字段
+				String referenceColumnName = item.getColumnModel().getColumnName();
 				if(fromItem.getReferenceType() == ReferenceType.ManyToOne || fromItem.getReferenceType() == ReferenceType.OneToOne){
-					String key = fromItem.getReferenceValueColumn();
-					Map<String, Object> listMap = (Map<String, Object>)entity.get(key);
+					Map<String, Object> listMap = (Map<String, Object>)entity.get(referenceColumnName);
 					if( listMap == null || listMap.size() == 0) {
 						continue;
 					}
@@ -700,7 +704,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					}
 					DataModelInstance dataModelInstance = setDataModelInstance(toModelEntity, entity, listMap);
 					dataModelInstance.setReferenceType(fromItem.getReferenceType());
-					dataModelInstance.setReferenceValueColumn(fromItem.getReferenceValueColumn());
+					dataModelInstance.setReferenceValueColumn(referenceColumnName);
 					referenceDataModelList.add(dataModelInstance);
 				}
 			}else if(itemModel instanceof SubFormItemModelEntity) {

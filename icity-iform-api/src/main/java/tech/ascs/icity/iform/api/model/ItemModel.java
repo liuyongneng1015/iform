@@ -44,12 +44,22 @@ public class ItemModel extends NameEntity {
 	private SelectMode selectMode;
 	@ApiModelProperty(value = " 关联字典ID", position = 13)
 	private String referenceDictionaryId;
-	@ApiModelProperty(value = " 关联表单模型", position = 14)
+	@ApiModelProperty(value = " 关联表单(如表名、表单名)", position = 14)
 	private String referenceTable;
-	@ApiModelProperty(value = " 关联字段模型（比如“ID”）", position = 15)
+	@ApiModelProperty(value = " 关联字段模型（比如字段、控件名）", position = 15)
 	private String referenceValueColumn;
 	@ApiModelProperty(value = "默认值(数据字典的默认值)", position = 15)
 	private List<String> defaultValue = new ArrayList<>();
+
+	@ApiModelProperty(value = "关联表单模型id", position = 15)
+	private String referenceFormId;
+	@ApiModelProperty(value = "关联表单模型名称", position = 15)
+	private String referenceFormName;
+
+	@ApiModelProperty(value = " 关联控件模型id", position = 15)
+	private String referenceItemId;
+	@ApiModelProperty(value = " 关联控件模型名称", position = 15)
+	private String referenceItemName;
 
 	@ApiModelProperty(value="控件类型选择框还是列表", position = 16)
 	private ControlType controlType;
@@ -218,6 +228,46 @@ public class ItemModel extends NameEntity {
 
 	public void setDefaultValue(List<String> defaultValue) {
 		this.defaultValue = defaultValue;
+	}
+
+	public String getReferenceFormId() {
+		return referenceFormId;
+	}
+
+	public void setReferenceFormId(String referenceFormId) {
+		this.referenceFormId = referenceFormId;
+	}
+
+	public String getReferenceItemId() {
+		return referenceItemId;
+	}
+
+	public String getReferenceFormName() {
+		return referenceFormName;
+	}
+
+	public void setReferenceFormName(String referenceFormName) {
+		this.referenceFormName = referenceFormName;
+	}
+
+	public String getReferenceItemName() {
+		return referenceItemName;
+	}
+
+	public void setReferenceItemName(String referenceItemName) {
+		this.referenceItemName = referenceItemName;
+	}
+
+	public void setReferenceItemId(String referenceItemId) {
+		this.referenceItemId = referenceItemId;
+	}
+
+	public ItemPermissionModel getPermission() {
+		return permission;
+	}
+
+	public void setPermission(ItemPermissionModel permission) {
+		this.permission = permission;
 	}
 
 	public ControlType getControlType() {
