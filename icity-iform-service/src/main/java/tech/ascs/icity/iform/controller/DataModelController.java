@@ -265,14 +265,14 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 		return dataModels;
 	}
 
-	private DataModel toDTO(DataModelEntity entity) throws InstantiationException, IllegalAccessException {
+	private DataModel toDTO(DataModelEntity entity) {
 		DataModel dataModel = toDataModelDTO(entity);
 
 		if (entity.getColumns() != null && !entity.getColumns().isEmpty()) {
 			List<ColumnModel> columns = new ArrayList<ColumnModel>();
 			for (ColumnModelEntity columnEntity : entity.getColumns()) {
 				ColumnModel column = toDTO(columnEntity);
-				column.setDataModel(dataModel);
+				//column.setDataModel(dataModel);
 				columns.add(column);
 			}
 			dataModel.setColumns(columns);
@@ -282,7 +282,7 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 			List<IndexModel> indexes = new ArrayList<IndexModel>();
 			for (IndexModelEntity indexEntity : entity.getIndexes()) {
 				IndexModel index = toDTO(indexEntity);
-				index.setDataModel(dataModel);
+				//index.setDataModel(dataModel);
 				indexes.add(index);
 			}
 			dataModel.setIndexes(indexes);
@@ -297,7 +297,7 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 
 		if(entity.getMasterModel() != null){
 			DataModelInfo masterModel = new DataModelInfo();
-			BeanUtils.copyProperties(entity.getMasterModel(), masterModel, new String[]{});
+			BeanUtils.copyProperties(entity.getMasterModel(), masterModel, new String[]{"masterModel","slaverModels","columns", "indexes","referencesDataModel"});
 			dataModel.setMasterModel(masterModel);
 		}
 
@@ -305,7 +305,7 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 			List<DataModelInfo> slaverModels = new ArrayList<>();
 			for(DataModelEntity dataModelEntity : entity.getSlaverModels()) {
 				DataModelInfo dataModelInfo = new DataModelInfo();
-				BeanUtils.copyProperties(dataModelEntity, dataModelInfo, new String[]{});
+				BeanUtils.copyProperties(dataModelEntity, dataModelInfo, new String[]{"masterModel","slaverModels","columns", "indexes","referencesDataModel"});
 				slaverModels.add(dataModelInfo);
 			}
 			dataModel.setSlaverModels(slaverModels);
@@ -313,7 +313,7 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 		return dataModel;
 	}
 
-	private ColumnModel toDTO(ColumnModelEntity entity) throws InstantiationException, IllegalAccessException {
+	private ColumnModel toDTO(ColumnModelEntity entity)  {
 		ColumnModel columnModel = new ColumnModel();
 		BeanUtils.copyProperties(entity, columnModel, new String[] {"dataModel","columnReferences"});
 		columnModel.setReferenceTables(columnModelService.getReferenceModel(entity));
@@ -321,7 +321,7 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 		return columnModel;
 	}
 
-	private IndexModel toDTO(IndexModelEntity entity) throws InstantiationException, IllegalAccessException {
+	private IndexModel toDTO(IndexModelEntity entity) {
 		IndexModel indexModel = new IndexModel();
 		BeanUtils.copyProperties(entity, indexModel, new String[] {"dataModel","columns"});
 		return indexModel;
