@@ -2,6 +2,7 @@ package tech.ascs.icity.iform.service;
 
 import java.util.List;
 
+import tech.ascs.icity.iform.api.model.DictionaryModel;
 import tech.ascs.icity.iform.model.DictionaryEntity;
 import tech.ascs.icity.iform.model.DictionaryItemEntity;
 import tech.ascs.icity.jpa.service.JPAService;
@@ -64,5 +65,14 @@ public interface DictionaryService extends JPAService<DictionaryEntity> {
 	 * @return
 	 */
 	List<DictionaryItemEntity> findAllDictionaryItems();
+
+	/**
+	 * 获取字典表选项列表
+	 *
+	 * @param dictionaryId 父数据字典分类id
+	 * @param dictionaryItemId 数据字典联动目标id
+	 * @return
+	 */
+	List<DictionaryModel> findDictionaryModels(String dictionaryId, String dictionaryItemId);
 }
 

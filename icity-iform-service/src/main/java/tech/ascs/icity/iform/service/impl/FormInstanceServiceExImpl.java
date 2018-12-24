@@ -51,6 +51,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	private JPAManager<DictionaryEntity> dictionaryEntityJPAManager;
 
+	private JPAManager<DictionaryItemEntity> dictionaryItemManager;
+
 	private JPAManager<ItemModelEntity> itemModelManager;
 
 	private JPAManager<DataModelEntity> dataModelManager;
@@ -66,6 +68,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		super.initManager();
 		formModelEntityJPAManager = getJPAManagerFactory().getJPAManager(FormModelEntity.class);
 		dictionaryEntityJPAManager = getJPAManagerFactory().getJPAManager(DictionaryEntity.class);
+		dictionaryItemManager = getJPAManagerFactory().getJPAManager(DictionaryItemEntity.class);
 		itemModelManager = getJPAManagerFactory().getJPAManager(ItemModelEntity.class);
 		dataModelManager = getJPAManagerFactory().getJPAManager(DataModelEntity.class);
 	}
@@ -845,16 +848,27 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
                 }
                 List<String> valuelist = new ArrayList<>();
 				if(((SelectItemModelEntity)itemModel).getSelectReferenceType() == SelectReferenceType.Dictionary){
-					DictionaryEntity dictionary = dictionaryEntityJPAManager.find(((SelectItemModelEntity) itemModel).getReferenceDictionaryId());
-					if(dictionary != null) {
-						List<DictionaryItemEntity> dictionaryItemEntities = dictionary.getDictionaryItems();
-						for(DictionaryItemEntity dictionaryItemEntity : dictionaryItemEntities){
-							if (list.contains(dictionaryItemEntity.getCode())) {
-                                valuelist.add(dictionaryItemEntity.getName());
+					if(((SelectItemModelEntity) itemModel).getReferenceDictionaryItemId() != null){
+						DictionaryItemEntity dictionaryItemEntity = dictionaryItemManager.find(((SelectItemModelEntity) itemModel).getReferenceDictionaryItemId());
+						if(dictionaryItemEntity != null && dictionaryItemEntity.getChildrenItem() != null && dictionaryItemEntity.getChildrenItem().size() > 0) {
+							for (DictionaryItemEntity dictionaryItemEntity1 : dictionaryItemEntity.getChildrenItem()) {
+								if (list.contains(dictionaryItemEntity1.getCode())) {
+									valuelist.add(dictionaryItemEntity1.getName());
+								}
 							}
 						}
-                        itemInstance.setDisplayValue(valuelist);
+					}else {
+						DictionaryEntity dictionary = dictionaryEntityJPAManager.find(((SelectItemModelEntity) itemModel).getReferenceDictionaryId());
+						if (dictionary != null) {
+							List<DictionaryItemEntity> dictionaryItemEntities = dictionary.getDictionaryItems();
+							for (DictionaryItemEntity dictionaryItemEntity : dictionaryItemEntities) {
+								if (list.contains(dictionaryItemEntity.getCode())) {
+									valuelist.add(dictionaryItemEntity.getName());
+								}
+							}
+						}
 					}
+					itemInstance.setDisplayValue(valuelist);
 				}else if(((SelectItemModelEntity)itemModel).getSelectReferenceType() == SelectReferenceType.Fixed) {
 					for (ItemSelectOption option : itemModel.getOptions()) {
 						if (valuelist.contains(option.getValue())) {

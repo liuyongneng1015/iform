@@ -21,8 +21,12 @@ public class SelectItemModelEntity extends ItemModelEntity  {
 	@Column(name="multiple")// 是否多选
 	private Boolean multiple;
 
-	@Column(name="reference_dictionary_id")// 关联字典ID
+	@Column(name="reference_dictionary_id")// 数据字典分类
 	private String referenceDictionaryId;
+
+	@Column(name="reference_dictionary_item_id")// 关联字典联动目标
+	private String referenceDictionaryItemId;
+
 
 	@Column(name="reference_table")// 关联表
 	private String referenceTable;
@@ -59,6 +63,14 @@ public class SelectItemModelEntity extends ItemModelEntity  {
 
 	public void setReferenceDictionaryId(String referenceDictionaryId) {
 		this.referenceDictionaryId = referenceDictionaryId;
+	}
+
+	public String getReferenceDictionaryItemId() {
+		return referenceDictionaryItemId;
+	}
+
+	public void setReferenceDictionaryItemId(String referenceDictionaryItemId) {
+		this.referenceDictionaryItemId = referenceDictionaryItemId;
 	}
 
 	public String getReferenceTable() {

@@ -50,7 +50,7 @@ public class DictionaryItemModel extends NameEntity implements Codeable {
 	 * 子选项描述
 	 */
 	@ApiModelProperty(value = "子选项描述", position = 7)
-	private List<DictionaryItemModel> resources = new ArrayList<>();
+	private List<DictionaryItemModel> resources;
 
 	public String getDictionaryId() {
 		return dictionaryId;

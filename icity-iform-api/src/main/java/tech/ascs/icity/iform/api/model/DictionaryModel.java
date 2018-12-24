@@ -36,7 +36,7 @@ public class DictionaryModel extends NameEntity implements Codeable {
 	 * 数据字典项
 	 */
 	@ApiModelProperty(value = "数据字典项", position = 5)
-	private List<DictionaryItemModel> resources = new ArrayList<DictionaryItemModel>();
+	private List<DictionaryItemModel> resources;
 
 	public List<DictionaryItemModel> getResources() {
 		return resources;

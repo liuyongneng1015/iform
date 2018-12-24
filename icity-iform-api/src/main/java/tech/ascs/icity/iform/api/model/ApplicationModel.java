@@ -16,7 +16,7 @@ public class ApplicationModel extends NameEntity {
 	private List<FormModel> formModels = new ArrayList<>();
 
 	@ApiModelProperty(value="数据模型",position = 3)
-	private List<DataModelInfo> dataModels = new ArrayList<>();
+	private List<DataModel> dataModels = new ArrayList<>();
 
 	@ApiModelProperty(value="列表模型",position = 3)
 	private List<ListModel> listModels = new ArrayList<>();
@@ -29,11 +29,11 @@ public class ApplicationModel extends NameEntity {
 		this.formModels = formModels;
 	}
 
-	public List<DataModelInfo> getDataModels() {
+	public List<DataModel> getDataModels() {
 		return dataModels;
 	}
 
-	public void setDataModels(List<DataModelInfo> dataModels) {
+	public void setDataModels(List<DataModel> dataModels) {
 		this.dataModels = dataModels;
 	}
 
