@@ -305,7 +305,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				if(itemId != null && itemModelEntity.getId().equals(itemId)) {
 					continue;
 				}
-
 				itemModelList.add(convertItemModelByEntity(itemModelEntity));
 			}
 		}
@@ -317,7 +316,8 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		BeanUtils.copyProperties(itemModelEntity, itemModel, new String[]{"formModel", "columnModel", "activities", "options", "permission","items","parentItem","referenceList"});
 		if(itemModelEntity.getColumnModel() != null){
 			ColumnModelInfo columnModel = new ColumnModelInfo();
-			BeanUtils.copyProperties(itemModelEntity, itemModel, new String[]{"dataModel", "columnReferences"});
+			BeanUtils.copyProperties(itemModelEntity.getColumnModel(), columnModel, new String[]{"dataModel", "columnReferences"});
+			columnModel.setItemId(itemModel.getId());
 			if(itemModelEntity.getColumnModel().getDataModel() != null){
 				DataModel dataModel = new DataModel();
 				BeanUtils.copyProperties(itemModelEntity.getColumnModel().getDataModel(), dataModel, new String[]{"masterModel","slaverModels","columns","indexes","referencesDataModel"});
