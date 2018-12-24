@@ -88,7 +88,7 @@ public interface DataModelService {
 			@ApiImplicitParam(paramType = "query", name = "applicationId", value = "应用id", required = false)
 	})
 	@GetMapping("/master-models")
-	List<DataModelInfo> getMasterModels(@RequestParam(name = "applicationId", required = false) String applicationId);
+	List<DataModel> getMasterModels(@RequestParam(name = "applicationId", required = false) String applicationId);
 
 
 	/**

@@ -2,7 +2,6 @@ package tech.ascs.icity.iform.controller;
 
 import java.util.*;
 
-import io.swagger.annotations.ApiModelProperty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,7 +20,6 @@ import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.ColumnModelService;
 import tech.ascs.icity.iform.service.DataModelService;
 import tech.ascs.icity.jpa.dao.Query;
-import tech.ascs.icity.jpa.tools.DTOTools;
 import tech.ascs.icity.model.IdEntity;
 import tech.ascs.icity.model.Page;
 import tech.ascs.icity.utils.BeanUtils;
@@ -80,22 +78,22 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 				query.filterEqual("applicationId",  applicationId);
 			}
 			List<DataModelEntity> entities = query.list();
-			return list(applicationId, DTOTools.wrapList(entities, DataModelInfo.class));
+			return list(applicationId, toDTO(entities));
 		} catch (Exception e) {
 			throw new IFormException("获取数据模型列表失败：" + e.getMessage(), e);
 		}
 	}
 
-	private List<ApplicationModel> list(String applictionId, List<DataModelInfo> entities){
+	private List<ApplicationModel> list(String applictionId, List<DataModel> entities){
 		if(entities == null){
 			return new ArrayList<>();
 		}
-		Map<String, List<DataModelInfo>> map = new HashMap<>();
-		for(DataModelInfo entity : entities){
+		Map<String, List<DataModel>> map = new HashMap<>();
+		for(DataModel entity : entities){
 			if(!StringUtils.hasText(entity.getApplicationId())){
 				continue;
 			}
-			List<DataModelInfo> list = map.get(entity.getApplicationId());
+			List<DataModel> list = map.get(entity.getApplicationId());
 			if(list == null){
 				list = new ArrayList<>();
 			}
@@ -130,7 +128,7 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 		return applicationFormModels;
 	}
 
-	private ApplicationModel createApplicationModel(Application application, Map<String, List<DataModelInfo>> map){
+	private ApplicationModel createApplicationModel(Application application, Map<String, List<DataModel>> map){
 		ApplicationModel applicationFormModel = new ApplicationModel();
 		applicationFormModel.setId(application.getId());
 		applicationFormModel.setName(application.getApplicationName());
@@ -172,7 +170,7 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 	}
 
 	@Override
-	public List<DataModelInfo> getMasterModels(@RequestParam(name = "applicationId", required=false) String applicationId) {
+	public List<DataModel> getMasterModels(@RequestParam(name = "applicationId", required=false) String applicationId) {
 		try {
 			Query<DataModelEntity, DataModelEntity> query = dataModelService.query();
 			query.filterNotEqual("modelType", DataModelType.Slaver);
@@ -181,7 +179,7 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 				query.filterEqual("applicationId",  applicationId);
 			}
 			List<DataModelEntity> entities = query.list();
-			return DTOTools.wrapList(entities, DataModelInfo.class);
+			return toDTO(entities);
 		} catch (Exception e) {
 			throw new IFormException("获取数据模型列表失败：" + e.getMessage(), e);
 		}

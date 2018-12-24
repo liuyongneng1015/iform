@@ -3,6 +3,7 @@ package tech.ascs.icity.iform.controller;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.googlecode.genericdao.search.Sort;
 import freemarker.ext.beans.DateModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
@@ -48,6 +49,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 	@Autowired
 	private ApplicationService applicationService;
+
+	@Autowired
+	private DictionaryService dictionaryService;
 
 	@Override
 	public List<FormModel> list(@RequestParam(name="name", defaultValue="") String name, @RequestParam(name = "applicationId", required = false) String applicationId) {
@@ -311,6 +315,12 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 		return itemModelList;
 	}
+
+	@Override
+	public List<DictionaryModel> findDictionaryModels(@RequestParam(name="dictionaryId", required = false) String dictionaryId, @RequestParam(name="dictionaryItemId", required = false) String dictionaryItemId) {
+		return dictionaryService.findDictionaryModels(dictionaryId, dictionaryItemId);
+	}
+
 
 	private ItemModel convertItemModelByEntity(ItemModelEntity itemModelEntity){
 		ItemModel itemModel = new ItemModel();
@@ -706,6 +716,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				((SelectItemModelEntity) entity).setDefaultReferenceValue(org.apache.commons.lang3.StringUtils.join(itemModel.getDefaultValue(),","));
 			}
 			((SelectItemModelEntity)entity).setReferenceList(setItemModelByListModel(itemModel));
+
 		}else if(entity instanceof RowItemModelEntity){
 			List<ItemModelEntity> rowList = new ArrayList<>() ;
 			for(ItemModel rowItemModel : itemModel.getItems()) {
@@ -1025,6 +1036,33 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				itemModel.setDefaultValue(Arrays.asList(defaultValue.split(",")));
 			}
 			itemModel.setReferenceList(getItemModelByEntity(entity));
+
+			if(((SelectItemModelEntity) entity).getReferenceDictionaryId() != null){
+				DictionaryEntity dictionaryEntity = dictionaryService.get(((SelectItemModelEntity) entity).getReferenceDictionaryId());
+				itemModel.setReferenceDictionaryName(dictionaryEntity == null ? null : dictionaryEntity.getName());
+			}
+
+			if(((SelectItemModelEntity) entity).getReferenceDictionaryItemId() != null){
+				DictionaryItemEntity dictionaryItemEntity = dictionaryService.getDictionaryItemById(((SelectItemModelEntity) entity).getReferenceDictionaryItemId());
+				if(dictionaryItemEntity != null && dictionaryItemEntity.getChildrenItem() != null && dictionaryItemEntity.getChildrenItem().size() > 0 ) {
+					List<DictionaryItemModel> dictionaryItemModels = new ArrayList<>();
+					for(DictionaryItemEntity itemEntity : dictionaryItemEntity.getChildrenItem()) {
+						DictionaryItemModel dictionaryItemModel = new DictionaryItemModel();
+						org.springframework.beans.BeanUtils.copyProperties(itemEntity, dictionaryItemModel, new String[]{"dictionary", "paraentItem", "childrenItem"});
+
+						if(itemEntity.getDictionary() != null){
+							dictionaryItemModel.setDictionaryId(itemEntity.getDictionary().getId());
+						}
+
+						if(itemEntity.getParentItem() != null){
+							dictionaryItemModel.setParentItemId(itemEntity.getParentItem().getId());
+						}
+						dictionaryItemModels.add(dictionaryItemModel);
+					}
+					itemModel.setReferenceDictionaryItemList(dictionaryItemModels);
+				}
+			}
+
 		}else if(entity instanceof RowItemModelEntity){
 			List<ItemModel> rows = new ArrayList<>();
 			List<ItemModelEntity> rowList = ((RowItemModelEntity) entity).getItems();

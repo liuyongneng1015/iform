@@ -42,8 +42,16 @@ public class ItemModel extends NameEntity {
 	private Boolean multiple;
 	@ApiModelProperty(value="单选、多选、反选",position = 12)
 	private SelectMode selectMode;
-	@ApiModelProperty(value = " 关联字典ID", position = 13)
+	@ApiModelProperty(value = "关联字典分类ID", position = 13)
 	private String referenceDictionaryId;
+	@ApiModelProperty(value = "关联字典分类名称", position = 13)
+	private String referenceDictionaryName;
+
+	@ApiModelProperty(value = " 关联字典联动目标id", position = 13)
+	private String referenceDictionaryItemId;
+	@ApiModelProperty(value = " 关联字典联动目标", position = 13)
+	private List<DictionaryItemModel> referenceDictionaryItemList;
+
 	@ApiModelProperty(value = " 关联表单(如表名、表单名)", position = 14)
 	private String referenceTable;
 	@ApiModelProperty(value = " 关联字段模型（比如字段、控件名）", position = 15)
@@ -209,6 +217,30 @@ public class ItemModel extends NameEntity {
 
 	public void setReferenceDictionaryId(String referenceDictionaryId) {
 		this.referenceDictionaryId = referenceDictionaryId;
+	}
+
+	public String getReferenceDictionaryName() {
+		return referenceDictionaryName;
+	}
+
+	public void setReferenceDictionaryName(String referenceDictionaryName) {
+		this.referenceDictionaryName = referenceDictionaryName;
+	}
+
+	public List<DictionaryItemModel> getReferenceDictionaryItemList() {
+		return referenceDictionaryItemList;
+	}
+
+	public void setReferenceDictionaryItemList(List<DictionaryItemModel> referenceDictionaryItemList) {
+		this.referenceDictionaryItemList = referenceDictionaryItemList;
+	}
+
+	public String getReferenceDictionaryItemId() {
+		return referenceDictionaryItemId;
+	}
+
+	public void setReferenceDictionaryItemId(String referenceDictionaryItemId) {
+		this.referenceDictionaryItemId = referenceDictionaryItemId;
 	}
 
 	public String getReferenceTable() {
