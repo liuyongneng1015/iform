@@ -232,7 +232,10 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				List<DataModel> dateModels = new ArrayList<>();
 				for(DataModelEntity dataModelEntity : entity.getDataModels()){
 					DataModel dataModel = new DataModel();
-					BeanUtils.copyProperties(dataModelEntity, dataModel, new String[] {"masterModel","slaverModels","columns","indexes","referencesDataModel"});
+					dataModel.setId(dataModelEntity.getId());
+					dataModel.setName(dataModelEntity.getName());
+					dataModel.setTableName(dataModelEntity.getTableName());
+					//BeanUtils.copyProperties(dataModelEntity, dataModel, new String[] {"masterModel","slaverModels","columns","indexes","referencesDataModel"});
 					dateModels.add(dataModel);
 				}
 				formModel.setDataModels(dateModels);
@@ -320,7 +323,10 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			columnModel.setItemId(itemModel.getId());
 			if(itemModelEntity.getColumnModel().getDataModel() != null){
 				DataModel dataModel = new DataModel();
-				BeanUtils.copyProperties(itemModelEntity.getColumnModel().getDataModel(), dataModel, new String[]{"masterModel","slaverModels","columns","indexes","referencesDataModel"});
+				dataModel.setId(itemModelEntity.getColumnModel().getDataModel().getId());
+				dataModel.setName(itemModelEntity.getColumnModel().getDataModel().getName());
+				dataModel.setTableName(itemModelEntity.getColumnModel().getDataModel().getTableName());
+				//BeanUtils.copyProperties(itemModelEntity.getColumnModel().getDataModel(), dataModel, new String[]{"masterModel","slaverModels","columns","indexes","referencesDataModel"});
 				columnModel.setDataModel(dataModel);
 			}
 			itemModel.setColumnModel(columnModel);
