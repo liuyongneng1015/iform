@@ -27,10 +27,10 @@ public interface DictionaryService {
 	@ApiOperation("获取字典表分页数据")
 	@ApiImplicitParams({
 			@ApiImplicitParam(paramType = "query", name = "page", value = "页码", required = false, defaultValue = "1"),
-			@ApiImplicitParam(paramType = "query", name = "pageSize", value = "每页记录数", required = false, defaultValue = "10")
+			@ApiImplicitParam(paramType = "query", name = "pageSize", value = "每页记录数", required = false, defaultValue = "12")
 	})
 	@GetMapping("/page")
-    Page<DictionaryModel> page(@RequestParam(name = "page", defaultValue = "1") int page, @RequestParam(name="pageSize", defaultValue = "10") int pageSize);
+    Page<DictionaryModel> page(@RequestParam(name = "page", defaultValue = "1") int page, @RequestParam(name="pageSize", defaultValue = "12") int pageSize);
 
 	@ApiOperation("新增字典表")
 	@ApiImplicitParams({

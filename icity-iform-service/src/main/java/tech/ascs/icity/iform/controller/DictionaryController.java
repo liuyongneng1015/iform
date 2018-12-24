@@ -3,6 +3,8 @@ package tech.ascs.icity.iform.controller;
 import com.googlecode.genericdao.search.Sort;
 import io.swagger.annotations.Api;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +25,9 @@ import java.util.stream.Collectors;
 @Api(tags = "字典表管理",description = "字典表管理服务")
 @RestController
 public class DictionaryController implements tech.ascs.icity.iform.api.service.DictionaryService {
+
+	private Logger log = LoggerFactory.getLogger(DictionaryController.class);
+
 
 	@Autowired
 	private DictionaryService dictionaryService;
@@ -114,7 +119,7 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 	}
 
 	@Override
-	public Page<DictionaryModel> page(@RequestParam(name = "page", defaultValue = "1") int page, @RequestParam(name="pageSize", defaultValue = "10") int pageSize) {
+	public Page<DictionaryModel> page(@RequestParam(name = "page", defaultValue = "1") int page, @RequestParam(name="pageSize", defaultValue = "12") int pageSize) {
 		Page<DictionaryEntity> pageEntity = dictionaryService.query().sort(Sort.asc("orderNo")).page(page, pageSize).page();
 		List<DictionaryModel> dictionaryModels = new ArrayList<>();
 		for(DictionaryEntity dictionaryEntity : pageEntity.getResults()){
@@ -182,6 +187,7 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 
 	@Override
 	public List<DictionaryItemModel> listItem(@PathVariable(name="id") String id) {
+		log.error("listItem with id="+id +"begin");
     	DictionaryEntity dictionary = dictionaryService.get(id);
 		dictionary.setDictionaryItems(sortedItem(dictionary.getDictionaryItems()));
 		List<DictionaryItemModel> list = new ArrayList<>();
@@ -190,6 +196,7 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 				list.add(getByEntity(dictionaryItem));
 			}
 		}
+		log.error("listItem with id="+id +"end");
 		return list;
 	}
 

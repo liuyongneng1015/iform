@@ -69,7 +69,7 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 			for(int i = 0; i < dictionary.getDictionaryItems().size() ; i++){
 				DictionaryItemEntity itemEntity = dictionary.getDictionaryItems().get(i);
 				if(itemEntity.getId().equals(itemId)){
-					parentItemEntity.getChildrenItem().remove(itemEntity);
+					dictionary.getDictionaryItems().remove(itemEntity);
 					i--;
 				}
 			}
