@@ -74,5 +74,13 @@ public interface DictionaryService extends JPAService<DictionaryEntity> {
 	 * @return
 	 */
 	List<DictionaryModel> findDictionaryModels(String dictionaryId, String dictionaryItemId);
+
+	/**
+	 * 获取获取根节点
+	 *
+	 * @return
+	 */
+	DictionaryItemEntity findRootDictionaryItem();
+
 }
 

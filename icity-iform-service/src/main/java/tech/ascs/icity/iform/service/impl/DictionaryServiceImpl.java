@@ -18,6 +18,8 @@ import tech.ascs.icity.jpa.dao.exception.NotFoundException;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 
+import javax.persistence.Column;
+
 public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> implements DictionaryService {
 
 	private JPAManager<DictionaryItemEntity> dictionaryItemManager;
@@ -58,6 +60,14 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 		item.setCode(code);
 		item.setName(name);
 		item.setDescription(description);
+		DictionaryItemEntity   root = findRootDictionaryItem();
+		for (int i = 0; i < root.getChildrenItem().size(); i++) {
+			DictionaryItemEntity itemEntity = root.getChildrenItem().get(i);
+			if(itemEntity.getId().equals(itemId)){
+				root.getChildrenItem().remove(itemEntity);
+				i--;
+			}
+		}
 		if (parentItemEntity != null) {
 			for (int i = 0; i < parentItemEntity.getChildrenItem().size(); i++) {
 				DictionaryItemEntity itemEntity = parentItemEntity.getChildrenItem().get(i);
@@ -78,7 +88,8 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 					i--;
 				}
 			}
-			item.setParentItem(null);
+			root.getChildrenItem().add(item);
+			item.setParentItem(root);
 			dictionary.getDictionaryItems().add(item);
 		}
 		dictionaryItemManager.save(item);
@@ -156,6 +167,34 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 		return dictionaryModels;
 	}
 
+	@Override
+	public DictionaryItemEntity findRootDictionaryItem() {
+		return getRootItem();
+	}
+
+	private synchronized DictionaryItemEntity getRootItem(){
+		List<DictionaryItemEntity> dictionaryItems = dictionaryItemManager.findAll();
+		DictionaryItemEntity rootDictionaryItemEntity = null;
+		if(dictionaryItems != null) {
+			for (DictionaryItemEntity dictionaryItemEntity : dictionaryItems){
+				if(dictionaryItemEntity.getParentItem() == null && dictionaryItemEntity.getDictionary() == null && "root".equals(dictionaryItemEntity.getCode())){
+					rootDictionaryItemEntity = dictionaryItemEntity;
+					break;
+				}
+			}
+		}
+		if(rootDictionaryItemEntity == null) {
+			rootDictionaryItemEntity = new DictionaryItemEntity();
+			rootDictionaryItemEntity.setCode("root");
+			rootDictionaryItemEntity.setName("根节点");
+			rootDictionaryItemEntity.setDescription("根节点");
+			rootDictionaryItemEntity.setOrderNo(-1000);
+			dictionaryItemManager.save(rootDictionaryItemEntity);
+		}
+		return rootDictionaryItemEntity;
+	}
+
+
 	private List<DictionaryItemEntity> sortedItem(List<DictionaryItemEntity> list) {
 		if (list == null || list.size() < 2) {
 			return list;
@@ -178,7 +217,7 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 			for (DictionaryItemEntity entity : dictionaryEntity.getDictionaryItems()) {
 				itemModelList.add(getByEntity(entity));
 			}
-			dictionaryModel.setResources(itemModelList);
+			dictionaryModel.setResources(itemModelList.size() < 1  ? null : itemModelList);
 		}
 		return dictionaryModel;
 	}
@@ -201,7 +240,7 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 				itemModelList.add(getByEntity(entity));
 			}
 
-			dictionaryModel.setResources(itemModelList);
+			dictionaryModel.setResources(itemModelList.size() < 1  ? null : itemModelList);
 		}
 		return dictionaryModel;
 	}
@@ -224,7 +263,7 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 			for (DictionaryItemEntity childDictionaryItemEntity : dictionaryItemEntity.getChildrenItem()) {
 				list.add(getByEntity(childDictionaryItemEntity));
 			}
-			dictionaryItemModel.setResources(list);
+			dictionaryItemModel.setResources(list.size() < 1 ? null : list);
 		}
 		return dictionaryItemModel;
 	}

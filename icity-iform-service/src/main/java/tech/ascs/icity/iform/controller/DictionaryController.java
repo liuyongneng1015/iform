@@ -66,7 +66,7 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
             for(DictionaryItemEntity entity : dictionaryEntity.getDictionaryItems()){
                 itemModelList.add(getByEntity(entity));
             }
-            dictionaryModel.setResources(itemModelList);
+            dictionaryModel.setResources(itemModelList.size() < 1  ? null : itemModelList);
         }
         return dictionaryModel;
     }
@@ -94,7 +94,7 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
             for (DictionaryItemEntity childDictionaryItemEntity : dictionaryItemEntity.getChildrenItem()) {
                 list.add(getByEntity(childDictionaryItemEntity));
             }
-            dictionaryItemModel.setResources(list);
+            dictionaryItemModel.setResources(list.size() < 1 ? null : list);
         }
         return dictionaryItemModel;
     }
@@ -222,9 +222,11 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
     	Integer maxOrderNo = dictionaryService.maxDictionaryItemOrderNo();
 		item.setOrderNo(maxOrderNo == null ? 1 :  maxOrderNo + 1);
     	item.setDescription(dictionaryItemModel.getDescription());
+		DictionaryItemEntity   root = dictionaryService.findRootDictionaryItem();
     	if(dictionary != null) {
-			item.setParentItem(null);
+			item.setParentItem(root);
 			item.setDictionary(dictionary);
+			root.getChildrenItem().add(item);
 			dictionary.getDictionaryItems().add(item);
     		dictionaryService.save(dictionary);
 		}else{
