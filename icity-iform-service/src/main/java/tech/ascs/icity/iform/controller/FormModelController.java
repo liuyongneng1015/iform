@@ -3,6 +3,7 @@ package tech.ascs.icity.iform.controller;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import freemarker.ext.beans.DateModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -227,6 +228,16 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 			FormModel formModel = new FormModel();
 			BeanUtils.copyProperties(entity, formModel, new String[] {"items","dataModels","permissions","submitChecks"});
+			if(entity.getDataModels() != null){
+				List<DataModel> dateModels = new ArrayList<>();
+				for(DataModelEntity dataModelEntity : entity.getDataModels()){
+					DataModel dataModel = new DataModel();
+					BeanUtils.copyProperties(dataModelEntity, dataModel, new String[] {"masterModel","slaverModels","columns","indexes","referencesDataModel"});
+					dateModels.add(dataModel);
+				}
+				formModel.setDataModels(dateModels);
+			}
+
 			formModelList.add(formModel);
 
 			if(!StringUtils.hasText(entity.getApplicationId())){
@@ -286,9 +297,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		if(list != null) {
 			for (ItemModelEntity itemModelEntity : list){
 				if(itemId != null && itemModelEntity.getId().equals(itemId)) {
-					ItemModel itemModel = new ItemModel();
-					BeanUtils.copyProperties(itemModelEntity, itemModel, new String[]{"formModel", "columnModel", "activities", "options", "permission", "items", "parentItem", "referenceList"});
-					itemModelList.add(itemModel);
+					itemModelList.add(convertItemModelByEntity(itemModelEntity));
 					break;
 				}
 			}
@@ -296,12 +305,27 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				if(itemId != null && itemModelEntity.getId().equals(itemId)) {
 					continue;
 				}
-				ItemModel itemModel = new ItemModel();
-				BeanUtils.copyProperties(itemModelEntity, itemModel, new String[]{"formModel", "columnModel", "activities", "options", "permission","items","parentItem","referenceList"});
-				itemModelList.add(itemModel);
+
+				itemModelList.add(convertItemModelByEntity(itemModelEntity));
 			}
 		}
 		return itemModelList;
+	}
+
+	private ItemModel convertItemModelByEntity(ItemModelEntity itemModelEntity){
+		ItemModel itemModel = new ItemModel();
+		BeanUtils.copyProperties(itemModelEntity, itemModel, new String[]{"formModel", "columnModel", "activities", "options", "permission","items","parentItem","referenceList"});
+		if(itemModelEntity.getColumnModel() != null){
+			ColumnModelInfo columnModel = new ColumnModelInfo();
+			BeanUtils.copyProperties(itemModelEntity, itemModel, new String[]{"dataModel", "columnReferences"});
+			if(itemModelEntity.getColumnModel().getDataModel() != null){
+				DataModel dataModel = new DataModel();
+				BeanUtils.copyProperties(itemModelEntity.getColumnModel().getDataModel(), dataModel, new String[]{"masterModel","slaverModels","columns","indexes","referencesDataModel"});
+				columnModel.setDataModel(dataModel);
+			}
+			itemModel.setColumnModel(columnModel);
+		}
+		return itemModel;
 	}
 
 	private void verifyFormModelName(FormModel formModel){

@@ -19,10 +19,10 @@ public class ReferenceModel extends NameEntity {
 	@ApiModelProperty(value = "关联关系", position = 3)
 	private ReferenceType referenceType = ReferenceType.ManyToOne;
 
-	@ApiModelProperty(value = "关联表", position = 4)
+	@ApiModelProperty(value = "关联表名", position = 4)
 	private String referenceTable;
 
-	@ApiModelProperty(value = "关联值字段（比如“id”）", position = 5)
+	@ApiModelProperty(value = "关联值字段名（比如“id”）", position = 5)
 	private String referenceValueColumn = "id";
 
 	@ApiModelProperty(value = "关联中间表名（主要是多对多）", position = 6)
