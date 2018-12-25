@@ -319,7 +319,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			List<ItemModel> list  = new ArrayList<>();
 			for(ItemModelEntity itemModelEntity : entity.getDisplayItems()){
 				ItemModel itemModel = new ItemModel();
-				BeanUtils.copyProperties(itemModelEntity, itemModel, new String[] {"permission", "items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});
+				BeanUtils.copyProperties(itemModelEntity, itemModel, new String[] {"formModel", "columnModel","activities","options","searchItems", "sortItems","permission", "referenceList","items","parentItem"});
 				list.add(itemModel);
 			}
 			listModel.setDisplayItems(list);
@@ -365,7 +365,9 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			for (ListSearchItem searchItemEntity : entity.getSearchItems()) {
 				SearchItem searchItem = new SearchItem();
 				if(searchItemEntity.getItemModel() != null){
-					BeanUtils.copyProperties(searchItemEntity.getItemModel(), searchItem, new String[] {"permission", "items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});
+					searchItem.setId(searchItemEntity.getItemModel().getId());
+					searchItem.setName(searchItemEntity.getItemModel().getName());
+					//BeanUtils.copyProperties(searchItemEntity.getItemModel(), searchItem, new String[] {"listModel","itemModel","search","permission", "items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});
 				}
 				if(searchItemEntity.getSearch() != null){
 					Search search = new Search();
