@@ -280,7 +280,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 	}
 
 	private void verfyListName(ListModel listModel) {
-		if(!StringUtils.hasText(listModel.getName()) || StringUtils.hasText(listModel.getApplicationId())){
+		if(StringUtils.isEmpty(listModel.getName()) || StringUtils.isEmpty(listModel.getApplicationId())){
 			throw new IFormException("名称或关联应用为空");
 		}
 		List<ListModelEntity> list = listModelService.query().filterEqual("name", listModel.getName()).filterEqual("applicationId", listModel.getApplicationId()).list();
