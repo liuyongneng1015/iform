@@ -15,7 +15,6 @@ import java.util.List;
 public class ColumnModel extends NameEntity {
 
 	@ApiModelProperty(value = "数据模型", hidden = true)
-	@JsonBackReference
 	private DataModel dataModel;
 
     @ApiModelProperty(value = "字段名", position = 2)
