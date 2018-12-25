@@ -50,7 +50,7 @@ public class ItemModel extends NameEntity {
 	@ApiModelProperty(value = " 关联字典联动目标id", position = 13)
 	private String referenceDictionaryItemId;
 	@ApiModelProperty(value = " 关联字典联动目标", position = 13)
-	private List<DictionaryItemModel> referenceDictionaryItemList;
+	private List<DictionaryItemModel> referenceDictionaryItemList = new ArrayList<>();
 
 	@ApiModelProperty(value = " 关联表单(如表名、表单名)", position = 14)
 	private String referenceTable;

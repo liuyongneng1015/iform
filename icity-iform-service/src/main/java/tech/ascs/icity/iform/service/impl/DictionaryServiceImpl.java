@@ -1,8 +1,6 @@
 package tech.ascs.icity.iform.service.impl;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.googlecode.genericdao.search.Sort;
@@ -53,14 +51,14 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 		if (parentItemEntity == null && dictionary == null) {
 			throw new IFormException("查询关联对象失败");
 		}
-		if (parentItemEntity != null) {
+		DictionaryItemEntity   root = findRootDictionaryItem();
+		if (parentItemEntity != null && !root.getId().equals(parentItemId)) {
 			dictionary = null;
 		}
 		DictionaryItemEntity item = getDictionaryItemById(itemId);
 		item.setCode(code);
 		item.setName(name);
 		item.setDescription(description);
-		DictionaryItemEntity   root = findRootDictionaryItem();
 		for (int i = 0; i < root.getChildrenItem().size(); i++) {
 			DictionaryItemEntity itemEntity = root.getChildrenItem().get(i);
 			if(itemEntity.getId().equals(itemId)){
@@ -68,18 +66,7 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 				i--;
 			}
 		}
-		if (parentItemEntity != null) {
-			for (int i = 0; i < parentItemEntity.getChildrenItem().size(); i++) {
-				DictionaryItemEntity itemEntity = parentItemEntity.getChildrenItem().get(i);
-				if (itemEntity.getId().equals(itemId)) {
-					parentItemEntity.getChildrenItem().remove(itemEntity);
-					i--;
-				}
-			}
-			parentItemEntity.getChildrenItem().add(item);
-			item.setParentItem(parentItemEntity);
-			item.setDictionary(null);
-		}
+
 		if (dictionary != null) {
 			for (int i = 0; i < dictionary.getDictionaryItems().size(); i++) {
 				DictionaryItemEntity itemEntity = dictionary.getDictionaryItems().get(i);
@@ -91,6 +78,17 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 			root.getChildrenItem().add(item);
 			item.setParentItem(root);
 			dictionary.getDictionaryItems().add(item);
+		}else{
+			for (int i = 0; i < parentItemEntity.getChildrenItem().size(); i++) {
+				DictionaryItemEntity itemEntity = parentItemEntity.getChildrenItem().get(i);
+				if (itemEntity.getId().equals(itemId)) {
+					parentItemEntity.getChildrenItem().remove(itemEntity);
+					i--;
+				}
+			}
+			parentItemEntity.getChildrenItem().add(item);
+			item.setParentItem(parentItemEntity);
+			item.setDictionary(null);
 		}
 		dictionaryItemManager.save(item);
 	}
@@ -141,30 +139,11 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 	}
 
 	@Override
-	public List<DictionaryItemEntity> findAllDictionaryItems() {
+	public List<DictionaryItemEntity> findAllDictionaryItems(String dictionaryId) {
+		if(StringUtils.isNoneBlank(dictionaryId)){
+			return dictionaryItemManager.query().filterEqual("dictionary.id", dictionaryId).sort(Sort.asc("orderNo")).list();
+		}
 		return dictionaryItemManager.query().sort(Sort.asc("orderNo")).list();
-	}
-
-	@Override
-	public List<DictionaryModel> findDictionaryModels(String dictionaryId, String dictionaryItemId) {
-		List<DictionaryEntity> list = query().sort(Sort.asc("orderNo")).list();
-		for (DictionaryEntity dictionaryEntity : list) {
-			dictionaryEntity.setDictionaryItems(sortedItem(dictionaryEntity.getDictionaryItems()));
-		}
-		List<DictionaryModel> dictionaryModels = new ArrayList<>();
-		for (DictionaryEntity dictionaryEntity : list) {
-			if(dictionaryEntity.getId().equals(dictionaryId)) {
-				dictionaryModels.add(getByEntity(dictionaryItemId, dictionaryEntity));
-				break;
-			}
-		}
-		for (DictionaryEntity dictionaryEntity : list) {
-			if(dictionaryEntity.getId().equals(dictionaryId)) {
-				continue;
-			}
-			dictionaryModels.add(getByEntity(dictionaryEntity));
-		}
-		return dictionaryModels;
 	}
 
 	@Override
@@ -194,57 +173,23 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 		return rootDictionaryItemEntity;
 	}
 
-
-	private List<DictionaryItemEntity> sortedItem(List<DictionaryItemEntity> list) {
-		if (list == null || list.size() < 2) {
-			return list;
-		}
-		List<DictionaryItemEntity> dictionaryItemEntities = list.parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
-		for (DictionaryItemEntity dictionaryItemEntity : dictionaryItemEntities) {
-			if (dictionaryItemEntity.getChildrenItem() != null && dictionaryItemEntity.getChildrenItem().size() > 0) {
-				dictionaryItemEntity.setChildrenItem(sortedItem(dictionaryItemEntity.getChildrenItem()));
+	private void setItems(Set<DictionaryItemEntity> items, DictionaryItemEntity item){
+		if(item.getDictionary() != null){
+			//根节点
+			if(item.getParentItem() != null){
+				items.add(item.getParentItem());
 			}
-		}
-		return dictionaryItemEntities;
-	}
-
-
-	private DictionaryModel getByEntity(DictionaryEntity dictionaryEntity) {
-		DictionaryModel dictionaryModel = new DictionaryModel();
-		BeanUtils.copyProperties(dictionaryEntity, dictionaryModel, new String[]{"dictionaryItems"});
-		if (dictionaryEntity.getDictionaryItems() != null) {
-			List<DictionaryItemModel> itemModelList = new ArrayList<>();
-			for (DictionaryItemEntity entity : dictionaryEntity.getDictionaryItems()) {
-				itemModelList.add(getByEntity(entity));
-			}
-			dictionaryModel.setResources(itemModelList.size() < 1  ? null : itemModelList);
-		}
-		return dictionaryModel;
-	}
-
-	private DictionaryModel getByEntity(String dictionaryItemId, DictionaryEntity dictionaryEntity) {
-		DictionaryModel dictionaryModel = new DictionaryModel();
-		BeanUtils.copyProperties(dictionaryEntity, dictionaryModel, new String[]{"dictionaryItems"});
-		if (dictionaryEntity.getDictionaryItems() != null) {
-			List<DictionaryItemModel> itemModelList = new ArrayList<>();
-			for (DictionaryItemEntity entity : dictionaryEntity.getDictionaryItems()) {
-				if(entity.getId().equals(dictionaryItemId)){
-					itemModelList.add(getByEntity(entity));
-					break;
+		}else {
+			//子节点
+			if(item.getChildrenItem() != null || item.getChildrenItem().size() > 0) {
+				for(DictionaryItemEntity dictionaryItemEntity : item.getChildrenItem()) {
+					setItems(items, dictionaryItemEntity);
 				}
+			}else{
+				items.add(item.getParentItem());
 			}
-			for (DictionaryItemEntity entity : dictionaryEntity.getDictionaryItems()) {
-				if(entity.getId().equals(dictionaryItemId)){
-					continue;
-				}
-				itemModelList.add(getByEntity(entity));
-			}
-
-			dictionaryModel.setResources(itemModelList.size() < 1  ? null : itemModelList);
 		}
-		return dictionaryModel;
 	}
-
 
 	private DictionaryItemModel getByEntity(DictionaryItemEntity dictionaryItemEntity) {
 		DictionaryItemModel dictionaryItemModel = new DictionaryItemModel();

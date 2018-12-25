@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import tech.ascs.icity.iform.api.model.DataModel;
 import tech.ascs.icity.iform.api.model.DictionaryItemModel;
 import tech.ascs.icity.iform.api.model.DictionaryModel;
+import tech.ascs.icity.iform.api.model.SystemCodeModel;
 import tech.ascs.icity.model.Page;
 
 import java.util.List;
@@ -18,11 +19,12 @@ public interface DictionaryService {
 
 	@ApiOperation(value = "获取所有字典表")
 	@GetMapping
-	List<DictionaryModel> list();
+	SystemCodeModel list();
 
 	@ApiOperation(value = "查询所有节点")
-	@GetMapping("/items")
-	List<DictionaryItemModel> listDictionaryItemMode();
+	@ApiImplicitParam(paramType="path", name = "id", value = "系统分类字典id", required = true, dataType = "String")
+	@GetMapping("/{id}/dictionary-items")
+	List<DictionaryItemModel> listDictionaryItemModel(@RequestParam(name = "id", required = true) String id);
 
 	@ApiOperation("获取字典表分页数据")
 	@ApiImplicitParams({

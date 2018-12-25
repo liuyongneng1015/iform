@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.annotations.Api;
 import tech.ascs.icity.admin.api.model.Application;
-import tech.ascs.icity.admin.api.service.ApplicationService;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.model.*;
@@ -47,8 +46,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	@Autowired
 	private ColumnModelService columnModelService;
 
-	@Autowired
-	private ApplicationService applicationService;
 
 	@Autowired
 	private DictionaryService dictionaryService;
@@ -260,7 +257,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			Set<String> c = map.keySet();
 			String[] applicationIds =  new String[c.size()];
 			c.toArray(applicationIds);
-			List<Application> applicationList = applicationService.queryAppsByIds(new ArrayList<>(c));
+			List<Application> applicationList = new ArrayList<>(); //applicationService.queryAppsByIds(new ArrayList<>(c));
 			if(applicationList != null) {
 				for (int i = 0 ; i <  applicationList.size(); i++) {
 					Application application  = applicationList.get(i);
@@ -314,12 +311,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 		return itemModelList;
 	}
-
-	@Override
-	public List<DictionaryModel> findDictionaryModels(@RequestParam(name="dictionaryId", required = false) String dictionaryId, @RequestParam(name="dictionaryItemId", required = false) String dictionaryItemId) {
-		return dictionaryService.findDictionaryModels(dictionaryId, dictionaryItemId);
-	}
-
 
 	private ItemModel convertItemModelByEntity(ItemModelEntity itemModelEntity){
 		ItemModel itemModel = new ItemModel();

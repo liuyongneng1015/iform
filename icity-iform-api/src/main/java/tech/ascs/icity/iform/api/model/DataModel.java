@@ -3,6 +3,7 @@ package tech.ascs.icity.iform.api.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import io.swagger.annotations.ApiModel;
@@ -29,11 +30,9 @@ public class DataModel extends NameEntity {
 	private List<DataModelInfo> slaverModels = new ArrayList<DataModelInfo>();
 
     @ApiModelProperty(value = "数据字段模型列表", position = 6)
-    @JsonManagedReference
     private List<ColumnModel> columns = new ArrayList<ColumnModel>();
 
     @ApiModelProperty(value = "索引列表", position = 7)
-    @JsonManagedReference
     private List<IndexModel> indexes = new ArrayList<IndexModel>();
 
     @ApiModelProperty(value = "是否已同步", position = 8)

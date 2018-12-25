@@ -187,16 +187,4 @@ public interface FormModelService {
 	@GetMapping(value = "/form-item")
 	List<ItemModel> findItemsByFormId(@RequestParam(name="id", required = true) String id, @RequestParam(name="itemId", required = false) String itemId);
 
-	/**
-	 * 查询数据字典
-	 *
-	 */
-	@ApiOperation(value = "查询数据字典", position = 3)
-	@ApiImplicitParams({
-			@ApiImplicitParam(paramType = "query", name = "dictionaryId", value = "数据字典id", required = true, dataType = "String"),
-			@ApiImplicitParam(paramType = "query", name = "dictionaryItemId", value = "数据字典联动目标id", required = false, dataType = "String")
-	})
-	@GetMapping(value = "/form-dictionary")
-	List<DictionaryModel> findDictionaryModels(@RequestParam(name="dictionaryId", required = false) String dictionaryId, @RequestParam(name="dictionaryItemId", required = false) String dictionaryItemId);
-
 }

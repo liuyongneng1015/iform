@@ -1,5 +1,6 @@
 package tech.ascs.icity.iform.api.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
@@ -18,7 +19,6 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 public class IndexModel extends NameEntity {
 
 	@ApiModelProperty(value = "数据模型", hidden = true)
-	@JsonBackReference
 	private DataModel dataModel;
 
 	@ApiModelProperty(value = "索引字段列表", position = 2)

@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import tech.ascs.icity.iform.api.model.SystemCodeModel;
 import tech.ascs.icity.model.Page;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.DictionaryItemModel;
@@ -33,21 +34,32 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 	private DictionaryService dictionaryService;
 
 	@Override
-	public List<DictionaryModel> list() {
+	public SystemCodeModel list() {
 		List<DictionaryEntity> list = dictionaryService.query().sort(Sort.asc("orderNo")).list();
+		DictionaryItemEntity  rootDictionaryItem = dictionaryService.findRootDictionaryItem();
+
 		for(DictionaryEntity dictionaryEntity : list){
-			dictionaryEntity.setDictionaryItems(sortedItem(dictionaryEntity.getDictionaryItems()));
+			rootDictionaryItem.getChildrenItem().addAll(sortedItem(dictionaryEntity.getDictionaryItems()));
 		}
         List<DictionaryModel> dictionaryModels = new ArrayList<>();
 		for(DictionaryEntity dictionaryEntity : list){
             dictionaryModels.add(getByEntity(dictionaryEntity));
         }
-		return dictionaryModels;
+		DictionaryItemModel dictionaryItemModel = getByEntity(rootDictionaryItem);
+		SystemCodeModel systemCodeModel = new SystemCodeModel();
+		systemCodeModel.setDictionaryModels(dictionaryModels);
+		systemCodeModel.setDictionaryItemModel(dictionaryItemModel);
+		return systemCodeModel;
 	}
 
 	@Override
-	public List<DictionaryItemModel> listDictionaryItemMode() {
-		List<DictionaryItemEntity> list = dictionaryService.findAllDictionaryItems();
+	public List<DictionaryItemModel> listDictionaryItemModel(@RequestParam(name = "id",required = true) String id) {
+		List<DictionaryItemEntity> list = new ArrayList<>();
+		if(StringUtils.isNoneBlank(id)){
+			list.add(dictionaryService.findRootDictionaryItem());
+		}
+		list.addAll(dictionaryService.findAllDictionaryItems(id));
+
 		List<DictionaryItemModel> itemModels = new ArrayList<>();
 		if(list != null) {
 			for (DictionaryItemEntity itemEntity : list) {
@@ -61,13 +73,6 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 	private DictionaryModel getByEntity(DictionaryEntity dictionaryEntity){
         DictionaryModel dictionaryModel = new DictionaryModel();
         BeanUtils.copyProperties(dictionaryEntity, dictionaryModel, new String[]{"dictionaryItems"});
-        if(dictionaryEntity.getDictionaryItems() != null){
-            List<DictionaryItemModel> itemModelList = new ArrayList<>();
-            for(DictionaryItemEntity entity : dictionaryEntity.getDictionaryItems()){
-                itemModelList.add(getByEntity(entity));
-            }
-            dictionaryModel.setResources(itemModelList.size() < 1  ? null : itemModelList);
-        }
         return dictionaryModel;
     }
 
@@ -89,12 +94,12 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 			dictionaryItemModel.setParentItemId(dictionaryItemEntity.getParentItem().getId());
 		}
 
-        if(dictionaryItemEntity.getChildrenItem() != null) {
+        if(dictionaryItemEntity.getChildrenItem() != null && dictionaryItemEntity.getChildrenItem().size() > 0) {
             List<DictionaryItemModel> list = new ArrayList<>();
             for (DictionaryItemEntity childDictionaryItemEntity : dictionaryItemEntity.getChildrenItem()) {
                 list.add(getByEntity(childDictionaryItemEntity));
             }
-            dictionaryItemModel.setResources(list.size() < 1 ? null : list);
+            dictionaryItemModel.setResources(list);
         }
         return dictionaryItemModel;
     }
@@ -106,10 +111,10 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 	}
 
 	private List<DictionaryItemEntity> sortedItem(List<DictionaryItemEntity> list){
-		if(list == null || list.size() < 2){
+		if(list == null || list.size() < 1){
 			return list;
 		}
-		List<DictionaryItemEntity> dictionaryItemEntities = list.parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
+		List<DictionaryItemEntity> dictionaryItemEntities = list.size() < 2 ? list : list.parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
 		for(DictionaryItemEntity dictionaryItemEntity : dictionaryItemEntities){
 			if(dictionaryItemEntity.getChildrenItem() != null && dictionaryItemEntity.getChildrenItem().size() > 0){
 				dictionaryItemEntity.setChildrenItem(sortedItem(dictionaryItemEntity.getChildrenItem()));
@@ -180,7 +185,7 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
     public void delete(@PathVariable(name="id") String id) {
     	DictionaryEntity dictionary = dictionaryService.get(id);
 		if(dictionary == null){
-			throw new IFormException("未查到对应的系统代码分类");
+			throw new IFormException("未找到【"+id+"】对应的系统代码分类");
 		}
     	dictionaryService.delete(dictionary);
     }
@@ -189,7 +194,16 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 	public List<DictionaryItemModel> listItem(@PathVariable(name="id") String id) {
 		log.error("listItem with id="+id +"begin");
     	DictionaryEntity dictionary = dictionaryService.get(id);
-		dictionary.setDictionaryItems(sortedItem(dictionary.getDictionaryItems()));
+    	if(dictionary == null){
+			throw new IFormException("未找到【"+id+"】对应的系统代码分类");
+		}
+		//根节点
+		DictionaryItemEntity rootDictionaryItem = dictionaryService.findRootDictionaryItem();
+		rootDictionaryItem.setChildrenItem(dictionary.getDictionaryItems());
+		List<DictionaryItemEntity> rootItems = new ArrayList<>();
+		rootItems.add(rootDictionaryItem);
+
+		dictionary.setDictionaryItems(sortedItem(rootItems));
 		List<DictionaryItemModel> list = new ArrayList<>();
 		if(dictionary.getDictionaryItems() != null) {
 			for (DictionaryItemEntity dictionaryItem : dictionary.getDictionaryItems()){
@@ -213,7 +227,9 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 		if(parentItemEntity == null && dictionary == null){
 			throw new IFormException("查询关联对象失败");
 		}
-		if(parentItemEntity != null){
+		//根节点
+		DictionaryItemEntity root = dictionaryService.findRootDictionaryItem();
+		if(parentItemEntity != null && !root.getId().equals(dictionaryItemModel.getParentItemId())){
 			dictionary = null;
 		}
     	DictionaryItemEntity item  = new DictionaryItemEntity();
@@ -222,7 +238,6 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
     	Integer maxOrderNo = dictionaryService.maxDictionaryItemOrderNo();
 		item.setOrderNo(maxOrderNo == null ? 1 :  maxOrderNo + 1);
     	item.setDescription(dictionaryItemModel.getDescription());
-		DictionaryItemEntity   root = dictionaryService.findRootDictionaryItem();
     	if(dictionary != null) {
 			item.setParentItem(root);
 			item.setDictionary(dictionary);
