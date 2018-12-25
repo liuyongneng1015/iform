@@ -96,6 +96,9 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		if (StringUtils.hasText(ListModel.getId())) {
 			throw new IFormException("列表模型ID不为空，请使用更新操作");
 		}
+		if (ListModel.getMasterForm()==null || (ListModel.getMasterForm()!=null && StringUtils.isEmpty(ListModel.getMasterForm().getId()))) {
+			throw new IFormException("关联表单的ID不能为空");
+		}
 		try {
 			ListModelEntity entity = wrap(ListModel);
 			entity = listModelService.save(entity);
@@ -109,6 +112,9 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 	public void updateListModel(@PathVariable(name = "id") String id, @RequestBody ListModel ListModel) {
 		if (!StringUtils.hasText(ListModel.getId()) || !id.equals(ListModel.getId())) {
 			throw new IFormException("列表模型ID不一致");
+		}
+		if (ListModel.getMasterForm()==null || (ListModel.getMasterForm()!=null && StringUtils.isEmpty(ListModel.getMasterForm().getId()))) {
+			throw new IFormException("关联表单的ID不能为空");
 		}
 		try {
 			ListModelEntity entity = wrap(ListModel);
@@ -367,7 +373,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				if(searchItemEntity.getItemModel() != null){
 					searchItem.setId(searchItemEntity.getItemModel().getId());
 					searchItem.setName(searchItemEntity.getItemModel().getName());
-					BeanUtils.copyProperties(searchItemEntity.getItemModel(), searchItem, new String[] {"listModel","itemModel","search","permission", "items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});
+//					BeanUtils.copyProperties(searchItemEntity.getItemModel(), searchItem, new String[] {"listModel","itemModel","search","permission", "items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});
 				}
 				if(searchItemEntity.getSearch() != null){
 					Search search = new Search();
