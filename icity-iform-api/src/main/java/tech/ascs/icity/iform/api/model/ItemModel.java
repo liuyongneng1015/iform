@@ -115,6 +115,10 @@ public class ItemModel extends NameEntity {
 	@ApiModelProperty(value="后缀自增长数字位数",position = 33)
 	private Integer suffix;
 
+	@ApiModelProperty(value="数据字典值类型",position = 34)
+	private DictionaryValueType dictionaryValueType;
+
+
 	public ItemType getType() {
 		return type;
 	}
@@ -425,6 +429,14 @@ public class ItemModel extends NameEntity {
 
 	public void setSuffix(Integer suffix) {
 		this.suffix = suffix;
+	}
+
+	public DictionaryValueType getDictionaryValueType() {
+		return dictionaryValueType;
+	}
+
+	public void setDictionaryValueType(DictionaryValueType dictionaryValueType) {
+		this.dictionaryValueType = dictionaryValueType;
 	}
 
 	@Override

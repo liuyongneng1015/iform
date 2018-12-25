@@ -1,8 +1,11 @@
 package tech.ascs.icity.iform.model;
 
+import tech.ascs.icity.iform.api.model.DictionaryValueType;
 import tech.ascs.icity.iform.api.model.SelectReferenceType;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 选择表单控件模型
@@ -24,9 +27,8 @@ public class SelectItemModelEntity extends ItemModelEntity  {
 	@Column(name="reference_dictionary_id")// 数据字典分类
 	private String referenceDictionaryId;
 
-	@Column(name="reference_dictionary_item_id")// 关联字典联动目标
+	@Column(name="reference_dictionary_item_id")// 关联字典数据范围
 	private String referenceDictionaryItemId;
-
 
 	@Column(name="reference_table")// 关联表
 	private String referenceTable;
@@ -40,6 +42,20 @@ public class SelectItemModelEntity extends ItemModelEntity  {
 	@JoinColumn(name="list_model_id") // 关联显示列表模型
 	@ManyToOne(cascade = CascadeType.ALL)
 	private ListModelEntity referenceList;
+
+
+	//数据字典值类型
+	@Column(name="dictionary_value_type")
+	@Enumerated(EnumType.STRING)
+	private DictionaryValueType dictionaryValueType;
+
+
+	@ManyToOne(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH })
+	@JoinColumn(name="parent_select_id")// 关联字典联动目标
+	private SelectItemModelEntity parentItem;
+
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "parentItem")
+	private List<SelectItemModelEntity> items = new ArrayList<>();
 
 	public SelectReferenceType getSelectReferenceType() {
 		return selectReferenceType;
@@ -103,5 +119,29 @@ public class SelectItemModelEntity extends ItemModelEntity  {
 
 	public void setReferenceList(ListModelEntity referenceList) {
 		this.referenceList = referenceList;
+	}
+
+	public DictionaryValueType getDictionaryValueType() {
+		return dictionaryValueType;
+	}
+
+	public void setDictionaryValueType(DictionaryValueType dictionaryValueType) {
+		this.dictionaryValueType = dictionaryValueType;
+	}
+
+	public SelectItemModelEntity getParentItem() {
+		return parentItem;
+	}
+
+	public void setParentItem(SelectItemModelEntity parentItem) {
+		this.parentItem = parentItem;
+	}
+
+	public List<SelectItemModelEntity> getItems() {
+		return items;
+	}
+
+	public void setItems(List<SelectItemModelEntity> items) {
+		this.items = items;
 	}
 }

@@ -28,7 +28,7 @@ public class ListModelEntity extends BaseEntity implements Serializable {
 	@Column(name = "application_id")
 	private String applicationId;//应用id
 
-	@ManyToMany(cascade = CascadeType.ALL)
+	@ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
 	@JoinTable(
 		name = "ifm_list_form",
 		joinColumns = @JoinColumn( name="list_model"),
@@ -45,7 +45,7 @@ public class ListModelEntity extends BaseEntity implements Serializable {
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "listModel")
 	private List<ListSearchItem> searchItems = new ArrayList<ListSearchItem>();
 
-	@ManyToMany(cascade = CascadeType.ALL)
+	@ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
 	@JoinTable(
 		name = "ifm_list_display_item",
 		joinColumns = @JoinColumn(name="list_id"),

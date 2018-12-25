@@ -17,7 +17,7 @@ public class SubFormRowItemModelEntity extends ItemModelEntity  {
 	@Column(name="row_number") // 当前行数
 	private Integer rowNumber;
 
-	@JoinColumn(name="parent_id") //子表模型
+	@JoinColumn(name="parent_subform_item_id") //子表模型
 	@ManyToOne(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH })
 	private SubFormItemModelEntity parentItem;
 

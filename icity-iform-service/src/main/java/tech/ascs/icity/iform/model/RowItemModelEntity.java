@@ -18,7 +18,7 @@ public class RowItemModelEntity extends ItemModelEntity  {
 	private Integer rowNumber;
 
 	/** 组件子项（由组和字段构成） */
-	@JoinColumn(name="parent_id")
+	@JoinColumn(name="parent_row_id")
 	@OneToMany(cascade ={CascadeType.ALL}) // {CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.REMOVE}
 	private List<ItemModelEntity> items = new ArrayList<ItemModelEntity>();
 
