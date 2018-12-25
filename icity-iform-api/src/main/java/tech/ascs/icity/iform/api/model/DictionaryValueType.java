@@ -1,13 +1,12 @@
 package tech.ascs.icity.iform.api.model;
 
-public enum SelectReferenceType {
-    Dictionary("Dictionary"),//数据字典
-    Table("Table"),//表
+public enum DictionaryValueType {
+    Linkage("Linkage"),//联动值
     Fixed("Fixed");//固定值
 
     private String value;
 
-    private SelectReferenceType(String value) {
+    private DictionaryValueType(String value) {
         this.value = value;
     }
 
