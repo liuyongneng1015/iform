@@ -54,16 +54,18 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 
 	@Override
 	public List<DictionaryItemModel> listDictionaryItemModel(@PathVariable(name = "id",required = true) String id) {
-		List<DictionaryItemEntity> list = new ArrayList<>();
-		if(StringUtils.isNoneBlank(id)){
-			list.add(dictionaryService.findRootDictionaryItem());
+		DictionaryEntity dictionaryEntity = dictionaryService.get(id);
+		if(dictionaryEntity == null){
+			throw new IFormException("未找到【"+id+"】对应的分类");
 		}
-		list.addAll(dictionaryService.findAllDictionaryItems(id));
-
+		List<DictionaryItemEntity> list = new ArrayList<>();
+		DictionaryItemEntity rootDictionaryItem = dictionaryService.findRootDictionaryItem();
+		rootDictionaryItem.setChildrenItem(dictionaryEntity.getDictionaryItems());
+		list.add(rootDictionaryItem);
 		List<DictionaryItemModel> itemModels = new ArrayList<>();
 		if(list != null) {
 			for (DictionaryItemEntity itemEntity : list) {
-				itemModels.add(getItemModelByEntity(itemEntity));
+				itemModels.add(getByEntity(itemEntity));
 			}
 		}
 		return itemModels;
@@ -191,7 +193,7 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
     }
 
 	@Override
-	public List<DictionaryItemModel> listItem(@PathVariable(name="id") String id) {
+	public List<DictionaryItemModel> listItem(@PathVariable(name="id", required = true) String id) {
 		log.error("listItem with id="+id +"begin");
     	DictionaryEntity dictionary = dictionaryService.get(id);
     	if(dictionary == null){

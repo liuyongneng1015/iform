@@ -35,8 +35,6 @@ public interface DictionaryService {
     Page<DictionaryModel> page(@RequestParam(name = "page", defaultValue = "1") int page, @RequestParam(name="pageSize", defaultValue = "12") int pageSize);
 
 	@ApiOperation("新增字典表")
-	@ApiImplicitParams({
-	})
 	@PostMapping
 	void add(@RequestBody(required = true) DictionaryModel dictionaryModel);
 
@@ -55,7 +53,7 @@ public interface DictionaryService {
 	@ApiOperation("获取字典表选项列表")
 	@ApiImplicitParam(paramType="path", name = "id", value = "字典表ID", required = true, dataType = "String")
 	@GetMapping("/{id}/items")
-	List<DictionaryItemModel> listItem(@PathVariable(name="id") String id);
+	List<DictionaryItemModel> listItem(@PathVariable(name="id",required = true) String id);
 
 	@ApiOperation("新增字典表选项")
 	@ApiImplicitParams({})
