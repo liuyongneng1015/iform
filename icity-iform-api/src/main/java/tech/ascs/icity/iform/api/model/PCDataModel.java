@@ -1,6 +1,5 @@
 package tech.ascs.icity.iform.api.model;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import org.apache.commons.lang3.StringUtils;
@@ -28,11 +27,9 @@ public class PCDataModel extends NameEntity {
 	private List<DataModelInfo> slaverModels = new ArrayList<DataModelInfo>();
 
     @ApiModelProperty(value = "数据字段模型列表", position = 6)
-    @JsonManagedReference
     private List<ColumnModelInfo> columns = new ArrayList<ColumnModelInfo>();
 
     @ApiModelProperty(value = "索引列表", position = 7)
-    @JsonManagedReference
     private List<IndexModel> indexes = new ArrayList<IndexModel>();
 
     @ApiModelProperty(value = "是否已同步", position = 8)
