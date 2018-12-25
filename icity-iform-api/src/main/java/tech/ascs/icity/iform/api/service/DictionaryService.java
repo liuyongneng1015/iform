@@ -24,7 +24,7 @@ public interface DictionaryService {
 	@ApiOperation(value = "查询所有节点")
 	@ApiImplicitParam(paramType="path", name = "id", value = "系统分类字典id", required = true, dataType = "String")
 	@GetMapping("/{id}/dictionary-items")
-	List<DictionaryItemModel> listDictionaryItemModel(@RequestParam(name = "id", required = true) String id);
+	List<DictionaryItemModel> listDictionaryItemModel(@PathVariable(name = "id", required = true) String id);
 
 	@ApiOperation("获取字典表分页数据")
 	@ApiImplicitParams({

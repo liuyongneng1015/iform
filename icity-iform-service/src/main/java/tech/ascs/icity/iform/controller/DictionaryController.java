@@ -53,7 +53,7 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 	}
 
 	@Override
-	public List<DictionaryItemModel> listDictionaryItemModel(@RequestParam(name = "id",required = true) String id) {
+	public List<DictionaryItemModel> listDictionaryItemModel(@PathVariable(name = "id",required = true) String id) {
 		List<DictionaryItemEntity> list = new ArrayList<>();
 		if(StringUtils.isNoneBlank(id)){
 			list.add(dictionaryService.findRootDictionaryItem());
