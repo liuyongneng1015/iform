@@ -1054,6 +1054,20 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				itemModel.setReferenceDictionaryName(dictionaryEntity == null ? null : dictionaryEntity.getName());
 			}
 
+			if(((SelectItemModelEntity) entity).getParentItem() != null){
+				ItemModel parentItemModel = new ItemModel();
+				BeanUtils.copyProperties(entity, parentItemModel, new String[]{"formModel", "columnModel", "activities", "options", "permission","items","parentItem","referenceList"});
+				if(((SelectItemModelEntity) entity).getParentItem().getColumnModel() != null){
+					ColumnModelInfo columnModel = new ColumnModelInfo();
+					BeanUtils.copyProperties(((SelectItemModelEntity) entity).getParentItem().getColumnModel(), columnModel, new String[] {"dataModel","columnReferences"});
+					if(entity.getColumnModel().getDataModel() != null){
+						columnModel.setTableName(entity.getColumnModel().getDataModel().getTableName());
+					}
+					parentItemModel.setColumnModel(columnModel);
+				}
+				itemModel.setParentItem(parentItemModel);
+			}
+
 			if(((SelectItemModelEntity) entity).getReferenceDictionaryItemId() != null){
 				DictionaryItemEntity dictionaryItemEntity = dictionaryService.getDictionaryItemById(((SelectItemModelEntity) entity).getReferenceDictionaryItemId());
 				if(dictionaryItemEntity != null && dictionaryItemEntity.getChildrenItem() != null && dictionaryItemEntity.getChildrenItem().size() > 0 ) {
