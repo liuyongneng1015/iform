@@ -74,9 +74,6 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 			if (StringUtils.hasText(modelType)) {
 				query.filterIn("modelType", getDataModelType(modelType));
 			}
-			if (StringUtils.hasText(applicationId)) {
-				query.filterEqual("applicationId",  applicationId);
-			}
 			List<DataModelEntity> entities = query.list();
 			return list(applicationId, toDTO(entities));
 		} catch (Exception e) {

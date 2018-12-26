@@ -86,6 +86,9 @@ public class ItemModel extends NameEntity {
 	@ApiModelProperty(value="表名",position = 22)
 	private String tableName;
 
+	@ApiModelProperty(value="上级关联控件模型",position = 22)
+	private ItemModel parentItem ;
+
 	//subformrow/row
 	@ApiModelProperty(value="当前行数",position = 23)
 	private Integer rowNumber;
@@ -189,6 +192,14 @@ public class ItemModel extends NameEntity {
 
 	public void setReferenceTableName(String referenceTableName) {
 		this.referenceTableName = referenceTableName;
+	}
+
+	public ItemModel getParentItem() {
+		return parentItem;
+	}
+
+	public void setParentItem(ItemModel parentItem) {
+		this.parentItem = parentItem;
 	}
 
 	public SelectReferenceType getSelectReferenceType() {

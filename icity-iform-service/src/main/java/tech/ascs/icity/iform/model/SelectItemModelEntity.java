@@ -54,8 +54,9 @@ public class SelectItemModelEntity extends ItemModelEntity  {
 	@JoinColumn(name="parent_select_id")// 关联字典联动目标
 	private SelectItemModelEntity parentItem;
 
-	@OneToMany(cascade = CascadeType.ALL, mappedBy = "parentItem")
-	private List<SelectItemModelEntity> items = new ArrayList<>();
+	/** 被关联字典联动目标 */
+	@OneToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH }, mappedBy = "parentItem")
+	private List<SelectItemModelEntity> items = new ArrayList<SelectItemModelEntity>();
 
 	public SelectReferenceType getSelectReferenceType() {
 		return selectReferenceType;
