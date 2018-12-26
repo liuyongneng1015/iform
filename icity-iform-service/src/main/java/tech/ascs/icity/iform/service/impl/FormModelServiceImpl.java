@@ -117,10 +117,11 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 			//form直接的新的item
 			List<ItemModelEntity> itemModelEntities = new ArrayList<ItemModelEntity>();
-			for(ItemModelEntity oldItemModelEntity : entity.getItems()) {
+			for(int i = 0; i < entity.getItems().size() ; i++) {
+				ItemModelEntity oldItemModelEntity = entity.getItems().get(i);
 				oldItemModelEntity.setFormModel(old);
 				ItemModelEntity newItemModelEntity = getNewItemModelEntity(modelEntityMap, oldItemModelEntity);
-
+				newItemModelEntity.setOrderNo(i);
 				//包括所有的item(包括子item)
 				allItems.add(newItemModelEntity);
 				allItems.addAll(getChildRenItemModelEntity(newItemModelEntity));
@@ -191,7 +192,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		if(oldItemModelEntity.getColumnModel() != null && oldItemModelEntity.getColumnModel().getDataModel() != null){
 			ColumnModelEntity columnModelEntity = modelEntityMap.get(oldItemModelEntity.getColumnModel().getDataModel().getTableName()+"_"+oldItemModelEntity.getColumnModel().getColumnName());
 			newItemModelEntity.setColumnModel(columnModelEntity);
-		}else if(!newItemModelEntity.getName().equals("id")){
+		}else if(!"id".equals(newItemModelEntity.getName())){
 			newItemModelEntity.setColumnModel(null);
 		}
 		return newItemModelEntity;
@@ -317,11 +318,13 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		if(oldItemModelEntity instanceof RowItemModelEntity){
 			RowItemModelEntity rowItemModelEntity = (RowItemModelEntity)oldItemModelEntity;
 			List<ItemModelEntity> rowItems = new ArrayList<ItemModelEntity>();
-			for(ItemModelEntity rowItem :  rowItemModelEntity.getItems()) {
+			for(int i = 0; i < rowItemModelEntity.getItems().size() ; i++) {
+				ItemModelEntity rowItem = rowItemModelEntity.getItems().get(i);
 				ItemModelEntity newRowItem = getNewItemModel(modelEntityMap, rowItem);
 				if(newRowItem instanceof ReferenceItemModelEntity) {
 					verifyReference((ReferenceItemModelEntity)rowItem);
 				}
+				newRowItem.setOrderNo(i);
 				rowItems.add(newRowItem);
 			}
 			rowItemModelEntity.setItems(rowItems);
@@ -329,13 +332,16 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		}else if(oldItemModelEntity instanceof SubFormItemModelEntity){
 			List<SubFormRowItemModelEntity> subFormItems = new ArrayList<>();
 			SubFormItemModelEntity subFormItemModel  = (SubFormItemModelEntity)oldItemModelEntity;
-			for (SubFormRowItemModelEntity subFormRowItemModelEntity :  subFormItemModel.getItems()) {
+			for (int i = 0; i < subFormItemModel.getItems().size() ; i++) {
+				SubFormRowItemModelEntity subFormRowItemModelEntity = subFormItemModel.getItems().get(i);
 				SubFormRowItemModelEntity subFormRowItemModel  = (SubFormRowItemModelEntity)getNewSubFormRowItemModel(subFormRowItemModelEntity);
 				List<ItemModelEntity> rowItems = new ArrayList<>();
-				for (ItemModelEntity childRenItem : subFormRowItemModelEntity.getItems()) {
+				for (int j = 0; j < subFormRowItemModelEntity.getItems().size() ; j ++) {
+					ItemModelEntity childRenItem = subFormRowItemModelEntity.getItems().get(j);
 					if(childRenItem instanceof ReferenceItemModelEntity) {
 						verifyReference((ReferenceItemModelEntity)childRenItem);
 					}
+					childRenItem.setOrderNo(j);
 					rowItems.add(getNewItemModel(modelEntityMap, childRenItem));
 				}
 				subFormRowItemModel.setParentItem((SubFormItemModelEntity)newModelEntity);

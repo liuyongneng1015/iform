@@ -681,7 +681,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 		//TODO 根据类型映射对应的item
 		ItemModelEntity entity = formModelService.getItemModelEntity(itemModel.getType());
-		if(entity.getSystemItemType() == SystemItemType.SerialNumber){
+		if(itemModel.getSystemItemType() == SystemItemType.SerialNumber){
 			 entity = new SerialNumberItemModelEntity();
 		}
 		//需要保持column
@@ -843,7 +843,8 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		BeanUtils.copyProperties(entity, formModel, new String[] {"items","dataModels","permissions","submitChecks"});
 		if (entity.getItems().size() > 0) {
 			List<ItemModel> items = new ArrayList<ItemModel>();
-			for (ItemModelEntity itemModelEntity : entity.getItems()) {
+			List<ItemModelEntity> itemModelEntities = entity.getItems() == null || entity.getItems().size() < 2 ? entity.getItems() : entity.getItems().parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
+			for (ItemModelEntity itemModelEntity : itemModelEntities) {
 				items.add(toDTO(itemModelEntity));
 			}
 			formModel.setItems(items);
@@ -1060,18 +1061,23 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}else if(entity instanceof RowItemModelEntity){
 			List<ItemModel> rows = new ArrayList<>();
 			List<ItemModelEntity> rowList = ((RowItemModelEntity) entity).getItems();
-			for(ItemModelEntity itemModelEntity : rowList) {
+			List<ItemModelEntity> itemModelEntities = rowList == null || rowList.size() < 2 ? rowList : rowList.parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
+			for(ItemModelEntity itemModelEntity : itemModelEntities) {
 				rows.add(toDTO(itemModelEntity));
 			}
 			itemModel.setItems(rows);
 		}else if(entity instanceof SubFormItemModelEntity){
 			List<ItemModel> subFormRows = new ArrayList<>();
 			List<SubFormRowItemModelEntity> rowItemModelEntities = ((SubFormItemModelEntity) entity).getItems();
-			for(SubFormRowItemModelEntity rowItemModelEntity : rowItemModelEntities) {
+
+			List<SubFormRowItemModelEntity> subFormRowItemModelEntities = rowItemModelEntities == null || rowItemModelEntities.size() < 2 ? rowItemModelEntities : rowItemModelEntities.parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
+
+			for(SubFormRowItemModelEntity rowItemModelEntity : subFormRowItemModelEntities) {
 				ItemModel subFormRowItem = new ItemModel();
 				BeanUtils.copyProperties(rowItemModelEntity, subFormRowItem, new String[] {"formModel","columnModel","activities","options","items","itemModelIds"});
 				List<ItemModel> rows = new ArrayList<>();
-				for(ItemModelEntity childrenItem : rowItemModelEntity.getItems()) {
+				List<ItemModelEntity> itemModelEntities = rowItemModelEntity.getItems() == null || rowItemModelEntity.getItems().size() < 2 ? rowItemModelEntity.getItems() : rowItemModelEntity.getItems().parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
+				for(ItemModelEntity childrenItem : itemModelEntities) {
 					rows.add(toDTO(childrenItem));
 				}
 				subFormRowItem.setItems(rows);

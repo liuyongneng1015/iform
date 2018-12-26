@@ -42,6 +42,9 @@ public class ItemModelEntity extends  BaseEntity implements Serializable {
 	@Column(name="hidden_conditions",columnDefinition="text")//隐藏条件
 	private String hiddenCondition;
 
+	@Column(name="order_no",columnDefinition = "0")//排序号
+	private Integer orderNo = 0;
+
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "itemModel")
 	private List<ItemActivityInfo> activities = new ArrayList<ItemActivityInfo>();
 
@@ -111,6 +114,14 @@ public class ItemModelEntity extends  BaseEntity implements Serializable {
 
 	public void setHiddenCondition(String hiddenCondition) {
 		this.hiddenCondition = hiddenCondition;
+	}
+
+	public Integer getOrderNo() {
+		return orderNo;
+	}
+
+	public void setOrderNo(Integer orderNo) {
+		this.orderNo = orderNo;
 	}
 
 	public void setActivities(List<ItemActivityInfo> activities) {
