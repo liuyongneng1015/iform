@@ -1,22 +1,18 @@
 package tech.ascs.icity.iform.service.impl;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import com.googlecode.genericdao.search.Sort;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.DictionaryItemModel;
-import tech.ascs.icity.iform.api.model.DictionaryModel;
 import tech.ascs.icity.iform.model.DictionaryEntity;
 import tech.ascs.icity.iform.model.DictionaryItemEntity;
 import tech.ascs.icity.iform.service.DictionaryService;
 import tech.ascs.icity.jpa.dao.exception.NotFoundException;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
-
-import javax.persistence.Column;
 
 public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> implements DictionaryService {
 
@@ -200,7 +196,7 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 		}
 
 		if (dictionaryItemEntity.getParentItem() != null) {
-			dictionaryItemModel.setParentItemId(dictionaryItemEntity.getParentItem().getId());
+			dictionaryItemModel.setParentId(dictionaryItemEntity.getParentItem().getId());
 		}
 
 		if (dictionaryItemEntity.getChildrenItem() != null) {

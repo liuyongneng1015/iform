@@ -3,8 +3,6 @@ package tech.ascs.icity.iform.controller;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import com.googlecode.genericdao.search.Sort;
-import freemarker.ext.beans.DateModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -1081,7 +1079,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 						}
 
 						if(itemEntity.getParentItem() != null){
-							dictionaryItemModel.setParentItemId(itemEntity.getParentItem().getId());
+							dictionaryItemModel.setParentId(itemEntity.getParentItem().getId());
 						}
 						dictionaryItemModels.add(dictionaryItemModel);
 					}

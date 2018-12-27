@@ -93,7 +93,7 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 		}
 
 		if(dictionaryItemEntity.getParentItem() != null){
-			dictionaryItemModel.setParentItemId(dictionaryItemEntity.getParentItem().getId());
+			dictionaryItemModel.setParentId(dictionaryItemEntity.getParentItem().getId());
 		}
 
         if(dictionaryItemEntity.getChildrenItem() != null && dictionaryItemEntity.getChildrenItem().size() > 0) {
@@ -114,7 +114,7 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 		}
 
 		if(dictionaryItemEntity.getParentItem() != null){
-			dictionaryItemModel.setParentItemId(dictionaryItemEntity.getParentItem().getId());
+			dictionaryItemModel.setParentId(dictionaryItemEntity.getParentItem().getId());
 		}
 		return dictionaryItemModel;
 	}
@@ -226,8 +226,8 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 	@Override
     public void addItem(@RequestBody(required = true) DictionaryItemModel dictionaryItemModel ) {
 		DictionaryItemEntity parentItemEntity = null;
-		if(StringUtils.isNoneBlank(dictionaryItemModel.getParentItemId())) {
-			parentItemEntity = dictionaryService.getDictionaryItemById(dictionaryItemModel.getParentItemId());
+		if(StringUtils.isNoneBlank(dictionaryItemModel.getParentId())) {
+			parentItemEntity = dictionaryService.getDictionaryItemById(dictionaryItemModel.getParentId());
 		}
 		DictionaryEntity dictionary = null;
 		if(StringUtils.isNoneBlank(dictionaryItemModel.getDictionaryId())) {
@@ -238,7 +238,7 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 		}
 		//根节点
 		DictionaryItemEntity root = dictionaryService.findRootDictionaryItem();
-		if(parentItemEntity != null && !root.getId().equals(dictionaryItemModel.getParentItemId())){
+		if(parentItemEntity != null && !root.getId().equals(dictionaryItemModel.getParentId())){
 			dictionary = null;
 		}
     	DictionaryItemEntity item  = new DictionaryItemEntity();
@@ -267,7 +267,7 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 		if(!StringUtils.equals(id, dictionaryItemModel.getId())){
 			throw new IFormException("更新系统变量失败，id不一致");
 		}
-    	dictionaryService.updateDictionaryItem(dictionaryItemModel.getDictionaryId(), id, dictionaryItemModel.getCode(), dictionaryItemModel.getName(), dictionaryItemModel.getDescription(), dictionaryItemModel.getParentItemId());
+    	dictionaryService.updateDictionaryItem(dictionaryItemModel.getDictionaryId(), id, dictionaryItemModel.getCode(), dictionaryItemModel.getName(), dictionaryItemModel.getDescription(), dictionaryItemModel.getParentId());
     }
 
 	@Override

@@ -6,7 +6,6 @@ import org.apache.commons.lang3.StringUtils;
 import tech.ascs.icity.model.Codeable;
 import tech.ascs.icity.model.NameEntity;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -44,7 +43,7 @@ public class DictionaryItemModel extends NameEntity implements Codeable {
 	 * 父选项
 	 */
 	@ApiModelProperty(value = "父选项", position = 6)
-	private String parentItemId;
+	private String parentId;
 
 	/**
 	 * 子选项描述
@@ -85,12 +84,12 @@ public class DictionaryItemModel extends NameEntity implements Codeable {
 		this.orderNo = orderNo;
 	}
 
-	public String getParentItemId() {
-		return parentItemId;
+	public String getParentId() {
+		return parentId;
 	}
 
-	public void setParentItemId(String parentItemId) {
-		this.parentItemId = parentItemId;
+	public void setParentId(String parentId) {
+		this.parentId = parentId;
 	}
 
 	public List<DictionaryItemModel> getResources() {
