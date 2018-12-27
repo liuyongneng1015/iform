@@ -90,4 +90,9 @@ public interface DictionaryService {
 	})
 	@PutMapping("/{id}/{status}")
 	void updateDictionaryOrderNo( @PathVariable(name="id",required = true) String id, @PathVariable(name="status", required = true) String status);
+
+	@ApiOperation(value = "查询第一级子节点")
+	@ApiImplicitParam(paramType="path", name = "id", value = "查询第一级子节点", required = true, dataType = "String")
+	@GetMapping("/items/{id}/children")
+	List<DictionaryItemModel> childrenDictionaryItemModel(@PathVariable(name = "id", required = true) String id);
 }

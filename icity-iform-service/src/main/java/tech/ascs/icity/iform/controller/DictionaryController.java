@@ -109,6 +109,13 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 	private DictionaryItemModel getItemModelByEntity(DictionaryItemEntity dictionaryItemEntity){
 		DictionaryItemModel dictionaryItemModel = new DictionaryItemModel();
 		BeanUtils.copyProperties(dictionaryItemEntity, dictionaryItemModel, new String[]{"dictionary", "paraentItem", "childrenItem"});
+		if(dictionaryItemEntity.getDictionary() != null){
+			dictionaryItemModel.setDictionaryId(dictionaryItemEntity.getDictionary().getId());
+		}
+
+		if(dictionaryItemEntity.getParentItem() != null){
+			dictionaryItemModel.setParentItemId(dictionaryItemEntity.getParentItem().getId());
+		}
 		return dictionaryItemModel;
 	}
 
@@ -317,7 +324,7 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 	public void updateDictionaryOrderNo(@PathVariable(name="id",required = true) String id, @PathVariable(name="status", required = true) String status) {
 		DictionaryEntity dictionaryEntity = dictionaryService.get(id);
 		if(dictionaryEntity == null && dictionaryEntity == null){
-			throw new IFormException("查询系统分类失败");
+			throw new IFormException("未找到【" + id + "】对应的数据字典分类");
 		}
 		Integer oldOrderNo = dictionaryEntity.getOrderNo();
 		List<DictionaryEntity> list = dictionaryService.query().sort(Sort.asc("orderNo")).list();
@@ -350,5 +357,18 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 				}
 			}
 		}
+	}
+
+	@Override
+	public List<DictionaryItemModel> childrenDictionaryItemModel(@PathVariable(name = "id", required = true) String id) {
+		DictionaryItemEntity dictionaryItemEntity = dictionaryService.getDictionaryItemById(id);
+		if(dictionaryItemEntity == null){
+			throw new IFormException("未找到【" + id + "】对应的数据字典项");
+		}
+		List<DictionaryItemModel> list = new ArrayList<>();
+		for(DictionaryItemEntity dictionaryItem : dictionaryItemEntity.getChildrenItem()){
+			list.add(getItemModelByEntity(dictionaryItem));
+		}
+		return list;
 	}
 }
