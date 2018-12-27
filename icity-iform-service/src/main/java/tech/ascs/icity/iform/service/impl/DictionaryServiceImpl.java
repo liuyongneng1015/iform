@@ -52,7 +52,8 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 			dictionary = null;
 		}
 		DictionaryItemEntity item = getDictionaryItemById(itemId);
-		item.setCode(code);
+		item.setCode(StringUtils.isBlank(code) ? "item_"+item.getOrderNo() : code);
+
 		item.setName(name);
 		item.setDescription(description);
 		for (int i = 0; i < root.getChildrenItem().size(); i++) {

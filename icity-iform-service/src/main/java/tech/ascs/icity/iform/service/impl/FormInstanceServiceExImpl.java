@@ -847,25 +847,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
                     list = Arrays.asList(values);
                 }
                 List<String> valuelist = new ArrayList<>();
-				if(((SelectItemModelEntity)itemModel).getSelectReferenceType() == SelectReferenceType.Dictionary){
-					if(((SelectItemModelEntity) itemModel).getReferenceDictionaryItemId() != null){
-						DictionaryItemEntity dictionaryItemEntity = dictionaryItemManager.find(((SelectItemModelEntity) itemModel).getReferenceDictionaryItemId());
-						if(dictionaryItemEntity != null && dictionaryItemEntity.getChildrenItem() != null && dictionaryItemEntity.getChildrenItem().size() > 0) {
-							for (DictionaryItemEntity dictionaryItemEntity1 : dictionaryItemEntity.getChildrenItem()) {
-								if (list.contains(dictionaryItemEntity1.getCode())) {
-									valuelist.add(dictionaryItemEntity1.getName());
-								}
-							}
-						}
-					}else {
-						DictionaryEntity dictionary = dictionaryEntityJPAManager.find(((SelectItemModelEntity) itemModel).getReferenceDictionaryId());
-						if (dictionary != null) {
-							List<DictionaryItemEntity> dictionaryItemEntities = dictionary.getDictionaryItems();
-							for (DictionaryItemEntity dictionaryItemEntity : dictionaryItemEntities) {
-								if (list.contains(dictionaryItemEntity.getCode())) {
-									valuelist.add(dictionaryItemEntity.getName());
-								}
-							}
+				if(((SelectItemModelEntity)itemModel).getSelectReferenceType() == SelectReferenceType.Dictionary && list != null && list.size() > 0){
+					List<DictionaryItemEntity> dictionaryItemEntities = dictionaryItemManager.query().filterIn("id",list).list();
+					for (DictionaryItemEntity dictionaryItemEntity : dictionaryItemEntities) {
+						if (list.contains(dictionaryItemEntity.getCode())) {
+							valuelist.add(dictionaryItemEntity.getName());
 						}
 					}
 					itemInstance.setDisplayValue(valuelist);

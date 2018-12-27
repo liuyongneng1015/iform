@@ -36,7 +36,7 @@ public class SelectItemModelEntity extends ItemModelEntity  {
 	@Column(name="reference_value_column")// 关联值字段（比如“ID”）
 	private String referenceValueColumn;
 
-	@Column(name="default_reference_value")// 默认关联值逗号隔开
+	@Column(name="default_reference_value",columnDefinition = "text")// 默认关联值逗号隔开
 	private String defaultReferenceValue;
 
 	@JoinColumn(name="list_model_id") // 关联显示列表模型

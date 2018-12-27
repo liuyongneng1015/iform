@@ -49,7 +49,10 @@ public class ItemModel extends NameEntity {
 
 	@ApiModelProperty(value = " 关联字典联动目标id", position = 13)
 	private String referenceDictionaryItemId;
-	@ApiModelProperty(value = " 关联字典联动目标", position = 13)
+	@ApiModelProperty(value = "关联字典取值范围", position = 13)
+	private String referenceDictionaryItemName;
+
+	@ApiModelProperty(value = " 关联字典默认选项", position = 13)
 	private List<DictionaryItemModel> referenceDictionaryItemList = new ArrayList<>();
 
 	@ApiModelProperty(value = " 关联表单(如表名、表单名)", position = 14)
@@ -257,6 +260,14 @@ public class ItemModel extends NameEntity {
 
 	public void setReferenceDictionaryItemId(String referenceDictionaryItemId) {
 		this.referenceDictionaryItemId = referenceDictionaryItemId;
+	}
+
+	public String getReferenceDictionaryItemName() {
+		return referenceDictionaryItemName;
+	}
+
+	public void setReferenceDictionaryItemName(String referenceDictionaryItemName) {
+		this.referenceDictionaryItemName = referenceDictionaryItemName;
 	}
 
 	public String getReferenceTable() {

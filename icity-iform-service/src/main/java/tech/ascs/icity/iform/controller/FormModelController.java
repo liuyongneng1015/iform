@@ -1070,11 +1070,19 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 			if(((SelectItemModelEntity) entity).getReferenceDictionaryItemId() != null){
 				DictionaryItemEntity dictionaryItemEntity = dictionaryService.getDictionaryItemById(((SelectItemModelEntity) entity).getReferenceDictionaryItemId());
+				if(dictionaryItemEntity != null){
+					itemModel.setReferenceDictionaryItemName(dictionaryItemEntity == null ? null : dictionaryItemEntity.getName());
+				}
 				if(dictionaryItemEntity != null && dictionaryItemEntity.getChildrenItem() != null && dictionaryItemEntity.getChildrenItem().size() > 0 ) {
 					List<DictionaryItemModel> dictionaryItemModels = new ArrayList<>();
 					for(DictionaryItemEntity itemEntity : dictionaryItemEntity.getChildrenItem()) {
+						if(itemEntity.getParentItem() != null || ("root").equals(itemEntity.getParentItem().getCode())){
+							if(itemEntity.getDictionary() != null && !itemEntity.getDictionary().getId().equals(((SelectItemModelEntity) entity).getReferenceDictionaryId())){
+								continue;
+							}
+						}
 						DictionaryItemModel dictionaryItemModel = new DictionaryItemModel();
-						org.springframework.beans.BeanUtils.copyProperties(itemEntity, dictionaryItemModel, new String[]{"dictionary", "paraentItem", "childrenItem"});
+						BeanUtils.copyProperties(itemEntity, dictionaryItemModel, new String[]{"dictionary", "paraentItem", "childrenItem"});
 
 						if(itemEntity.getDictionary() != null){
 							dictionaryItemModel.setDictionaryId(itemEntity.getDictionary().getId());
