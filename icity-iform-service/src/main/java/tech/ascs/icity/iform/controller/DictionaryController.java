@@ -156,16 +156,16 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 
     private  void veryDictionaryByName(String id, String name){
 		List<DictionaryEntity> list = dictionaryService.findByProperty("name", name);
-		if(StringUtils.isBlank(id) && list != null && list.size() > 0){
-			throw new IFormException("数据字典名称不能重复");
+		if(list == null || list.size() < 1){
+			return;
+		}
+		if(StringUtils.isBlank(id)){
+			throw new IFormException("数据字典分类名称不能重复");
 		}
 		if(StringUtils.isNoneBlank(id) ){
-			if(list == null || list.size() > 1) {
-				throw new IFormException("数据字典名称不能重复");
-			}
-			for(DictionaryEntity entity : list){
-				if(!entity.getId().equals(id)){
-					throw new IFormException("数据字典名称不能重复");
+			for(DictionaryEntity dictionaryEntity : list) {
+				if (StringUtils.equals(dictionaryEntity.getName(), name) && !StringUtils.equals(dictionaryEntity.getId(), id)) {
+					throw new IFormException("数据字典分类名称不能重复");
 				}
 			}
 		}
@@ -225,6 +225,7 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 
 	@Override
     public void addItem(@RequestBody(required = true) DictionaryItemModel dictionaryItemModel ) {
+		veryDictionaryItemByCode(dictionaryItemModel);
 		DictionaryItemEntity parentItemEntity = null;
 		if(StringUtils.isNoneBlank(dictionaryItemModel.getParentId())) {
 			parentItemEntity = dictionaryService.getDictionaryItemById(dictionaryItemModel.getParentId());
@@ -261,13 +262,46 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 		}
     }
 
+	private  void veryDictionaryItemByCode(DictionaryItemModel dictionaryItemModel){
+		if(StringUtils.isNoneBlank(dictionaryItemModel.getParentId())){
+			DictionaryItemEntity dictionaryItemEntity = dictionaryService.getDictionaryItemById(dictionaryItemModel.getParentId());
+			if(dictionaryItemEntity == null){
+				throw new IFormException("数据字典项未找到");
+			}
+			veryDictionaryItem(dictionaryItemModel, dictionaryItemEntity.getChildrenItem());
+		}else if(StringUtils.isNoneBlank(dictionaryItemModel.getDictionaryId())){
+			DictionaryEntity dictionaryEntity = dictionaryService.get(dictionaryItemModel.getDictionaryId());
+			if(dictionaryEntity == null){
+				throw new IFormException("数据字典分类未找到");
+			}
+			veryDictionaryItem(dictionaryItemModel, dictionaryEntity.getDictionaryItems());
+		}
+	}
+
+	private void veryDictionaryItem(DictionaryItemModel dictionaryItemModel, List<DictionaryItemEntity> itemEntities){
+		if(itemEntities == null || itemEntities.size() < 1){
+			return;
+		}
+		if(StringUtils.isBlank(dictionaryItemModel.getId()) && itemEntities.parallelStream().map(DictionaryItemEntity::getCode).collect(Collectors.toList()).contains(dictionaryItemModel.getCode())){
+			throw new IFormException("数据字典key不能重复");
+		}
+		if(StringUtils.isNoneBlank(dictionaryItemModel.getId())){
+			for(DictionaryItemEntity entity : itemEntities) {
+				if(StringUtils.equals(entity.getCode(), dictionaryItemModel.getCode()) && !StringUtils.equals(entity.getId(), dictionaryItemModel.getId())) {
+					throw new IFormException("数据字典key不能重复");
+				}
+			}
+		}
+	}
+
 	@Override
     public void updateItem(@PathVariable(name="id", required = true) String id,
 						   @RequestBody(required = true) DictionaryItemModel dictionaryItemModel) {
 		if(!StringUtils.equals(id, dictionaryItemModel.getId())){
 			throw new IFormException("更新系统变量失败，id不一致");
 		}
-    	dictionaryService.updateDictionaryItem(dictionaryItemModel.getDictionaryId(), id, dictionaryItemModel.getCode(), dictionaryItemModel.getName(), dictionaryItemModel.getDescription(), dictionaryItemModel.getParentId());
+		veryDictionaryItemByCode(dictionaryItemModel);
+		dictionaryService.updateDictionaryItem(dictionaryItemModel.getDictionaryId(), id, dictionaryItemModel.getCode(), dictionaryItemModel.getName(), dictionaryItemModel.getDescription(), dictionaryItemModel.getParentId());
     }
 
 	@Override
