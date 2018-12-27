@@ -36,13 +36,13 @@ public class ItemModelEntity extends  BaseEntity implements Serializable {
 	@Enumerated(EnumType.STRING)
 	private ItemType type;
 
-	@JoinColumn(name="props")
+	@Column(name="props",length = 1024)
 	private String props;
 
 	@Column(name="hidden_conditions",columnDefinition="text")//隐藏条件
 	private String hiddenCondition;
 
-	@Column(name="order_no",columnDefinition = "0")//排序号
+	@Column(name="order_no",columnDefinition = "int default 0")//排序号
 	private Integer orderNo = 0;
 
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "itemModel")

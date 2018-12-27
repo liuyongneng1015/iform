@@ -681,6 +681,8 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		ItemModelEntity entity = formModelService.getItemModelEntity(itemModel.getType());
 		if(itemModel.getSystemItemType() == SystemItemType.SerialNumber){
 			 entity = new SerialNumberItemModelEntity();
+		}else if(itemModel.getSystemItemType() == SystemItemType.Creator){
+			entity = new CreatorItemModelEntity();
 		}
 		//需要保持column
 		BeanUtils.copyProperties(itemModel, entity, new String[] {"referenceList","parentItem", "searchItems","sortItems", "permission", "items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});

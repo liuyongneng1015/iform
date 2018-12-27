@@ -28,12 +28,10 @@ public enum SystemItemType {
 
 	/** 创建时间 */
 	CreateDate("CreateDate"),
-	/** 更新时间 */
-	UpdataDate("UpdataDate"),
+
 	/** 创建人 */
-	CreateBy("CreateBy"),
-	/** 更新人 */
-	UpdataBy("UpdataBy"),
+	Creator("Creator"),
+
 	/** 流水号 */
 	SerialNumber("SerialNumber"),
 

@@ -103,6 +103,8 @@ public class ItemModel extends NameEntity {
 	@ApiModelProperty(value="系统控件类型", position = 29)
 	private SystemItemType systemItemType;
 
+	@ApiModelProperty(value="创建类型：Create创建时，Update更新时，Normal普通", position = 29)
+	private SystemCreateType createType = SystemCreateType.Normal;
 
 	@ApiModelProperty(value="数据标识:控件id集合",position = 30)
 	private List<String> itemModelList = new ArrayList<>();
@@ -120,7 +122,6 @@ public class ItemModel extends NameEntity {
 
 	@ApiModelProperty(value="数据字典值类型",position = 34)
 	private DictionaryValueType dictionaryValueType;
-
 
 	public ItemType getType() {
 		return type;
@@ -408,6 +409,14 @@ public class ItemModel extends NameEntity {
 
 	public void setSystemItemType(SystemItemType systemItemType) {
 		this.systemItemType = systemItemType;
+	}
+
+	public SystemCreateType getCreateType() {
+		return createType;
+	}
+
+	public void setCreateType(SystemCreateType createType) {
+		this.createType = createType;
 	}
 
 	public List<String> getItemModelList() {
