@@ -263,21 +263,39 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
     }
 
 	private  void veryDictionaryItemByCode(DictionaryItemModel dictionaryItemModel){
-		if(StringUtils.isNoneBlank(dictionaryItemModel.getParentId())){
-			DictionaryItemEntity dictionaryItemEntity = dictionaryService.getDictionaryItemById(dictionaryItemModel.getParentId());
-			if(dictionaryItemEntity == null){
-				throw new IFormException("数据字典项未找到");
-			}
-			veryDictionaryItem(dictionaryItemModel, dictionaryItemEntity.getChildrenItem());
-		}else if(StringUtils.isNoneBlank(dictionaryItemModel.getDictionaryId())){
+		 if(StringUtils.isNoneBlank(dictionaryItemModel.getDictionaryId())){
 			DictionaryEntity dictionaryEntity = dictionaryService.get(dictionaryItemModel.getDictionaryId());
 			if(dictionaryEntity == null){
 				throw new IFormException("数据字典分类未找到");
 			}
-			veryDictionaryItem(dictionaryItemModel, dictionaryEntity.getDictionaryItems());
+			 List<DictionaryItemEntity> itemEntities =  new ArrayList<>();
+			veryDictionaryItem(dictionaryItemModel, getDictionaryItems(itemEntities, dictionaryEntity));
 		}
 	}
 
+	private List<DictionaryItemEntity> getDictionaryItems(List<DictionaryItemEntity> list, DictionaryEntity dictionaryEntity){
+		if(dictionaryEntity != null && dictionaryEntity.getDictionaryItems() != null){
+			list.addAll(dictionaryEntity.getDictionaryItems());
+			for(DictionaryItemEntity  dictionaryItem : dictionaryEntity.getDictionaryItems()) {
+				getAllChildrenItem(list, dictionaryItem);
+			}
+		}
+		log.error("getDictionaryItems size="+list.size());
+		return list;
+	}
+
+	private void getAllChildrenItem(List<DictionaryItemEntity> list, DictionaryItemEntity dictionaryItemEntity){
+		if(dictionaryItemEntity != null && dictionaryItemEntity.getChildrenItem() != null){
+			list.addAll(dictionaryItemEntity.getChildrenItem());
+			for(DictionaryItemEntity  dictionaryItem : dictionaryItemEntity.getChildrenItem()) {
+				getAllChildrenItem(list, dictionaryItem);
+			}
+		}
+	}
+
+
+
+	//校验数据字典key
 	private void veryDictionaryItem(DictionaryItemModel dictionaryItemModel, List<DictionaryItemEntity> itemEntities){
 		if(itemEntities == null || itemEntities.size() < 1){
 			return;

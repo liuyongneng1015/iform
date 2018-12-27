@@ -952,7 +952,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 	private PCFormModel toPCDTO(FormModelEntity entity) {
 		PCFormModel formModel = new PCFormModel();
-		BeanUtils.copyProperties(entity, formModel, new String[] {"dataModels","items","permissions","submitChecks"});
+	    BeanUtils.copyProperties(entity, formModel, new String[] {"process","dataModels","items","permissions","submitChecks"});
 
 		if (entity.getItems().size() > 0) {
 			List<ItemModel> items = new ArrayList<ItemModel>();
@@ -1027,7 +1027,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	private ItemModel toDTO(ItemModelEntity entity)  {
 		//TODO 根据模型找到对应的参数
 		ItemModel itemModel = new ItemModel();
-		BeanUtils.copyProperties(entity, itemModel, new String[]{"formModel", "columnModel", "activities", "options", "permission","items","parentItem","referenceList"});
+		BeanUtils.copyProperties(entity, itemModel, new String[]{"formModel", "columnModel", "activities", "options","searchItems","sortItems", "permission","items","parentItem","referenceList"});
 
 		if(entity instanceof ReferenceItemModelEntity && ((ReferenceItemModelEntity) entity).getItemModelIds() != null){
 			List<String> resultList= new ArrayList<>(Arrays.asList(((ReferenceItemModelEntity) entity).getItemModelIds().split(",")));
@@ -1056,7 +1056,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 			if(((SelectItemModelEntity) entity).getParentItem() != null){
 				ItemModel parentItemModel = new ItemModel();
-				BeanUtils.copyProperties(entity, parentItemModel, new String[]{"formModel", "columnModel", "activities", "options", "permission","items","parentItem","referenceList"});
+				BeanUtils.copyProperties(((SelectItemModelEntity) entity).getParentItem(), parentItemModel, new String[]{"formModel", "columnModel", "activities", "options","searchItems","sortItems", "permission","items","parentItem","referenceList"});
 				if(((SelectItemModelEntity) entity).getParentItem().getColumnModel() != null){
 					ColumnModelInfo columnModel = new ColumnModelInfo();
 					BeanUtils.copyProperties(((SelectItemModelEntity) entity).getParentItem().getColumnModel(), columnModel, new String[] {"dataModel","columnReferences"});
@@ -1105,7 +1105,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 			for(SubFormRowItemModelEntity rowItemModelEntity : subFormRowItemModelEntities) {
 				ItemModel subFormRowItem = new ItemModel();
-				BeanUtils.copyProperties(rowItemModelEntity, subFormRowItem, new String[] {"formModel","columnModel","activities","options","items","itemModelIds"});
+				BeanUtils.copyProperties(rowItemModelEntity, subFormRowItem, new String[]{"formModel", "columnModel", "activities", "options","searchItems","sortItems", "permission","items","parentItem","referenceList"});
 				List<ItemModel> rows = new ArrayList<>();
 				List<ItemModelEntity> itemModelEntities = rowItemModelEntity.getItems() == null || rowItemModelEntity.getItems().size() < 2 ? rowItemModelEntity.getItems() : rowItemModelEntity.getItems().parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
 				for(ItemModelEntity childrenItem : itemModelEntities) {
