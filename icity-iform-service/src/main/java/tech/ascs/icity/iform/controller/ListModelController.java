@@ -96,7 +96,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		if (StringUtils.hasText(ListModel.getId())) {
 			throw new IFormException("列表模型ID不为空，请使用更新操作");
 		}
-		if (ListModel.getMasterForm()==null || (ListModel.getMasterForm()!=null && StringUtils.isEmpty(ListModel.getMasterForm().getId()))) {
+		if (ListModel.getMasterForm()==null || StringUtils.isEmpty(ListModel.getMasterForm().getId())) {
 			throw new IFormException("关联表单的ID不能为空");
 		}
 		try {
@@ -113,7 +113,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		if (!StringUtils.hasText(ListModel.getId()) || !id.equals(ListModel.getId())) {
 			throw new IFormException("列表模型ID不一致");
 		}
-		if (ListModel.getMasterForm()==null || (ListModel.getMasterForm()!=null && StringUtils.isEmpty(ListModel.getMasterForm().getId()))) {
+		if (ListModel.getMasterForm()==null || StringUtils.isEmpty(ListModel.getMasterForm().getId())) {
 			throw new IFormException("关联表单的ID不能为空");
 		}
 		try {

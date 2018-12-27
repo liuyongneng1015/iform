@@ -49,10 +49,18 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 		listFunctionManager = getJPAManagerFactory().getJPAManager(ListFunction.class);
 	}
 
+	/**
+	 * 划分新增时和编辑时两套逻辑
+	 * 新增时逻辑：通过主表单ID和附属表单ID在数据库查出表单，对entity赋值，然后直接保存
+	 * 编辑时逻辑：把之前的列表字段列表，查询条件列表，快速导航列表，功能设置列表，排序字段列表，批量操作删除，然后绑定新的列表
+	 * @param entity
+	 * @return
+	 */
 	@Override
 	public ListModelEntity save(ListModelEntity entity) {
 		validate(entity);
 		if (!entity.isNew()) { // 先删除所有搜索字段及列表功能然后重建
+			//ListModelEntity实体的字段 id,name,description,multiSelect,masterForm,applicationId,slaverForms,sortItems,functions,searchItems,displayItems
 			ListModelEntity old = get(entity.getId()) ;
 			BeanUtils.copyProperties(entity, old, new String[] {"masterForm","slaverForms","sortItems", "searchItems","functions","displayItems"});
 
@@ -97,7 +105,7 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 
 			List<ListFunction> oldFunctions = old.getFunctions();
 			Map<String, ListFunction> oldFunctionMap = new HashMap<>();
-			for(ListFunction function : oldFunctions){
+			for(ListFunction function : oldFunctions) {
 				oldFunctionMap.put(function.getId(), function);
 			}
 
