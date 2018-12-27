@@ -139,7 +139,8 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 						throw new IFormException("控件【" + searchItemEntity.getItemModel().getName() + "】未定义搜索属性");
 					}
 					ItemSearchInfo searchInfo = new ItemSearchInfo();
-					BeanUtils.copyProperties(searchItem.getSearch(), searchInfo);
+					ItemSearchInfo dbSearch = searchItem.getSearch();
+					BeanUtils.copyProperties(dbSearch, searchInfo);
 					searchItemEntity.setSearch(searchInfo);
 					searchItems.add(searchItemEntity);
 				}
