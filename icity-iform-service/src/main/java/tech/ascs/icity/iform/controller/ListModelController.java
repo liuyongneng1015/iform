@@ -1,11 +1,8 @@
 package tech.ascs.icity.iform.controller;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -259,11 +256,10 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				BeanUtils.copyProperties(searchItem.getSearch(), searchInfo, new String[]{"defaultValue"});
 				Object defalueValue = searchItem.getSearch().getDefaultValue();
 				if(defalueValue != null && defalueValue instanceof List){
-					searchInfo.setDefaultValue(objListToJsonStr(defalueValue));
+					searchInfo.setDefaultValue(String.join(",", (List)searchItem.getSearch().getDefaultValue()));
+				} else if(defalueValue != null && defalueValue instanceof String){
+					searchInfo.setDefaultValue(StringUtils.isEmpty(defalueValue) ? null : (String)defalueValue);
 				}
-//				else if(defalueValue != null && defalueValue instanceof String){
-//					searchInfo.setDefaultValue(StringUtils.isEmpty(defalueValue) ? null : (String)defalueValue);
-//				}
 				searchItemEntity.setSearch(searchInfo);
 				searchItems.add(searchItemEntity);
 			}
@@ -383,7 +379,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 					Search search = new Search();
 					BeanUtils.copyProperties(searchItemEntity.getSearch(), search, new String[] {"search","defaultValue"});
 					if(StringUtils.hasText(searchItemEntity.getSearch().getDefaultValue())){
-						search.setDefaultValue(jsonStrToList(searchItemEntity.getSearch().getDefaultValue()));
+						search.setDefaultValue(Arrays.asList(searchItemEntity.getSearch().getDefaultValue().split(",")));
 					}
 					searchItem.setSearch(search);
 				}
@@ -393,25 +389,5 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		}
 
 		return listModel;
-	}
-
-
-	public static ObjectMapper mapper = new ObjectMapper();
-
-	public static String objListToJsonStr(Object object) {
-		try {
-			return mapper.writeValueAsString(object);
-		} catch (JsonProcessingException e) {
-			return "[]";
-		}
-	}
-
-	public static List jsonStrToList(String jsonStr) {
-		try {
-			if (Objects.nonNull(jsonStr)) {
-				return mapper.readValue(jsonStr, List.class);
-			}
-		} catch (IOException e) { }
-		return new ArrayList<>();
 	}
 }
