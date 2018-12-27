@@ -231,6 +231,11 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			((ReferenceItemModelEntity)newItemModelEntity).setReferenceList(listModelEntity);
 		}
 
+		//设置下拉联动
+		if (oldItemModelEntity instanceof SelectItemModelEntity && ((SelectItemModelEntity) oldItemModelEntity).getParentItem() != null) {
+			((SelectItemModelEntity)newItemModelEntity).setParentItem(((SelectItemModelEntity) oldItemModelEntity).getParentItem());
+		}
+
 		setAcitityOption(newItemModelEntity, oldItemModelEntity);
 
 
@@ -325,6 +330,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 						n--;
 					}
 				}
+				if(itemModelEntity instanceof SelectItemModelEntity ){
+					updateSelectItemChildrenItems((SelectItemModelEntity)itemModelEntity);
+				}
 				deleteItems.remove(itemModelEntity);
 				itemManager.delete(itemModelEntity);
 				i--;
@@ -344,6 +352,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				selectItemModel.setParentItem(null);
 				itemManager.save(selectItemModel);
 			}
+			selectItemModelEntity.setParentItem(null);
 			selectItemModelEntity.setItems(null);
 			itemManager.save(selectItemModelEntity);
 		}

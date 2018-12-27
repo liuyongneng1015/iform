@@ -713,7 +713,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			if(itemModel.getSelectReferenceType() == SelectReferenceType.Dictionary){
 				if(itemModel.getDictionaryValueType() == DictionaryValueType.Linkage && itemModel.getParentItem() != null){
 					SelectItemModelEntity parentSelectItemModel = new SelectItemModelEntity();
-					BeanUtils.copyProperties(selectItemModelEntity.getParentItem(), parentSelectItemModel, new String[] {"referenceList","parentItem", "searchItems","sortItems", "permission", "items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});
+					BeanUtils.copyProperties(itemModel.getParentItem(), parentSelectItemModel, new String[] {"referenceList","parentItem", "searchItems","sortItems", "permission", "items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});
 					if(itemModel.getParentItem().getColumnModel() != null){
 						ColumnModelEntity columnModel = new ColumnModelEntity();
 						BeanUtils.copyProperties(itemModel.getParentItem().getColumnModel(), columnModel, new String[] {"dataModel","columnReferences"});
@@ -777,8 +777,8 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		if(itemModel.getColumnModel() == null){
 			entity.setColumnModel(null);
 		}else{
-			ColumnModelEntity columnModelEntity = columnModelService.query().filterEqual("columnName", itemModel.getColumnModel().getColumnName()).filterEqual("dataModel.tableName", itemModel.getColumnModel().getTableName()).unique();
-			entity.setColumnModel(columnModelEntity);
+			List<ColumnModelEntity> columnModelEntityList = columnModelService.query().filterEqual("columnName", itemModel.getColumnModel().getColumnName()).filterEqual("dataModel.tableName", itemModel.getColumnModel().getTableName()).list();
+			entity.setColumnModel(columnModelEntityList == null || columnModelEntityList.size() < 1 ? null : columnModelEntityList.get(0));
 		}
 	}
 
