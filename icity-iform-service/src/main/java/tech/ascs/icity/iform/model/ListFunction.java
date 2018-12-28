@@ -19,6 +19,10 @@ public class ListFunction extends JPAEntity implements Serializable {
 	@JoinColumn(name="list_id")
 	private ListModelEntity listModel;
 
+	@ManyToOne(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
+	@JoinColumn(name="form_id")
+	private FormModelEntity formModel;
+
 	private String label;
 
 	private String action;
@@ -37,6 +41,14 @@ public class ListFunction extends JPAEntity implements Serializable {
 
 	public void setListModel(ListModelEntity listModel) {
 		this.listModel = listModel;
+	}
+
+	public FormModelEntity getFormModel() {
+		return formModel;
+	}
+
+	public void setFormModel(FormModelEntity formModel) {
+		this.formModel = formModel;
 	}
 
 	public String getLabel() {

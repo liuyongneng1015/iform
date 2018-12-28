@@ -42,6 +42,9 @@ public class FormModelEntity extends BaseEntity implements Serializable {
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "formModel")
 	private List<FormSubmitCheckInfo> submitChecks = new ArrayList<FormSubmitCheckInfo>();
 
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "formModel")
+	private List<ListFunction> functions = new ArrayList<>();
+
 
 	public String getDescription() {
 		return description;
@@ -97,5 +100,13 @@ public class FormModelEntity extends BaseEntity implements Serializable {
 
 	public void setSubmitChecks(List<FormSubmitCheckInfo> submitChecks) {
 		this.submitChecks = submitChecks;
+	}
+
+	public List<ListFunction> getFunctions() {
+		return functions;
+	}
+
+	public void setFunctions(List<ListFunction> functions) {
+		this.functions = functions;
 	}
 }
