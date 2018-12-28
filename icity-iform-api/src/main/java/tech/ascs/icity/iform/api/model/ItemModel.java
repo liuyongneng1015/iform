@@ -13,8 +13,9 @@ public class ItemModel extends NameEntity {
 	@ApiModelProperty(value = "控件类型", position = 3)
 	private ItemType type;
 
+	/** 前端有时候传json对象回来，此处先用Object接收，赋值给DBentity的时候要转换一次格式 */
 	@ApiModelProperty(value = "前端个性化属性（直接存json字符串，后端不做处理）", position = 4)
-	private String props;
+	private Object props;
 
 	@ApiModelProperty(value = "数据字段模型", position = 5)
 	private ColumnModelInfo columnModel;
@@ -134,11 +135,11 @@ public class ItemModel extends NameEntity {
 		this.type = type;
 	}
 
-	public String getProps() {
+	public Object getProps() {
 		return props;
 	}
 
-	public void setProps(String props) {
+	public void setProps(Object props) {
 		this.props = props;
 	}
 

@@ -3,6 +3,8 @@ package tech.ascs.icity.iform.controller;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import net.minidev.json.JSONValue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -216,7 +218,11 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			List<ItemModelEntity> itemModelEntities = new ArrayList<>();
 			for (ItemModel itemModel : listModel.getDisplayItems()){
 				ItemModelEntity itemModelEntity = new ItemModelEntity();
-				BeanUtils.copyProperties(itemModel, itemModelEntity, new String[]{"formModel", "columnModel", "activities", "options", "permission","items","parentItem","referenceList"});
+				BeanUtils.copyProperties(itemModel, itemModelEntity, new String[]{"formModel", "columnModel", "activities", "options", "permission","items","parentItem","referenceList", "props"});
+				// 后台返回的props属性是json字符串，但是前端返回的有可能是json对象，导致前端请求过来时，转换成json失败
+				if (Objects.nonNull(itemModel.getProps())) {
+					itemModelEntity.setProps(JSONValue.toJSONString(itemModel.getProps()));
+				}
 				itemModelEntities.add(itemModelEntity);
 			}
 			entity.setDisplayItems(itemModelEntities);
@@ -390,4 +396,10 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 
 		return listModel;
 	}
+
+//	private static ObjectMapper mapper = new ObjectMapper();
+//
+//	public static String objToJsonStr(Object object) {
+//		mapper.writeValueAsString()
+//	}
 }
