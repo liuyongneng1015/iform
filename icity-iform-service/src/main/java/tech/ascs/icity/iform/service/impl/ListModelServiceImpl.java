@@ -4,6 +4,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -229,6 +230,26 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 		return list;
 	}
 
+	@Override
+	public List<ListModel> findListModelsByItemModelIds(List<String> itemModelIds) {
+		try {
+			String itemIds = StringUtils.join(itemModelIds, "','");
+			List<String> idlist = jdbcTemplate.query("select t.list_model from ifm_list_display_item t where t.item_id in ('"+itemIds+"')",
+					new RowMapper<String>() {
+						@Override
+						public String mapRow(ResultSet rs, int rowNum) throws SQLException {
+							return rs.getString("list_model");
+						}});
+			List<ListModelEntity> listModelEntities = query().filterIn("id",idlist).list();
+			List<ListModel> list = new ArrayList<>();
+			for(ListModelEntity listModelEntity : listModelEntities){
+				list.add(BeanUtils.copy(listModelEntity, ListModel.class, new String[]{"displayItems","searchItems","functions","sortItems","slaverForms","masterForm"}));
+			}
+			return list;
+		} catch (Exception e) {
+			throw new IFormException("获取列表模型列表失败：" + e.getMessage(), e);
+		}
+	}
 	@Transactional(readOnly = false)
 	protected ListModelEntity doUpdate(ListModelEntity entity, Set<String> deletedSortItemIds, Set<String> searchItemIds, Set<String> deletedFunctionIds) {
 		if (deletedSortItemIds.size() > 0) {

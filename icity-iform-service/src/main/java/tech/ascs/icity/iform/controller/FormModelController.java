@@ -51,6 +51,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	@Autowired
 	private DictionaryService dictionaryService;
 
+
 	@Override
 	public List<FormModel> list(@RequestParam(name="name", defaultValue="") String name, @RequestParam(name = "applicationId", required = false) String applicationId) {
 		try {
@@ -350,7 +351,36 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 	}
 
+	//校验表单建模
+	private void veryFormModel(FormModel formModel){
+		if(!formModel.isNew()){
+			FormModelEntity formModelEntity = formModelService.get(formModel.getId());
+			if(formModelEntity == null){
+				throw new IFormException("未找到【"+formModel.getId()+"】对应的表单模型");
+			}
+			if(formModelEntity.getItems() != null){
+				List<String> oldItemIds = formModelEntity.getItems().parallelStream().map(ItemModelEntity::getId).collect(Collectors.toList());
+				List<String> newItemIds = new ArrayList<>();
+				for(ItemModel itemModel : formModel.getItems()){
+					if(!itemModel.isNew()) {
+						newItemIds.add(itemModel.getId());
+					}
+				}
+				oldItemIds.removeAll(newItemIds);
+				if(oldItemIds == null || oldItemIds.size() < 1){
+					return;
+				}
+				//校验表单建模是否关联列表建模
+				List<ListModel> list = listModelService.findListModelsByItemModelIds(oldItemIds);
+				if(list != null && list.size() > 0){
+					throw new IFormException("存在控件关联列表模型，请先删除关联的列表建模");
+				}
+			}
+		}
+	}
+
 	private FormModelEntity wrap(FormModel formModel) {
+		veryFormModel(formModel);
 		FormModelEntity entity = new FormModelEntity();
 		BeanUtils.copyProperties(formModel, entity, new String[] {"items","dataModels","permissions","submitChecks"});
 
@@ -921,7 +951,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		BeanUtils.copyProperties(dataModelEntity, dataModel, new String[] {"masterModel","slaverModels","columns","indexes","referencesDataModel"});
 		if(dataModelEntity.getMasterModel() != null) {
 			DataModelInfo masterModel = new DataModelInfo();
-			BeanUtils.copyProperties(dataModelEntity, dataModel, new String[] {"masterModel","slaverModels","columns","indexes","referencesDataModel"});
+			BeanUtils.copyProperties(dataModelEntity, masterModel, new String[] {"masterModel","slaverModels","columns","indexes","referencesDataModel"});
 			dataModel.setMasterModel(masterModel);
 		}
 		if(dataModelEntity.getColumns() != null && dataModelEntity.getColumns().size() > 0){

@@ -11,10 +11,7 @@ import tech.ascs.icity.iflow.client.ProcessService;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.model.*;
-import tech.ascs.icity.iform.service.ColumnModelService;
-import tech.ascs.icity.iform.service.DataModelService;
-import tech.ascs.icity.iform.service.FormModelService;
-import tech.ascs.icity.iform.service.FormSubmitCheckService;
+import tech.ascs.icity.iform.service.*;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 import tech.ascs.icity.utils.BeanUtils;
@@ -50,6 +47,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
     @Autowired
     FormSubmitCheckService formSubmitCheckService;
+
+	@Autowired
+	ListModelService listModelService;
 
 	public FormModelServiceImpl() {
 		super(FormModelEntity.class);
@@ -634,6 +634,10 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 	@Override
 	public void deleteFormModelEntity(FormModelEntity formModelEntity) {
+		List<ListModelEntity> listModelEntities = listModelManager.query().filterEqual("masterForm.id", formModelEntity.getId()).list();
+		if(listModelEntities != null && listModelEntities.size() > 0){
+			throw new IFormException("删除表单模型失败：关联了多个列表建模，请先删除列表建模");
+		}
 		List<ItemModelEntity> itemModelEntities = formModelEntity.getItems();
 		for(int i = 0 ; i < itemModelEntities.size() ; i++){
 			ItemModelEntity itemModelEntity = itemModelEntities.get(i);

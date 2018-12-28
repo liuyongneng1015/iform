@@ -54,14 +54,14 @@ public class ItemModel extends NameEntity {
 	private String referenceDictionaryItemName;
 
 	@ApiModelProperty(value = " 关联字典默认选项", position = 13)
-	private List<DictionaryItemModel> referenceDictionaryItemList = new ArrayList<>();
+	private List<DictionaryItemModel> referenceDictionaryItemList;
 
 	@ApiModelProperty(value = " 关联表单(如表名、表单名)", position = 14)
 	private String referenceTable;
 	@ApiModelProperty(value = " 关联字段模型（比如字段、控件名）", position = 15)
 	private String referenceValueColumn;
 	@ApiModelProperty(value = "默认值(数据字典的默认值)", position = 15)
-	private List<String> defaultValue = new ArrayList<>();
+	private List<String> defaultValue;
 
 	@ApiModelProperty(value = "关联表单模型id", position = 15)
 	private String referenceFormId;
