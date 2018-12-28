@@ -3,6 +3,7 @@ package tech.ascs.icity.iform.service.impl;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.hibernate.Criteria;
@@ -11,6 +12,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,8 @@ import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.FormInstanceServiceEx;
 import tech.ascs.icity.iform.service.FormModelService;
+import tech.ascs.icity.iform.service.ItemModelService;
+import tech.ascs.icity.iform.service.UploadService;
 import tech.ascs.icity.iform.support.IFormSessionFactoryBuilder;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
@@ -57,8 +61,13 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	private JPAManager<DataModelEntity> dataModelManager;
 
+	private JPAManager<FileUploadEntity> fileUploadManager;
+
 	@Autowired
-	private JdbcTemplate jdbcTemplate;
+	JdbcTemplate jdbcTemplate;
+
+	@Autowired
+	UploadService uploadService;
 
 	public FormInstanceServiceExImpl() {
 		super(FormModelEntity.class);
@@ -71,6 +80,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		dictionaryItemManager = getJPAManagerFactory().getJPAManager(DictionaryItemEntity.class);
 		itemModelManager = getJPAManagerFactory().getJPAManager(ItemModelEntity.class);
 		dataModelManager = getJPAManagerFactory().getJPAManager(DataModelEntity.class);
+		fileUploadManager = getJPAManagerFactory().getJPAManager(FileUploadEntity.class);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -513,6 +523,36 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
             }else{
                 value = o == null || StringUtils.isEmpty(o) ? null : o;
             }
+		} else if (itemModel.getType() == ItemType.Media || itemModel.getType() == ItemType.Attachment) {
+			Object o = itemInstance.getValue();
+			if(o != null && o instanceof List){
+				List<FileUploadEntity> oldList = fileUploadManager.query().filterEqual("fromSource", itemModel.getId()).filterEqual("uploadType", FileUploadType.ItemModel).list();
+				Map<String, FileUploadEntity> map = new HashMap<>();
+				for(FileUploadEntity entity : oldList){
+					map.put(entity.getId(), entity);
+				}
+				List<FileUploadModel> list = (List<FileUploadModel>)o;
+				List<FileUploadEntity> newList = new ArrayList<>();
+				for(FileUploadModel fileUploadModel : list){
+					if(!fileUploadModel.isNew()){
+						FileUploadEntity fileUploadEntity = map.remove(fileUploadModel.getId());
+						if(fileUploadEntity != null) {
+							newList.add(fileUploadEntity);
+						}
+					}else {
+						FileUploadEntity fileUploadEntity = new FileUploadEntity();
+						BeanUtils.copyProperties(fileUploadModel, fileUploadEntity);
+						fileUploadEntity.setFromSource(itemModel.getId());
+						newList.add(fileUploadManager.save(fileUploadEntity));
+					}
+				}
+				for(String key : map.keySet()){
+					fileUploadManager.deleteById(key);
+				}
+				value = org.apache.commons.lang3.StringUtils.join(newList.parallelStream().map(FileUploadEntity::getId).collect(Collectors.toList()), ",");
+			}else{
+				value = o == null || StringUtils.isEmpty(o) ? null : o;
+			}
 		} else {
             value = itemInstance.getValue() == null || StringUtils.isEmpty(itemInstance.getValue()) ? null : itemInstance.getValue();
         }
@@ -889,11 +929,34 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
                 }
 				itemInstance.setValue(valuelist);
 				break;
+			case Media:
+				setItemInstance(value, itemInstance);
+				break;
+			case Attachment:
+				setItemInstance(value, itemInstance);
+				break;
 			default:
                 String valueStr = value == null || StringUtils.isEmpty(value) ?  null : String.valueOf(value);
                 itemInstance.setValue(value);
 				itemInstance.setDisplayValue(valueStr);
 				break;
+		}
+	}
+
+	private void setItemInstance(Object value, ItemInstance itemInstance){
+		String valueStr = value == null || StringUtils.isEmpty(value) ?  null : String.valueOf(value);
+		if(valueStr != null) {
+			List<String> listv = Arrays.asList(valueStr.split(","));
+			List<FileUploadModel> listModels = new ArrayList<>();
+			List<FileUploadEntity> entityList = fileUploadManager.query().filterIn("id", listv).list();
+			for(FileUploadEntity entity : entityList){
+				FileUploadModel fileUploadModel = new FileUploadModel();
+				BeanUtils.copyProperties(entity, fileUploadModel);
+				fileUploadModel.setUrl(uploadService.getFileUrl(entity.getKey()));
+				listModels.add(fileUploadModel);
+			}
+			itemInstance.setValue(listModels);
+			itemInstance.setDisplayValue(listModels);
 		}
 	}
 

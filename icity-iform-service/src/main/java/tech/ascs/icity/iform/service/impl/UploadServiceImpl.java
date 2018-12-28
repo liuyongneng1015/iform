@@ -2,10 +2,16 @@ package tech.ascs.icity.iform.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.minio.MinioClient;
+import io.minio.errors.*;
+import jdk.internal.util.xml.impl.Input;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.xmlpull.v1.XmlPullParserException;
+import tech.ascs.icity.iform.IFormException;
+import tech.ascs.icity.iform.api.model.FileUploadModel;
 import tech.ascs.icity.iform.model.ColumnModelEntity;
 import tech.ascs.icity.iform.service.UploadService;
 import tech.ascs.icity.iform.utils.CommonUtils;
@@ -13,7 +19,10 @@ import tech.ascs.icity.iform.utils.ImagesUtils;
 import tech.ascs.icity.iform.utils.MinioConfig;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -73,12 +82,29 @@ public class UploadServiceImpl extends DefaultJPAService<ColumnModelEntity> impl
 	 * @throws Exception
 	 */
 	@Override
-	public String uploadOneFileReturnUrl(MultipartFile file) throws Exception {
-		String filename = file.getOriginalFilename();
-		String day = CommonUtils.date2Str(new Date(), "yyyy-MM-dd");
-		String filePath = renameFile(day, true, filename);
-		minioClient.putObject(minioConfig.getBucket(), filePath, file.getInputStream(), file.getContentType());
-		return getFileUrl(filePath);
+	public FileUploadModel uploadOneFileReturnUrl(MultipartFile file) throws Exception {
+		FileUploadModel fileUploadModel = null;
+		InputStream inputStream = file.getInputStream();
+		try {
+			String filename = file.getOriginalFilename();
+			String day = CommonUtils.date2Str(new Date(), "yyyy-MM-dd");
+			String filePath = renameFile(day, true, filename);
+			if(file.getBytes().length > 10*1024*1024){
+				throw new IFormException("文件超过10M了");
+			}
+			minioClient.putObject(minioConfig.getBucket(), filePath, inputStream, file.getContentType());
+			fileUploadModel = new FileUploadModel();
+			fileUploadModel.setKey(filePath);
+			fileUploadModel.setUrl(getFileUrl(filePath));
+			fileUploadModel.setName(filename);
+		} catch (Exception e) {
+			throw  e;
+		} finally {
+			if(inputStream != null){
+				inputStream.close();
+			}
+		}
+		return fileUploadModel;
 	}
 
 

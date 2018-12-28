@@ -1,6 +1,7 @@
 package tech.ascs.icity.iform.service;
 
 import org.springframework.web.multipart.MultipartFile;
+import tech.ascs.icity.iform.api.model.FileUploadModel;
 import tech.ascs.icity.iform.model.ColumnModelEntity;
 import tech.ascs.icity.iform.model.ItemModelEntity;
 import tech.ascs.icity.jpa.service.JPAService;
@@ -32,7 +33,7 @@ public interface UploadService  extends JPAService<ColumnModelEntity> {
      * @return
      * @throws Exception
      */
-    String uploadOneFileReturnUrl(MultipartFile file) throws Exception;
+    FileUploadModel uploadOneFileReturnUrl(MultipartFile file) throws Exception;
 
     /**
      * 图片的base64字符串集合转成图片，并上传到minio，然后返回url
