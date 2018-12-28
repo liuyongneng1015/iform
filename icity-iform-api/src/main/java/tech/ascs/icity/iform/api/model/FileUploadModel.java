@@ -12,7 +12,7 @@ import java.util.List;
 public class FileUploadModel extends NameEntity {
 
 	@ApiModelProperty(value = "文件上传的key", position = 6)
-	private String key;
+	private String fileKey;
 
 	@ApiModelProperty(value = "文件上传的地址", position = 6)
 	private String url;
@@ -20,12 +20,12 @@ public class FileUploadModel extends NameEntity {
 	@ApiModelProperty(value = "文件上传类型", position = 6)
 	private FileUploadType uploadType;
 
-	public String getKey() {
-		return key;
+	public String getFileKey() {
+		return fileKey;
 	}
 
-	public void setKey(String key) {
-		this.key = key;
+	public void setFileKey(String fileKey) {
+		this.fileKey = fileKey;
 	}
 
 	public String getUrl() {

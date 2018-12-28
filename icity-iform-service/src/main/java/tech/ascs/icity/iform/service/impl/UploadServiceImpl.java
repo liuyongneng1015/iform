@@ -94,7 +94,7 @@ public class UploadServiceImpl extends DefaultJPAService<ColumnModelEntity> impl
 			}
 			minioClient.putObject(minioConfig.getBucket(), filePath, inputStream, file.getContentType());
 			fileUploadModel = new FileUploadModel();
-			fileUploadModel.setKey(filePath);
+			fileUploadModel.setFileKey(filePath);
 			fileUploadModel.setUrl(getFileUrl(filePath));
 			fileUploadModel.setName(filename);
 		} catch (Exception e) {

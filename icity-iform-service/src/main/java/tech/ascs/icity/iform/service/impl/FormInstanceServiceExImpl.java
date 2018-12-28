@@ -952,7 +952,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			for(FileUploadEntity entity : entityList){
 				FileUploadModel fileUploadModel = new FileUploadModel();
 				BeanUtils.copyProperties(entity, fileUploadModel);
-				fileUploadModel.setUrl(uploadService.getFileUrl(entity.getKey()));
+				fileUploadModel.setUrl(uploadService.getFileUrl(entity.getFileKey()));
 				listModels.add(fileUploadModel);
 			}
 			itemInstance.setValue(listModels);

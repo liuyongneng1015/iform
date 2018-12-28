@@ -17,7 +17,7 @@ public class FileUploadEntity extends BaseEntity implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	private String key;
+	private String fileKey;
 
 	//来源对象id
 	private String fromSource;
@@ -27,12 +27,12 @@ public class FileUploadEntity extends BaseEntity implements Serializable {
 	@Enumerated(EnumType.STRING)
 	private FileUploadType uploadType;
 
-	public String getKey() {
-		return key;
+	public String getFileKey() {
+		return fileKey;
 	}
 
-	public void setKey(String key) {
-		this.key = key;
+	public void setFileKey(String fileKey) {
+		this.fileKey = fileKey;
 	}
 
 	public String getFromSource() {
