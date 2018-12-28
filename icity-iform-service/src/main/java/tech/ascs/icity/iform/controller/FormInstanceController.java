@@ -76,15 +76,9 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	}
 
 	@Override
-	public IdEntity createFormInstance(@PathVariable(name="formId", required = true) String formId, @RequestBody FormInstance formInstance,
-									   @RequestHeader(name = "token", required = false) String token) {
-		// 之前的判断条件 if (!formInstance.getId().equals(formInstance.getFormId())) //不知道为什么要判断formInstance.getId()和equals(formInstance.getFormId())
+	public IdEntity createFormInstance(@PathVariable(name="formId", required = true) String formId, @RequestBody FormInstance formInstance) {
 		if (!formId.equals(formInstance.getFormId())) {
 			throw new IFormException("表单id不一致");
-		}
-		// FormInstanceServiceExImpl.createFormInstance的方法里面有通过token获取用户信息的调用，先在Controller层校验token的存在
-		if (StringUtils.isEmpty(token)) {
-			throw new IFormException("无法获取Token");
 		}
 		formInstance.setId(formId);
 		FormModelEntity formModel = formModelService.find(formId);
