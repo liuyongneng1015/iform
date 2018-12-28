@@ -513,10 +513,13 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
             }else{
                 value = o == null || StringUtils.isEmpty(o) ? null : o;
             }
-		} else{
+		} else {
             value = itemInstance.getValue() == null || StringUtils.isEmpty(itemInstance.getValue()) ? null : itemInstance.getValue();
         }
-		data.put(itemModel.getColumnModel().getColumnName(), value);
+		ColumnModelEntity columnModel = itemModel.getColumnModel();
+		if (Objects.nonNull(columnModel)) {
+			data.put(columnModel.getColumnName(), value);
+		}
 	}
 
 
