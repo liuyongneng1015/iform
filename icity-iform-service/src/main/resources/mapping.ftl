@@ -4,7 +4,7 @@
         "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 <hibernate-mapping package="tech.ascs.icity.iform.table.service">
     <class entity-name="${dataModel.tableName}" table="if_${dataModel.tableName}">
-        <comment>${dataModel.name}</comment>
+        <comment>${dataModel.name!"表"}</comment>
         <id name="id" type="string" length="32">
             <column name="id">
                 <comment>主键</comment>
@@ -75,7 +75,7 @@
     <#list dataModel.referencesDataModel as referencesData>
     <#if referencesData.id != dataModel.id>
 	 <class entity-name="${referencesData.tableName}" table="if_${referencesData.tableName}">
-         <comment>${referencesData.name}</comment>
+         <comment>${referencesData.name!"自定义表"}</comment>
          <id name="id" type="string" length="32">
              <column name="id">
                  <comment>主键</comment>
@@ -142,7 +142,7 @@
 
     <#list dataModel.slaverModels as slaver>
             <class entity-name="${slaver.tableName}" table="if_${slaver.tableName}">
-                <comment>${slaver.name}</comment>
+                <comment>${slaver.name!"自定义表"}</comment>
                 <id name="id" type="string" length="32">
                     <column name="id">
                         <comment>主键</comment>
