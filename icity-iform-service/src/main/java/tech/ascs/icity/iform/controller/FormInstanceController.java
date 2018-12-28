@@ -5,10 +5,7 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import io.swagger.annotations.Api;
 import tech.ascs.icity.iform.IFormException;
@@ -79,10 +76,17 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	}
 
 	@Override
-	public IdEntity createFormInstance(@PathVariable(name="formId", required = true) String formId, @RequestBody FormInstance formInstance) {
-		if (!formInstance.getId().equals(formInstance.getFormId())) {
+	public IdEntity createFormInstance(@PathVariable(name="formId", required = true) String formId, @RequestBody FormInstance formInstance,
+									   @RequestHeader(name = "token", required = false) String token) {
+		// 之前的判断条件 if (!formInstance.getId().equals(formInstance.getFormId())) //不知道为什么要判断formInstance.getId()和equals(formInstance.getFormId())
+		if (!formId.equals(formInstance.getFormId())) {
 			throw new IFormException("表单id不一致");
 		}
+		// FormInstanceServiceExImpl.createFormInstance的方法里面有通过token获取用户信息的调用，先在Controller层校验token的存在
+		if (StringUtils.isEmpty(token)) {
+			throw new IFormException("无法获取Token");
+		}
+		formInstance.setId(formId);
 		FormModelEntity formModel = formModelService.find(formId);
 		if (formModel == null) {
 			throw new IFormException(404, "表单模型【" + formId + "】不存在");
