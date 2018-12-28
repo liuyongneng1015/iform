@@ -1,29 +1,21 @@
 package tech.ascs.icity.iform.api.model;
 
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import org.apache.commons.lang3.StringUtils;
-import tech.ascs.icity.model.IdEntity;
+import tech.ascs.icity.model.NameEntity;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class SubFormRowItemInstance extends IdEntity {
+@ApiModel("数据模型行数据信息")
+public class DataModelRowInstance extends NameEntity {
 
-	@ApiModelProperty(value = "行字段值", position = 1)
+	@ApiModelProperty(value = "控件的数据", position = 3)
 	private List<ItemInstance> items = new ArrayList<>();
 
-	@ApiModelProperty(value = "行数", position = 5)
+	@ApiModelProperty(value = "数据条数", position = 4)
 	private Integer rowNumber;
-
-	@ApiModelProperty(value = "字段模型ID（uuid）", position = 0)
-	@Override
-	public String getId() {
-		String id = super.getId();
-		if(StringUtils.isBlank(id)){
-			return null;
-		}
-		return id;
-	}
 
 	public List<ItemInstance> getItems() {
 		return items;
@@ -39,5 +31,14 @@ public class SubFormRowItemInstance extends IdEntity {
 
 	public void setRowNumber(Integer rowNumber) {
 		this.rowNumber = rowNumber;
+	}
+
+	@Override
+	public String getId() {
+		String id = super.getId();
+		if(StringUtils.isBlank(id)){
+			return null;
+		}
+		return id;
 	}
 }

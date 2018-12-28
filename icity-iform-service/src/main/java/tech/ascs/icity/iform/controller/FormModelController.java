@@ -506,7 +506,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				BeanUtils.copyProperties(model, permissionInfo, new String[]{"formModel" ,"itemModel"});
 				if(model.getItemModel() != null){
 					ItemModelEntity itemModelEntity = new ItemModelEntity();
-					BeanUtils.copyProperties(model.getItemModel(), itemModelEntity, new String[] {"formModel","columnModel","activities","options","permission"});
+					BeanUtils.copyProperties(model.getItemModel(), itemModelEntity, new String[]{"formModel", "columnModel", "activities", "options","searchItems","sortItems", "permission","items","parentItem","referenceList"});
 					permissionInfo.setItemModel(itemModelEntity);
 					itemModelEntity.setPermission(permissionInfo);
 				}

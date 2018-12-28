@@ -24,4 +24,18 @@ public class FileUploadController implements FileUploadService {
 			throw new IFormException("上传文件失败" + e.getMessage());
 		}
 	}
+
+	@Override
+	public String fileUpload(MultipartFile[] files) {
+		if(files != null && files.length > 0) {
+			for (MultipartFile file : files){
+				try {
+					uploadService.uploadOneFileReturnUrl(file);
+				} catch (Exception e) {
+					throw new IFormException("上传文件失败" + e.getMessage());
+				}
+			}
+		}
+		return null;
+	}
 }
