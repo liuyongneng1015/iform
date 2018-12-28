@@ -951,7 +951,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		BeanUtils.copyProperties(dataModelEntity, dataModel, new String[] {"masterModel","slaverModels","columns","indexes","referencesDataModel"});
 		if(dataModelEntity.getMasterModel() != null) {
 			DataModelInfo masterModel = new DataModelInfo();
-			BeanUtils.copyProperties(dataModelEntity, dataModel, new String[] {"masterModel","slaverModels","columns","indexes","referencesDataModel"});
+			BeanUtils.copyProperties(dataModelEntity, masterModel, new String[] {"masterModel","slaverModels","columns","indexes","referencesDataModel"});
 			dataModel.setMasterModel(masterModel);
 		}
 		if(dataModelEntity.getColumns() != null && dataModelEntity.getColumns().size() > 0){
