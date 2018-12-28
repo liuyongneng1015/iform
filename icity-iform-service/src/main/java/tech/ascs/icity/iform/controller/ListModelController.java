@@ -222,8 +222,6 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				// 后台返回的props属性是json字符串，但是前端返回的有可能是json对象，导致前端请求过来时，转换成json失败
 				if (Objects.nonNull(itemModel.getProps())) {
 					itemModelEntity.setProps(JSONValue.toJSONString(itemModel.getProps()));
-				} else {
-					itemModelEntity.setProps("{}");
 				}
 				itemModelEntities.add(itemModelEntity);
 			}
