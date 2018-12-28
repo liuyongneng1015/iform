@@ -10,7 +10,7 @@ import java.util.List;
 public class SubFormItemInstance extends IdEntity {
 
 	@ApiModelProperty(value = "子表单字段值", position = 1)
-	private List<List<SubFormRowItemInstance>> itemInstances = new ArrayList<>();
+	private List<SubFormDataItemInstance> itemInstances = new ArrayList<>();
 
 	@ApiModelProperty(value = "子表单", position = 5)
 	private String tableName;
@@ -25,11 +25,11 @@ public class SubFormItemInstance extends IdEntity {
 		return id;
 	}
 
-	public List<List<SubFormRowItemInstance>> getItemInstances() {
+	public List<SubFormDataItemInstance> getItemInstances() {
 		return itemInstances;
 	}
 
-	public void setItemInstances(List<List<SubFormRowItemInstance>> itemInstances) {
+	public void setItemInstances(List<SubFormDataItemInstance> itemInstances) {
 		this.itemInstances = itemInstances;
 	}
 

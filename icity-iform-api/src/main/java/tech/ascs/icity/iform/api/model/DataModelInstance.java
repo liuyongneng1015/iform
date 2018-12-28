@@ -13,7 +13,7 @@ import java.util.Map;
 public class DataModelInstance extends NameEntity {
 
 	@ApiModelProperty(value = "控件的数据", position = 3)
-	private List<List<ItemInstance>> items = new ArrayList<>();
+	private List<DataModelRowInstance> items = new ArrayList<>();
 
 	@ApiModelProperty(value = "数据条数", position = 4)
 	private Integer size;
@@ -26,11 +26,11 @@ public class DataModelInstance extends NameEntity {
 	@ApiModelProperty(value = " 关联字段模型（比如“id”）", position = 7)
 	private String referenceValueColumn;
 
-	public List<List<ItemInstance>> getItems() {
+	public List<DataModelRowInstance> getItems() {
 		return items;
 	}
 
-	public void setItems(List<List<ItemInstance>> items) {
+	public void setItems(List<DataModelRowInstance> items) {
 		this.items = items;
 	}
 

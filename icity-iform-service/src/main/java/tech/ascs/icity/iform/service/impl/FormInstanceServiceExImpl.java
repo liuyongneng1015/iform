@@ -369,10 +369,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 			//新的数据
 			List<Map<String, Object>> newListMap = new ArrayList<>();
-			for(List<SubFormRowItemInstance> subFormRowItemInstanceList : subFormItemInstance.getItemInstances()){
+			for(SubFormDataItemInstance subFormDataItemInstance : subFormItemInstance.getItemInstances()){
 				Map<String, Object> map = new HashMap<>();
-				for(SubFormRowItemInstance instance : subFormRowItemInstanceList){
-					for(ItemInstance itemModelService : instance.getItemInstances()){
+				for(SubFormRowItemInstance instance : subFormDataItemInstance.getItems()){
+					for(ItemInstance itemModelService : instance.getItems()){
 						setItemInstance(itemModelService, map);
 					}
 				}
@@ -413,9 +413,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 
 			List<Map<String, Object>> newListMap = new ArrayList<>();
-			for (List<ItemInstance> instances : dataModelInstance.getItems()) {
+			for (DataModelRowInstance instances : dataModelInstance.getItems()) {
 				Map<String, Object> map = new HashMap<>();
-				for (ItemInstance itemModelService : instances) {
+				for (ItemInstance itemModelService : instances.getItems()) {
 					setItemInstance(itemModelService, map);
 				}
 				newListMap.add(map);
@@ -694,7 +694,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					dataModelInstance.setReferenceType(fromItem.getReferenceType());
 					dataModelInstance.setReferenceValueColumn(columnModelEntity.getColumnName());
 					dataModelInstance.setSize(1);
-					dataModelInstance.getItems().add(f.getItems());
+					DataModelRowInstance dataModelRowInstance = new DataModelRowInstance();
+					dataModelRowInstance.setRowNumber(1);
+					dataModelRowInstance.setItems(f.getItems());
+					dataModelInstance.getItems().add(dataModelRowInstance);
 					referenceDataModelList.add(dataModelInstance);
 				}else if(fromItem.getReferenceType() == ReferenceType.ManyToMany || fromItem.getReferenceType() == ReferenceType.OneToMany){
 					String key = toModelEntity.getDataModels().get(0).getTableName()+"_list";
@@ -722,18 +725,21 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					continue;
 				}
 				SubFormItemInstance subFormItemInstance = new SubFormItemInstance();
-				List<List<SubFormRowItemInstance>> subFormItemInstances = new ArrayList<List<SubFormRowItemInstance>>();
+				List<SubFormDataItemInstance> subFormItemInstances = new ArrayList<SubFormDataItemInstance>();
+				//List<SubFormRowItemInstance> subFormRowItemInstanceList = new ArrayList<>();
 				subFormItemInstance.setId(itemModelEntity.getId());
 				subFormItemInstance.setItemInstances(subFormItemInstances);
 				subFormItemInstance.setTableName(itemModelEntity.getTableName());
+				int row = 1;
 				for(Map<String, Object> map : listMap) {
+					SubFormDataItemInstance subFormDataItemInstance = new SubFormDataItemInstance();
 					List<SubFormRowItemInstance> subFormRowItemInstanceList = new ArrayList<>();
 					for (SubFormRowItemModelEntity subFormRowItemModelEntity : itemModelEntity.getItems()) {
 						SubFormRowItemInstance subFormRowItemInstance = new SubFormRowItemInstance();
 						subFormRowItemInstance.setRowNumber(subFormRowItemModelEntity.getRowNumber());
 						subFormRowItemInstance.setId(subFormRowItemModelEntity.getId());
 						List<ItemInstance> instances = new ArrayList<>();
-						subFormRowItemInstance.setItemInstances(instances);
+						subFormRowItemInstance.setItems(instances);
 						for (ItemModelEntity item : subFormRowItemModelEntity.getItems()) {
 							ColumnModelEntity columnModelEntity  = item.getColumnModel();
 							ItemInstance itemInstance = setItemInstance(columnModelEntity.getKey(), item, map.get(item.getColumnModel().getColumnName()), formInstance.getActivityId());
@@ -744,10 +750,12 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 						ItemInstance subFomrItemInstance = setItemInstance(subFormColumnModelEntity.getKey(), itemModel, map.get("id"), formInstance.getActivityId());
 						instances.add(subFomrItemInstance);
 
-						subFormRowItemInstance.setItemInstances(instances);
+						subFormRowItemInstance.setItems(instances);
 						subFormRowItemInstanceList.add(subFormRowItemInstance);
 					}
-					subFormItemInstances.add(subFormRowItemInstanceList);
+					subFormDataItemInstance.setRowNubmer(row ++);
+					subFormDataItemInstance.setItems(subFormRowItemInstanceList);
+					subFormItemInstances.add(subFormDataItemInstance);
 				}
 				subFormItems.add(subFormItemInstance);
 			}else{
@@ -773,9 +781,13 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		dataModelInstance.setName(toModelEntity.getDataModels().get(0).getName());
 		dataModelInstance.setReferenceTable(toModelEntity.getDataModels().get(0).getTableName());
 		dataModelInstance.setSize(listMap.size());
+		int row = 1;
 		for(Map<String, Object> map : referenceListData) {
 			FormInstance newFormInstance = getBaseItemInstance(toModelEntity, map);
-			dataModelInstance.getItems().add(newFormInstance.getItems());
+			DataModelRowInstance dataModelRowInstance = new DataModelRowInstance();
+			dataModelRowInstance.setRowNumber(row++);
+			dataModelRowInstance.setItems(newFormInstance.getItems());
+			dataModelInstance.getItems().add(dataModelRowInstance);
 		}
 		return dataModelInstance;
 	}

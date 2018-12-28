@@ -815,7 +815,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			formModelEntity.setFunctions(newFunctions);
 		}
 		for(String key : oldMap.keySet()){
-			formSubmitCheckManager.deleteById(key);
+			formFunctionsService.deleteById(key);
 		}
 		formModelManager.save(formModelEntity);
 		return formModelEntity;
