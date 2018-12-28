@@ -35,6 +35,9 @@ public class ListFunction extends JPAEntity implements Serializable {
 
 	private String method;
 
+	@Column(name="order_no",columnDefinition = "int default 0")//排序号
+	private Integer orderNo = 0;
+
 	public ListModelEntity getListModel() {
 		return listModel;
 	}
@@ -97,5 +100,13 @@ public class ListFunction extends JPAEntity implements Serializable {
 
 	public void setMethod(String method) {
 		this.method = method;
+	}
+
+	public Integer getOrderNo() {
+		return orderNo;
+	}
+
+	public void setOrderNo(Integer orderNo) {
+		this.orderNo = orderNo;
 	}
 }

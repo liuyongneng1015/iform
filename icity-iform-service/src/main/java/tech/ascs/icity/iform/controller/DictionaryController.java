@@ -265,12 +265,15 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
     }
 
 	private  void veryDictionaryItemByCode(DictionaryItemModel dictionaryItemModel){
+		if(StringUtils.equals(dictionaryItemModel.getCode(),"root")){
+			throw new IFormException("不允许创建key等于root的节点");
+		}
 		 if(StringUtils.isNoneBlank(dictionaryItemModel.getDictionaryId())){
 			DictionaryEntity dictionaryEntity = dictionaryService.get(dictionaryItemModel.getDictionaryId());
 			if(dictionaryEntity == null){
 				throw new IFormException("数据字典分类未找到");
 			}
-			 List<DictionaryItemEntity> itemEntities =  new ArrayList<>();
+			List<DictionaryItemEntity> itemEntities =  new ArrayList<>();
 			veryDictionaryItem(dictionaryItemModel, getDictionaryItems(itemEntities, dictionaryEntity));
 		}
 	}

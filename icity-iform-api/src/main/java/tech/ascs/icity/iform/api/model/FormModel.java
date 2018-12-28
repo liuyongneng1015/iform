@@ -53,6 +53,9 @@ public class FormModel extends NameEntity {
     @ApiModelProperty(value = "表单提交校验", position = 8)
     private List<FormSubmitCheckModel> submitChecks = new ArrayList<FormSubmitCheckModel>();
 
+	@ApiModelProperty(value = "表单功能按钮", position = 8)
+	private List<FunctionModel> functions = new ArrayList<FunctionModel>();
+
 	public String getDescription() {
 		return description;
 	}
@@ -109,7 +112,15 @@ public class FormModel extends NameEntity {
         this.submitChecks = submitChecks;
     }
 
-    @Override
+	public List<FunctionModel> getFunctions() {
+		return functions;
+	}
+
+	public void setFunctions(List<FunctionModel> functions) {
+		this.functions = functions;
+	}
+
+	@Override
 	public String getId() {
 		String id = super.getId();
 		if(StringUtils.isBlank(id)){

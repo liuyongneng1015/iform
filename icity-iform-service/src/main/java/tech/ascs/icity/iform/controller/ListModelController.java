@@ -199,7 +199,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 
 		if(listModel.getMasterForm() != null && !listModel.getMasterForm().isNew()){
 			FormModelEntity formModelEntity = new FormModelEntity();
-			BeanUtils.copyProperties(listModel.getMasterForm(), formModelEntity, new String[] {"dataModels","process","items", "permissions","submitChecks"});
+			BeanUtils.copyProperties(listModel.getMasterForm(), formModelEntity, new String[] {"dataModels","process","items", "permissions","submitChecks","functions"});
 			entity.setMasterForm(formModelEntity);
 		}
 
@@ -207,7 +207,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			List<FormModelEntity> formModelEntities = new ArrayList<>();
 			for (FormModel formModel : listModel.getSlaverForms()){
 				FormModelEntity formModelEntity = new FormModelEntity();
-				BeanUtils.copyProperties(formModel, formModelEntity, new String[]{"dataModels", "process", "items", "permissions", "submitChecks"});
+				BeanUtils.copyProperties(formModel, formModelEntity, new String[]{"dataModels", "process", "items", "permissions", "submitChecks","functions"});
 				formModelEntities.add(formModelEntity);
 			}
 			entity.setSlaverForms(formModelEntities);
@@ -272,7 +272,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		}
 		if (listModel.getFunctions() != null) {
 			List<ListFunction> functions = new ArrayList<>();
-			for (ListModel.Function function : listModel.getFunctions()) {
+			for (FunctionModel function : listModel.getFunctions()) {
 				ListFunction listFunction = new ListFunction() ;
 				BeanUtils.copyProperties(function, listFunction, new String[]{"listModel"});
 				listFunction.setListModel(entity);
@@ -322,7 +322,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 
 		if(entity.getMasterForm() != null){
 			FormModel masterForm = new FormModel();
-			BeanUtils.copyProperties(entity.getMasterForm(), masterForm, new String[] {"items","dataModels","permissions","submitChecks"});
+			BeanUtils.copyProperties(entity.getMasterForm(), masterForm, new String[] {"items","dataModels","permissions","submitChecks","functions"});
 			listModel.setMasterForm(masterForm);
 		}
 
@@ -340,16 +340,16 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			List<FormModel> list = new ArrayList<>();
 			for(FormModelEntity formModelEntity : entity.getSlaverForms()) {
 				FormModel slaverForm = new FormModel();
-				BeanUtils.copyProperties(formModelEntity, slaverForm, new String[]{"items", "dataModels", "permissions", "submitChecks"});
+				BeanUtils.copyProperties(formModelEntity, slaverForm, new String[]{"items", "dataModels", "permissions", "submitChecks","functions"});
 				list.add(slaverForm);
 			}
 			listModel.setSlaverForms(list);
 		}
 
 		if(entity.getFunctions() != null){
-			List<ListModel.Function> functions = new ArrayList<ListModel.Function>();
+			List<FunctionModel> functions = new ArrayList<FunctionModel>();
 			for(ListFunction listFunction : entity.getFunctions()) {
-				ListModel.Function function = new ListModel.Function();
+				FunctionModel function = new FunctionModel();
 				BeanUtils.copyProperties(listFunction, function, new String[]{"listModel"});
 				functions.add(function);
 			}

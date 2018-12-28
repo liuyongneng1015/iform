@@ -51,6 +51,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 	@Autowired
 	ListModelService listModelService;
 
+	@Autowired
+	FormFunctionsService formFunctionsService;
+
 	public FormModelServiceImpl() {
 		super(FormModelEntity.class);
 	}
@@ -101,7 +104,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				modelEntityMap.put(columnModelEntity.getDataModel().getTableName() + "_" + columnModelEntity.getColumnName(), columnModelEntity);
 			}
 
-			BeanUtils.copyProperties(entity, old, new String[] {"dataModels", "items", "permissions", "submitChecks"});
+			BeanUtils.copyProperties(entity, old, new String[] {"dataModels", "items", "permissions", "submitChecks","functions"});
 			List<ItemModelEntity> oldItems = old.getItems();
 			List<String> itemActivityIds = new ArrayList<String>();
 			List<String> itemSelectOptionIds = new ArrayList<String>();
@@ -538,7 +541,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
             newDataModelIds.add(dataModelEntity.getId());
             newAddDataModel.add(dataModelEntity);
         }
-		BeanUtils.copyProperties(formModel, oldEntity, new String[] {"items","indexes","dataModels","permissions","submitChecks"});
+		BeanUtils.copyProperties(formModel, oldEntity, new String[] {"items","indexes","dataModels","permissions","submitChecks","functions"});
         if(formModel.isNew()){
             oldEntity.setId(null);
         }
@@ -699,7 +702,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 	@Override
 	public FormModelEntity saveFormModelPermission(FormModelEntity entity) {
 		FormModelEntity formModelEntity = get(entity.getId());
-		BeanUtils.copyProperties(entity, formModelEntity, new String[] {"items","dataModels","permissions","submitChecks"});
+		BeanUtils.copyProperties(entity, formModelEntity, new String[] {"items","dataModels","permissions","submitChecks","functions"});
 
 		Map<String, ItemPermissionInfo> oldMap = new HashMap<>();
 		List<ItemPermissionInfo> oldItemPermission = formModelEntity.getPermissions();
@@ -745,7 +748,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 	@Override
 	public FormModelEntity saveFormModelSubmitCheck(FormModelEntity entity) {
         FormModelEntity formModelEntity = get(entity.getId());
-		BeanUtils.copyProperties(entity, formModelEntity, new String[] {"items","dataModels","permissions","submitChecks"});
+		BeanUtils.copyProperties(entity, formModelEntity, new String[] {"items","dataModels","permissions","submitChecks","functions"});
 
 		Map<String, FormSubmitCheckInfo> oldMap = new HashMap<>();
 		List<FormSubmitCheckInfo> oldSubmitCheck = formModelEntity.getSubmitChecks();
@@ -772,6 +775,44 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				submitCheckInfos.add(checkInfo);
 			}
             formModelEntity.setSubmitChecks(submitCheckInfos);
+		}
+		for(String key : oldMap.keySet()){
+			formSubmitCheckManager.deleteById(key);
+		}
+		formModelManager.save(formModelEntity);
+		return formModelEntity;
+	}
+
+	@Override
+	public FormModelEntity saveFormModelFunctions(FormModelEntity entity) {
+		FormModelEntity formModelEntity = get(entity.getId());
+		BeanUtils.copyProperties(entity, formModelEntity, new String[] {"items","dataModels","permissions","submitChecks","functions"});
+
+		Map<String, ListFunction> oldMap = new HashMap<>();
+		List<ListFunction> oldFunctions = formModelEntity.getFunctions();
+		for(ListFunction function : oldFunctions){
+			oldMap.put(function.getId(), function);
+		}
+		List<ListFunction> newFunctions= entity.getFunctions();
+		if(newFunctions != null){
+			List<ListFunction> submitFunctions = new ArrayList<>();
+			for(ListFunction function : submitFunctions){
+				ListFunction listFunction = null;
+				boolean isNew = function.isNew();
+				if(!isNew){
+					listFunction = oldMap.remove(function.getId());
+				}else{
+					listFunction = new ListFunction() ;
+				}
+				BeanUtils.copyProperties(function, listFunction, new String[]{"formModel"});
+				if(isNew){
+					Integer orderNo = formFunctionsService.getMaxOrderNo();
+					listFunction.setOrderNo(orderNo == null ? 1 : orderNo + 1);
+				}
+				listFunction.setFormModel(formModelEntity);
+				newFunctions.add(listFunction);
+			}
+			formModelEntity.setFunctions(newFunctions);
 		}
 		for(String key : oldMap.keySet()){
 			formSubmitCheckManager.deleteById(key);
