@@ -608,11 +608,17 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	protected void addSort(ListModelEntity listModel, Criteria criteria) {
 		for (ListSortItem sortItem : listModel.getSortItems()) {
-			String propertyName = sortItem.getItemModel().getColumnModel().getColumnName();
-			if (sortItem.isAsc()) {
-				criteria.addOrder(Order.asc(propertyName));
-			} else {
-				criteria.addOrder(Order.desc(propertyName));
+			ItemModelEntity itemModel = sortItem.getItemModel();
+			if (Objects.nonNull(itemModel)) {
+				ColumnModelEntity columnModel = itemModel.getColumnModel();
+				if (Objects.nonNull(columnModel)) {
+					String propertyName = columnModel.getColumnName();
+					if (sortItem.isAsc()) {
+						criteria.addOrder(Order.asc(propertyName));
+					} else {
+						criteria.addOrder(Order.desc(propertyName));
+					}
+				}
 			}
 		}
 	}
