@@ -38,7 +38,7 @@ public class ListFunction extends JPAEntity implements Serializable {
 	@Column(name="order_no",columnDefinition = "int default 0")//排序号
 	private Integer orderNo = 0;
 
-	//显示时机 若为空标识所有时机
+	//显示时机 若为空标识所有时机都显示
 	private String displayTiming;
 
 	public ListModelEntity getListModel() {
