@@ -1131,12 +1131,30 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				if(((SelectItemModelEntity) entity).getParentItem().getColumnModel() != null){
 					ColumnModelInfo columnModel = new ColumnModelInfo();
 					BeanUtils.copyProperties(((SelectItemModelEntity) entity).getParentItem().getColumnModel(), columnModel, new String[] {"dataModel","columnReferences"});
-					if(entity.getColumnModel().getDataModel() != null){
-						columnModel.setTableName(entity.getColumnModel().getDataModel().getTableName());
+					if(((SelectItemModelEntity) entity).getParentItem().getColumnModel().getDataModel() != null){
+						columnModel.setTableName(((SelectItemModelEntity) entity).getParentItem().getColumnModel().getDataModel().getTableName());
 					}
 					parentItemModel.setColumnModel(columnModel);
 				}
 				itemModel.setParentItem(parentItemModel);
+			}
+
+			if(((SelectItemModelEntity) entity).getItems() != null && ((SelectItemModelEntity) entity).getItems().size() > 0){
+				List<ItemModel> chiildrenItemModel = new ArrayList<>();
+				for(SelectItemModelEntity selectItemModelEntity : ((SelectItemModelEntity) entity).getItems()) {
+					ItemModel chiildItemModel = new ItemModel();
+					BeanUtils.copyProperties(selectItemModelEntity, chiildItemModel, new String[]{"formModel", "columnModel", "activities", "options", "searchItems", "sortItems", "permission", "items", "parentItem", "referenceList"});
+					if (selectItemModelEntity.getColumnModel() != null) {
+						ColumnModelInfo columnModel = new ColumnModelInfo();
+						BeanUtils.copyProperties(selectItemModelEntity.getColumnModel(), columnModel, new String[]{"dataModel", "columnReferences"});
+						if (selectItemModelEntity.getColumnModel().getDataModel() != null) {
+							columnModel.setTableName(selectItemModelEntity.getColumnModel().getDataModel().getTableName());
+						}
+						chiildItemModel.setColumnModel(columnModel);
+					}
+					chiildrenItemModel.add(chiildItemModel);
+				}
+				itemModel.setItems(chiildrenItemModel);
 			}
 
 			if(((SelectItemModelEntity) entity).getReferenceDictionaryItemId() != null){
