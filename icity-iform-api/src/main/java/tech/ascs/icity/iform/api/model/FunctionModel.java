@@ -25,42 +25,56 @@ public class FunctionModel extends NameEntity {
 	private String method;
 	@ApiModelProperty(value ="排序号", position = 6)
 	private Integer orderNo = 0;
+	@ApiModelProperty(value ="显示时机", position = 6)
+	private String displayTiming;
+
 	public String getLabel() {
 		return label;
 	}
+
 	public void setLabel(String label) {
 		this.label = label;
 	}
+
 	public String getAction() {
 		return action;
 	}
+
 	public void setAction(String action) {
 		this.action = action;
 	}
+
 	public boolean isBatch() {
 		return batch;
 	}
+
 	public void setBatch(boolean batch) {
 		this.batch = batch;
 	}
+
 	public boolean isVisible() {
 		return visible;
 	}
+
 	public void setVisible(boolean visible) {
 		this.visible = visible;
 	}
+
 	public String getUrl() {
 		return url;
 	}
+
 	public void setUrl(String url) {
 		this.url = url;
 	}
+
 	public String getMethod() {
 		return method;
 	}
+
 	public void setMethod(String method) {
-			this.method = method;
-		}
+		this.method = method;
+	}
 
 	public Integer getOrderNo() {
 		return orderNo;
@@ -68,6 +82,14 @@ public class FunctionModel extends NameEntity {
 
 	public void setOrderNo(Integer orderNo) {
 		this.orderNo = orderNo;
+	}
+
+	public String getDisplayTiming() {
+		return displayTiming;
+	}
+
+	public void setDisplayTiming(String displayTiming) {
+		this.displayTiming = displayTiming;
 	}
 
 	@Override

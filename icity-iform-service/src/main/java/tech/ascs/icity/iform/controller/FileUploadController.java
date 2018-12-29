@@ -42,7 +42,8 @@ public class FileUploadController implements FileUploadService {
 		Integer size = null;
 		if(StringUtils.isNoneBlank(fileSizeLimit)){
 			size = Integer.parseInt(fileSizeLimit);
-		}		List<FileUploadModel> list = new ArrayList<>();
+		}
+		List<FileUploadModel> list = new ArrayList<>();
 		if(files != null && files.size() > 0) {
 			for (MultipartFile file : files){
 				try {
