@@ -127,6 +127,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 
 	@Override
 	public void removeListModel(@PathVariable(name="id") String id) {
+		listModelService.checkListModelCanDelete(id);
 		listModelService.deleteById(id);
 	}
 
