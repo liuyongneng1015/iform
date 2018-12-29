@@ -28,6 +28,10 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 
 	private JPAManager<ListFunction> listFunctionManager;
 
+	private JPAManager<ReferenceItemModelEntity> referenceItemModelEntityManager;
+
+	private JPAManager<SelectItemModelEntity> selectItemModelEntityManager;
+
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
 
@@ -48,6 +52,8 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 		sortItemManager = getJPAManagerFactory().getJPAManager(ListSortItem.class);
 		searchItemManager = getJPAManagerFactory().getJPAManager(ListSearchItem.class);
 		listFunctionManager = getJPAManagerFactory().getJPAManager(ListFunction.class);
+		selectItemModelEntityManager = getJPAManagerFactory().getJPAManager(SelectItemModelEntity.class);
+		referenceItemModelEntityManager = getJPAManagerFactory().getJPAManager(ReferenceItemModelEntity.class);
 	}
 
 	/**
@@ -266,5 +272,16 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 	
 	protected void validate(ListModelEntity entity) {
 		// TODO 校验绑定数据模型、字段模型、流程及环节各相关ID存在
+	}
+
+	@Override
+	public void checkListModelCanDelete(String id) {
+		List<ReferenceItemModelEntity> list = referenceItemModelEntityManager.query().filterEqual("referenceList.id", id).list();
+		for (ReferenceItemModelEntity item:list) {
+			FormModelEntity formModelEntity = item.getFormModel();
+			if (formModelEntity!=null) {
+				throw new IFormException("该列表被"+formModelEntity.getName()+"表单绑定了，请先解绑对应关系");
+			}
+		}
 	}
 }
