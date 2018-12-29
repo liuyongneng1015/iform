@@ -24,9 +24,10 @@ public class ItemModel extends NameEntity {
 
 	//FileItemModel
 	@ApiModelProperty(value = "文件类型", position = 7)
-	private FileReferenceType fileReferenceType;
-	@ApiModelProperty(value = "文件路径", position = 8)
-	private String filePath;
+	private FileReferenceType fileReferenceType = FileReferenceType.Attachment;
+
+	@ApiModelProperty(value = "文件大小限制M", position = 7)
+	private Integer fileSizeLimit = 10;
 
 	@ApiModelProperty(value = "隐藏条件", position = 8)
 	private String hiddenCondition;
@@ -38,8 +39,10 @@ public class ItemModel extends NameEntity {
 	private String referenceTableName;
 	@ApiModelProperty(value="选择关系",position = 11)
 	private SelectReferenceType selectReferenceType;
-	@ApiModelProperty(value="是否多选",position = 11)
+
+	@ApiModelProperty(value="是否多选、是否允许多传",position = 11)
 	private Boolean multiple;
+
 	@ApiModelProperty(value="单选、多选、反选",position = 12)
 	private SelectMode selectMode;
 	@ApiModelProperty(value = "关联字典分类ID", position = 13)
@@ -166,12 +169,12 @@ public class ItemModel extends NameEntity {
 		this.fileReferenceType = fileReferenceType;
 	}
 
-	public String getFilePath() {
-		return filePath;
+	public Integer getFileSizeLimit() {
+		return fileSizeLimit;
 	}
 
-	public void setFilePath(String filePath) {
-		this.filePath = filePath;
+	public void setFileSizeLimit(Integer fileSizeLimit) {
+		this.fileSizeLimit = fileSizeLimit;
 	}
 
 	public String getHiddenCondition() {

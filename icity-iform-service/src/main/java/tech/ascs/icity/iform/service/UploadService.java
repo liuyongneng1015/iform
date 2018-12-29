@@ -29,11 +29,12 @@ public interface UploadService  extends JPAService<ColumnModelEntity> {
 
     /**
      * 上传文件，并显示是否重命名
+     * @param fileSize 文件大小M
      * @param file
      * @return
      * @throws Exception
      */
-    FileUploadModel uploadOneFileReturnUrl(MultipartFile file) throws Exception;
+    FileUploadModel uploadOneFileReturnUrl(Integer fileSize, MultipartFile file) throws Exception;
 
     /**
      * 图片的base64字符串集合转成图片，并上传到minio，然后返回url
