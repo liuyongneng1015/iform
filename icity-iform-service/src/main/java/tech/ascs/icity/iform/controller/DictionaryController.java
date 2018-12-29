@@ -247,7 +247,7 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
     	Integer maxOrderNo = dictionaryService.maxDictionaryItemOrderNo();
 		item.setOrderNo(maxOrderNo == null ? 1 :  maxOrderNo + 1);
 
-		item.setCode(StringUtils.isBlank(dictionaryItemModel.getCode()) ? "item_"+item.getOrderNo() : dictionaryItemModel.getCode());
+		item.setCode(StringUtils.isBlank(dictionaryItemModel.getCode()) ? "key_"+item.getOrderNo() : dictionaryItemModel.getCode());
 
 		item.setDescription(dictionaryItemModel.getDescription());
     	if(dictionary != null) {
