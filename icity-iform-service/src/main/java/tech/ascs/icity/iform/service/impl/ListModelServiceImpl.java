@@ -32,6 +32,8 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 
 	private JPAManager<SelectItemModelEntity> selectItemModelEntityManager;
 
+	private JPAManager<QuickSearchEntity> quickSearchEntityManager;
+
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
 
@@ -52,6 +54,7 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 		sortItemManager = getJPAManagerFactory().getJPAManager(ListSortItem.class);
 		searchItemManager = getJPAManagerFactory().getJPAManager(ListSearchItem.class);
 		listFunctionManager = getJPAManagerFactory().getJPAManager(ListFunction.class);
+		quickSearchEntityManager = getJPAManagerFactory().getJPAManager(QuickSearchEntity.class);
 		selectItemModelEntityManager = getJPAManagerFactory().getJPAManager(SelectItemModelEntity.class);
 		referenceItemModelEntityManager = getJPAManagerFactory().getJPAManager(ReferenceItemModelEntity.class);
 	}
@@ -67,9 +70,9 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 	public ListModelEntity save(ListModelEntity entity) {
 		validate(entity);
 		if (!entity.isNew()) { // 先删除所有搜索字段及列表功能然后重建
-			//ListModelEntity实体的字段 id,name,description,multiSelect,masterForm,applicationId,slaverForms,sortItems,functions,searchItems,displayItems
+			//ListModelEntity实体的字段 id,name,description,multiSelect,masterForm,applicationId,slaverForms,sortItems,functions,searchItems,displayItems,quickSearchItems
 			ListModelEntity old = get(entity.getId()) ;
-			BeanUtils.copyProperties(entity, old, new String[] {"masterForm","slaverForms","sortItems", "searchItems","functions","displayItems"});
+			BeanUtils.copyProperties(entity, old, new String[] {"masterForm", "slaverForms", "sortItems", "searchItems", "functions", "displayItems", "quickSearchItems"});
 
             if(entity.getMasterForm() != null && !entity.getMasterForm().isNew()){
                 old.setMasterForm(formModelService.get(entity.getMasterForm().getId()));
@@ -122,6 +125,12 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 				oldSearchItemMap.put(searchItem.getId(), searchItem);
 			}
 
+			List<QuickSearchEntity> oldQuickSearches = old.getQuickSearchItems();
+			Map<String, QuickSearchEntity> oldQuickSearchMap = new HashMap<>();
+			for (QuickSearchEntity quickSearch : oldQuickSearches) {
+				oldQuickSearchMap.put(quickSearch.getId(), quickSearch);
+			}
+
 			if (entity.getSortItems() != null) {
 				List<ListSortItem> sortItems = new ArrayList<ListSortItem>();
 				for (ListSortItem sortItem : entity.getSortItems()) {
@@ -147,7 +156,6 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 				for (ListSearchItem searchItem : entity.getSearchItems()) {
 					ListSearchItem searchItemEntity =  new ListSearchItem();
 					if(searchItem.getItemModel() != null) {
-						searchItemEntity.setItemModel(itemModelService.get(searchItem.getItemModel().getId()));
 						// 排序字段过滤掉ID组件
 						ItemModelEntity itemModelEntity = searchItemEntity.getItemModel();
 						if (itemModelEntity!=null) {
@@ -156,6 +164,7 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 								continue;
 							}
 						}
+						searchItemEntity.setItemModel(itemModelService.get(searchItem.getItemModel().getId()));
 					}
 					searchItemEntity.setListModel(old);
 					if (searchItem.getSearch() == null) {
@@ -180,7 +189,20 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 				old.setFunctions(functions);
 			}
 
-			return doUpdate(old, oldSortMap.keySet(), oldSearchItemMap.keySet(), oldFunctionMap.keySet());
+			if (entity.getQuickSearchItems() != null) {
+				List<QuickSearchEntity> quickSearches = new ArrayList<>();
+				for (QuickSearchEntity quickSearch : entity.getQuickSearchItems()) {
+					QuickSearchEntity quickSearchEntity = quickSearch.isNew() ? new QuickSearchEntity() : oldQuickSearchMap.get(quickSearch.getId());
+					BeanUtils.copyProperties(quickSearch, quickSearchEntity, "itemModel", "listModel");
+					if(quickSearch.getItemModel() != null) {
+						quickSearchEntity.setItemModel(itemModelService.get(quickSearch.getItemModel().getId()));
+					}
+					quickSearchEntity.setListModel(old);
+					quickSearches.add(quickSearchEntity);
+				}
+				old.setQuickSearchItems(quickSearches);
+			}
+			return doUpdate(old, oldSortMap.keySet(), oldSearchItemMap.keySet(), oldFunctionMap.keySet(), oldQuickSearchMap.keySet());
 		} else {
             setFormModel(entity);
             return super.save(entity);
@@ -275,8 +297,10 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 			throw new IFormException("获取列表模型列表失败：" + e.getMessage(), e);
 		}
 	}
+
 	@Transactional(readOnly = false)
-	protected ListModelEntity doUpdate(ListModelEntity entity, Set<String> deletedSortItemIds, Set<String> searchItemIds, Set<String> deletedFunctionIds) {
+	protected ListModelEntity doUpdate(ListModelEntity entity, Set<String> deletedSortItemIds, Set<String> searchItemIds, Set<String> deletedFunctionIds,
+									   Set<String> deleteQuickSearchItemIds) {
 		if (deletedSortItemIds.size() > 0) {
 			sortItemManager.deleteById(deletedSortItemIds.toArray(new String[] {}));
 		}
@@ -285,6 +309,9 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 		}
 		if (deletedFunctionIds.size() > 0) {
 			listFunctionManager.deleteById(deletedFunctionIds.toArray(new String[] {}));
+		}
+		if (deleteQuickSearchItemIds.size() > 0) {
+			quickSearchEntityManager.deleteById(deleteQuickSearchItemIds.toArray(new String[]{}));
 		}
 		return super.save(entity);
 	}
