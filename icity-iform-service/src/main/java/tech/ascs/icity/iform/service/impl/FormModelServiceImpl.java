@@ -86,7 +86,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			List<DataModelEntity> dataModelEntities = new ArrayList<>();
 			dataModelEntities.add(oldDataModelEntity);
 			//所以的自身与下级的行
-			Map<String, ColumnModelEntity> modelEntityMap = new HashMap<String, ColumnModelEntity>();
+			Map<String, ColumnModelEntity> columnModelEntityMap = new HashMap<String, ColumnModelEntity>();
 			Set<ColumnModelEntity> columnModelEntities = new HashSet<>();
 			columnModelEntities.addAll(oldDataModelEntity.getColumns());
 			if(oldDataModelEntity.getSlaverModels() != null){
@@ -95,13 +95,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				}
 			}
 
-			//主键
-			ColumnModelEntity idColumnModelEntity = null;
+			//所有字段
 			for(ColumnModelEntity columnModelEntity : columnModelEntities){
-				if(columnModelEntity.getColumnName().equals("id") && columnModelEntity.getDataModel().getId().equals(oldDataModelEntity.getId())){
-					idColumnModelEntity = columnModelEntity;
-				}
-				modelEntityMap.put(columnModelEntity.getDataModel().getTableName() + "_" + columnModelEntity.getColumnName(), columnModelEntity);
+				columnModelEntityMap.put(columnModelEntity.getDataModel().getTableName() + "_" + columnModelEntity.getColumnName(), columnModelEntity);
 			}
 
 			BeanUtils.copyProperties(entity, old, new String[] {"dataModels", "items", "permissions", "submitChecks","functions"});
@@ -114,6 +110,10 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			Map<String, ItemModelEntity> oldMapItmes = new HashMap<>();
 			for(ItemModelEntity itemModelEntity : oldItems){
 				oldMapItmes.put(itemModelEntity.getId(), itemModelEntity);
+				List<ItemModelEntity> oldItemChildren = getChildRenItemModelEntity(itemModelEntity);
+				for(ItemModelEntity itemModelEntity1 : oldItemChildren){
+					oldMapItmes.put(itemModelEntity1.getId(), itemModelEntity1);
+				}
 			}
 
 			//包括所有的新的item(包括子item)
@@ -124,7 +124,8 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			for(int i = 0; i < entity.getItems().size() ; i++) {
 				ItemModelEntity oldItemModelEntity = entity.getItems().get(i);
 				oldItemModelEntity.setFormModel(old);
-				ItemModelEntity newItemModelEntity = getNewItemModelEntity(modelEntityMap, oldItemModelEntity);
+				ItemModelEntity newItemModelEntity = getNewItemModelEntity(oldMapItmes, columnModelEntityMap, oldItemModelEntity);
+				newItemModelEntity.setFormModel(old);
 				newItemModelEntity.setOrderNo(i);
 				//包括所有的item(包括子item)
 				allItems.add(newItemModelEntity);
@@ -200,7 +201,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		parentSelectItem.getItems().add(selectItemModelEntity);
 	}
 
-	private ItemModelEntity  getNewItemModel(Map<String, ColumnModelEntity> modelEntityMap, ItemModelEntity oldItemModelEntity){
+	private ItemModelEntity  getNewItemModel(Map<String, ItemModelEntity> oldMapItmes, Map<String, ColumnModelEntity> modelEntityMap, ItemModelEntity oldItemModelEntity){
 		ItemModelEntity newItemModelEntity = getItemModelEntity(oldItemModelEntity.getType());
 		if(oldItemModelEntity.getSystemItemType() == SystemItemType.SerialNumber){
 			newItemModelEntity = new SerialNumberItemModelEntity();
@@ -208,7 +209,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			newItemModelEntity = new CreatorItemModelEntity();
 		}
 		if(!oldItemModelEntity.isNew()){
-			newItemModelEntity = itemManager.get(oldItemModelEntity.getId());
+			newItemModelEntity = oldMapItmes.get(oldItemModelEntity.getId());
 		}
 
 		BeanUtils.copyProperties(oldItemModelEntity, newItemModelEntity, new String[]{"parentItem", "searchItems","sortItems","permission", "referenceList","items","formModel","columnModel","activities","options"});
@@ -253,12 +254,12 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		return newItemModelEntity;
 	}
 
-	private ItemModelEntity  getNewSubFormRowItemModel(SubFormRowItemModelEntity oldItemModelEntity){
+	private ItemModelEntity  getNewSubFormRowItemModel(Map<String, ItemModelEntity> oldMapItmes, SubFormRowItemModelEntity oldItemModelEntity){
 		ItemModelEntity newItemModelEntity = new SubFormRowItemModelEntity();
 		if(!oldItemModelEntity.isNew()){
-			newItemModelEntity = itemManager.get(oldItemModelEntity.getId());
+			newItemModelEntity = oldMapItmes.get(oldItemModelEntity.getId());
 		}
-		BeanUtils.copyProperties(oldItemModelEntity, newItemModelEntity, new String[]{"parentItem","referenceList","items","formModel","columnModel","activities","options"});
+		BeanUtils.copyProperties(oldItemModelEntity, newItemModelEntity, new String[]{"searchItems", "sortItems", "parentItem","referenceList","items","formModel","columnModel","activities","options"});
 		return newItemModelEntity;
 	}
 
@@ -267,7 +268,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		if(!oldItemModelEntity.isNew()){
 			newItemModelEntity = itemManager.get(oldItemModelEntity.getId());
 		}
-		BeanUtils.copyProperties(oldItemModelEntity, newItemModelEntity, new String[]{"referenceList","items","formModel","columnModel","activities","options"});
+		BeanUtils.copyProperties(oldItemModelEntity, newItemModelEntity, new String[]{"searchItems", "sortItems", "referenceList","items","formModel","columnModel","activities","options"});
 		return newItemModelEntity;
 	}
 
@@ -276,7 +277,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		if(!oldItemModelEntity.isNew()){
 			newItemModelEntity = itemManager.get(oldItemModelEntity.getId());
 		}
-		BeanUtils.copyProperties(oldItemModelEntity, newItemModelEntity, new String[]{"referenceList","items","formModel","columnModel","activities","options"});
+		BeanUtils.copyProperties(oldItemModelEntity, newItemModelEntity, new String[]{"searchItems", "sortItems", "referenceList","items","formModel","columnModel","activities","options"});
 		return newItemModelEntity;
 	}
 
@@ -392,14 +393,14 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 	}
 
 	//获取item子item
-	private ItemModelEntity getNewItemModelEntity(Map<String, ColumnModelEntity> modelEntityMap, ItemModelEntity oldItemModelEntity){
-		ItemModelEntity newModelEntity = getNewItemModel(modelEntityMap, oldItemModelEntity);
+	private ItemModelEntity getNewItemModelEntity(Map<String, ItemModelEntity> oldMapItmes, Map<String, ColumnModelEntity> modelEntityMap, ItemModelEntity oldItemModelEntity){
+		ItemModelEntity newModelEntity = getNewItemModel(oldMapItmes, modelEntityMap, oldItemModelEntity);
 		if(oldItemModelEntity instanceof RowItemModelEntity){
 			RowItemModelEntity rowItemModelEntity = (RowItemModelEntity)oldItemModelEntity;
 			List<ItemModelEntity> rowItems = new ArrayList<ItemModelEntity>();
 			for(int i = 0; i < rowItemModelEntity.getItems().size() ; i++) {
 				ItemModelEntity rowItem = rowItemModelEntity.getItems().get(i);
-				ItemModelEntity newRowItem = getNewItemModel(modelEntityMap, rowItem);
+				ItemModelEntity newRowItem = getNewItemModel(oldMapItmes, modelEntityMap, rowItem);
 				if(newRowItem instanceof ReferenceItemModelEntity) {
 					verifyReference((ReferenceItemModelEntity)rowItem);
 				}
@@ -413,7 +414,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			SubFormItemModelEntity subFormItemModel  = (SubFormItemModelEntity)oldItemModelEntity;
 			for (int i = 0; i < subFormItemModel.getItems().size() ; i++) {
 				SubFormRowItemModelEntity subFormRowItemModelEntity = subFormItemModel.getItems().get(i);
-				SubFormRowItemModelEntity subFormRowItemModel  = (SubFormRowItemModelEntity)getNewSubFormRowItemModel(subFormRowItemModelEntity);
+				SubFormRowItemModelEntity subFormRowItemModel  = (SubFormRowItemModelEntity)getNewSubFormRowItemModel(oldMapItmes, subFormRowItemModelEntity);
 				List<ItemModelEntity> rowItems = new ArrayList<>();
 				for (int j = 0; j < subFormRowItemModelEntity.getItems().size() ; j ++) {
 					ItemModelEntity childRenItem = subFormRowItemModelEntity.getItems().get(j);
@@ -421,7 +422,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 						verifyReference((ReferenceItemModelEntity)childRenItem);
 					}
 					childRenItem.setOrderNo(j);
-					rowItems.add(getNewItemModel(modelEntityMap, childRenItem));
+					rowItems.add(getNewItemModel(oldMapItmes, modelEntityMap, childRenItem));
 				}
 				subFormRowItemModel.setParentItem((SubFormItemModelEntity)newModelEntity);
 				subFormRowItemModel.setItems(rowItems);
