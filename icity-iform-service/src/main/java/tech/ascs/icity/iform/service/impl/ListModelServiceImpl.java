@@ -129,6 +129,14 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 					sortItemEntity.setListModel(old);
 					sortItemEntity.setItemModel(sortItem.getItemModel() == null || sortItem.getItemModel().isNew() ? null : itemModelService.get(sortItem.getItemModel().getId()));
 					sortItemEntity.setAsc(sortItem.isAsc());
+					// 排序字段过滤掉ID组件
+					ItemModelEntity itemModelEntity = sortItemEntity.getItemModel();
+					if (itemModelEntity!=null) {
+						SystemItemType systemItemType = itemModelEntity.getSystemItemType();
+						if (systemItemType!=null && "ID".equals(systemItemType.getValue())) {
+							continue;
+						}
+					}
 					sortItems.add(sortItemEntity);
 				}
 				old.setSortItems(sortItems);
@@ -140,6 +148,14 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 					ListSearchItem searchItemEntity =  new ListSearchItem();
 					if(searchItem.getItemModel() != null) {
 						searchItemEntity.setItemModel(itemModelService.get(searchItem.getItemModel().getId()));
+						// 排序字段过滤掉ID组件
+						ItemModelEntity itemModelEntity = searchItemEntity.getItemModel();
+						if (itemModelEntity!=null) {
+							SystemItemType systemItemType = itemModelEntity.getSystemItemType();
+							if (systemItemType!=null && "ID".equals(systemItemType.getValue())) {
+								continue;
+							}
+						}
 					}
 					searchItemEntity.setListModel(old);
 					if (searchItem.getSearch() == null) {
