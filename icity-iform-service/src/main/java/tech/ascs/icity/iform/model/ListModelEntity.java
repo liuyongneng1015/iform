@@ -45,6 +45,9 @@ public class ListModelEntity extends BaseEntity implements Serializable {
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "listModel")
 	private List<ListSearchItem> searchItems = new ArrayList<ListSearchItem>();
 
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "listModel", fetch=FetchType.LAZY)
+	private List<QuickSearchEntity> quickSearchItems = new ArrayList<QuickSearchEntity>();
+
 	@ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
 	@JoinTable(
 		name = "ifm_list_display_item",
@@ -115,6 +118,14 @@ public class ListModelEntity extends BaseEntity implements Serializable {
 
 	public void setSearchItems(List<ListSearchItem> searchItems) {
 		this.searchItems = searchItems;
+	}
+
+	public List<QuickSearchEntity> getQuickSearchItems() {
+		return quickSearchItems;
+	}
+
+	public void setQuickSearchItems(List<QuickSearchEntity> quickSearchItems) {
+		this.quickSearchItems = quickSearchItems;
 	}
 
 	public List<ItemModelEntity> getDisplayItems() {
