@@ -246,8 +246,11 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 						public String mapRow(ResultSet rs, int rowNum) throws SQLException {
 							return rs.getString("list_id");
 						}});
-			List<ListModelEntity> listModelEntities = query().filterIn("id",idlist).list();
 			List<ListModel> list = new ArrayList<>();
+			if(idlist == null || idlist.size() < 1){
+				return list;
+			}
+			List<ListModelEntity> listModelEntities = query().filterIn("id",idlist).list();
 			for(ListModelEntity listModelEntity : listModelEntities){
 				list.add(BeanUtils.copy(listModelEntity, ListModel.class, new String[]{"displayItems","searchItems","functions","sortItems","slaverForms","masterForm"}));
 			}
