@@ -9,6 +9,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import tech.ascs.icity.iform.api.model.SystemCodeModel;
+import tech.ascs.icity.iform.model.SelectItemModelEntity;
 import tech.ascs.icity.model.Page;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.DictionaryItemModel;
@@ -427,5 +428,40 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 			list.add(getItemModelByEntity(dictionaryItem));
 		}
 		return list;
+	}
+
+	@Override
+	public List<DictionaryItemModel> findItems(@PathVariable(name="id",required = true) String id, @PathVariable(name="itemId",required = true) String itemId) {
+		DictionaryEntity dictionaryEntity = dictionaryService.get(id);
+		DictionaryItemEntity dictionaryItemEntity = dictionaryService.getDictionaryItemById(itemId);
+		if(dictionaryEntity == null){
+			throw new IFormException("未找到【" + id + "】对应的数据分类");
+		}
+		if(dictionaryItemEntity == null){
+			throw new IFormException("未找到【" + itemId + "】对应的数据字典项");
+		}
+		List<DictionaryItemModel> dictionaryItemModels = new ArrayList<>();
+		if(dictionaryItemEntity != null && dictionaryItemEntity.getChildrenItem() != null && dictionaryItemEntity.getChildrenItem().size() > 0 ) {
+			for(DictionaryItemEntity itemEntity : dictionaryItemEntity.getChildrenItem()) {
+				if(itemEntity.getParentItem() != null || ("root").equals(itemEntity.getParentItem().getCode())){
+					if(itemEntity.getDictionary() != null && !itemEntity.getDictionary().getId().equals(id)){
+						continue;
+					}
+				}
+				DictionaryItemModel dictionaryItemModel = new DictionaryItemModel();
+				tech.ascs.icity.utils.BeanUtils.copyProperties(itemEntity, dictionaryItemModel, new String[]{"dictionary", "paraentItem", "childrenItem"});
+
+				if(itemEntity.getDictionary() != null){
+					dictionaryItemModel.setDictionaryId(itemEntity.getDictionary().getId());
+				}
+
+				if(itemEntity.getParentItem() != null){
+					dictionaryItemModel.setParentId(itemEntity.getParentItem().getId());
+				}
+				dictionaryItemModels.add(dictionaryItemModel);
+			}
+		}
+
+		return dictionaryItemModels;
 	}
 }

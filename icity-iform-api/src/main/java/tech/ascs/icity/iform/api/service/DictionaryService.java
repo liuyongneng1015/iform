@@ -95,4 +95,11 @@ public interface DictionaryService {
 	@ApiImplicitParam(paramType="path", name = "id", value = "查询第一级子节点", required = true, dataType = "String")
 	@GetMapping("/items/{id}/children")
 	List<DictionaryItemModel> childrenDictionaryItemModel(@PathVariable(name = "id", required = true) String id);
+
+	@ApiOperation("获取数据字典表选项列表")
+	@ApiImplicitParams({
+			@ApiImplicitParam(paramType="path", name = "id", value = "字典表分类ID", required = true, dataType = "String"),
+			@ApiImplicitParam(paramType="path", name = "itemId", value = "字典表选项ID", required = true, dataType = "String")
+	})	@GetMapping("/{id}/{itemId}/items")
+	List<DictionaryItemModel> findItems(@PathVariable(name="id",required = true) String id, @PathVariable(name="itemId",required = true) String itemId);
 }
