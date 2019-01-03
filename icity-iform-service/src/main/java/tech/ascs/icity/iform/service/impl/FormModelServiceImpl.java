@@ -888,7 +888,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			idItemModelEntity.setColumnModel(null);
 			idItemModelEntity.setType(ItemType.Input);
 			if ("id".equals(name)) {
-				idItemModelEntity.setProps("{id:组件id}");
+				idItemModelEntity.setProps("{}");
 				idItemModelEntity.setSystemItemType(SystemItemType.ID);
 			} else {
 				idItemModelEntity.setProps(name);
