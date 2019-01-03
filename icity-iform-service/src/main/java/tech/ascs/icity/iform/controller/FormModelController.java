@@ -774,22 +774,17 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				selectItemModelEntity.setDefaultReferenceValue((String)itemModel.getDefaultValue());
 			}
 			selectItemModelEntity.setReferenceList(setItemModelByListModel(itemModel));
-
-			if(itemModel.getSelectReferenceType() == SelectReferenceType.Dictionary){
-				if(itemModel.getDictionaryValueType() == DictionaryValueType.Linkage && itemModel.getParentItem() != null){
-					SelectItemModelEntity parentSelectItemModel = new SelectItemModelEntity();
-					BeanUtils.copyProperties(itemModel.getParentItem(), parentSelectItemModel, new String[] {"referenceList","parentItem", "searchItems","sortItems", "permission", "items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});
-					if(itemModel.getParentItem().getColumnModel() != null){
-						ColumnModelEntity columnModel = new ColumnModelEntity();
-						BeanUtils.copyProperties(itemModel.getParentItem().getColumnModel(), columnModel, new String[] {"dataModel","columnReferences"});
-						DataModelEntity dataModelEntity = new DataModelEntity();
-						dataModelEntity.setTableName(itemModel.getParentItem().getColumnModel().getTableName());
-						columnModel.setDataModel(dataModelEntity);
-						parentSelectItemModel.setColumnModel(columnModel);
-					}
-					selectItemModelEntity.setParentItem(parentSelectItemModel);
-				}
-			}
+            if(itemModel.getDictionaryValueType() == DictionaryValueType.Linkage && itemModel.getParentItem() != null){
+                SelectItemModelEntity parentSelectItemModel = new SelectItemModelEntity();
+                BeanUtils.copyProperties(itemModel.getParentItem(), parentSelectItemModel, new String[] {"referenceList","parentItem", "searchItems","sortItems", "permission", "items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});
+                ColumnModelEntity columnModel = new ColumnModelEntity();
+                columnModel.setColumnName(itemModel.getParentItem().getColumnName());
+                DataModelEntity dataModelEntity = new DataModelEntity();
+                dataModelEntity.setTableName(itemModel.getParentItem().getTableName());
+                columnModel.setDataModel(dataModelEntity);
+                parentSelectItemModel.setColumnModel(columnModel);
+                selectItemModelEntity.setParentItem(parentSelectItemModel);
+            }
 
 		}else if(entity instanceof RowItemModelEntity){
 			List<ItemModelEntity> rowList = new ArrayList<>() ;
@@ -802,7 +797,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			List<SubFormRowItemModelEntity> rowItemModelEntities = new ArrayList<>();
 			for(ItemModel rowItemModelEntity : rowItemModels) {
 				SubFormRowItemModelEntity subFormRowItemModelEntity = new SubFormRowItemModelEntity();
-				BeanUtils.copyProperties(rowItemModelEntity, subFormRowItemModelEntity, new String[] {"items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});
+				BeanUtils.copyProperties(rowItemModelEntity, subFormRowItemModelEntity, new String[] {"searchItems","sortItems","items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});
 				List<ItemModelEntity> rowItemList = new ArrayList<>();
 				for(ItemModel childrenItem : rowItemModelEntity.getItems()) {
 					rowItemList.add(wrap(childrenItem));
@@ -1130,7 +1125,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			}
 
 			if(((SelectItemModelEntity) entity).getParentItem() != null){
-				ItemModel parentItemModel = new ItemModel();
+				SelectItemModel parentItemModel = new SelectItemModel();
 				BeanUtils.copyProperties(((SelectItemModelEntity) entity).getParentItem(), parentItemModel, new String[]{"formModel", "columnModel", "activities", "options","searchItems","sortItems", "permission","items","parentItem","referenceList"});
 				if(((SelectItemModelEntity) entity).getParentItem().getColumnModel() != null){
 					ColumnModelInfo columnModel = new ColumnModelInfo();
@@ -1138,7 +1133,8 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 					if(((SelectItemModelEntity) entity).getParentItem().getColumnModel().getDataModel() != null){
 						columnModel.setTableName(((SelectItemModelEntity) entity).getParentItem().getColumnModel().getDataModel().getTableName());
 					}
-					parentItemModel.setColumnModel(columnModel);
+					parentItemModel.setColumnName(columnModel.getColumnName());
+                    parentItemModel.setTableName(columnModel.getTableName());
 				}
 				itemModel.setParentItem(parentItemModel);
 			}
@@ -1159,35 +1155,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 					chiildrenItemModel.add(chiildItemModel);
 				}
 				itemModel.setItems(chiildrenItemModel);
-			}
-
-			if(((SelectItemModelEntity) entity).getReferenceDictionaryItemId() != null){
-				DictionaryItemEntity dictionaryItemEntity = dictionaryService.getDictionaryItemById(((SelectItemModelEntity) entity).getReferenceDictionaryItemId());
-				if(dictionaryItemEntity != null){
-					itemModel.setReferenceDictionaryItemName(dictionaryItemEntity == null ? null : dictionaryItemEntity.getName());
-				}
-				if(dictionaryItemEntity != null && dictionaryItemEntity.getChildrenItem() != null && dictionaryItemEntity.getChildrenItem().size() > 0 ) {
-					List<DictionaryItemModel> dictionaryItemModels = new ArrayList<>();
-					for(DictionaryItemEntity itemEntity : dictionaryItemEntity.getChildrenItem()) {
-						if(itemEntity.getParentItem() != null || ("root").equals(itemEntity.getParentItem().getCode())){
-							if(itemEntity.getDictionary() != null && !itemEntity.getDictionary().getId().equals(((SelectItemModelEntity) entity).getReferenceDictionaryId())){
-								continue;
-							}
-						}
-						DictionaryItemModel dictionaryItemModel = new DictionaryItemModel();
-						BeanUtils.copyProperties(itemEntity, dictionaryItemModel, new String[]{"dictionary", "paraentItem", "childrenItem"});
-
-						if(itemEntity.getDictionary() != null){
-							dictionaryItemModel.setDictionaryId(itemEntity.getDictionary().getId());
-						}
-
-						if(itemEntity.getParentItem() != null){
-							dictionaryItemModel.setParentId(itemEntity.getParentItem().getId());
-						}
-						dictionaryItemModels.add(dictionaryItemModel);
-					}
-					itemModel.setReferenceDictionaryItemList(dictionaryItemModels);
-				}
 			}
 
 		}else if(entity instanceof RowItemModelEntity){

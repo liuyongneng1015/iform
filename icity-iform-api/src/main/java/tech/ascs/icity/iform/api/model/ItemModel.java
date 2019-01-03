@@ -93,7 +93,7 @@ public class ItemModel extends NameEntity {
 	private String tableName;
 
 	@ApiModelProperty(value="上级关联控件模型",position = 22)
-	private ItemModel parentItem ;
+	private SelectItemModel parentItem ;
 
 	//subformrow/row
 	@ApiModelProperty(value="当前行数",position = 23)
@@ -201,11 +201,11 @@ public class ItemModel extends NameEntity {
 		this.referenceTableName = referenceTableName;
 	}
 
-	public ItemModel getParentItem() {
+	public SelectItemModel getParentItem() {
 		return parentItem;
 	}
 
-	public void setParentItem(ItemModel parentItem) {
+	public void setParentItem(SelectItemModel parentItem) {
 		this.parentItem = parentItem;
 	}
 
