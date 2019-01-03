@@ -195,7 +195,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		verfyListName(listModel);
 
 		ListModelEntity entity =  new ListModelEntity() ;
-		BeanUtils.copyProperties(listModel, entity, new String[] {"masterForm","slaverForms","sortItems", "searchItems","functions","displayItems"});
+		BeanUtils.copyProperties(listModel, entity, new String[] {"masterForm","slaverForms","sortItems", "searchItems","functions","displayItems", "quickSearchItems"});
 
 		if(listModel.getMasterForm() != null && !listModel.getMasterForm().isNew()){
 			FormModelEntity formModelEntity = new FormModelEntity();
@@ -277,6 +277,25 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			entity.setFunctions(functions);
 		}
 
+		if (listModel.getQuickSearchItems() !=null) {
+		    List<QuickSearchEntity> quickSearches = new ArrayList<>();
+		    for (QuickSearchItem searchItem : listModel.getQuickSearchItems()) {
+                QuickSearchEntity quickSearchEntity = new QuickSearchEntity();
+                if(searchItem.getId() != null) {
+                    ItemModelEntity itemModelEntity = new ItemModelEntity();
+                    itemModelEntity.setId(searchItem.getId());
+                    itemModelEntity.setName(searchItem.getName());
+                    quickSearchEntity.setItemModel(itemModelEntity);
+                }
+                BeanUtils.copyProperties(searchItem, quickSearchEntity, new String[]{"itemModel", "searchValues"});
+                if (searchItem.getSearchValues()!=null && searchItem.getSearchValues().size()>0) {
+                    quickSearchEntity.setSearchValues(String.join(",", searchItem.getSearchValues()));
+                }
+                quickSearchEntity.setListModel(entity);
+                quickSearches.add(quickSearchEntity);
+            }
+            entity.setQuickSearchItems(quickSearches);
+		}
 		return entity;
 	}
 
@@ -314,7 +333,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 
 	private ListModel toDTO(ListModelEntity entity) {
 		ListModel listModel = new ListModel();
-		BeanUtils.copyProperties(entity, listModel, new String[] {"displayItems", "masterForm","sortItems", "functions","searchItems","slaverForms"});
+		BeanUtils.copyProperties(entity, listModel, new String[] {"masterForm", "slaverForms", "sortItems", "searchItems", "functions", "displayItems", "quickSearchItems"});
 
 		if(entity.getMasterForm() != null){
 			FormModel masterForm = new FormModel();
@@ -387,6 +406,23 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			listModel.setSearchItems(searchItems);
 		}
 
+		if (entity.getQuickSearchItems().size() > 0) {
+		    List<QuickSearchItem> quickSearches = new ArrayList<>();
+		    for (QuickSearchEntity quickSearchEntity : entity.getQuickSearchItems()) {
+		        QuickSearchItem quickSearch = new QuickSearchItem();
+                BeanUtils.copyProperties(quickSearchEntity, quickSearch, new String[]{"listModel", "itemModel", "searchValues"});
+                if (!StringUtils.isEmpty(quickSearchEntity.getSearchValues())) {
+                    quickSearch.setSearchValues(Arrays.asList(quickSearchEntity.getSearchValues().split(",")));
+                }
+		        if (quickSearchEntity.getItemModel() != null) {
+                    ItemModel itemModel = new ItemModel();
+                    BeanUtils.copyProperties(quickSearchEntity.getItemModel(), itemModel, new String[] {"permission", "items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});
+                    quickSearch.setItemModel(itemModel);
+                }
+                quickSearches.add(quickSearch);
+            }
+            listModel.setQuickSearchItems(quickSearches);
+        }
 		return listModel;
 	}
 
