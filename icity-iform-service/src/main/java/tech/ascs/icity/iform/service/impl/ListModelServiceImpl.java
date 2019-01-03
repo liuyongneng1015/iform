@@ -240,11 +240,11 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 	public List<ListModel> findListModelsByItemModelIds(List<String> itemModelIds) {
 		try {
 			String itemIds = StringUtils.join(itemModelIds, "','");
-			List<String> idlist = jdbcTemplate.query("select t.list_model from ifm_list_display_item t where t.item_id in ('"+itemIds+"')",
+			List<String> idlist = jdbcTemplate.query("select t.list_id from ifm_list_display_item t where t.item_id in ('"+itemIds+"')",
 					new RowMapper<String>() {
 						@Override
 						public String mapRow(ResultSet rs, int rowNum) throws SQLException {
-							return rs.getString("list_model");
+							return rs.getString("list_id");
 						}});
 			List<ListModelEntity> listModelEntities = query().filterIn("id",idlist).list();
 			List<ListModel> list = new ArrayList<>();
