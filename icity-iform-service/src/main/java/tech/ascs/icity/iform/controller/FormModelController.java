@@ -746,7 +746,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			entity = new CreatorItemModelEntity();
 		}
 		//需要保持column
-		BeanUtils.copyProperties(itemModel, entity, new String[] {"referenceList","parentItem", "searchItems","sortItems", "permission", "items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});
+		BeanUtils.copyProperties(itemModel, entity, new String[] {"defaultValue","referenceList","parentItem", "searchItems","sortItems", "permission", "items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});
 
 		if(!itemModel.isNew()){
 			ItemModelEntity itemModelEntity = itemModelService.find(itemModel.getId());
@@ -768,8 +768,10 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			((ReferenceItemModelEntity) entity).setReferenceList(setItemModelByListModel(itemModel));
 		}else if(entity instanceof SelectItemModelEntity){
 			SelectItemModelEntity selectItemModelEntity = (SelectItemModelEntity)entity;
-			if(itemModel.getDefaultValue() != null && itemModel.getDefaultValue().size() > 0){
+			if(itemModel.getDefaultValue() != null && itemModel.getDefaultValue() instanceof List){
 				selectItemModelEntity.setDefaultReferenceValue(org.apache.commons.lang3.StringUtils.join(itemModel.getDefaultValue(),","));
+			}else{
+				selectItemModelEntity.setDefaultReferenceValue((String)itemModel.getDefaultValue());
 			}
 			selectItemModelEntity.setReferenceList(setItemModelByListModel(itemModel));
 
@@ -1115,8 +1117,10 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			}
 		}else if(entity instanceof SelectItemModelEntity){
 			String defaultValue = ((SelectItemModelEntity) entity).getDefaultReferenceValue();
-			if( defaultValue != null && !StringUtils.isEmpty(defaultValue)) {
+			if(defaultValue != null &&  !StringUtils.isEmpty(defaultValue) && entity.getType() == ItemType.CheckboxGroup) {
 				itemModel.setDefaultValue(Arrays.asList(defaultValue.split(",")));
+			}else{
+				itemModel.setDefaultValue((String)defaultValue);
 			}
 			itemModel.setReferenceList(getItemModelByEntity(entity));
 
