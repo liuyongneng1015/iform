@@ -93,7 +93,7 @@ public class ItemModel extends NameEntity {
 	private String tableName;
 
 	@ApiModelProperty(value="上级关联控件模型",position = 22)
-	private ItemModel parentItem ;
+	private SelectItemModel parentItem ;
 
 	//subformrow/row
 	@ApiModelProperty(value="当前行数",position = 23)
@@ -117,8 +117,8 @@ public class ItemModel extends NameEntity {
 	@ApiModelProperty(value="是否被选中:true选中，flse未选中",position = 31)
 	private Boolean  selectFlag = false;
 
-	@ApiModelProperty(value="控件权限",position = 31)
-	private ItemPermissionModel  permission;
+	@ApiModelProperty(value="新增控件权限",position = 31)
+	private List<ItemPermissionModel>  permissions;
 
 	@ApiModelProperty(value="前缀业务标识",position = 32)
 	private String prefix;
@@ -201,11 +201,11 @@ public class ItemModel extends NameEntity {
 		this.referenceTableName = referenceTableName;
 	}
 
-	public ItemModel getParentItem() {
+	public SelectItemModel getParentItem() {
 		return parentItem;
 	}
 
-	public void setParentItem(ItemModel parentItem) {
+	public void setParentItem(SelectItemModel parentItem) {
 		this.parentItem = parentItem;
 	}
 
@@ -329,12 +329,12 @@ public class ItemModel extends NameEntity {
 		this.referenceItemId = referenceItemId;
 	}
 
-	public ItemPermissionModel getPermission() {
-		return permission;
+	public List<ItemPermissionModel> getPermissions() {
+		return permissions;
 	}
 
-	public void setPermission(ItemPermissionModel permission) {
-		this.permission = permission;
+	public void setPermissions(List<ItemPermissionModel> permissions) {
+		this.permissions = permissions;
 	}
 
 	public ControlType getControlType() {

@@ -1,7 +1,6 @@
 package tech.ascs.icity.iform.service.impl;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,10 +101,10 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 			BeanUtils.copyProperties(entity, old, new String[] {"dataModels", "items", "permissions", "submitChecks","functions"});
 			List<ItemModelEntity> oldItems = old.getItems();
-			List<String> itemActivityIds = new ArrayList<String>();
-			List<String> itemSelectOptionIds = new ArrayList<String>();
+			List<ItemActivityInfo> itemActivitys = new ArrayList<ItemActivityInfo>();
+			List<ItemSelectOption> itemSelectOptions = new ArrayList<ItemSelectOption>();
 
-			setOldItems(itemActivityIds,  itemSelectOptionIds ,  old );
+			deleteOldItems(old);
 
 			Map<String, ItemModelEntity> oldMapItmes = new HashMap<>();
 			for(ItemModelEntity itemModelEntity : oldItems){
@@ -123,7 +122,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			List<ItemModelEntity> itemModelEntities = new ArrayList<ItemModelEntity>();
 			for(int i = 0; i < entity.getItems().size() ; i++) {
 				ItemModelEntity oldItemModelEntity = entity.getItems().get(i);
-				oldItemModelEntity.setFormModel(old);
+				//oldItemModelEntity.setFormModel(old);
 				ItemModelEntity newItemModelEntity = getNewItemModelEntity(oldMapItmes, columnModelEntityMap, oldItemModelEntity);
 				newItemModelEntity.setFormModel(old);
 				newItemModelEntity.setOrderNo(i);
@@ -144,7 +143,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 
 			//删除item
-			deleteItems(old, oldItems, itemActivityIds, itemSelectOptionIds);
+			deleteItems(oldItems);
 
 			//下拉数据字典联动控件
 			setSelectParentItem(itemModelEntities);
@@ -212,24 +211,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			newItemModelEntity = oldMapItmes.get(oldItemModelEntity.getId());
 		}
 
-		BeanUtils.copyProperties(oldItemModelEntity, newItemModelEntity, new String[]{"parentItem", "searchItems","sortItems","permission", "referenceList","items","formModel","columnModel","activities","options"});
+		BeanUtils.copyProperties(oldItemModelEntity, newItemModelEntity, new String[]{"parentItem", "searchItems","sortItems","permissions", "referenceList","items","formModel","columnModel","activities","options"});
 
-		/*//保存控件权限
-		if(oldItemModelEntity.getPermission() != null){
-			ItemPermissionInfo itemPermissionInfo =  null;
-			if(oldItemModelEntity.getPermission().isNew()){
-				itemPermissionInfo = new ItemPermissionInfo();
-				newItemModelEntity.setPermission(oldItemModelEntity.getPermission());
-				itemPermissionInfo.setItemModel(newItemModelEntity);
-				//itemPermissionInfo.setFormModel(oldItemModelEntity.getFormModel());
-			}else{
-				itemPermissionInfo =  itemPermissionManager.get(oldItemModelEntity.getPermission().getId());
-				itemPermissionInfo.setItemModel(newItemModelEntity);
-				newItemModelEntity.setPermission(itemPermissionInfo);
-			}
-		}*/
-
-		newItemModelEntity.setFormModel(oldItemModelEntity.getFormModel());
+		//newItemModelEntity.setFormModel(oldItemModelEntity.getFormModel());
 
 		//设置列表模型
 		if (oldItemModelEntity instanceof ReferenceItemModelEntity && ((ReferenceItemModelEntity) oldItemModelEntity).getReferenceList() != null) {
@@ -283,7 +267,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 
 	//删除item
-	private void deleteItems(FormModelEntity old, List<ItemModelEntity> deleteItems, Collection<String> deleteItemActivityIds, Collection<String> deleteItemSelectOptionIds){
+	private void deleteItems(List<ItemModelEntity> deleteItems){
 		if (deleteItems.size() > 0) {
 			for(int i = 0 ; i < deleteItems.size() ; i++){
 				ItemModelEntity itemModelEntity = deleteItems.get(i);
@@ -294,13 +278,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				if(itemModelEntity instanceof RowItemModelEntity){
 					List<ItemModelEntity> list = ((RowItemModelEntity) itemModelEntity).getItems();
 					for(int j = 0 ; j < list.size(); j++ ) {
-						ItemModelEntity itemModelEntity1 = list.get(j);
-						if(itemModelEntity1 instanceof SelectItemModelEntity ){
-							updateSelectItemChildrenItems((SelectItemModelEntity)itemModelEntity1);
-						}
-						itemModelEntity1.setColumnModel(null);
-						list.remove(itemModelEntity1);
-						itemManager.delete(itemModelEntity1);
+						deleteItem(list, j);
 						j--;
 					}
 				}else if(itemModelEntity instanceof SubFormItemModelEntity){
@@ -310,13 +288,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 						SubFormRowItemModelEntity itemModel = subFormRowItems.get(j);
 						List<ItemModelEntity> list = itemModel.getItems();
 						for(int n = 0; n < list.size(); n++ ) {
-							ItemModelEntity itemModelEntity1 = list.get(n);
-							if(itemModelEntity1 instanceof SelectItemModelEntity ){
-								updateSelectItemChildrenItems((SelectItemModelEntity)itemModelEntity1);
-							}
-							itemModelEntity1.setColumnModel(null);
-							list.remove(itemModelEntity1);
-							itemManager.delete(itemModelEntity1);
+							deleteItem(list, n);
 							n--;
 						}
 						subFormRowItems.remove(itemModel);
@@ -326,61 +298,73 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				}else	if(itemModelEntity instanceof SubFormRowItemModelEntity){
 					List<ItemModelEntity> list = ((SubFormRowItemModelEntity) itemModelEntity).getItems();
 					for( int n = 0 ; n < list.size() ; n++ ) {
-						ItemModelEntity itemModelEntity1 = list.get(0);
-						if(itemModelEntity1 instanceof SelectItemModelEntity ){
-							updateSelectItemChildrenItems((SelectItemModelEntity)itemModelEntity1);
-						}
-						itemModelEntity1.setColumnModel(null);
-						list.remove(itemModelEntity1);
-						itemManager.delete(itemModelEntity1);
+						deleteItem(list, n);
 						n--;
 					}
 				}
 				if(itemModelEntity instanceof SelectItemModelEntity ){
-					updateSelectItemChildrenItems((SelectItemModelEntity)itemModelEntity);
+					updateReferenceSelectItems((SelectItemModelEntity)itemModelEntity);
 				}
 				deleteItems.remove(itemModelEntity);
 				itemManager.delete(itemModelEntity);
 				i--;
 			}
 		}
-		if (deleteItemActivityIds.size() > 0) {
-			itemActivityManager.deleteById(deleteItemActivityIds.toArray(new String[] {}));
-		}
-		if (deleteItemSelectOptionIds.size() > 0) {
-			itemSelectOptionManager.deleteById(deleteItemSelectOptionIds.toArray(new String[] {}));
-		}
 	}
 
-	private void updateSelectItemChildrenItems(SelectItemModelEntity selectItemModelEntity){
-		if(selectItemModelEntity.getItems() != null && selectItemModelEntity.getItems().size() > 0){
-			for(SelectItemModelEntity selectItemModel : selectItemModelEntity.getItems()){
-				selectItemModel.setParentItem(null);
-				itemManager.save(selectItemModel);
-			}
-			selectItemModelEntity.setParentItem(null);
-			selectItemModelEntity.setItems(null);
-			itemManager.save(selectItemModelEntity);
+	private void deleteItem(List<ItemModelEntity> list,  int n){
+		ItemModelEntity itemModelEntity = list.get(n);
+		if(itemModelEntity instanceof SelectItemModelEntity ){
+			updateReferenceSelectItems((SelectItemModelEntity)itemModelEntity);
 		}
+		itemModelEntity.setColumnModel(null);
+		list.remove(itemModelEntity);
+		itemManager.delete(itemModelEntity);
+	}
+
+
+
+	private void updateReferenceSelectItems(SelectItemModelEntity selectItemModelEntity){
+		//子item
+//		if(selectItemModelEntity.getItems() != null && selectItemModelEntity.getItems().size() > 0){
+//			for(int i = 0 ; i < selectItemModelEntity.getItems().size() ; i++ ){
+//				SelectItemModelEntity selectItemModel = selectItemModelEntity.getItems().get(i);
+//				selectItemModel.setParentItem(null);
+//				itemManager.save(selectItemModel);
+//			}
+//			selectItemModelEntity.setItems(null);
+//		}
+		//父item
+		/*if(selectItemModelEntity.getParentItem() != null){
+			selectItemModelEntity.setParentItem(null);
+		}*/
+		//itemManager.save(selectItemModelEntity);
 	}
 
 
 	//得到最新的item
 	private ItemModelEntity setAcitityOption(ItemModelEntity newEntity, ItemModelEntity oldEntity){
 		List<ItemActivityInfo> activities = new ArrayList<ItemActivityInfo>();
+
 		for (ItemActivityInfo activity : oldEntity.getActivities()) {
-			activity.setId(null);
-			activity.setItemModel(newEntity);
-			activities.add(activity);
+            ItemActivityInfo newItemActivity = new ItemActivityInfo();
+            BeanUtils.copyProperties(activity, newItemActivity, new String[]{"itemModel"});
+			newItemActivity.setId(null);
+            newItemActivity.setItemModel(newEntity);
+			activities.add(newItemActivity);
 		}
-		newEntity.setActivities(activities);
+
 		List<ItemSelectOption> options = new ArrayList<ItemSelectOption>();
 		for (ItemSelectOption option : oldEntity.getOptions()) {
-			option.setId(null);
-			option.setItemModel(newEntity);
-			options.add(option);
+            ItemSelectOption newOption = new ItemSelectOption();
+            BeanUtils.copyProperties(option, newOption, new String[]{"itemModel"});
+			newOption.setId(null);
+            newOption.setItemModel(newEntity);
+			options.add(newOption);
 		}
 		newEntity.setOptions(options);
+		newEntity.setActivities(activities);
+
 		return newEntity;
 	}
 
@@ -485,24 +469,24 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		}
 	}
 
-	//获取旧的item数据
-	private void setOldItems(List<String> itemActivityIds, List<String> itemSelectOptionIds , FormModelEntity old ){
+	//删除旧的item活动跟选项数据
+	private void deleteOldItems(FormModelEntity old ){
 		for (ItemModelEntity itemModelEntity : old.getItems()) {
 			if(itemModelEntity instanceof RowItemModelEntity){
-				setItemActivityOption(itemActivityIds, itemSelectOptionIds, itemModelEntity);
+				deleteItemActivityOption(itemModelEntity);
 				for(ItemModelEntity childrenItem : ((RowItemModelEntity) itemModelEntity).getItems()){
-					setItemActivityOption(itemActivityIds, itemSelectOptionIds, childrenItem);
+					deleteItemActivityOption(childrenItem);
 				}
 			}else if(itemModelEntity instanceof SubFormItemModelEntity){
-				setItemActivityOption(itemActivityIds, itemSelectOptionIds, itemModelEntity);
+				deleteItemActivityOption(itemModelEntity);
 				for(SubFormRowItemModelEntity item : ((SubFormItemModelEntity) itemModelEntity).getItems()) {
-					setItemActivityOption(itemActivityIds, itemSelectOptionIds, item);
+					deleteItemActivityOption(item);
 					for(ItemModelEntity childrenItem : item.getItems()) {
-						setItemActivityOption(itemActivityIds, itemSelectOptionIds, childrenItem);
+						deleteItemActivityOption(childrenItem);
 					}
 				}
 			}else{
-				setItemActivityOption(itemActivityIds, itemSelectOptionIds, itemModelEntity);
+				deleteItemActivityOption(itemModelEntity);
 			}
 		}
 	}
@@ -713,6 +697,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 		Map<String, ItemModelEntity> oldItemMap = new HashMap<>();
 		for(ItemModelEntity itemModelEntity : formModelEntity.getItems()){
+            itemModelEntity.getPermissions().clear();
 			oldItemMap.put(itemModelEntity.getId(), itemModelEntity);
 		}
 
@@ -732,7 +717,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				if(model.getItemModel() != null){
 					ItemModelEntity itemModelEntity = oldItemMap.get(model.getItemModel().getId());
 					permissionInfo.setItemModel(itemModelEntity);
-					itemModelEntity.setPermission(permissionInfo);
+					itemModelEntity.getPermissions().add(permissionInfo);
 				}
 				permissionInfo.setFormModel(formModelEntity);
 				permissionInfos.add(permissionInfo);
@@ -823,12 +808,18 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 	}
 
 	//设置旧的item参数
-	private void setItemActivityOption(List<String> itemActivityIds, List<String> itemSelectOptionIds ,ItemModelEntity itemModelEntity){
-		for (ItemActivityInfo itemActivity : itemModelEntity.getActivities()) {
-			itemActivityIds.add(itemActivity.getId());
+	private void deleteItemActivityOption(ItemModelEntity itemModelEntity){
+		for (int i = 0 ; i < itemModelEntity.getActivities().size() ; i++) {
+			ItemActivityInfo itemActivity = itemModelEntity.getActivities().get(i);
+			itemModelEntity.getActivities().remove(itemActivity);
+			itemActivityManager.delete(itemActivity);
+			i--;
 		}
-		for (ItemSelectOption itemSelectOption : itemModelEntity.getOptions()) {
-			itemSelectOptionIds.add(itemSelectOption.getId());
+		for (int i = 0 ; i < itemModelEntity.getOptions().size() ; i++) {
+			ItemSelectOption itemSelectOption = itemModelEntity.getOptions().get(i);
+			itemModelEntity.getOptions().remove(itemSelectOption);
+			itemSelectOptionManager.delete(itemSelectOption);
+			i--;
 		}
 	}
 

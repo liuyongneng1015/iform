@@ -57,8 +57,8 @@ public class ItemModelEntity extends  BaseEntity implements Serializable {
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "itemModel")
 	private List<ListSortItem> sortItems = new ArrayList<ListSortItem>();
 
-	@OneToOne(cascade = CascadeType.ALL, mappedBy = "itemModel")
-	private ItemPermissionInfo permission;
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "itemModel")
+	private List<ItemPermissionInfo> permissions = new ArrayList<>();
 
 	@JoinColumn(name="system_item_type")//系统控件类型
 	@Enumerated(EnumType.STRING)
@@ -96,14 +96,6 @@ public class ItemModelEntity extends  BaseEntity implements Serializable {
 		this.props = props;
 	}
 
-	public ItemPermissionInfo getPermission() {
-		return permission;
-	}
-
-	public void setPermission(ItemPermissionInfo permission) {
-		this.permission = permission;
-	}
-
 	public List<ItemActivityInfo> getActivities() {
 		return activities;
 	}
@@ -136,7 +128,15 @@ public class ItemModelEntity extends  BaseEntity implements Serializable {
 		this.options = options;
 	}
 
-	public SystemItemType getSystemItemType() {
+    public List<ItemPermissionInfo> getPermissions() {
+        return permissions;
+    }
+
+    public void setPermissions(List<ItemPermissionInfo> permissions) {
+        this.permissions = permissions;
+    }
+
+    public SystemItemType getSystemItemType() {
 		return systemItemType;
 	}
 

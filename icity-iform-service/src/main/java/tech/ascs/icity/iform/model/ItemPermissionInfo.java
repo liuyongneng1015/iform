@@ -18,7 +18,7 @@ public class ItemPermissionInfo extends JPAEntity implements Serializable {
 	@JoinColumn(name="form_id")
 	private FormModelEntity formModel;
 
-	@OneToOne(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH })
+	@ManyToOne(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH })
 	@JoinColumn(name="item_id")
 	private ItemModelEntity itemModel;
 
@@ -30,6 +30,9 @@ public class ItemPermissionInfo extends JPAEntity implements Serializable {
 
 	//必填
 	private Boolean required = false;
+
+	//显示时机(新增：add, 编辑：update)
+	private String displayTiming;
 
 
 	public FormModelEntity getFormModel() {
@@ -70,5 +73,13 @@ public class ItemPermissionInfo extends JPAEntity implements Serializable {
 
 	public void setRequired(Boolean required) {
 		this.required = required;
+	}
+
+	public String getDisplayTiming() {
+		return displayTiming;
+	}
+
+	public void setDisplayTiming(String displayTiming) {
+		this.displayTiming = displayTiming;
 	}
 }

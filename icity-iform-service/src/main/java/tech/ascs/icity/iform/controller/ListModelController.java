@@ -231,7 +231,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			List<ItemModelEntity> itemModelEntities = new ArrayList<>();
 			for (ItemModel itemModel : listModel.getDisplayItems()){
 				ItemModelEntity itemModelEntity = new ItemModelEntity();
-				BeanUtils.copyProperties(itemModel, itemModelEntity, new String[]{"formModel", "columnModel", "activities", "options", "permission","items","parentItem","referenceList"});
+				BeanUtils.copyProperties(itemModel, itemModelEntity, new String[]{"formModel", "columnModel", "activities", "options", "permissions","items","parentItem","referenceList"});
 				itemModelEntities.add(itemModelEntity);
 			}
 			entity.setDisplayItems(itemModelEntities);
@@ -244,7 +244,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				sortItemEntity.setListModel(entity);
 				if(sortItem.getItemModel() != null){
 					ItemModelEntity itemModelEntity = new ItemModelEntity();
-					BeanUtils.copyProperties(sortItem.getItemModel(), itemModelEntity, new String[]{"formModel", "columnModel", "activities", "options", "permission","items","parentItem","referenceList"});
+					BeanUtils.copyProperties(sortItem.getItemModel(), itemModelEntity, new String[]{"formModel", "columnModel", "activities", "options", "permissions","items","parentItem","referenceList"});
 					sortItemEntity.setItemModel(itemModelEntity);
 				}
 				sortItemEntity.setAsc(sortItem.isAsc());
@@ -359,7 +359,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			List<ItemModel> list  = new ArrayList<>();
 			for(ItemModelEntity itemModelEntity : entity.getDisplayItems()){
 				ItemModel itemModel = new ItemModel();
-				BeanUtils.copyProperties(itemModelEntity, itemModel, new String[] {"formModel", "columnModel","activities","options","searchItems", "sortItems","permission", "referenceList","items","parentItem"});
+				BeanUtils.copyProperties(itemModelEntity, itemModel, new String[] {"formModel", "columnModel","activities","options","searchItems", "sortItems","permissions", "referenceList","items","parentItem"});
 				list.add(itemModel);
 			}
 			listModel.setDisplayItems(list);
@@ -392,7 +392,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				BeanUtils.copyProperties(sortItemEntity, sortItem, new String[]{"listModel","itemModel"});
 				if(sortItemEntity.getItemModel() != null){
 					ItemModel itemModel = new ItemModel();
-					BeanUtils.copyProperties(sortItemEntity.getItemModel(), itemModel, new String[] {"permission", "items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});
+					BeanUtils.copyProperties(sortItemEntity.getItemModel(), itemModel, new String[] {"permissions", "items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});
 					sortItem.setItemModel(itemModel);
 				}
 				sortItems.add(sortItem);
@@ -405,7 +405,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			for (ListSearchItem searchItemEntity : entity.getSearchItems()) {
 				SearchItem searchItem = new SearchItem();
 				if(searchItemEntity.getItemModel() != null){
-					BeanUtils.copyProperties(searchItemEntity.getItemModel(), searchItem, new String[] {"formModel", "columnModel", "activities", "options", "searchItems", "sortItems", "permission"});
+					BeanUtils.copyProperties(searchItemEntity.getItemModel(), searchItem, new String[] {"formModel", "columnModel", "activities", "options", "searchItems", "sortItems", "permissions"});
 				}
 				if(searchItemEntity.getSearch() != null){
 					Search search = new Search();
@@ -437,7 +437,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
                 }
 		        if (quickSearchEntity.getItemModel() != null) {
                     ItemModel itemModel = new ItemModel();
-                    BeanUtils.copyProperties(quickSearchEntity.getItemModel(), itemModel, new String[] {"permission", "items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});
+                    BeanUtils.copyProperties(quickSearchEntity.getItemModel(), itemModel, new String[] {"permissions", "items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});
                     quickSearch.setItemModel(itemModel);
                 }
                 quickSearches.add(quickSearch);
