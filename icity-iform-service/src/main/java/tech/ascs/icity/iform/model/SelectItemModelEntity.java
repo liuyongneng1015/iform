@@ -55,7 +55,7 @@ public class SelectItemModelEntity extends ItemModelEntity  {
 	private SelectItemModelEntity parentItem;
 
 	/** 被关联字典联动目标 */
-	@OneToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH }, mappedBy = "parentItem")
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "parentItem")
 	private List<SelectItemModelEntity> items = new ArrayList<SelectItemModelEntity>();
 
 	public SelectReferenceType getSelectReferenceType() {

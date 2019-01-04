@@ -143,7 +143,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 
 			//删除item
-			deleteItems(old, oldItems, itemActivitys, itemSelectOptions);
+			deleteItems(oldItems);
 
 			//下拉数据字典联动控件
 			setSelectParentItem(itemModelEntities);
@@ -267,7 +267,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 
 	//删除item
-	private void deleteItems(FormModelEntity old, List<ItemModelEntity> deleteItems, Collection<ItemActivityInfo> deleteItemActivitys, Collection<ItemSelectOption> deleteItemSelectOptions){
+	private void deleteItems(List<ItemModelEntity> deleteItems){
 		if (deleteItems.size() > 0) {
 			for(int i = 0 ; i < deleteItems.size() ; i++){
 				ItemModelEntity itemModelEntity = deleteItems.get(i);
@@ -303,53 +303,42 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 					}
 				}
 				if(itemModelEntity instanceof SelectItemModelEntity ){
-					updateSelectItemChildrenItems((SelectItemModelEntity)itemModelEntity);
+					updateReferenceSelectItems((SelectItemModelEntity)itemModelEntity);
 				}
-                itemModelEntity.getOptions().clear();
 				deleteItems.remove(itemModelEntity);
 				itemManager.delete(itemModelEntity);
 				i--;
 			}
 		}
-		if (deleteItemActivitys.size() > 0) {
-			for(ItemActivityInfo activity : deleteItemActivitys) {
-				//activity.setItemModel(null);
-				//itemActivityManager.save(activity);
-				//itemActivityManager.delete(activity);
-			}
-		}
-		if (deleteItemSelectOptions.size() > 0) {
-			for(ItemSelectOption option : deleteItemSelectOptions) {
-				//option.setItemModel(null);
-				//itemSelectOptionManager.save(option);
-				//itemSelectOptionManager.delete(option);
-			}
-		}
 	}
 
 	private void deleteItem(List<ItemModelEntity> list,  int n){
-		ItemModelEntity itemModelEntity1 = list.get(n);
-		if(itemModelEntity1 instanceof SelectItemModelEntity ){
-			updateSelectItemChildrenItems((SelectItemModelEntity)itemModelEntity1);
+		ItemModelEntity itemModelEntity = list.get(n);
+		if(itemModelEntity instanceof SelectItemModelEntity ){
+			updateReferenceSelectItems((SelectItemModelEntity)itemModelEntity);
 		}
-		itemModelEntity1.setColumnModel(null);
-		itemModelEntity1.getOptions().clear();
-		list.remove(itemModelEntity1);
-		itemManager.delete(itemModelEntity1);
+		itemModelEntity.setColumnModel(null);
+		list.remove(itemModelEntity);
+		itemManager.delete(itemModelEntity);
 	}
 
 
 
-	private void updateSelectItemChildrenItems(SelectItemModelEntity selectItemModelEntity){
-		if(selectItemModelEntity.getItems() != null && selectItemModelEntity.getItems().size() > 0){
-			for(SelectItemModelEntity selectItemModel : selectItemModelEntity.getItems()){
-				selectItemModel.setParentItem(null);
-				itemManager.save(selectItemModel);
-			}
+	private void updateReferenceSelectItems(SelectItemModelEntity selectItemModelEntity){
+		//子item
+//		if(selectItemModelEntity.getItems() != null && selectItemModelEntity.getItems().size() > 0){
+//			for(int i = 0 ; i < selectItemModelEntity.getItems().size() ; i++ ){
+//				SelectItemModelEntity selectItemModel = selectItemModelEntity.getItems().get(i);
+//				selectItemModel.setParentItem(null);
+//				itemManager.save(selectItemModel);
+//			}
+//			selectItemModelEntity.setItems(null);
+//		}
+		//父item
+		/*if(selectItemModelEntity.getParentItem() != null){
 			selectItemModelEntity.setParentItem(null);
-			selectItemModelEntity.setItems(null);
-			itemManager.save(selectItemModelEntity);
-		}
+		}*/
+		//itemManager.save(selectItemModelEntity);
 	}
 
 
