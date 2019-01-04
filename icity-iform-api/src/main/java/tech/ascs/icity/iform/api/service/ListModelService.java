@@ -8,6 +8,7 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import tech.ascs.icity.iform.api.model.ApplicationModel;
+import tech.ascs.icity.iform.api.model.ListFormBtnPermission;
 import tech.ascs.icity.iform.api.model.ListModel;
 import tech.ascs.icity.model.IdEntity;
 import tech.ascs.icity.model.Page;
@@ -117,4 +118,14 @@ public interface ListModelService {
 	@ApiImplicitParam(paramType = "query", name = "applicationId", value = "应用id", required = true, dataType = "String")
 	@GetMapping("/application")
 	List<ApplicationModel> findListApplicationModel(@RequestParam(name="applicationId", required = true) String applicationId);
+
+	/**
+	 * 查询列表的权限和列表绑定的表单的权限
+	 * @param id
+	 * @return
+	 */
+	@ApiOperation(value = "查询列表的权限和列表绑定的表单的权限", position = 7)
+	@ApiImplicitParam(paramType = "path", name = "id", value = "列表模型ID", required = true, dataType = "String")
+	@GetMapping("/{id}/list-form-btn-permissions")
+	ListFormBtnPermission getListFormBtnPermissions(@PathVariable(name = "id") String id);
 }
