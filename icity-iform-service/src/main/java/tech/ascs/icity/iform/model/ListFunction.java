@@ -23,15 +23,19 @@ public class ListFunction extends JPAEntity implements Serializable {
 	@JoinColumn(name="form_id")
 	private FormModelEntity formModel;
 
+	//功能名
 	private String label;
 
+	//功能编码
 	private String action;
 
 	private boolean batch = false;
 
+	//是否启用
 	private boolean visible = true;
 
 	private String url;
+
 
 	private String method;
 

@@ -499,7 +499,8 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 	//删除或者保存旧的数据建模
 	private FormModelEntity saveDataModel(FormModel formModel){
 		FormModelEntity oldEntity = new FormModelEntity();
-		if(!formModel.isNew()){
+		boolean newFlag = formModel.isNew();
+		if(!newFlag){
 			oldEntity = find(formModel.getId());
 			if(oldEntity == null){
 				throw new IFormException("未找到【" + formModel.getId() + "】对应表单模型");
@@ -540,7 +541,12 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
             }
         }
         oldEntity.setDataModels(newAddDataModel);
-        return this.doSave(oldEntity,dataModelUpdateNeeded(oldEntity));
+        FormModelEntity formModelEntity = this.doSave(oldEntity,dataModelUpdateNeeded(oldEntity));
+		if(newFlag){
+			//创建默认的表单功能
+			formFunctionsService.createDefaultFormFunctions(formModelEntity);
+		}
+		return formModelEntity;
 	}
 	//获取关联行的控件
 	@Override
