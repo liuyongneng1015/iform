@@ -396,8 +396,15 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				if(searchItemEntity.getSearch() != null){
 					Search search = new Search();
 					BeanUtils.copyProperties(searchItemEntity.getSearch(), search, new String[] {"search","defaultValue"});
-					if(StringUtils.hasText(searchItemEntity.getSearch().getDefaultValue())){
-						search.setDefaultValue(Arrays.asList(searchItemEntity.getSearch().getDefaultValue().split(",")));
+					String defaultValue = searchItemEntity.getSearch().getDefaultValue();
+					if(StringUtils.hasText(defaultValue)) {
+						ItemType itemType = searchItem.getType();
+						// Input, InputNumber返回的defaultValue是字符串格式，不是数组格式
+						if (ItemType.Input.equals(itemType) || ItemType.InputNumber.equals(itemType)) {
+							search.setDefaultValue(defaultValue);
+						} else {
+							search.setDefaultValue(Arrays.asList(defaultValue.split(",")));
+						}
 					}
 					searchItem.setSearch(search);
 				}
