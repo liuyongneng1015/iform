@@ -16,7 +16,7 @@ public class ItemActivityInfo extends BaseEntity implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	@ManyToOne(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH })
+	@ManyToOne(cascade = {CascadeType.MERGE})
 	@JoinColumn(name="item_id")
 	private ItemModelEntity itemModel;
 

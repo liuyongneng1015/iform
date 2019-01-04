@@ -23,6 +23,9 @@ public class ItemPermissionModel extends NameEntity {
 	@ApiModelProperty(value = "必填", position = 6)
 	private Boolean required = false;
 
+	@ApiModelProperty(value ="显示时机(新增：add, 编辑：update)", position = 6)
+	private String displayTiming;
+
 
 	public FormModel getFormModel() {
 		return formModel;
@@ -62,6 +65,14 @@ public class ItemPermissionModel extends NameEntity {
 
 	public void setRequired(Boolean required) {
 		this.required = required;
+	}
+
+	public String getDisplayTiming() {
+		return displayTiming;
+	}
+
+	public void setDisplayTiming(String displayTiming) {
+		this.displayTiming = displayTiming;
 	}
 
 	@Override
