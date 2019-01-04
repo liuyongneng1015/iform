@@ -10,6 +10,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.transaction.annotation.Transactional;
 
+import tech.ascs.icity.admin.client.ResourceService;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.model.*;
@@ -42,7 +43,8 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 
 	@Autowired
 	private ItemModelService itemModelService;
-
+	@Autowired
+	private ResourceService resourceService;
 
 	public ListModelServiceImpl() {
 		super(ListModelEntity.class);
@@ -329,5 +331,85 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 				throw new IFormException("该列表被"+formModelEntity.getName()+"表单绑定了，请先解绑对应关系");
 			}
 		}
+	}
+
+	@Override
+	public ItemBtnPermission findListBtnPermission(ListModelEntity entity) {
+		return assemblyBtnPermissions(entity, null);
+	}
+
+	@Override
+	public ItemBtnPermission findFormBtnPermission(FormModelEntity entity) {
+		return assemblyBtnPermissions(null, entity);
+	}
+
+	public ItemBtnPermission assemblyBtnPermissions(ListModelEntity listModel, FormModelEntity formModel) {
+		List<ListFunction> listFunctions = null;
+		String id, suffix = null;
+		ItemBtnPermission listPermission = new ItemBtnPermission();
+		if (listModel!=null) {
+			listFunctions = listModel.getFunctions();
+			id = listModel.getId();
+			suffix = "(列表)";
+		} else if (formModel!=null) {
+			listFunctions = formModel.getFunctions();
+			id = formModel.getId();
+			suffix = "(表单)";
+		} else {
+			return null;
+		}
+		if (listFunctions.size()>0) {
+			List<ItemBtnPermission.Permission> permissions = new ArrayList<>();
+			for (ListFunction function:listFunctions) {
+				if (function.getAction()!=null && function.getLabel()!=null) {
+					ItemBtnPermission.Permission permission = new ItemBtnPermission.Permission();
+					permission.setId(function.getId());
+					permission.setCode(function.getAction());
+					permission.setName(function.getLabel() + suffix);
+					permissions.add(permission);
+				}
+			}
+			listPermission.setId(id);
+			listPermission.setPermissions(permissions);
+			return listPermission;
+		}
+		return listPermission;
+	}
+
+	@Override
+	public void submitListBtnPermission(ListModelEntity entity) {
+		ItemBtnPermission itemBtnPermission = assemblyBtnPermissions(entity, null);
+		if (itemBtnPermission!=null) {
+			ListFormBtnPermission listFormBtnPermission = new ListFormBtnPermission();
+			listFormBtnPermission.setListPermissions(itemBtnPermission);
+			tech.ascs.icity.admin.api.model.ListFormBtnPermission adminListFormBtnPermission = new tech.ascs.icity.admin.api.model.ListFormBtnPermission();
+			BeanUtils.copyProperties(listFormBtnPermission, adminListFormBtnPermission);
+			resourceService.editListFormPermissions(adminListFormBtnPermission);
+		}
+
+	}
+
+	@Override
+	public void submitFormBtnPermission(FormModelEntity entity) {
+		ItemBtnPermission itemBtnPermission = assemblyBtnPermissions(null, entity);
+		if (itemBtnPermission!=null) {
+			ListFormBtnPermission listFormBtnPermission = new ListFormBtnPermission();
+			listFormBtnPermission.setFormPermissions(itemBtnPermission);
+			tech.ascs.icity.admin.api.model.ListFormBtnPermission adminListFormBtnPermission = new tech.ascs.icity.admin.api.model.ListFormBtnPermission();
+			BeanUtils.copyProperties(listFormBtnPermission, adminListFormBtnPermission);
+			resourceService.editListFormPermissions(adminListFormBtnPermission);
+		}
+	}
+
+	@Override
+	public void deleteListBtnPermission(String listId) {
+		// resourceService.deleteListFormPermissions(String listId,String formId);
+		resourceService.deleteListFormPermissions(listId, null);
+	}
+
+	@Override
+	public void deleteFormBtnPermission(String formId) {
+		// resourceService.deleteListFormPermissions(String listId,String formId);
+		resourceService.deleteListFormPermissions(null, formId);
 	}
 }
