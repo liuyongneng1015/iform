@@ -93,7 +93,7 @@ public class ItemModel extends NameEntity {
 	private String tableName;
 
 	@ApiModelProperty(value="上级关联控件模型",position = 22)
-	private SelectItemModel parentItem ;
+	private ItemModel parentItem ;
 
 	//subformrow/row
 	@ApiModelProperty(value="当前行数",position = 23)
@@ -128,6 +128,9 @@ public class ItemModel extends NameEntity {
 
 	@ApiModelProperty(value="数据字典值类型",position = 34)
 	private DictionaryValueType dictionaryValueType;
+
+	@ApiModelProperty(value = "字段名", position = 2)
+	private String columnName;
 
 	public ItemType getType() {
 		return type;
@@ -201,12 +204,20 @@ public class ItemModel extends NameEntity {
 		this.referenceTableName = referenceTableName;
 	}
 
-	public SelectItemModel getParentItem() {
+	public ItemModel getParentItem() {
 		return parentItem;
 	}
 
-	public void setParentItem(SelectItemModel parentItem) {
+	public void setParentItem(ItemModel parentItem) {
 		this.parentItem = parentItem;
+	}
+
+	public String getColumnName() {
+		return columnName;
+	}
+
+	public void setColumnName(String columnName) {
+		this.columnName = columnName;
 	}
 
 	public SelectReferenceType getSelectReferenceType() {

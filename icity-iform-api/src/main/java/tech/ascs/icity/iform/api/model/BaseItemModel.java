@@ -1,15 +1,20 @@
 package tech.ascs.icity.iform.api.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import jdk.nashorn.internal.ir.annotations.Ignore;
 import org.apache.commons.lang3.StringUtils;
 import tech.ascs.icity.model.NameEntity;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@ApiModel("表单控件模型ItemModel")
+@ApiModel("表单基础控件模型")
 public class BaseItemModel extends NameEntity {
+
+	@ApiModelProperty(value = "数据字段模型", position = 5)
+	private ColumnModelInfo columnModel;
 
 	@ApiModelProperty(value = "控件类型", position = 3)
 	private ItemType type;
@@ -17,11 +22,28 @@ public class BaseItemModel extends NameEntity {
 	@ApiModelProperty(value = "前端个性化属性（直接存json字符串，后端不做处理）", position = 4)
 	private String props;
 
-	@ApiModelProperty(value = "数据字段模型", position = 5)
-	private ColumnModelInfo columnModel;
+	@ApiModelProperty(value = "隐藏条件", position = 8)
+	private String hiddenCondition;
+
+	@ApiModelProperty(value="系统控件类型", position = 29)
+	private SystemItemType systemItemType;
 
 	@ApiModelProperty(value = "流程环节配置", position = 6)
-	private List<ActivityInfo> activities = new ArrayList<ActivityInfo>();
+	private List<ActivityInfo> activities;
+
+	@ApiModelProperty(value = "选项配置", position = 18)
+	private List<Option> options;
+
+	@ApiModelProperty(value="新增控件权限",position = 31)
+	private List<ItemPermissionModel>  permissions;
+
+	public ColumnModelInfo getColumnModel() {
+		return columnModel;
+	}
+
+	public void setColumnModel(ColumnModelInfo columnModel) {
+		this.columnModel = columnModel;
+	}
 
 	public ItemType getType() {
 		return type;
@@ -39,12 +61,20 @@ public class BaseItemModel extends NameEntity {
 		this.props = props;
 	}
 
-	public ColumnModelInfo getColumnModel() {
-		return columnModel;
+	public String getHiddenCondition() {
+		return hiddenCondition;
 	}
 
-	public void setColumnModel(ColumnModelInfo columnModel) {
-		this.columnModel = columnModel;
+	public void setHiddenCondition(String hiddenCondition) {
+		this.hiddenCondition = hiddenCondition;
+	}
+
+	public SystemItemType getSystemItemType() {
+		return systemItemType;
+	}
+
+	public void setSystemItemType(SystemItemType systemItemType) {
+		this.systemItemType = systemItemType;
 	}
 
 	public List<ActivityInfo> getActivities() {
@@ -53,6 +83,22 @@ public class BaseItemModel extends NameEntity {
 
 	public void setActivities(List<ActivityInfo> activities) {
 		this.activities = activities;
+	}
+
+	public List<Option> getOptions() {
+		return options;
+	}
+
+	public void setOptions(List<Option> options) {
+		this.options = options;
+	}
+
+	public List<ItemPermissionModel> getPermissions() {
+		return permissions;
+	}
+
+	public void setPermissions(List<ItemPermissionModel> permissions) {
+		this.permissions = permissions;
 	}
 
 	@Override

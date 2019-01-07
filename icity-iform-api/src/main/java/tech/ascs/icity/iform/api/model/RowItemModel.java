@@ -4,12 +4,13 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import org.apache.commons.lang3.StringUtils;
+import tech.ascs.icity.model.NameEntity;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@ApiModel("表单关联控件模型")
-public class ReferenceItemModel extends ItemModel {
+@ApiModel("表单一行多列控件模型")
+public class RowItemModel extends ItemModel {
 
 
 	//FileItemModel
@@ -19,8 +20,9 @@ public class ReferenceItemModel extends ItemModel {
 	@ApiModelProperty(value = "文件大小限制M", position = 7)
 	private Integer fileSizeLimit = 10;
 
-
 	//File/selectItemModel
+	@ApiModelProperty(value = "关联类型", position = 9)
+	private ReferenceType referenceType;
 	@ApiModelProperty(value = "多对多创建表的名称", position = 10)
 	private String referenceTableName;
 	@ApiModelProperty(value="选择关系",position = 11)
@@ -29,6 +31,8 @@ public class ReferenceItemModel extends ItemModel {
 	@ApiModelProperty(value="是否多选、是否允许多传",position = 11)
 	private Boolean multiple;
 
+	@ApiModelProperty(value="单选、多选、反选",position = 12)
+	private SelectMode selectMode;
 	@ApiModelProperty(value = "关联字典分类ID", position = 13)
 	private String referenceDictionaryId;
 	@ApiModelProperty(value = "关联字典分类名称", position = 13)
@@ -42,6 +46,10 @@ public class ReferenceItemModel extends ItemModel {
 	@ApiModelProperty(value = " 关联字典默认选项", position = 13)
 	private List<DictionaryItemModel> referenceDictionaryItemList;
 
+	@ApiModelProperty(value = " 关联表单(如表名、表单名)", position = 14)
+	private String referenceTable;
+	@ApiModelProperty(value = " 关联字段模型（比如字段、控件名）", position = 15)
+	private String referenceValueColumn;
 	@ApiModelProperty(value = "默认值(数据字典的默认值)", position = 15)
 	private Object defaultValue;
 
@@ -55,6 +63,10 @@ public class ReferenceItemModel extends ItemModel {
 	@ApiModelProperty(value = " 关联控件模型名称", position = 15)
 	private String referenceItemName;
 
+	@ApiModelProperty(value="控件类型选择框还是列表", position = 16)
+	private ControlType controlType;
+	@ApiModelProperty(value = "关联显示列表模型",position = 17)
+	private ListModel referenceList;
 	//SubFormItemModel
 	@ApiModelProperty(value="头部标签",position = 19)
 	private String legend;
@@ -69,19 +81,18 @@ public class ReferenceItemModel extends ItemModel {
 	private ItemModel parentItem ;
 
 	//subformrow/row
-	@ApiModelProperty(value="当前行数",position = 23)
-	private Integer rowNumber;
-	@ApiModelProperty(value="组件子项（由组和字段构成） ",position = 26)
-	private List<ItemModel> items = new ArrayList<ItemModel>();
 
 	//TimeItemModel
 	@ApiModelProperty(value="时间格式如yyyy-MM-dd",position = 27)//时间格式
 	private String timeFormat;
 
 	//TimeItemModel
+
 	@ApiModelProperty(value="创建类型：Create创建时，Update更新时，Normal普通", position = 29)
 	private SystemCreateType createType = SystemCreateType.Normal;
 
+	@ApiModelProperty(value="数据标识:控件id集合",position = 30)
+	private List<String> itemModelList = new ArrayList<>();
 	@ApiModelProperty(value="是否被选中:true选中，flse未选中",position = 31)
 	private Boolean  selectFlag = false;
 
@@ -94,6 +105,7 @@ public class ReferenceItemModel extends ItemModel {
 
 	@ApiModelProperty(value="数据字典值类型",position = 34)
 	private DictionaryValueType dictionaryValueType;
+
 
 	@Override
 	@JsonIgnore
@@ -115,6 +127,17 @@ public class ReferenceItemModel extends ItemModel {
 	@Override
 	public void setFileSizeLimit(Integer fileSizeLimit) {
 		this.fileSizeLimit = fileSizeLimit;
+	}
+
+	@Override
+	@JsonIgnore
+	public ReferenceType getReferenceType() {
+		return referenceType;
+	}
+
+	@Override
+	public void setReferenceType(ReferenceType referenceType) {
+		this.referenceType = referenceType;
 	}
 
 	@Override
@@ -148,6 +171,17 @@ public class ReferenceItemModel extends ItemModel {
 	@Override
 	public void setMultiple(Boolean multiple) {
 		this.multiple = multiple;
+	}
+
+	@Override
+	@JsonIgnore
+	public SelectMode getSelectMode() {
+		return selectMode;
+	}
+
+	@Override
+	public void setSelectMode(SelectMode selectMode) {
+		this.selectMode = selectMode;
 	}
 
 	@Override
@@ -207,6 +241,28 @@ public class ReferenceItemModel extends ItemModel {
 
 	@Override
 	@JsonIgnore
+	public String getReferenceTable() {
+		return referenceTable;
+	}
+
+	@Override
+	public void setReferenceTable(String referenceTable) {
+		this.referenceTable = referenceTable;
+	}
+
+	@Override
+	@JsonIgnore
+	public String getReferenceValueColumn() {
+		return referenceValueColumn;
+	}
+
+	@Override
+	public void setReferenceValueColumn(String referenceValueColumn) {
+		this.referenceValueColumn = referenceValueColumn;
+	}
+
+	@Override
+	@JsonIgnore
 	public Object getDefaultValue() {
 		return defaultValue;
 	}
@@ -258,6 +314,28 @@ public class ReferenceItemModel extends ItemModel {
 	@Override
 	public void setReferenceItemName(String referenceItemName) {
 		this.referenceItemName = referenceItemName;
+	}
+
+	@Override
+	@JsonIgnore
+	public ControlType getControlType() {
+		return controlType;
+	}
+
+	@Override
+	public void setControlType(ControlType controlType) {
+		this.controlType = controlType;
+	}
+
+	@Override
+	@JsonIgnore
+	public ListModel getReferenceList() {
+		return referenceList;
+	}
+
+	@Override
+	public void setReferenceList(ListModel referenceList) {
+		this.referenceList = referenceList;
 	}
 
 	@Override
@@ -317,28 +395,6 @@ public class ReferenceItemModel extends ItemModel {
 
 	@Override
 	@JsonIgnore
-	public Integer getRowNumber() {
-		return rowNumber;
-	}
-
-	@Override
-	public void setRowNumber(Integer rowNumber) {
-		this.rowNumber = rowNumber;
-	}
-
-	@Override
-	@JsonIgnore
-	public List<ItemModel> getItems() {
-		return items;
-	}
-
-	@Override
-	public void setItems(List<ItemModel> items) {
-		this.items = items;
-	}
-
-	@Override
-	@JsonIgnore
 	public String getTimeFormat() {
 		return timeFormat;
 	}
@@ -357,6 +413,17 @@ public class ReferenceItemModel extends ItemModel {
 	@Override
 	public void setCreateType(SystemCreateType createType) {
 		this.createType = createType;
+	}
+
+	@Override
+	@JsonIgnore
+	public List<String> getItemModelList() {
+		return itemModelList;
+	}
+
+	@Override
+	public void setItemModelList(List<String> itemModelList) {
+		this.itemModelList = itemModelList;
 	}
 
 	@Override
@@ -411,5 +478,4 @@ public class ReferenceItemModel extends ItemModel {
 		}
 		return id;
 	}
-
 }

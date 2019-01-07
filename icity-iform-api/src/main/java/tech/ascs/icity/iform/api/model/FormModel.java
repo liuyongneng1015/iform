@@ -41,7 +41,7 @@ public class FormModel extends NameEntity {
 	@ApiModelProperty(value = "表单绑定的流程模型", position = 4)
 	private ProceeeModel process;
 
-	@ApiModelProperty(value = "表单字段列表", position = 5)
+	@ApiModelProperty(value = "表单控件", position = 5)
 	private List<ItemModel> items = new ArrayList<ItemModel>();
 
 	@ApiModelProperty(value = "应用id", position = 6)

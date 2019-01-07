@@ -1129,7 +1129,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			}
 
 			if(((SelectItemModelEntity) entity).getParentItem() != null){
-				SelectItemModel parentItemModel = new SelectItemModel();
+				ItemModel parentItemModel = new ItemModel();
 				BeanUtils.copyProperties(((SelectItemModelEntity) entity).getParentItem(), parentItemModel, new String[]{"formModel", "columnModel", "activities", "options","searchItems","sortItems", "permissions","items","parentItem","referenceList"});
 				if(((SelectItemModelEntity) entity).getParentItem().getColumnModel() != null){
 					ColumnModelInfo columnModel = new ColumnModelInfo();
