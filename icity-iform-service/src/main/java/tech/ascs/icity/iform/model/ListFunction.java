@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 import javax.persistence.*;
 
+import tech.ascs.icity.iform.api.model.DisplayTimingType;
 import tech.ascs.icity.jpa.dao.model.JPAEntity;
 
 /**
@@ -43,7 +44,9 @@ public class ListFunction extends JPAEntity implements Serializable {
 	private Integer orderNo = 0;
 
 	//显示时机 若为空标识所有时机都显示
-	private String displayTiming;
+	@JoinColumn(name="display_timing_type")
+	@Enumerated(EnumType.STRING)
+	private DisplayTimingType displayTiming;
 
 	public ListModelEntity getListModel() {
 		return listModel;
@@ -117,11 +120,11 @@ public class ListFunction extends JPAEntity implements Serializable {
 		this.orderNo = orderNo;
 	}
 
-	public String getDisplayTiming() {
+	public DisplayTimingType getDisplayTiming() {
 		return displayTiming;
 	}
 
-	public void setDisplayTiming(String displayTiming) {
+	public void setDisplayTiming(DisplayTimingType displayTiming) {
 		this.displayTiming = displayTiming;
 	}
 }

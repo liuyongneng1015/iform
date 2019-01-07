@@ -26,7 +26,7 @@ public class FunctionModel extends NameEntity {
 	@ApiModelProperty(value ="排序号", position = 6)
 	private Integer orderNo = 0;
 	@ApiModelProperty(value ="显示时机", position = 6)
-	private String displayTiming;
+	private DisplayTimingType displayTiming;
 
 	public String getLabel() {
 		return label;
@@ -84,11 +84,11 @@ public class FunctionModel extends NameEntity {
 		this.orderNo = orderNo;
 	}
 
-	public String getDisplayTiming() {
+	public DisplayTimingType getDisplayTiming() {
 		return displayTiming;
 	}
 
-	public void setDisplayTiming(String displayTiming) {
+	public void setDisplayTiming(DisplayTimingType displayTiming) {
 		this.displayTiming = displayTiming;
 	}
 

@@ -16,7 +16,9 @@ public enum DisplayTimingType implements Serializable {
 
 	Check("Check"),//查看时
 
-	ListShow("ListShow");//列表栏
+	ListShow("ListShow"),//列表栏
+
+	Other("Other");//其他
 
 	private String value;
 
