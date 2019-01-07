@@ -326,10 +326,12 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		}
 		if (listModel.getFunctions() != null) {
 			List<ListFunction> functions = new ArrayList<>();
+			int i = 0;
 			for (FunctionModel function : listModel.getFunctions()) {
 				ListFunction listFunction = new ListFunction() ;
 				BeanUtils.copyProperties(function, listFunction, new String[]{"listModel"});
 				listFunction.setListModel(entity);
+				listFunction.setOrderNo(++i);
 				functions.add(listFunction);
 			}
 			entity.setFunctions(functions);
