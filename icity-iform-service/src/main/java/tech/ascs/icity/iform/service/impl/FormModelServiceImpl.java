@@ -543,6 +543,8 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		if(newFlag){
 			//创建默认的表单功能
 			formFunctionsService.createDefaultFormFunctions(formModelEntity);
+			//提交表单权限
+			listModelService.submitFormBtnPermission(formModelEntity);
 		}
 		return formModelEntity;
 	}
@@ -808,6 +810,8 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			formFunctionsService.deleteById(key);
 		}
 		formModelManager.save(formModelEntity);
+		//提交表单权限
+		listModelService.submitFormBtnPermission(formModelEntity);
 		return formModelEntity;
 	}
 
