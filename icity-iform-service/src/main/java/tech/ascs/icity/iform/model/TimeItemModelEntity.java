@@ -20,7 +20,7 @@ public class TimeItemModelEntity extends ItemModelEntity  {
 	private static final long serialVersionUID = 1L;
 
 	@JoinColumn(name="time_format")//时间格式如（“yyyy-MM-dd”）
-	private String timeFormat;
+	private String timeFormat = "yyyy-MM-dd HH:mm:ss";
 
 	@Column(name="create_type")//创建类型
 	@Enumerated(EnumType.STRING)

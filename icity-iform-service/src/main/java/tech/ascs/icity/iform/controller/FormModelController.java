@@ -768,12 +768,12 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		setColumnModel(entity, itemModel);
 
 		if(entity instanceof ReferenceItemModelEntity){
-			((ReferenceItemModelEntity) entity).setItemModelIds(org.apache.commons.lang3.StringUtils.join(itemModel.getItemModelList(),","));
+			((ReferenceItemModelEntity) entity).setItemModelIds(String.join(",", itemModel.getItemModelList()));
 			((ReferenceItemModelEntity) entity).setReferenceList(setItemModelByListModel(itemModel));
 		}else if(entity instanceof SelectItemModelEntity){
 			SelectItemModelEntity selectItemModelEntity = (SelectItemModelEntity)entity;
 			if(itemModel.getDefaultValue() != null && itemModel.getDefaultValue() instanceof List){
-				selectItemModelEntity.setDefaultReferenceValue(org.apache.commons.lang3.StringUtils.join(itemModel.getDefaultValue(),","));
+				selectItemModelEntity.setDefaultReferenceValue(String.join(",",(List)itemModel.getDefaultValue()));
 			}else{
 				selectItemModelEntity.setDefaultReferenceValue((String)itemModel.getDefaultValue());
 			}
