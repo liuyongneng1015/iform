@@ -114,6 +114,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				function.setVisible(true);
 				function.setMethod(functionDefaultMethods.get(i));
 				function.setOrderNo(i+1);
+				function.setListModel(entity);
 				functions.add(function);
 			}
 			entity.setFunctions(functions);
