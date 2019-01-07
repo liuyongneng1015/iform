@@ -91,6 +91,10 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		}
 	}
 
+	// 新增列表的时候，自动创建新增、导出、导入、删除、二维码，为系统自带功能
+	private List<String> functionDefaultActions = Arrays.asList(new String[]{"add", "export", "import", "batchDelete", "QR-Code"});
+	private List<String> functionDefaultLabels  = Arrays.asList(new String[]{"新增", "导出", "导入", "删除", "二维码"});
+	private List<String> functionDefaultMethods = Arrays.asList(new String[]{"POST", "GET", "POST", "DELETE", "GET"});
 	@Override
 	public IdEntity createListModel(@RequestBody ListModel ListModel) {
 		if (StringUtils.hasText(ListModel.getId())) {
@@ -101,6 +105,17 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		}
 		try {
 			ListModelEntity entity = wrap(ListModel);
+			// 创建默认的功能按钮
+			List<ListFunction> functions = new ArrayList<>();
+			for (int i = 0; i < functionDefaultActions.size(); i++) {
+				ListFunction function = new ListFunction();
+				function.setAction(functionDefaultActions.get(i));
+				function.setLabel(functionDefaultLabels.get(i));
+				function.setVisible(true);
+				function.setMethod(functionDefaultMethods.get(i));
+				function.setOrderNo(i+1);
+			}
+			entity.setFunctions(functions);
 			entity = listModelService.save(entity);
 			return new IdEntity(entity.getId());
 		} catch (Exception e) {
@@ -116,11 +131,40 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		if (ListModel.getMasterForm()==null || StringUtils.isEmpty(ListModel.getMasterForm().getId())) {
 			throw new IFormException("关联表单的ID不能为空");
 		}
+		// 校验默认的功能按钮是否被删除
+		// checkDefaultFuncExists(ListModel);
 		try {
 			ListModelEntity entity = wrap(ListModel);
 			listModelService.save(entity);
 		} catch (Exception e) {
 			throw new IFormException("保存列表模型列表失败：" + e.getMessage(), e);
+		}
+	}
+
+	// 校验默认的功能按钮是否被删除
+	private void checkDefaultFuncExists(ListModel listModel) {
+		List<FunctionModel> functions = listModel.getFunctions();
+		if (functions==null || functions.size()==0) {
+			throw new IFormException("系统自带的功能按钮不允许删除");
+		}
+		// 校验功能按钮的编码不允许为空和同名
+		if (functions.stream().filter(item->item.getAction()!=null).map(item->item.getAction()).collect(Collectors.toSet()).size()<functions.size()) {
+			throw new IFormException("功能按钮的编码不能为空和同名");
+		}
+		// 校验功能按钮的功能名不允许为空和同名
+		if (functions.stream().filter(item->item.getLabel()!=null).map(item->item.getLabel()).collect(Collectors.toSet()).size()<functions.size()) {
+			throw new IFormException("校验功能按钮的功能名能为空和同名");
+		}
+		// 校验默认的功能按钮是否被删除
+		for (int i = 0; i < functionDefaultActions.size(); i++) {
+			String action = functionDefaultActions.get(i);
+			String label = functionDefaultLabels.get(i);
+			Optional<FunctionModel> optional = functions.stream().filter(item->!StringUtils.isEmpty(item.getId()) &&
+																				action.equals(item.getAction()) &&
+																				label.equals(item.getLabel())).findFirst();
+			if (optional.isPresent()==false) {
+				throw new IFormException("系统自带的功能按钮不允许删除和编辑");
+			}
 		}
 	}
 
