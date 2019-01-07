@@ -3,6 +3,7 @@ package tech.ascs.icity.iform.service.impl;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -272,6 +273,27 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 			ListModel listModel  = new ListModel();
 			BeanUtils.copyProperties(listModelEntity, listModel, new String[]{"displayItems","searchItems","functions","sortItems","slaverForms","masterForm"});
 			list.add(listModel);
+		}
+		return list;
+	}
+
+	@Override
+	public List<ListModel> findListModelSimpleByIds(List<String> ids) {
+		List<ListModel> list = new ArrayList();
+		if (ids!=null && ids.size()>0) {
+			ids = ids.stream().filter(item->!StringUtils.isEmpty(item)).collect(Collectors.toList());
+			if (ids!=null && ids.size()>0) {
+				String idArrStr = String.join("','", ids);
+				list = jdbcTemplate.query("select id,name from ifm_list_model where id in ('"+idArrStr+"')",
+						new RowMapper<ListModel>() {
+							@Override
+							public ListModel mapRow(ResultSet rs, int rowNum) throws SQLException {
+								ListModel item = new ListModel();
+								item.setId(rs.getString("id"));
+								item.setName(rs.getString("name"));
+								return item;
+							}});
+			}
 		}
 		return list;
 	}

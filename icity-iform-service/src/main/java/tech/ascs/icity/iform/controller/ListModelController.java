@@ -200,6 +200,24 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		return listFormBtnPermission;
 	}
 
+	@Override
+	public void batchDelete(@RequestBody List<String> ids) {
+		if (ids!=null && ids.size()>0) {
+			String[] idArr = ids.stream().filter(item->!StringUtils.isEmpty(item)).toArray(String[]::new);
+			if (idArr!=null && idArr.length>0) {
+				listModelService.deleteById(idArr);
+			}
+		}
+	}
+
+	@Override
+	public List<ListModel> findListModelSimpleByIds(@RequestParam(name = "ids", required = false) String[] ids) {
+		if (ids!=null && ids.length>0) {
+			return listModelService.findListModelSimpleByIds(Arrays.asList(ids));
+		}
+		return new ArrayList<>();
+	}
+
 	private List<ApplicationModel> list(String applicationId, List<ListModel> entities){
 		if(entities == null){
 			return new ArrayList<>();

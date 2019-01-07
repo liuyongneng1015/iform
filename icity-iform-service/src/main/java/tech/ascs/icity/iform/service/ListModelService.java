@@ -25,6 +25,9 @@ public interface ListModelService extends JPAService<ListModelEntity> {
     //查询所有列表模型
     List<ListModel> findListModels();
 
+    //通过列表的id集合查询列表模型
+    List<ListModel> findListModelSimpleByIds(List<String> ids);
+
     //通过控件id集合查询列表模型
     List<ListModel> findListModelsByItemModelIds(List<String> itemModelIds);
 
@@ -48,4 +51,6 @@ public interface ListModelService extends JPAService<ListModelEntity> {
 
     // 调用这个方法删除的表单的按钮功能的权限
     void deleteFormBtnPermission(String formId);
+
+
 }
