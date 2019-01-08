@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @ApiModel("功能模型")
-public class FunctionModel extends NameEntity {
+public class FunctionModel extends NameEntity implements Comparable<FunctionModel> {
 
 	@ApiModelProperty(value = "显示名称，如“新增”、“删除”等等", position = 0)
 	private String label;
@@ -99,5 +99,19 @@ public class FunctionModel extends NameEntity {
 			return null;
 		}
 		return id;
+	}
+
+	@Override
+	public int compareTo(FunctionModel o) {
+		if (this.getOrderNo() == null && o.getOrderNo() == null) {
+			return 0;
+		}
+		if (this.getOrderNo() == null) {
+			return 1;
+		}
+		if (o.getOrderNo() == null) {
+			return -1;
+		}
+		return this.getOrderNo() - o.getOrderNo();
 	}
 }

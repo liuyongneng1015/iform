@@ -234,11 +234,7 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 		try {
 
 			List<String> idlist = jdbcTemplate.query("select l.id from ifm_form_data_bind fd,ifm_list_model l,ifm_data_model d where fd.data_model=d.id and d.table_name ='"+tableName+"' and fd.form_model=l.master_form",
-					new RowMapper<String>() {
-						@Override
-						public String mapRow(ResultSet rs, int rowNum) throws SQLException {
-							return rs.getString("id");
-						}});
+													(rs, rowNum) -> rs.getString("id"));
 			List<ListModelEntity> listModelEntities = query().filterIn("id",idlist).list();
 			List<ListModel> list = new ArrayList<>();
 			for(ListModelEntity listModelEntity : listModelEntities){
@@ -278,6 +274,19 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 	}
 
 	@Override
+	public List<ListModel> findListModelSimpleInfo() {
+		return jdbcTemplate.query("select id, name, application_id from ifm_list_model",
+			(rs, rowNum) -> {
+				ListModel item = new ListModel();
+				item.setId(rs.getString("id"));
+				item.setName(rs.getString("name"));
+				item.setApplicationId(rs.getString("application_id"));
+				return item;
+			}
+		);
+	}
+
+	@Override
 	public List<ListModel> findListModelSimpleByIds(List<String> ids) {
 		List<ListModel> list = new ArrayList();
 		if (ids!=null && ids.size()>0) {
@@ -285,14 +294,13 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 			if (ids!=null && ids.size()>0) {
 				String idArrStr = String.join("','", ids);
 				list = jdbcTemplate.query("select id,name from ifm_list_model where id in ('"+idArrStr+"')",
-						new RowMapper<ListModel>() {
-							@Override
-							public ListModel mapRow(ResultSet rs, int rowNum) throws SQLException {
-								ListModel item = new ListModel();
-								item.setId(rs.getString("id"));
-								item.setName(rs.getString("name"));
-								return item;
-							}});
+					(rs, rowNum) -> {
+						ListModel item = new ListModel();
+						item.setId(rs.getString("id"));
+						item.setName(rs.getString("name"));
+						return item;
+					}
+				);
 			}
 		}
 		return list;
