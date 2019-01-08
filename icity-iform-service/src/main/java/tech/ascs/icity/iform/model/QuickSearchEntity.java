@@ -1,6 +1,5 @@
 package tech.ascs.icity.iform.model;
 
-import io.swagger.annotations.ApiModelProperty;
 import tech.ascs.icity.jpa.dao.model.BaseEntity;
 
 import javax.persistence.*;

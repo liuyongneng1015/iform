@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @ApiModel("快速筛选QuickSearch")
-public class QuickSearchItem extends NameEntity {
+public class QuickSearchItem extends NameEntity implements Comparable<QuickSearchItem> {
     @ApiModelProperty(value = "启用", position = 1)
     private Boolean use = false;
 
@@ -72,5 +72,19 @@ public class QuickSearchItem extends NameEntity {
             return null;
         }
         return id;
+    }
+
+    @Override
+    public int compareTo(QuickSearchItem o) {
+        if (this.getOrderNo() == null && o.getOrderNo() == null) {
+            return 0;
+        }
+        if (this.getOrderNo() == null) {
+            return 1;
+        }
+        if (o.getOrderNo() == null) {
+            return -1;
+        }
+        return this.getOrderNo() - o.getOrderNo();
     }
 }

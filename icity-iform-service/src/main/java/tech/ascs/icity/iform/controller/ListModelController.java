@@ -111,8 +111,8 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				ListFunction function = new ListFunction();
 				function.setAction(functionDefaultActions.get(i));
 				function.setLabel(functionDefaultLabels.get(i));
-				function.setVisible(true);
 				function.setMethod(functionDefaultMethods.get(i));
+                function.setVisible(true);
 				function.setOrderNo(i+1);
 				function.setListModel(entity);
 				functions.add(function);
@@ -183,7 +183,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 
 	@Override
 	public List<ApplicationModel> findListApplicationModel(@RequestParam(name="applicationId", required = true) String applicationId) {
-		return list(applicationId, listModelService.findListModels());
+		return list(applicationId, listModelService.findListModelSimpleInfo());
 	}
 
 	@Override
@@ -359,6 +359,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 
 		if (listModel.getQuickSearchItems() !=null) {
 		    List<QuickSearchEntity> quickSearches = new ArrayList<>();
+            int i = 0;
 		    for (QuickSearchItem searchItem : listModel.getQuickSearchItems()) {
                 QuickSearchEntity quickSearchEntity = new QuickSearchEntity();
                 if(searchItem.getId() != null) {
@@ -371,6 +372,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
                 if (searchItem.getSearchValues()!=null && searchItem.getSearchValues().size()>0) {
                     quickSearchEntity.setSearchValues(String.join(",", searchItem.getSearchValues()));
                 }
+                quickSearchEntity.setOrderNo(++i);
                 quickSearchEntity.setListModel(entity);
                 quickSearches.add(quickSearchEntity);
             }
@@ -448,6 +450,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				BeanUtils.copyProperties(listFunction, function, new String[]{"listModel"});
 				functions.add(function);
 			}
+            Collections.sort(functions);
 			listModel.setFunctions(functions);
 		}
 
@@ -508,6 +511,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
                 }
                 quickSearches.add(quickSearch);
             }
+            Collections.sort(quickSearches);
             listModel.setQuickSearchItems(quickSearches);
         }
 		return listModel;

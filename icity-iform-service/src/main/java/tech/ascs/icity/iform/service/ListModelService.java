@@ -25,6 +25,9 @@ public interface ListModelService extends JPAService<ListModelEntity> {
     //查询所有列表模型
     List<ListModel> findListModels();
 
+    //查询所有列表模型
+    List<ListModel> findListModelSimpleInfo();
+
     //通过列表的id集合查询列表模型
     List<ListModel> findListModelSimpleByIds(List<String> ids);
 
