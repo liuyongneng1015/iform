@@ -48,4 +48,5 @@ public enum ItemType {
 	public void setValue(String value) {
 		this.value = value;
 	}
+
 }

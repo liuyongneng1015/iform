@@ -1,5 +1,8 @@
 package tech.ascs.icity.iform.api.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * 系统控件类型
  * 
@@ -78,5 +81,23 @@ public enum SystemItemType {
 
 	public void setValue(String value) {
 		this.value = value;
+	}
+
+	public static List<ColumnType> getColumnType(SystemItemType systemItemType){
+		List<ColumnType> list = new ArrayList<>();
+		if(SystemItemType.CreateDate == systemItemType || SystemItemType.DatePicker == systemItemType){
+			list.add(ColumnType.Date);
+			list.add(ColumnType.Time);
+			list.add(ColumnType.Timestamp);
+		}else if(SystemItemType.InputNumber == systemItemType){
+			list.add(ColumnType.Integer);
+			list.add(ColumnType.Long);
+			list.add(ColumnType.Float);
+			list.add(ColumnType.Double);
+		}else{
+			list.add(ColumnType.String);
+		}
+		return list;
+
 	}
 }

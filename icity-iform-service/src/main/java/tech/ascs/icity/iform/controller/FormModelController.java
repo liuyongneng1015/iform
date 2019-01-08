@@ -839,6 +839,16 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			entity.setOptions(options);
 		}
 
+		if(itemModel.getColumnModel() != null && itemModel.getColumnModel().getColumnName() != null && itemModel.getColumnModel().getTableName() != null) {
+			List<ColumnModelEntity> columnModelEntities = columnModelService.query().filterEqual("columnName", itemModel.getColumnModel().getColumnName()).filterEqual("dataModel.tableName", itemModel.getColumnModel().getTableName()).list();
+			if(columnModelEntities != null && columnModelEntities.size() > 0) {
+				ColumnModelEntity columnModelEntity = columnModelEntities.get(0);
+				List<ColumnType> list = SystemItemType.getColumnType(itemModel.getSystemItemType());
+				if(columnModelEntity.getDataType() != null && !list.contains(columnModelEntity.getDataType())){
+					throw new IFormException("控件"+itemModel.getName()+"关联字段"+columnModelEntity.getColumnName()+"类型不符合");
+				}
+			}
+		}
 		return entity;
 	}
 
