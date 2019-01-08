@@ -778,6 +778,12 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				selectItemModelEntity.setDefaultReferenceValue((String)itemModel.getDefaultValue());
 			}
 			selectItemModelEntity.setReferenceList(setItemModelByListModel(itemModel));
+			if(itemModel.getDictionaryValueType() == DictionaryValueType.Linkage && (itemModel.getReferenceDictionaryId() == null || itemModel.getParentItem() == null)){
+				throw new IFormException("控件"+itemModel.getName()+"未找到对应分类或联动目标");
+			}else if(itemModel.getDictionaryValueType() == DictionaryValueType.Fixed && (itemModel.getReferenceDictionaryId() == null || itemModel.getReferenceDictionaryItemId() == null)){
+				throw new IFormException("控件"+itemModel.getName()+"未找到对应的分类或节点");
+			}
+
             if(itemModel.getDictionaryValueType() == DictionaryValueType.Linkage && itemModel.getParentItem() != null){
                 SelectItemModelEntity parentSelectItemModel = new SelectItemModelEntity();
                 BeanUtils.copyProperties(itemModel.getParentItem(), parentSelectItemModel, new String[] {"referenceList","parentItem", "searchItems","sortItems", "permissions", "items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});
