@@ -781,8 +781,8 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			selectItemModelEntity.setReferenceList(setItemModelByListModel(itemModel));
 			if(itemModel.getDictionaryValueType() == DictionaryValueType.Linkage && (itemModel.getReferenceDictionaryId() == null || itemModel.getParentItem() == null)){
 				throw new IFormException("控件"+itemModel.getName()+"未找到对应分类或联动目标");
-			}else if(itemModel.getDictionaryValueType() == DictionaryValueType.Fixed && (itemModel.getReferenceDictionaryId() == null || itemModel.getReferenceDictionaryItemId() == null)){
-				throw new IFormException("控件"+itemModel.getName()+"未找到对应的分类或节点");
+			}else if(itemModel.getDictionaryValueType() == DictionaryValueType.Fixed && (itemModel.getOptions() == null || itemModel.getOptions().size() < 1)){
+				throw new IFormException("控件"+itemModel.getName()+"未找到对应的自定义值");
 			}
 
             if(itemModel.getDictionaryValueType() == DictionaryValueType.Linkage && itemModel.getParentItem() != null){
@@ -935,7 +935,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			List<ItemModel> items = new ArrayList<ItemModel>();
 			List<ItemModelEntity> itemModelEntities = entity.getItems() == null || entity.getItems().size() < 2 ? entity.getItems() : entity.getItems().parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
 			for (ItemModelEntity itemModelEntity : itemModelEntities) {
-				items.add(toDTO(itemModelEntity));
+				items.add(toDTO(itemModelEntity, false));
 			}
 			formModel.setItems(items);
 		}
@@ -1046,7 +1046,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		if (entity.getItems().size() > 0) {
 			List<ItemModel> items = new ArrayList<ItemModel>();
 			for (ItemModelEntity itemModelEntity : entity.getItems()) {
-				items.add(toDTO(itemModelEntity));
+				items.add(toDTO(itemModelEntity, true));
 			}
 			formModel.setItems(items);
 		}
@@ -1082,7 +1082,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				boolean flag = itemModelEntity instanceof ReferenceItemModelEntity || itemModelEntity instanceof SubFormItemModelEntity
 						|| itemModelEntity instanceof SubFormRowItemModelEntity;
 				if(!flag) {
-					items.add(toDTO(itemModelEntity));
+					items.add(toDTO(itemModelEntity, true));
 				}else if(((ReferenceItemModelEntity)itemModelEntity).getReferenceList() != null){
 					itemListModelEntities.add(itemModelEntity);
 				}
@@ -1113,7 +1113,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		return formModel;
 	}
 
-	private ItemModel toDTO(ItemModelEntity entity)  {
+	private ItemModel toDTO(ItemModelEntity entity, boolean isPCItem)  {
 		//TODO 根据模型找到对应的参数
 		ItemModel itemModel = new ItemModel();
 		BeanUtils.copyProperties(entity, itemModel, new String[]{"formModel", "columnModel", "activities", "options","searchItems","sortItems", "permissions","items","parentItem","referenceList"});
@@ -1160,7 +1160,8 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				itemModel.setParentItem(parentItemModel);
 			}
 
-			if(((SelectItemModelEntity) entity).getItems() != null && ((SelectItemModelEntity) entity).getItems().size() > 0){
+			//pc表单控件才有下拉子类
+			if(isPCItem && ((SelectItemModelEntity) entity).getItems() != null && ((SelectItemModelEntity) entity).getItems().size() > 0){
 				List<ItemModel> chiildrenItemModel = new ArrayList<>();
 				for(SelectItemModelEntity selectItemModelEntity : ((SelectItemModelEntity) entity).getItems()) {
 					ItemModel chiildItemModel = new ItemModel();
@@ -1183,7 +1184,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			List<ItemModelEntity> rowList = ((RowItemModelEntity) entity).getItems();
 			List<ItemModelEntity> itemModelEntities = rowList == null || rowList.size() < 2 ? rowList : rowList.parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
 			for(ItemModelEntity itemModelEntity : itemModelEntities) {
-				rows.add(toDTO(itemModelEntity));
+				rows.add(toDTO(itemModelEntity, isPCItem));
 			}
 			itemModel.setItems(rows);
 		}else if(entity instanceof SubFormItemModelEntity){
@@ -1198,8 +1199,11 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				List<ItemModel> rows = new ArrayList<>();
 				List<ItemModelEntity> itemModelEntities = rowItemModelEntity.getItems() == null || rowItemModelEntity.getItems().size() < 2 ? rowItemModelEntity.getItems() : rowItemModelEntity.getItems().parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
 				for(ItemModelEntity childrenItem : itemModelEntities) {
-					rows.add(toDTO(childrenItem));
+					ItemModel childItem = toDTO(childrenItem, isPCItem);
+					childItem.setTableName(((SubFormItemModelEntity) entity).getTableName());
+					rows.add(childItem);
 				}
+				subFormRowItem.setTableName(((SubFormItemModelEntity) entity).getTableName());
 				subFormRowItem.setItems(rows);
 				subFormRows.add(subFormRowItem);
 			}

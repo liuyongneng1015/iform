@@ -99,7 +99,7 @@ public class ItemModel extends NameEntity {
 	@ApiModelProperty(value="当前行数",position = 23)
 	private Integer rowNumber;
 	@ApiModelProperty(value="组件子项（由组和字段构成） ",position = 26)
-	private List<ItemModel> items = new ArrayList<ItemModel>();
+	private List<ItemModel> items;
 
 	//TimeItemModel
 	@ApiModelProperty(value="时间格式如yyyy-MM-dd",position = 27)//时间格式
