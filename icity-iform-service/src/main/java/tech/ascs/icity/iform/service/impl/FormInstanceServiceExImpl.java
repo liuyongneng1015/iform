@@ -26,7 +26,6 @@ import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.FormInstanceServiceEx;
 import tech.ascs.icity.iform.service.FormModelService;
-import tech.ascs.icity.iform.service.ItemModelService;
 import tech.ascs.icity.iform.service.UploadService;
 import tech.ascs.icity.iform.support.IFormSessionFactoryBuilder;
 import tech.ascs.icity.jpa.service.JPAManager;
@@ -383,7 +382,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				Map<String, Object> map = new HashMap<>();
 				for(SubFormRowItemInstance instance : subFormDataItemInstance.getItems()){
 					for(ItemInstance itemModelService : instance.getItems()){
-						setItemInstance(itemModelService, map);
+						setFileItemInstance(itemModelService, map);
 					}
 				}
 				newListMap.add(map);
@@ -426,7 +425,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			for (DataModelRowInstance instances : dataModelInstance.getItems()) {
 				Map<String, Object> map = new HashMap<>();
 				for (ItemInstance itemModelService : instances.getItems()) {
-					setItemInstance(itemModelService, map);
+					setFileItemInstance(itemModelService, map);
 				}
 				newListMap.add(map);
 			}
@@ -507,11 +506,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	private void setMasterFormItemInstances(List<ItemInstance> itemInstances, Map<String, Object> data){
 		for (ItemInstance itemInstance : itemInstances) {
-			setItemInstance(itemInstance, data);
+			setFileItemInstance(itemInstance, data);
 		}
 	}
 
-	private void setItemInstance(ItemInstance itemInstance, Map<String, Object> data){
+	private void setFileItemInstance(ItemInstance itemInstance, Map<String, Object> data){
 		ItemModelEntity itemModel = itemModelManager.get(itemInstance.getId());
 		Object value = itemInstance.getValue();
 		if (itemModel.getType() == ItemType.DatePicker) {
@@ -699,15 +698,15 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		List<DataModelInstance> referenceDataModelList = formInstance.getReferenceData();
 		List<SubFormItemInstance> subFormItems = formInstance.getSubFormData();
 		for (ItemModelEntity itemModel : list) {
-			setItemInstance(itemModel, referenceFlag, entity, referenceDataModelList,
+			setFileItemInstance(itemModel, referenceFlag, entity, referenceDataModelList,
 					 subFormItems, items, formInstance);
 		}
 		formInstance.getItems().addAll(items);
 		return formInstance;
 	}
 
-	private void setItemInstance(ItemModelEntity itemModel, boolean referenceFlag, Map<String, Object> entity, List<DataModelInstance> referenceDataModelList,
-								 List<SubFormItemInstance> subFormItems, List<ItemInstance> items, FormInstance formInstance){
+	private void setFileItemInstance(ItemModelEntity itemModel, boolean referenceFlag, Map<String, Object> entity, List<DataModelInstance> referenceDataModelList,
+									 List<SubFormItemInstance> subFormItems, List<ItemInstance> items, FormInstance formInstance){
 		System.out.println(itemModel.getId()+"____begin");
 		ColumnModelEntity column = itemModel.getColumnModel();
 		if(column == null && !(itemModel instanceof  ReferenceItemModelEntity) && !(itemModel instanceof  RowItemModelEntity) && !(itemModel instanceof SubFormItemModelEntity)){
@@ -729,11 +728,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			setSubFormItemInstance( itemModel,  entity,  subFormItems, formInstance);
 		}else if(itemModel instanceof RowItemModelEntity){
 			for(ItemModelEntity itemModelEntity : ((RowItemModelEntity) itemModel).getItems()) {
-				setItemInstance(itemModelEntity, referenceFlag, entity, referenceDataModelList,
+				setFileItemInstance(itemModelEntity, referenceFlag, entity, referenceDataModelList,
 						 subFormItems,  items, formInstance);
 			}
 		}else{
-			ItemInstance itemInstance = setItemInstance(column.getKey(), itemModel, value, formInstance.getActivityId());
+			ItemInstance itemInstance = setFileItemInstance(column.getKey(), itemModel, value, formInstance.getActivityId());
 			items.add(itemInstance);
 			formInstance.addData(itemModel.getColumnModel().getId(), itemInstance.getValue());
 		}
@@ -826,7 +825,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					if(columnModelEntity == null){
 						continue;
 					}
-					ItemInstance itemInstance = setItemInstance(columnModelEntity.getKey(), item, map.get(columnModelEntity.getColumnName()), formInstance.getActivityId());
+					ItemInstance itemInstance = setFileItemInstance(columnModelEntity.getKey(), item, map.get(columnModelEntity.getColumnName()), formInstance.getActivityId());
 					instances.add(itemInstance);
 				}
 				//这一行没有数据
@@ -835,7 +834,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				}
 				//子表主键id
 				ColumnModelEntity subFormColumnModelEntity  = itemModel.getColumnModel();
-				ItemInstance subFomrItemInstance = setItemInstance(subFormColumnModelEntity.getKey(), itemModel, map.get("id"), formInstance.getActivityId());
+				ItemInstance subFomrItemInstance = setFileItemInstance(subFormColumnModelEntity.getKey(), itemModel, map.get("id"), formInstance.getActivityId());
 				instances.add(subFomrItemInstance);
 
 				subFormRowItemInstance.setItems(instances);
@@ -883,7 +882,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				continue;
 			}
 			Object value = entity.get(column.getColumnName());
-			ItemInstance itemInstance = setItemInstance(column.getKey(), itemModel, value, formInstance.getActivityId());
+			ItemInstance itemInstance = setFileItemInstance(column.getKey(), itemModel, value, formInstance.getActivityId());
 			items.add(itemInstance);
 			formInstance.addData(itemModel.getColumnModel().getId(), itemInstance.getValue());
 			System.out.println(itemModel.getId()+"____end");
@@ -893,10 +892,12 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	}
 
 
-	private ItemInstance setItemInstance(Boolean visiblekey , ItemModelEntity itemModel, Object value, String activityId){
+	private ItemInstance setFileItemInstance(Boolean visiblekey , ItemModelEntity itemModel, Object value, String activityId){
 		ItemInstance itemInstance = new ItemInstance();
 		itemInstance.setId(itemModel.getId());
 		itemInstance.setColumnModelId(itemModel.getColumnModel().getId());
+		itemInstance.setType(itemModel.getType());
+		itemInstance.setSystemItemType(itemModel.getSystemItemType());
 		updateValue(itemModel, itemInstance, value);
 		if (visiblekey) {
 			itemInstance.setVisible(false);
@@ -960,10 +961,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				itemInstance.setValue(valuelist);
 				break;
 			case Media:
-				setItemInstance(value, itemInstance);
+				setFileItemInstance(value, itemInstance);
 				break;
 			case Attachment:
-				setItemInstance(value, itemInstance);
+				setFileItemInstance(value, itemInstance);
 				break;
 			default:
                 String valueStr = value == null || StringUtils.isEmpty(value) ?  null : String.valueOf(value);
@@ -973,7 +974,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 	}
 
-	private void setItemInstance(Object value, ItemInstance itemInstance){
+	private void setFileItemInstance(Object value, ItemInstance itemInstance){
 		String valueStr = value == null || StringUtils.isEmpty(value) ?  null : String.valueOf(value);
 		if(valueStr != null) {
 			List<String> listv = Arrays.asList(valueStr.split(","));

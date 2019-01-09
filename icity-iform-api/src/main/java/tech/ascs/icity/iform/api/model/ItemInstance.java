@@ -6,6 +6,12 @@ import tech.ascs.icity.model.IdEntity;
 
 public class ItemInstance extends IdEntity {
 
+	@ApiModelProperty(value = "控件类型", position = 1)
+	private ItemType type;
+
+	@ApiModelProperty(value = "系统控件类型", position = 1)
+	private SystemItemType systemItemType;
+
 	@ApiModelProperty(value = "字段值（类型取决于字段模型中的“dataType”）", position = 1)
 	private Object value;
 
@@ -20,6 +26,22 @@ public class ItemInstance extends IdEntity {
 
 	@ApiModelProperty(value = "对应数据模型字段id", position = 5)
 	private String columnModelId;
+
+	public ItemType getType() {
+		return type;
+	}
+
+	public void setType(ItemType type) {
+		this.type = type;
+	}
+
+	public SystemItemType getSystemItemType() {
+		return systemItemType;
+	}
+
+	public void setSystemItemType(SystemItemType systemItemType) {
+		this.systemItemType = systemItemType;
+	}
 
 	public Object getValue() {
 		return value;
