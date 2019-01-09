@@ -474,7 +474,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			for (ListSearchItem searchItemEntity : entity.getSearchItems()) {
 				SearchItem searchItem = new SearchItem();
 				if(searchItemEntity.getItemModel() != null){
-					BeanUtils.copyProperties(searchItemEntity.getItemModel(), searchItem, new String[] {"formModel", "columnModel", "activities", "options", "searchItems", "sortItems", "permissions"});
+					BeanUtils.copyProperties(searchItemEntity.getItemModel(), searchItem, new String[]{"formModel", "columnModel", "activities", "options","searchItems","sortItems", "permissions","items","parentItem","referenceList"});
 				}
 				if(searchItemEntity.getSearch() != null){
 					Search search = new Search();
