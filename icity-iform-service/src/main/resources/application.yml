@@ -73,10 +73,10 @@ shiro:
     - /** = anon
 
 minio:
-  bucket: nanshan
+  bucket: iform
   access:
-    key:  QLY7IB23SAX8L27V1RBC
+    key:  icity
   secret:
-    key: a+GkkrJLJxv9DxF7oikmgzrTwS3r0pRDpkE/JOzm
-  host: http://192.168.100.92:9000
-  url: http://192.168.100.92:9000
+    key: icity.ascs.tech
+  host: http://192.168.4.151:9000
+  url: http://192.168.4.151:9000

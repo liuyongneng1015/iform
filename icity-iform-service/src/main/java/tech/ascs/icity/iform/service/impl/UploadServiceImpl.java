@@ -25,7 +25,7 @@ import java.util.UUID;
 @Service
 public class UploadServiceImpl extends DefaultJPAService<ColumnModelEntity> implements UploadService {
 
-	//@Autowired
+	@Autowired
 	private MinioClient minioClient;
 
 	@Autowired

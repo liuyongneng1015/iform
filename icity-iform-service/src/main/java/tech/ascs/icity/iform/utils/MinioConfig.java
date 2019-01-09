@@ -3,11 +3,11 @@ package tech.ascs.icity.iform.utils;
 import io.minio.MinioClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.stereotype.Controller;
+import org.springframework.stereotype.Component;
 
-@Controller
+@Component
 public class MinioConfig {
+
     @Value("${minio.bucket}")
     private String bucket;
 
@@ -63,14 +63,36 @@ public class MinioConfig {
         this.url = url;
     }
 
-    //@Bean
+    @Bean
     public MinioClient getMinioClient() {
         try {
             MinioClient minioClient = new MinioClient(host, accessKey, secretKey);
             if(!minioClient.bucketExists(bucket)){
                 minioClient.makeBucket(bucket);
             }
-            minioClient.setBucketPolicy(bucket,"*");
+
+            StringBuilder builder = new StringBuilder();
+            builder.append("{\n");
+            builder.append("    \"Statement\": [\n");
+            builder.append("        {\n");
+            builder.append("            \"Action\": [\n");
+            builder.append("                \"s3:GetBucketLocation\",\n");
+            builder.append("                \"s3:ListBucket\"\n");
+            builder.append("            ],\n");
+            builder.append("            \"Effect\": \"Allow\",\n");
+            builder.append("            \"Principal\": \"*\",\n");
+            builder.append("            \"Resource\": \"arn:aws:s3:::"+bucket+"\"\n");
+            builder.append("        },\n");
+            builder.append("        {\n");
+            builder.append("            \"Action\": \"s3:GetObject\",\n");
+            builder.append("            \"Effect\": \"Allow\",\n");
+            builder.append("            \"Principal\": \"*\",\n");
+            builder.append("            \"Resource\": \"arn:aws:s3:::"+bucket+"/*\"\n");
+            builder.append("        }\n");
+            builder.append("    ],\n");
+            builder.append("    \"Version\": \"2012-10-17\"\n");
+            builder.append("}\n");
+            minioClient.setBucketPolicy(bucket, builder.toString());
             return minioClient;
         } catch (Exception e) {
             e.printStackTrace();
