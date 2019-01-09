@@ -515,7 +515,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		ItemModelEntity itemModel = itemModelManager.get(itemInstance.getId());
 		Object value;
 		if (itemModel.getType() == ItemType.DatePicker) {
-			value = new Date((Long) itemInstance.getValue());
+			value = itemInstance.getValue() == null ? null : new Date((Long) itemInstance.getValue());
 		} else if (itemModel.getType() == ItemType.Select) {
             Object o = itemInstance.getValue();
             if(o != null && o instanceof List){

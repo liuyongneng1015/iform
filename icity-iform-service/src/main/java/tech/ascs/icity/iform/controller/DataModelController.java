@@ -2,6 +2,7 @@ package tech.ascs.icity.iform.controller;
 
 import java.util.*;
 
+import com.googlecode.genericdao.search.Sort;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -159,7 +160,7 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 			if (StringUtils.hasText(applicationId)) {
 				query.filterEqual("applicationId",  applicationId);
 			}
-			Page<DataModelEntity> entities = query.page(page, pagesize).page();
+			Page<DataModelEntity> entities = query.sort(Sort.desc("id")).page(page, pagesize).page();
 			return toDTO(entities);
 		} catch (Exception e) {
 			throw new IFormException("获取数据模型列表失败：" + e.getMessage(), e);
