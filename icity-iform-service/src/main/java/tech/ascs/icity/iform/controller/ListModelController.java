@@ -459,9 +459,9 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			for (ListSortItem sortItemEntity: entity.getSortItems()) {
 				SortItem sortItem = new SortItem();
 				BeanUtils.copyProperties(sortItemEntity, sortItem, new String[]{"listModel","itemModel"});
-				if(sortItemEntity.getItemModel() != null){
+				if(sortItemEntity.getItemModel() != null) {
 					ItemModel itemModel = new ItemModel();
-					BeanUtils.copyProperties(sortItemEntity.getItemModel(), itemModel, new String[] {"permissions", "items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});
+					BeanUtils.copyProperties(sortItemEntity.getItemModel(), itemModel, new String[] {"formModel", "columnModel", "searchItems", "sortItems", "permissions", "items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});
 					sortItem.setItemModel(itemModel);
 				}
 				sortItems.add(sortItem);
