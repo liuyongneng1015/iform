@@ -3,6 +3,8 @@ package tech.ascs.icity.iform.controller;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -399,6 +401,13 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		}
 	}
 
+	public static void main(String[] args) throws JsonProcessingException {
+		List<String> list = Arrays.asList(new String[] {"formModel", "columnModel", "activities", "options", "searchItems", "sortItems", "permissions", "formModel", "columnModel","activities","options","searchItems", "sortItems","permissions", "referenceList","items","parentItem"});
+		Set<String> set = new LinkedHashSet<>(list);
+		ObjectMapper mapper = new ObjectMapper();
+		System.out.println(mapper.writeValueAsString(set));
+	}
+
 	private Page<ListModel> toDTO(Page<ListModelEntity> entities) throws InstantiationException, IllegalAccessException {
 		Page<ListModel> listModels = Page.get(entities.getPage(), entities.getPagesize());
 		listModels.data(entities.getTotalCount(), toDTO(entities.getResults()));
@@ -427,7 +436,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			List<ItemModel> list  = new ArrayList<>();
 			for(ItemModelEntity itemModelEntity : entity.getDisplayItems()){
 				ItemModel itemModel = new ItemModel();
-				BeanUtils.copyProperties(itemModelEntity, itemModel, new String[] {"formModel", "columnModel","activities","options","searchItems", "sortItems","permissions", "referenceList","items","parentItem"});
+				BeanUtils.copyProperties(itemModelEntity, itemModel, new String[] {"formModel","columnModel","activities","options","searchItems","sortItems","permissions","referenceList","items","parentItem"});
 				list.add(itemModel);
 			}
 			listModel.setDisplayItems(list);
@@ -461,7 +470,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				BeanUtils.copyProperties(sortItemEntity, sortItem, new String[]{"listModel","itemModel"});
 				if(sortItemEntity.getItemModel() != null) {
 					ItemModel itemModel = new ItemModel();
-					BeanUtils.copyProperties(sortItemEntity.getItemModel(), itemModel, new String[] {"formModel", "columnModel", "searchItems", "sortItems", "permissions", "items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});
+					BeanUtils.copyProperties(sortItemEntity.getItemModel(), itemModel, new String[] {"formModel","columnModel","activities","options","searchItems","sortItems","permissions","referenceList","items","parentItem"});
 					sortItem.setItemModel(itemModel);
 				}
 				sortItems.add(sortItem);
