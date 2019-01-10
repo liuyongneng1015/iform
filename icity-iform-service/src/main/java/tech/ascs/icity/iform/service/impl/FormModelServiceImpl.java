@@ -220,6 +220,12 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		}
 
 		//设置下拉联动
+		if (oldItemModelEntity instanceof SelectItemModelEntity) {
+			((SelectItemModelEntity)newItemModelEntity).setReferenceDictionaryId(((SelectItemModelEntity) oldItemModelEntity).getReferenceDictionaryId());
+			((SelectItemModelEntity)newItemModelEntity).setReferenceDictionaryItemId(((SelectItemModelEntity) oldItemModelEntity).getReferenceDictionaryItemId());
+		}
+
+		//设置下拉联动
 		if (oldItemModelEntity instanceof SelectItemModelEntity && ((SelectItemModelEntity) oldItemModelEntity).getParentItem() != null) {
 			((SelectItemModelEntity)newItemModelEntity).setParentItem(((SelectItemModelEntity) oldItemModelEntity).getParentItem());
 		}
