@@ -24,7 +24,8 @@ public class ICityIFormApplication {
         corsConfiguration.addAllowedOrigin("*");
         corsConfiguration.addAllowedHeader("*");
         corsConfiguration.addAllowedMethod("*");
-//      corsConfiguration.addExposedHeader(HttpHeaderConStant.X_TOTAL_COUNT);
+        corsConfiguration.setAllowCredentials(true);//这两句不加不能跨域上传文件，
+        corsConfiguration.setMaxAge(6000l);//加上去就可以了
         return corsConfiguration;
     }
 
