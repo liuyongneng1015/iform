@@ -628,8 +628,13 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	}
 
 	protected Session getSession(DataModelEntity dataModel) {
-		SessionFactory sessionFactory = sessionFactoryBuilder.getSessionFactory(dataModel);
-		return sessionFactory.openSession();
+        SessionFactory sessionFactory = null;
+        try {
+            sessionFactory = sessionFactoryBuilder.getSessionFactory(dataModel);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return sessionFactory == null ? null : sessionFactory.openSession();
 	}
 
 	@SuppressWarnings("deprecation")

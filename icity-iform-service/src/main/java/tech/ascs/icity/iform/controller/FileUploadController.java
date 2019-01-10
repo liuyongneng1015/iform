@@ -72,6 +72,8 @@ public class FileUploadController implements FileUploadService {
 
 	public String downloadTemplate(HttpServletResponse response, HttpServletRequest request) {
 		String fileUrl = request.getParameter("url");
+		String name = request.getParameter("name");
+
 		try {
 			if (fileUrl != null) {
 				//设置文件路径
@@ -80,7 +82,7 @@ public class FileUploadController implements FileUploadService {
 				if (url != null) {
 					inputStream = url.openStream();
 					response.setContentType("application/force-download");// 设置强制下载不打开
-					response.addHeader("Content-Disposition", "attachment;fileName=" + fileUrl.substring(fileUrl.lastIndexOf("/")+1));// 设置文件名
+					response.addHeader("Content-Disposition", "attachment;fileName=" + (StringUtils.isNotBlank(name) ? name : fileUrl.substring(fileUrl.lastIndexOf("/")+1)));// 设置文件名
 					byte[] buffer = new byte[2048];
 					BufferedInputStream bis = null;
 					try {

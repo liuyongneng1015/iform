@@ -34,6 +34,7 @@ import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import freemarker.template.TemplateExceptionHandler;
+import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.model.ColumnModelEntity;
 import tech.ascs.icity.iform.model.ColumnReferenceEntity;
 import tech.ascs.icity.iform.model.DataModelEntity;
@@ -48,11 +49,11 @@ public class IFormSessionFactoryBuilder {
 
 	private Map<DataModelEntity, SessionFactory> sessionFactories = new HashMap<DataModelEntity, SessionFactory>();
 
-	public SessionFactory getSessionFactory(DataModelEntity dataModel) throws MappingException {
+	public SessionFactory getSessionFactory(DataModelEntity dataModel) throws Exception {
 		return getSessionFactory(dataModel, false);
 	}
 
-	public SessionFactory getSessionFactory(DataModelEntity dataModel, boolean forceNewInstance) throws MappingException {
+	public SessionFactory getSessionFactory(DataModelEntity dataModel, boolean forceNewInstance) throws Exception {
 		if (forceNewInstance || sessionFactories.get(dataModel) == null) {
 			SessionFactory sessionFactory = createNewSessionFactory(dataModel);
 			sessionFactories.put(dataModel, sessionFactory);
@@ -61,15 +62,11 @@ public class IFormSessionFactoryBuilder {
 		return sessionFactories.get(dataModel);
 	}
 
-	protected SessionFactory createNewSessionFactory(DataModelEntity dataModel) throws MappingException {
+	protected SessionFactory createNewSessionFactory(DataModelEntity dataModel) throws Exception {
 		Metadata metadata;
-		try {
-			metadata = new MetadataSources(standardRegistry())
-					.addInputStream(IOUtils.toInputStream(generateHibernateMapping(dataModel), "UTF-8"))
-					.getMetadataBuilder().build();
-		} catch (IOException e) {
-			throw new MappingException(e);
-		}
+		metadata = new MetadataSources(standardRegistry())
+				.addInputStream(IOUtils.toInputStream(generateHibernateMapping(dataModel), "UTF-8"))
+				.getMetadataBuilder().build();
 		SessionFactoryBuilder sessionFactoryBuilder = metadata.getSessionFactoryBuilder();
 		return sessionFactoryBuilder.build();
 	}
@@ -87,7 +84,10 @@ public class IFormSessionFactoryBuilder {
 		return serviceRegistry;
 	}
 
-	public String generateHibernateMapping(DataModelEntity dataModel) throws IOException {
+	public String generateHibernateMapping(DataModelEntity dataModel) throws Exception {
+		/*if(dataModel.getSynchronized() == null || !dataModel.getSynchronized()){
+			throw new IFormException("数据模型【"+dataModel.getTableName()+"】未同步");
+		}*/
 		setReferenceDataModel(dataModel);
 		return generateHibernateMappingFreeMarker(dataModel);
 	}

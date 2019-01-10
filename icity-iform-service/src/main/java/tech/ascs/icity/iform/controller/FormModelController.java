@@ -781,8 +781,8 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			selectItemModelEntity.setReferenceList(setItemModelByListModel(itemModel));
 			if(itemModel.getDictionaryValueType() == DictionaryValueType.Linkage && (itemModel.getReferenceDictionaryId() == null || itemModel.getParentItem() == null)){
 				throw new IFormException("控件"+itemModel.getName()+"未找到对应分类或联动目标");
-			}else if(itemModel.getDictionaryValueType() == DictionaryValueType.Fixed && ((itemModel.getOptions() == null || itemModel.getOptions().size() < 1)
-					&& (itemModel.getReferenceDictionaryId() == null || itemModel.getParentItem() == null))){
+			}else if(itemModel.getDictionaryValueType() == DictionaryValueType.Fixed && (itemModel.getOptions() == null || itemModel.getOptions().size() < 1)
+					&& (itemModel.getReferenceDictionaryId() == null || itemModel.getReferenceDictionaryItemId() == null)){
 				throw new IFormException("控件"+itemModel.getName()+"未找到对应分类或自定义值");
 			}
 
