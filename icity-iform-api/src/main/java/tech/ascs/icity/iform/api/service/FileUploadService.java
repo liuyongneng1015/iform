@@ -8,6 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 import tech.ascs.icity.iform.api.model.FileUploadModel;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 
@@ -35,10 +36,15 @@ public interface FileUploadService {
 	 * @param request 多文件
 	 * @return
 	 */
-	@ApiOperation(value = "文件上传", notes = "文件上传", position = 0)
+	@ApiOperation(value = "文件批量上传", notes = "文件批量上传", position = 0)
 	@ApiImplicitParams({
 			@ApiImplicitParam(paramType = "query", name = "files", value = "多个文件", required = true)
 	})
 	@PostMapping(value="/batch/upload")
 	List<FileUploadModel> batchFileUpload(HttpServletRequest request) ;
+
+
+	@ApiOperation("下载功能")
+	@GetMapping("/download")
+	String downloadTemplate(HttpServletResponse response, HttpServletRequest request);
 }
