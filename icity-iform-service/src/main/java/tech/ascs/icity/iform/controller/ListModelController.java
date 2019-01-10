@@ -3,8 +3,6 @@ package tech.ascs.icity.iform.controller;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -399,13 +397,6 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		if(StringUtils.hasText(listModel.getId()) && !idList.contains(listModel.getId())){
 			throw new IFormException("列表名重复了");
 		}
-	}
-
-	public static void main(String[] args) throws JsonProcessingException {
-		List<String> list = Arrays.asList(new String[] {"formModel", "columnModel", "activities", "options", "searchItems", "sortItems", "permissions", "formModel", "columnModel","activities","options","searchItems", "sortItems","permissions", "referenceList","items","parentItem"});
-		Set<String> set = new LinkedHashSet<>(list);
-		ObjectMapper mapper = new ObjectMapper();
-		System.out.println(mapper.writeValueAsString(set));
 	}
 
 	private Page<ListModel> toDTO(Page<ListModelEntity> entities) throws InstantiationException, IllegalAccessException {
