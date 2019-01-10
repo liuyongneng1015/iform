@@ -448,7 +448,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			List<FunctionModel> functions = new ArrayList<FunctionModel>();
 			for(ListFunction listFunction : entity.getFunctions()) {
 				FunctionModel function = new FunctionModel();
-				BeanUtils.copyProperties(listFunction, function, new String[]{"listModel"});
+				BeanUtils.copyProperties(listFunction, function, new String[]{"listModel", "formModel"});
 				functions.add(function);
 			}
             Collections.sort(functions);
@@ -507,7 +507,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
                 }
 		        if (quickSearchEntity.getItemModel() != null) {
                     ItemModel itemModel = new ItemModel();
-                    BeanUtils.copyProperties(quickSearchEntity.getItemModel(), itemModel, new String[] {"permissions", "items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});
+                    BeanUtils.copyProperties(quickSearchEntity.getItemModel(), itemModel, new String[]{"formModel", "columnModel", "activities", "options","searchItems","sortItems", "permissions","items","parentItem","referenceList"});
                     quickSearch.setItemModel(itemModel);
                 }
                 quickSearches.add(quickSearch);
