@@ -16,7 +16,7 @@
             <#if column.columnName != 'id' &&  (!column.columnReferences?? || (column.columnReferences?size < 1)) >
                 <property name="${column.columnName!''}" type="${column.dataType?lower_case}">
                     <column name="f${column.columnName!''}" default="${column.defaultValue!'null'}" not-null="${(column.notNull!false)?c}" length="<#if !column.length ?? || column.length = 0>32<#else >${column.length}</#if>" precision="<#if !column.precision ?? || column.precision = 0>32<#else >${column.precision}</#if>" <#if column.dataType?? && column.dataType.value ?? && (column.dataType.value ="Integer" || column.dataType.value = "Long" || column.dataType.value = "Float" || column.dataType.value = "Double")> scale="${column.scale!0}"</#if>>
-                        <comment>${column.name!''}</comment>
+					<#if column.name?? > <comment>${column.name!''}</comment> </#if>
                     </column>
                 </property>
             </#if>
@@ -87,7 +87,7 @@
             <#if column.columnName != 'id' &&  (!column.columnReferences?? || (column.columnReferences?size < 1)) >
                 <property name="${column.columnName!''}" type="${column.dataType?lower_case}">
                     <column name="f${column.columnName!''}" default="${column.defaultValue!'null'}" not-null="${(column.notNull!false)?c}" length="<#if !column.length ?? || column.length = 0>32<#else >${column.length}</#if>" precision="<#if !column.precision ?? || column.precision = 0>32<#else >${column.precision}</#if>" <#if column.dataType?? && column.dataType.value ?? && (column.dataType.value ="Integer" || column.dataType.value = "Long" || column.dataType.value = "Float" || column.dataType.value = "Double")> scale="${column.scale!0}"</#if>>
-                        <comment>${column.name!''}</comment>
+                        <#if column.name?? > <comment>${column.name!''}</comment> </#if>
                     </column>
                 </property>
             </#if>
@@ -157,7 +157,7 @@
                         <#else>
                             <property name="${column.columnName!''}" type="${column.dataType?lower_case}">
                                 <column name="f${column.columnName!''}" default="${column.defaultValue!'null'}" not-null="${(column.notNull!false)?c}" length="<#if !column.length ?? || column.length = 0>32<#else >${column.length}</#if>" precision="<#if !column.precision ?? || column.precision = 0>32<#else >${column.precision}</#if>" <#if column.dataType?? && column.dataType.value ?? && (column.dataType.value ="Integer" || column.dataType.value = "Long" || column.dataType.value = "Float" || column.dataType.value = "Double")> scale="${column.scale!0}"</#if>>
-                                    <comment>${column.name!''}</comment>
+                                    <#if column.name?? > <comment>${column.name!''}</comment> </#if>
                                 </column>
                             </property>
                         </#if>
