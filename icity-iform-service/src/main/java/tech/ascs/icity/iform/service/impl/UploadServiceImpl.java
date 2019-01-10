@@ -84,8 +84,8 @@ public class UploadServiceImpl extends DefaultJPAService<ColumnModelEntity> impl
 			String day = CommonUtils.date2Str(new Date(), "yyyy-MM-dd");
 			String filePath = renameFile(day, true, filename);
 			if (fileSize != null) {
-				if (file.getBytes().length > fileSize * 1024 * 1024) {
-					throw new IFormException("文件超过【"+fileSize+"M】了");
+				if (file.getBytes().length > fileSize * 1024) {
+					throw new IFormException("文件超过【"+fileSize+"kb】了");
 				}
 			}
 			minioClient.putObject(minioConfig.getBucket(), filePath, inputStream, file.getContentType());
