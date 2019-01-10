@@ -362,10 +362,11 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
             int i = 0;
 		    for (QuickSearchItem searchItem : listModel.getQuickSearchItems()) {
                 QuickSearchEntity quickSearchEntity = new QuickSearchEntity();
-                if(searchItem.getId() != null) {
+				ItemModel itemModel = searchItem.getItemModel();
+                if(itemModel != null && !StringUtils.isEmpty(itemModel.getId())) {
                     ItemModelEntity itemModelEntity = new ItemModelEntity();
-                    itemModelEntity.setId(searchItem.getId());
-                    itemModelEntity.setName(searchItem.getName());
+                    itemModelEntity.setId(itemModel.getId());
+                    itemModelEntity.setName(itemModel.getName());
                     quickSearchEntity.setItemModel(itemModelEntity);
                 }
                 BeanUtils.copyProperties(searchItem, quickSearchEntity, new String[]{"itemModel", "searchValues"});
