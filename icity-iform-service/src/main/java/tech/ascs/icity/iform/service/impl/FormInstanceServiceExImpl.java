@@ -929,7 +929,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			case DatePicker:
 				Date date = (Date) value;
 				itemInstance.setValue(date);
-				itemInstance.setDisplayValue(DateFormatUtils.format(date,((TimeItemModelEntity)itemModel).getTimeFormat() == null ? "yyyy-MM-dd HH:mm:ss" : ((TimeItemModelEntity)itemModel).getTimeFormat()) == null);
+				itemInstance.setDisplayValue(DateFormatUtils.format(date,((TimeItemModelEntity)itemModel).getTimeFormat() == null ? "yyyy-MM-dd HH:mm:ss" : ((TimeItemModelEntity)itemModel).getTimeFormat()));
 				break;
 			case Select:
 			    String valueString = value == null || StringUtils.isEmpty(value) ?  null : String.valueOf(value);
