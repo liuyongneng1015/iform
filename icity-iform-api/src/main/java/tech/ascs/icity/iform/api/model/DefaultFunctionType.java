@@ -8,15 +8,15 @@ package tech.ascs.icity.iform.api.model;
  */
 public enum DefaultFunctionType {
 
-	Add("Add","新增"),
+	Add("add","新增"),
 
-	Import("Import","导入"),
+	Import("import","导入"),
 
-	Export("Export","导出"),
+	Export("export","导出"),
 
-	Delete("Delete","删除"),
+	Delete("delete","删除"),
 
-	QrCode("QrCode","二维码");
+	QrCode("QR-Code","二维码");
 
 	private String value;
 	private String desc;
