@@ -78,3 +78,8 @@ minio:
     key: icity.ascs.tech
   host: http://192.168.4.151:9000
   url: http://192.168.4.151:9000
+
+
+multipart:
+  maxFileSize: 10240Mb
+  maxRequestSize: 10240Mb
