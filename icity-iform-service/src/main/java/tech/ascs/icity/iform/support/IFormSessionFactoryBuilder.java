@@ -85,9 +85,9 @@ public class IFormSessionFactoryBuilder {
 	}
 
 	public String generateHibernateMapping(DataModelEntity dataModel) throws Exception {
-		if(dataModel.getSynchronized() == null || !dataModel.getSynchronized()){
+		/*if(dataModel.getSynchronized() == null || !dataModel.getSynchronized()){
 			throw new IFormException("数据模型【"+dataModel.getTableName()+"】未同步");
-		}
+		}*/
 		setReferenceDataModel(dataModel);
 		return generateHibernateMappingFreeMarker(dataModel);
 	}
