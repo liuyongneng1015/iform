@@ -432,13 +432,10 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 
 	@Override
 	public List<DictionaryItemModel> findItems(@PathVariable(name="id",required = true) String id, @PathVariable(name="itemId",required = true) String itemId) {
-		DictionaryEntity dictionaryEntity = dictionaryService.get(id);
+		DictionaryEntity dictionaryEntity = dictionaryService.find(id);
 		DictionaryItemEntity dictionaryItemEntity = dictionaryService.getDictionaryItemById(itemId);
-		if(dictionaryEntity == null){
-			throw new IFormException("未找到【" + id + "】对应的数据分类");
-		}
-		if(dictionaryItemEntity == null){
-			throw new IFormException("未找到【" + itemId + "】对应的数据字典项");
+		if(dictionaryEntity == null || dictionaryItemEntity == null) {
+			return new ArrayList<>();
 		}
 		List<DictionaryItemModel> dictionaryItemModels = new ArrayList<>();
 		if(dictionaryItemEntity != null && dictionaryItemEntity.getChildrenItem() != null && dictionaryItemEntity.getChildrenItem().size() > 0 ) {
