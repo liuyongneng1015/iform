@@ -10,13 +10,17 @@ public enum DefaultFunctionType {
 
 	Add("add","新增"),
 
+	Edit("edit", "编辑"),
+
 	Import("import","导入"),
 
 	Export("export","导出"),
 
 	Delete("delete","删除"),
 
-	QrCode("erweima","二维码");
+	QrCode("erweima","二维码"),
+
+	TempStore("TempStore", "暂存");
 
 	private String value;
 	private String desc;
