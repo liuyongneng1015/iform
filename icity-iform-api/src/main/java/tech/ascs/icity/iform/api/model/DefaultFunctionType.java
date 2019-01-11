@@ -16,7 +16,7 @@ public enum DefaultFunctionType {
 
 	Delete("delete","删除"),
 
-	QrCode("QR-Code","二维码");
+	QrCode("erweima","二维码");
 
 	private String value;
 	private String desc;

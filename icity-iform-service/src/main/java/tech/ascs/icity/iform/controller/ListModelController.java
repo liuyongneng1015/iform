@@ -92,7 +92,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 	}
 
 	// 新增列表的时候，自动创建新增、导出、导入、删除、二维码，为系统自带功能
-	private List<String> functionDefaultActions = Arrays.asList(new String[]{"add", "export", "import", "batchDelete", "QR-Code"});
+	private List<String> functionDefaultActions = Arrays.asList(new String[]{"add", "export", "import", "batchDelete", "erweima"});
 	private List<String> functionDefaultLabels  = Arrays.asList(new String[]{"新增", "导出", "导入", "删除", "二维码"});
 	private List<String> functionDefaultMethods = Arrays.asList(new String[]{"POST", "GET", "POST", "DELETE", "GET"});
 	@Override
