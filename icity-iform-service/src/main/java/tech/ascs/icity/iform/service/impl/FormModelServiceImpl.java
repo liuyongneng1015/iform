@@ -15,6 +15,10 @@ import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 import tech.ascs.icity.utils.BeanUtils;
 
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.JoinColumn;
+
 public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> implements FormModelService {
 
 	private JPAManager<ItemModelEntity> itemManager;
@@ -207,7 +211,10 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		}
 		if(!oldItemModelEntity.isNew()){
 			newItemModelEntity = oldMapItmes.get(oldItemModelEntity.getId());
+		}else{
+			createItempermissions(newItemModelEntity);
 		}
+
 
 		BeanUtils.copyProperties(oldItemModelEntity, newItemModelEntity, new String[]{"parentItem", "searchItems","sortItems","permissions", "referenceList","items","formModel","columnModel","activities","options"});
 
@@ -242,10 +249,33 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		return newItemModelEntity;
 	}
 
+	private void createItempermissions(ItemModelEntity itemModelEntity){
+		List<ItemPermissionInfo> list = new ArrayList<>();
+		list.add(createItempermissionInfo(itemModelEntity, DisplayTimingType.Add));
+		list.add(createItempermissionInfo(itemModelEntity, DisplayTimingType.Update));
+		itemModelEntity.setPermissions(list);
+	}
+
+	private ItemPermissionInfo createItempermissionInfo(ItemModelEntity itemModelEntity, DisplayTimingType displayTimingType){
+		ItemPermissionInfo itemPermissionInfo = new ItemPermissionInfo();
+		itemPermissionInfo.setItemModel(itemModelEntity);
+		//可见
+		itemPermissionInfo.setVisible(true);
+		//可填
+		itemPermissionInfo.setCanFill(false);
+		//必填
+		itemPermissionInfo.setRequired(false);
+		//显示时机 若为空标识所有时机都显示
+		itemPermissionInfo.setDisplayTiming(displayTimingType);
+		return itemPermissionInfo;
+	}
+
 	private ItemModelEntity  getNewSubFormRowItemModel(Map<String, ItemModelEntity> oldMapItmes, SubFormRowItemModelEntity oldItemModelEntity){
 		ItemModelEntity newItemModelEntity = new SubFormRowItemModelEntity();
 		if(!oldItemModelEntity.isNew()){
 			newItemModelEntity = oldMapItmes.get(oldItemModelEntity.getId());
+		}else{
+			createItempermissions(newItemModelEntity);
 		}
 		BeanUtils.copyProperties(oldItemModelEntity, newItemModelEntity, new String[]{"searchItems", "sortItems", "parentItem","referenceList","items","formModel","columnModel","activities","options"});
 		return newItemModelEntity;
@@ -255,6 +285,8 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		ItemModelEntity newItemModelEntity = new SubFormItemModelEntity();
 		if(!oldItemModelEntity.isNew()){
 			newItemModelEntity = itemManager.get(oldItemModelEntity.getId());
+		}else{
+			createItempermissions(newItemModelEntity);
 		}
 		BeanUtils.copyProperties(oldItemModelEntity, newItemModelEntity, new String[]{"searchItems", "sortItems", "referenceList","items","formModel","columnModel","activities","options"});
 		return newItemModelEntity;
@@ -731,7 +763,6 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 					permissionInfo.setItemModel(itemModelEntity);
 					itemModelEntity.getPermissions().add(permissionInfo);
 				}
-				permissionInfo.setFormModel(formModelEntity);
 				permissionInfos.add(permissionInfo);
 			}
             formModelEntity.setPermissions(permissionInfos);

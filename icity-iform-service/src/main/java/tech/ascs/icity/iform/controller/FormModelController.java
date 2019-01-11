@@ -500,9 +500,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		FormModelEntity entity = new FormModelEntity();
 		BeanUtils.copyProperties(formModel, entity, new String[] {"items","dataModels","permissions","submitChecks","functions"});
 
-		if(formModel.getAddPermissions() != null){
+		if(formModel.getPermissions() != null){
 			List<ItemPermissionInfo> permissionInfos = new ArrayList<>();
-			for(ItemPermissionModel model : formModel.getAddPermissions()){
+			for(ItemPermissionModel model : formModel.getPermissions()){
 				ItemPermissionInfo permissionInfo = new ItemPermissionInfo();
 				BeanUtils.copyProperties(model, permissionInfo, new String[]{"formModel" ,"itemModel"});
 				if(model.getItemModel() != null){
@@ -510,30 +510,11 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 					BeanUtils.copyProperties(model.getItemModel(), itemModelEntity, new String[]{"formModel", "columnModel", "activities", "options","searchItems","sortItems", "permissions","items","parentItem","referenceList"});
 					permissionInfo.setItemModel(itemModelEntity);
 				}
-				permissionInfo.setDisplayTiming(DisplayTimingType.Add.getValue());
-				permissionInfo.setFormModel(entity);
+				permissionInfo.setDisplayTiming(DisplayTimingType.Add);
 				permissionInfos.add(permissionInfo);
 			}
 			entity.getPermissions().addAll(permissionInfos);
 		}
-
-		if(formModel.getUpdatePermissions() != null){
-			List<ItemPermissionInfo> permissionInfos = new ArrayList<>();
-			for(ItemPermissionModel model : formModel.getUpdatePermissions()){
-				ItemPermissionInfo permissionInfo = new ItemPermissionInfo();
-				BeanUtils.copyProperties(model, permissionInfo, new String[]{"formModel" ,"itemModel"});
-				if(model.getItemModel() != null){
-					ItemModelEntity itemModelEntity = new ItemModelEntity();
-					BeanUtils.copyProperties(model.getItemModel(), itemModelEntity, new String[]{"formModel", "columnModel", "activities", "options","searchItems","sortItems", "permissions","items","parentItem","referenceList"});
-					permissionInfo.setItemModel(itemModelEntity);
-				}
-				permissionInfo.setDisplayTiming(DisplayTimingType.Update.getValue());
-				permissionInfo.setFormModel(entity);
-				permissionInfos.add(permissionInfo);
-			}
-			entity.getPermissions().addAll(permissionInfos);
-		}
-
 		return entity;
 	}
 
@@ -956,27 +937,25 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
         }
 
         if(entity.getPermissions() != null && entity.getPermissions().size() > 0){
-            List<ItemPermissionModel> addPermissionModels = new ArrayList<>();
-			List<ItemPermissionModel> updatePermissionModels = new ArrayList<>();
+            List<ItemPermissionModel> permissionModels = new ArrayList<>();
 			for(ItemPermissionInfo info : entity.getPermissions()){
                 ItemPermissionModel permissionModel = new ItemPermissionModel();
                 BeanUtils.copyProperties(info, permissionModel, new String[] {"formModel","itemModel"});
 				FormModel perimissionFormModel = new FormModel();
 				BeanUtils.copyProperties(entity, perimissionFormModel, new String[] {"items","process","dataModels","permissions","submitChecks","functions"});
-                permissionModel.setFormModel(perimissionFormModel);
                 if(info.getItemModel() != null){
                     ItemModel itemModel = new ItemModel();
                     BeanUtils.copyProperties(info.getItemModel(), itemModel, new String[] {"formModel","columnModel","defaultValue","activities","options","items","permissions","referenceList"});
                     permissionModel.setItemModel(itemModel);
                 }
-                if(DisplayTimingType.Add.getValue().equals(permissionModel.getDisplayTiming())){
+                /*if(DisplayTimingType.Add.getValue().equals(permissionModel.getDisplayTiming())){
 					addPermissionModels.add(permissionModel);
 				}else {
 					updatePermissionModels.add(permissionModel);
-				}
+				}*/
+				permissionModels.add(permissionModel);
             }
-            formModel.setAddPermissions(addPermissionModels.size() > 0 ? addPermissionModels : null);
-			formModel.setUpdatePermissions(updatePermissionModels.size() > 0 ? updatePermissionModels : null);
+            formModel.setPermissions(permissionModels.size() > 0 ? permissionModels : null);
         }
 
 		if(entity.getFunctions() != null && entity.getFunctions().size() > 0){

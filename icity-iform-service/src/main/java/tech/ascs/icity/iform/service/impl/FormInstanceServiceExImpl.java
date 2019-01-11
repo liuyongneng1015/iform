@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import net.minidev.json.JSONObject;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
@@ -527,14 +528,24 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
                 value = o == null || StringUtils.isEmpty(o) ? null : o;
             }
 		} else if (itemModel.getType() == ItemType.Media || itemModel.getType() == ItemType.Attachment) {
-			Object o = itemInstance.getValue();
+            JSONObject allJson = new JSONObject();
+            Object o = itemInstance.getValue();
 			if(o != null && o instanceof List){
 				List<FileUploadEntity> oldList = fileUploadManager.query().filterEqual("fromSource", itemModel.getId()).filterEqual("uploadType", FileUploadType.ItemModel).list();
 				Map<String, FileUploadEntity> map = new HashMap<>();
 				for(FileUploadEntity entity : oldList){
 					map.put(entity.getId(), entity);
 				}
-				List<FileUploadModel> list = (List<FileUploadModel>)o;
+                List<FileUploadModel> list = new ArrayList<>();
+
+				List<Map<String, Object>> maplist = (List<Map<String, Object>>)o;
+                for(Map<String, Object> mapStr : maplist){
+                    FileUploadModel fileUploadModel = new FileUploadModel();
+                    fileUploadModel.setUrl((String)mapStr.get("url"));
+                    fileUploadModel.setName((String)mapStr.get("name"));
+                    fileUploadModel.setId((String)mapStr.get("id"));
+                    list.add(fileUploadModel);
+                }
 				List<FileUploadEntity> newList = new ArrayList<>();
 				for(FileUploadModel fileUploadModel : list){
 					if(!fileUploadModel.isNew()){
