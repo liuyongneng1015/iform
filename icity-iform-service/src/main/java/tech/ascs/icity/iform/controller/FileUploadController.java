@@ -82,7 +82,12 @@ public class FileUploadController implements FileUploadService {
 				if (url != null) {
 					inputStream = url.openStream();
 					response.setContentType("application/force-download");// 设置强制下载不打开
-					response.addHeader("Content-Disposition", "attachment;fileName=" + (StringUtils.isNotBlank(name) ? name : fileUrl.substring(fileUrl.lastIndexOf("/")+1)));// 设置文件名
+					String end = fileUrl.substring(fileUrl.lastIndexOf(".")+1);
+					String filePath = StringUtils.isNotBlank(name) ? name : fileUrl.substring(fileUrl.lastIndexOf("/")+1);
+					if(!filePath.endsWith(end)){
+						filePath = filePath+"."+end;
+					}
+					response.addHeader("Content-Disposition", "attachment;fileName=" + filePath);// 设置文件名
 					byte[] buffer = new byte[2048];
 					BufferedInputStream bis = null;
 					try {
@@ -111,4 +116,5 @@ public class FileUploadController implements FileUploadService {
 		}
 		return "下载失败";
 	}
+
 }
