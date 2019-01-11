@@ -242,6 +242,10 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 		if(oldItemModelEntity.getColumnModel() != null && oldItemModelEntity.getColumnModel().getDataModel() != null){
 			ColumnModelEntity columnModelEntity = modelEntityMap.get(oldItemModelEntity.getColumnModel().getDataModel().getTableName()+"_"+oldItemModelEntity.getColumnModel().getColumnName());
+			if(newItemModelEntity.getType() == ItemType.Select || newItemModelEntity.getType() == ItemType.RadioGroup || newItemModelEntity.getType() == ItemType.CheckboxGroup){
+				columnModelEntity.setLength(256);
+				columnModelEntity.setDataType(ColumnType.Text);
+			}
 			newItemModelEntity.setColumnModel(columnModelEntity);
 		}else if(!"id".equals(newItemModelEntity.getName())){
 			newItemModelEntity.setColumnModel(null);

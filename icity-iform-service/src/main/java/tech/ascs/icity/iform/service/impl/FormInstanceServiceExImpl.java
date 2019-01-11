@@ -520,7 +520,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		} else if (itemModel.getType() == ItemType.Select) {
+		} else if (itemModel.getType() == ItemType.Select || itemModel.getType() == ItemType.RadioGroup || itemModel.getType() == ItemType.CheckboxGroup) {
             Object o = itemInstance.getValue();
             if(o != null && o instanceof List){
                 value = String.join(",", (List)o );
@@ -948,33 +948,13 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				itemInstance.setDisplayValue(DateFormatUtils.format(date,((TimeItemModelEntity)itemModel).getTimeFormat() == null ? "yyyy-MM-dd HH:mm:ss" : ((TimeItemModelEntity)itemModel).getTimeFormat()));
 				break;
 			case Select:
-			    String valueString = value == null || StringUtils.isEmpty(value) ?  null : String.valueOf(value);
-			    String[] values = valueString == null ?  null : valueString.split(",");
-                List<String> list = new ArrayList<>();
-                if(values != null){
-                    list = Arrays.asList(values);
-                }
-				itemInstance.setValue(list);
-				List<String> displayValuelist = new ArrayList<>();
-				if(((SelectItemModelEntity)itemModel).getSelectReferenceType() == SelectReferenceType.Dictionary && list != null && list.size() > 0){
-					List<DictionaryItemEntity> dictionaryItemEntities = dictionaryItemManager.query().filterIn("id",list).list();
-					if(dictionaryItemEntities != null) {
-						for (DictionaryItemEntity dictionaryItemEntity : dictionaryItemEntities) {
-							displayValuelist.add(dictionaryItemEntity.getName());
-						}
-					}
-					itemInstance.setDisplayValue(displayValuelist);
-				}else if(itemModel.getOptions() != null && itemModel.getOptions().size() > 0) {
-					for (ItemSelectOption option : itemModel.getOptions()) {
-						if (displayValuelist.contains(option.getId())) {
-                            displayValuelist.add(option.getLabel());
-						}
-					}
-                    itemInstance.setDisplayValue(displayValuelist);
-				}else {
-                    displayValuelist.add(valueString);
-                    itemInstance.setDisplayValue(displayValuelist);
-                }
+				setSelectItemValue(itemModel, itemInstance, value);
+				break;
+			case RadioGroup:
+				setSelectItemValue(itemModel, itemInstance, value);
+				break;
+			case CheckboxGroup:
+				setSelectItemValue(itemModel, itemInstance, value);
 				break;
 			case Media:
 				setFileItemInstance(value, itemInstance);
@@ -987,6 +967,38 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
                 itemInstance.setValue(value);
 				itemInstance.setDisplayValue(valueStr);
 				break;
+		}
+	}
+
+	private void setSelectItemValue(ItemModelEntity itemModel, ItemInstance itemInstance, Object value){
+		String valueString = value == null || StringUtils.isEmpty(value) ?  null : String.valueOf(value);
+		String[] values = valueString == null ?  null : valueString.split(",");
+		List<String> list = new ArrayList<>();
+		if(values != null){
+			list = Arrays.asList(values);
+		}
+		itemInstance.setValue(list);
+		List<String> displayValuelist = new ArrayList<>();
+		SelectItemModelEntity selectItemModelEntity = (SelectItemModelEntity)itemModel;
+		if((selectItemModelEntity.getSelectReferenceType() == SelectReferenceType.Dictionary || (selectItemModelEntity.getReferenceDictionaryItemId() != null && selectItemModelEntity.getReferenceDictionaryId() != null))
+				&& list != null && list.size() > 0){
+			List<DictionaryItemEntity> dictionaryItemEntities = dictionaryItemManager.query().filterIn("id",list).list();
+			if(dictionaryItemEntities != null) {
+				for (DictionaryItemEntity dictionaryItemEntity : dictionaryItemEntities) {
+					displayValuelist.add(dictionaryItemEntity.getName());
+				}
+			}
+			itemInstance.setDisplayValue(displayValuelist);
+		}else if(itemModel.getOptions() != null && itemModel.getOptions().size() > 0) {
+			for (ItemSelectOption option : itemModel.getOptions()) {
+				if (displayValuelist.contains(option.getId())) {
+					displayValuelist.add(option.getLabel());
+				}
+			}
+			itemInstance.setDisplayValue(displayValuelist);
+		}else {
+			displayValuelist.add(valueString);
+			itemInstance.setDisplayValue(displayValuelist);
 		}
 	}
 
