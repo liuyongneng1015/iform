@@ -92,7 +92,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 	}
 
 	// 新增列表的时候，自动创建新增、导出、导入、删除、二维码，为系统自带功能
-	private List<String> functionDefaultActions = Arrays.asList(new String[]{"add", "export", "import", "batchDelete", "QR-Code"});
+	private List<String> functionDefaultActions = Arrays.asList(new String[]{"add", "export", "import", "batchDelete", "erweima"});
 	private List<String> functionDefaultLabels  = Arrays.asList(new String[]{"新增", "导出", "导入", "删除", "二维码"});
 	private List<String> functionDefaultMethods = Arrays.asList(new String[]{"POST", "GET", "POST", "DELETE", "GET"});
 	@Override
@@ -348,6 +348,9 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			List<ListFunction> functions = new ArrayList<>();
 			int i = 0;
 			for (FunctionModel function : listModel.getFunctions()) {
+				if (function==null || StringUtils.isEmpty(function.getLabel()) || StringUtils.isEmpty(function.getAction())) {
+					throw new IFormException("功能按钮存在功能名或者功能编码为空");
+				}
 				ListFunction listFunction = new ListFunction() ;
 				BeanUtils.copyProperties(function, listFunction, new String[]{"listModel"});
 				listFunction.setListModel(entity);
@@ -361,6 +364,9 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		    List<QuickSearchEntity> quickSearches = new ArrayList<>();
             int i = 0;
 		    for (QuickSearchItem searchItem : listModel.getQuickSearchItems()) {
+		    	if (searchItem==null || StringUtils.isEmpty(searchItem.getName())) {
+					throw new IFormException("快速筛选有导航名为空");
+				}
                 QuickSearchEntity quickSearchEntity = new QuickSearchEntity();
 				ItemModel itemModel = searchItem.getItemModel();
                 if(itemModel != null && !StringUtils.isEmpty(itemModel.getId())) {
@@ -394,7 +400,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			throw new IFormException("名称重复了");
 		}
 
-		List<String> idList = list.parallelStream().map(ListModelEntity::getId).collect(Collectors.toList());
+		List<String> idList = list.parallelStream().map(item->item.getId()).collect(Collectors.toList());
 		if(StringUtils.hasText(listModel.getId()) && !idList.contains(listModel.getId())){
 			throw new IFormException("列表名重复了");
 		}

@@ -104,10 +104,11 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 		if (StringUtils.isBlank(itemId)) {
 			return null;
 		}
-		DictionaryItemEntity item = dictionaryItemManager.get(itemId);
-		if (item == null) {
+		DictionaryItemEntity item = dictionaryItemManager.find(itemId);
+		/* if (item == null) {
 			throw new IFormException("未找到对应的数据字典【" + itemId + "】");
 		}
+		*/
 		return item;
 	}
 
