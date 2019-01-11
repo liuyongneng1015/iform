@@ -11,6 +11,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.transaction.annotation.Transactional;
 
+import tech.ascs.icity.ICityException;
 import tech.ascs.icity.admin.client.ResourceService;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
@@ -77,20 +78,7 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 			ListModelEntity old = get(entity.getId()) ;
 			BeanUtils.copyProperties(entity, old, new String[] {"masterForm", "slaverForms", "sortItems", "searchItems", "functions", "displayItems", "quickSearchItems"});
 
-            if(entity.getMasterForm() != null && !entity.getMasterForm().isNew()){
-                old.setMasterForm(formModelService.get(entity.getMasterForm().getId()));
-            }
-
-            if(entity.getSlaverForms() != null){
-                List<FormModelEntity> list = new ArrayList<>();
-                for(FormModelEntity formModelEntity : entity.getSlaverForms()) {
-                    if(!formModelEntity.isNew()) {
-                        list.add(formModelService.get(entity.getMasterForm().getId()));
-                    }
-                }
-                old.getSlaverForms().clear();
-                old.setSlaverForms(list);
-            }
+			setFormModel(entity);
 
 			List<ItemModelEntity> oldItemModelEntities = old.getDisplayItems();
 			Map<String, ItemModelEntity> oldItemMap = new HashMap<>();
@@ -100,11 +88,10 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 			List<ItemModelEntity> itemModels = new ArrayList<ItemModelEntity>();
 			if(entity.getDisplayItems() != null){
 				for (ItemModelEntity itemModel : entity.getDisplayItems()) {
-					if(itemModel.isNew()){
-						continue;
+					if(!itemModel.isNew()){
+						ItemModelEntity itemModelEntity = itemModelService.find(itemModel.getId());
+						itemModels.add(itemModelEntity);
 					}
-					ItemModelEntity itemModelEntity = itemModelService.find(itemModel.getId());
-					itemModels.add(itemModelEntity);
 				}
 			}
 			old.getDisplayItems().clear();
@@ -139,7 +126,7 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 				for (ListSortItem sortItem : entity.getSortItems()) {
 					ListSortItem sortItemEntity =  sortItem.isNew() ? new ListSortItem() : oldSortMap.remove(sortItem.getId());
 					sortItemEntity.setListModel(old);
-					sortItemEntity.setItemModel(sortItem.getItemModel() == null || sortItem.getItemModel().isNew() ? null : itemModelService.get(sortItem.getItemModel().getId()));
+					sortItemEntity.setItemModel(sortItem.getItemModel() == null || sortItem.getItemModel().isNew() ? null : itemModelService.find(sortItem.getItemModel().getId()));
 					sortItemEntity.setAsc(sortItem.isAsc());
 					// 排序字段过滤掉ID组件
 					ItemModelEntity itemModelEntity = sortItemEntity.getItemModel();
@@ -167,7 +154,7 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 								continue;
 							}
 						}
-						searchItemEntity.setItemModel(itemModelService.get(searchItem.getItemModel().getId()));
+						searchItemEntity.setItemModel(itemModelService.find(searchItem.getItemModel().getId()));
 					}
 					searchItemEntity.setListModel(old);
 					if (searchItem.getSearch() == null) {
@@ -185,7 +172,7 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 				List<ListFunction> functions = new ArrayList<>();
 				for (ListFunction function : entity.getFunctions()) {
 					ListFunction listFunction = function.isNew() ? new ListFunction() : oldFunctionMap.get(function.getId());
-					BeanUtils.copyProperties(function, listFunction, new String[]{"listModel"});
+					BeanUtils.copyProperties(function, listFunction, new String[]{"listModel", "listModel"});
 					listFunction.setListModel(old);
 					functions.add(listFunction);
 				}
@@ -214,37 +201,28 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 
 	private  void setFormModel(ListModelEntity entity){
         if(entity.getMasterForm() != null && !entity.getMasterForm().isNew()){
-            entity.setMasterForm(formModelService.get(entity.getMasterForm().getId()));
+			FormModelEntity formModelEntity = formModelService.find(entity.getMasterForm().getId());
+			if (formModelEntity == null) {
+				throw new ICityException("id为"+entity.getMasterForm().getId()+"主表单已被删除");
+			}
+			entity.setMasterForm(formModelEntity);
         }
 
         if(entity.getSlaverForms() != null){
             List<FormModelEntity> list = new ArrayList<>();
             for(FormModelEntity formModelEntity : entity.getSlaverForms()) {
                 if(!formModelEntity.isNew()) {
-                    list.add(formModelService.get(entity.getMasterForm().getId()));
+					FormModelEntity formModel = formModelService.find(entity.getMasterForm().getId());
+					if (formModel==null) {
+						throw new ICityException("id为"+entity.getMasterForm().getId()+"子表单已被删除");
+					}
+                    list.add(formModel);
                 }
             }
             entity.getSlaverForms().clear();
             entity.setSlaverForms(list);
         }
     }
-
-	@Override
-	public List<ListModel> findListModelsByTableName(String tableName) {
-		try {
-
-			List<String> idlist = jdbcTemplate.query("select l.id from ifm_form_data_bind fd,ifm_list_model l,ifm_data_model d where fd.data_model=d.id and d.table_name ='"+tableName+"' and fd.form_model=l.master_form",
-													(rs, rowNum) -> rs.getString("id"));
-			List<ListModelEntity> listModelEntities = query().filterIn("id",idlist).list();
-			List<ListModel> list = new ArrayList<>();
-			for(ListModelEntity listModelEntity : listModelEntities){
-				list.add(BeanUtils.copy(listModelEntity, ListModel.class, new String[]{"displayItems","searchItems","functions","sortItems","slaverForms","masterForm"}));
-			}
-			return list;
-		} catch (Exception e) {
-			throw new IFormException("获取列表模型列表失败：" + e.getMessage(), e);
-		}
-	}
 
 	@Override
 	public void deleteSort(String id) {
@@ -271,6 +249,23 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 			list.add(listModel);
 		}
 		return list;
+	}
+
+	@Override
+	public List<ListModel> findListModelsByTableName(String tableName) {
+		try {
+
+			List<String> idlist = jdbcTemplate.query("select l.id from ifm_form_data_bind fd,ifm_list_model l,ifm_data_model d where fd.data_model=d.id and d.table_name ='"+tableName+"' and fd.form_model=l.master_form",
+					(rs, rowNum) -> rs.getString("id"));
+			List<ListModelEntity> listModelEntities = query().filterIn("id",idlist).list();
+			List<ListModel> list = new ArrayList<>();
+			for(ListModelEntity listModelEntity : listModelEntities){
+				list.add(BeanUtils.copy(listModelEntity, ListModel.class, new String[]{"displayItems","searchItems","functions","sortItems","slaverForms","masterForm"}));
+			}
+			return list;
+		} catch (Exception e) {
+			throw new IFormException("获取列表模型列表失败：" + e.getMessage(), e);
+		}
 	}
 
 	@Override
