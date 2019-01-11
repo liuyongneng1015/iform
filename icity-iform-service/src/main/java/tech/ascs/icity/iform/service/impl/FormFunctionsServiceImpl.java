@@ -44,7 +44,8 @@ public class FormFunctionsServiceImpl extends DefaultJPAService<ListFunction> im
 
 	@Override
 	public void createDefaultFormFunctions(FormModelEntity formModelEntity) {
-		DefaultFunctionType[] list = DefaultFunctionType.values();
+		// 表单创建时，默认创建的权限码：编辑，删除，二维码，暂存
+		DefaultFunctionType[] list = {DefaultFunctionType.Edit, DefaultFunctionType.Delete, DefaultFunctionType.QrCode, DefaultFunctionType.TempStore};
 		for(int i = 0; i < formModelEntity.getFunctions().size() ; i++){
 			ListFunction listFunction = formModelEntity.getFunctions().get(i);
 			formModelEntity.getFunctions().remove(listFunction);
