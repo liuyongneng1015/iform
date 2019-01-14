@@ -1,6 +1,6 @@
 package tech.ascs.icity.iform.service;
 
-import tech.ascs.icity.iform.api.model.ItemBtnPermission;
+import tech.ascs.icity.iform.api.model.BtnPermission;
 import tech.ascs.icity.iform.api.model.ListModel;
 import tech.ascs.icity.iform.model.FormModelEntity;
 import tech.ascs.icity.iform.model.ListModelEntity;
@@ -38,10 +38,10 @@ public interface ListModelService extends JPAService<ListModelEntity> {
     void checkListModelCanDelete(String id);
 
     // 获取列表的按钮权限
-    ItemBtnPermission findListBtnPermission(ListModelEntity entity);
+    List<BtnPermission> findListBtnPermission(ListModelEntity entity);
 
     // 获取表单的按钮功能
-    ItemBtnPermission findFormBtnPermission(FormModelEntity entity);
+    List<BtnPermission> findFormBtnPermission(FormModelEntity entity);
 
     // 提交列表的按钮功能的权限给admin服务
     void submitListBtnPermission(ListModelEntity entity);
