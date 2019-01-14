@@ -43,6 +43,9 @@ public class PCFormModel extends NameEntity {
 	@ApiModelProperty(value = "表单字段列表", position = 5)
 	private List<ItemModel> items = new ArrayList<ItemModel>();
 
+	@ApiModelProperty(value = "控件权限", position = 5)
+	private List<ItemPermissionModel> permissions = new ArrayList<ItemPermissionModel>();
+
 	@ApiModelProperty(value = "应用id", position = 6)
 	private String applicationId;
 
@@ -76,6 +79,14 @@ public class PCFormModel extends NameEntity {
 
 	public void setItems(List<ItemModel> items) {
 		this.items = items;
+	}
+
+	public List<ItemPermissionModel> getPermissions() {
+		return permissions;
+	}
+
+	public void setPermissions(List<ItemPermissionModel> permissions) {
+		this.permissions = permissions;
 	}
 
 	public String getApplicationId() {

@@ -33,9 +33,6 @@ public class SerialNumberItemModel extends ItemModel {
 	@ApiModelProperty(value = "选项配置", position = 18)
 	private List<Option> options;
 
-	@ApiModelProperty(value="新增控件权限",position = 31)
-	private List<ItemPermissionModel>  permissions;
-
 	@ApiModelProperty(value="时间类型",position = 31)
 	private String  timeFormat;
 
@@ -205,16 +202,6 @@ public class SerialNumberItemModel extends ItemModel {
 	@Override
 	public void setOptions(List<Option> options) {
 		this.options = options;
-	}
-
-	@Override
-	public List<ItemPermissionModel> getPermissions() {
-		return permissions;
-	}
-
-	@Override
-	public void setPermissions(List<ItemPermissionModel> permissions) {
-		this.permissions = permissions;
 	}
 
 	@Override

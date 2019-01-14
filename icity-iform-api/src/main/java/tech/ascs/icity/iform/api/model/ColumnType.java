@@ -20,6 +20,9 @@ public enum ColumnType implements Serializable {
 
 	String("String"),//字符串
 
+
+	Text("Text"),//文本类型
+
 	Date("Date"),//日期
 
 	Time("Time"),//时间

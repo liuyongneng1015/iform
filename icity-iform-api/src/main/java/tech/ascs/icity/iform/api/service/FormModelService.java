@@ -135,20 +135,6 @@ public interface FormModelService {
 	@GetMapping("/data_mark")
 	FormModel getByItemModelId(@RequestParam(name="itemModelId") String itemModelId);
 
-
-	/**
-	 * 保存表单控件权限
-	 *
-	 * @param id 表单模型ID
-	 * @param formModel 表单模型
-	 */
-	@ApiOperation(value = "保存表单控件权限", position = 3)
-	@ApiImplicitParams({
-			@ApiImplicitParam(paramType = "path", name = "id", value = "表单模型ID", required = true, dataType = "String")
-	})
-	@PutMapping(value = "/permission/{id}", consumes = {MediaType.APPLICATION_JSON_UTF8_VALUE})
-	void saveFormModelPermission(@PathVariable(name="id") String id, @RequestBody FormModel formModel);
-
 	/**
 	 * 保存表单提交校验
 	 *
@@ -162,19 +148,6 @@ public interface FormModelService {
 	@PutMapping(value = "/submit_check/{id}", consumes = {MediaType.APPLICATION_JSON_UTF8_VALUE})
 	void saveFormModelSubmitCheck(@PathVariable(name="id") String id, @RequestBody FormModel formModel);
 
-
-	/**
-	 * 保存表单提交校验
-	 *
-	 * @param id 表单模型ID
-	 * @param formModel 表单模型
-	 */
-	@ApiOperation(value = "保存表单功能按钮", position = 3)
-	@ApiImplicitParams({
-			@ApiImplicitParam(paramType = "path", name = "id", value = "表单模型ID", required = true, dataType = "String")
-	})
-	@PutMapping(value = "/function/{id}", consumes = {MediaType.APPLICATION_JSON_UTF8_VALUE})
-	void saveFormModelFunctions(@PathVariable(name="id") String id, @RequestBody FormModel formModel);
 
 	/**
 	 * 应用表单模型

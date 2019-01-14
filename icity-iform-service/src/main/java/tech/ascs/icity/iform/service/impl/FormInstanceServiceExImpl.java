@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import net.minidev.json.JSONObject;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
@@ -519,7 +520,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		} else if (itemModel.getType() == ItemType.Select) {
+		} else if (itemModel.getType() == ItemType.Select || itemModel.getType() == ItemType.RadioGroup || itemModel.getType() == ItemType.CheckboxGroup) {
             Object o = itemInstance.getValue();
             if(o != null && o instanceof List){
                 value = String.join(",", (List)o );
@@ -527,14 +528,25 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
                 value = o == null || StringUtils.isEmpty(o) ? null : o;
             }
 		} else if (itemModel.getType() == ItemType.Media || itemModel.getType() == ItemType.Attachment) {
-			Object o = itemInstance.getValue();
+            JSONObject allJson = new JSONObject();
+            Object o = itemInstance.getValue();
 			if(o != null && o instanceof List){
 				List<FileUploadEntity> oldList = fileUploadManager.query().filterEqual("fromSource", itemModel.getId()).filterEqual("uploadType", FileUploadType.ItemModel).list();
 				Map<String, FileUploadEntity> map = new HashMap<>();
 				for(FileUploadEntity entity : oldList){
 					map.put(entity.getId(), entity);
 				}
-				List<FileUploadModel> list = (List<FileUploadModel>)o;
+                List<FileUploadModel> list = new ArrayList<>();
+
+				List<Map<String, Object>> maplist = (List<Map<String, Object>>)o;
+                for(Map<String, Object> mapStr : maplist){
+                    FileUploadModel fileUploadModel = new FileUploadModel();
+                    fileUploadModel.setUrl((String)mapStr.get("url"));
+					fileUploadModel.setFileKey((String)mapStr.get("fileKey"));
+                    fileUploadModel.setName((String)mapStr.get("name"));
+                    fileUploadModel.setId((String)mapStr.get("id"));
+                    list.add(fileUploadModel);
+                }
 				List<FileUploadEntity> newList = new ArrayList<>();
 				for(FileUploadModel fileUploadModel : list){
 					if(!fileUploadModel.isNew()){
@@ -937,33 +949,13 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				itemInstance.setDisplayValue(DateFormatUtils.format(date,((TimeItemModelEntity)itemModel).getTimeFormat() == null ? "yyyy-MM-dd HH:mm:ss" : ((TimeItemModelEntity)itemModel).getTimeFormat()));
 				break;
 			case Select:
-			    String valueString = value == null || StringUtils.isEmpty(value) ?  null : String.valueOf(value);
-			    String[] values = valueString == null ?  null : valueString.split(",");
-                List<String> list = new ArrayList<>();
-                if(values != null){
-                    list = Arrays.asList(values);
-                }
-				itemInstance.setValue(list);
-				List<String> displayValuelist = new ArrayList<>();
-				if(((SelectItemModelEntity)itemModel).getSelectReferenceType() == SelectReferenceType.Dictionary && list != null && list.size() > 0){
-					List<DictionaryItemEntity> dictionaryItemEntities = dictionaryItemManager.query().filterIn("id",list).list();
-					if(dictionaryItemEntities != null) {
-						for (DictionaryItemEntity dictionaryItemEntity : dictionaryItemEntities) {
-							displayValuelist.add(dictionaryItemEntity.getName());
-						}
-					}
-					itemInstance.setDisplayValue(displayValuelist);
-				}else if(itemModel.getOptions() != null && itemModel.getOptions().size() > 0) {
-					for (ItemSelectOption option : itemModel.getOptions()) {
-						if (displayValuelist.contains(option.getId())) {
-                            displayValuelist.add(option.getLabel());
-						}
-					}
-                    itemInstance.setDisplayValue(displayValuelist);
-				}else {
-                    displayValuelist.add(valueString);
-                    itemInstance.setDisplayValue(displayValuelist);
-                }
+				setSelectItemValue(itemModel, itemInstance, value);
+				break;
+			case RadioGroup:
+				setSelectItemValue(itemModel, itemInstance, value);
+				break;
+			case CheckboxGroup:
+				setSelectItemValue(itemModel, itemInstance, value);
 				break;
 			case Media:
 				setFileItemInstance(value, itemInstance);
@@ -979,6 +971,38 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 	}
 
+	private void setSelectItemValue(ItemModelEntity itemModel, ItemInstance itemInstance, Object value){
+		String valueString = value == null || StringUtils.isEmpty(value) ?  null : String.valueOf(value);
+		String[] values = valueString == null ?  null : valueString.split(",");
+		List<String> list = new ArrayList<>();
+		if(values != null){
+			list = Arrays.asList(values);
+		}
+		itemInstance.setValue(list);
+		List<String> displayValuelist = new ArrayList<>();
+		SelectItemModelEntity selectItemModelEntity = (SelectItemModelEntity)itemModel;
+		if((selectItemModelEntity.getSelectReferenceType() == SelectReferenceType.Dictionary || (selectItemModelEntity.getReferenceDictionaryItemId() != null && selectItemModelEntity.getReferenceDictionaryId() != null))
+				&& list != null && list.size() > 0){
+			List<DictionaryItemEntity> dictionaryItemEntities = dictionaryItemManager.query().filterIn("id",list).list();
+			if(dictionaryItemEntities != null) {
+				for (DictionaryItemEntity dictionaryItemEntity : dictionaryItemEntities) {
+					displayValuelist.add(dictionaryItemEntity.getName());
+				}
+			}
+			itemInstance.setDisplayValue(displayValuelist);
+		}else if(itemModel.getOptions() != null && itemModel.getOptions().size() > 0) {
+			for (ItemSelectOption option : itemModel.getOptions()) {
+				if (displayValuelist.contains(option.getId())) {
+					displayValuelist.add(option.getLabel());
+				}
+			}
+			itemInstance.setDisplayValue(displayValuelist);
+		}else {
+			displayValuelist.add(valueString);
+			itemInstance.setDisplayValue(displayValuelist);
+		}
+	}
+
 	private void setFileItemInstance(Object value, ItemInstance itemInstance){
 		String valueStr = value == null || StringUtils.isEmpty(value) ?  null : String.valueOf(value);
 		if(valueStr != null) {
@@ -988,7 +1012,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			for(FileUploadEntity entity : entityList){
 				FileUploadModel fileUploadModel = new FileUploadModel();
 				BeanUtils.copyProperties(entity, fileUploadModel);
-				fileUploadModel.setUrl(uploadService.getFileUrl(entity.getFileKey()));
+				fileUploadModel.setUrl(StringUtils.hasText(entity.getFileKey()) ? uploadService.getFileUrl(entity.getFileKey()) : entity.getUrl());
 				listModels.add(fileUploadModel);
 			}
 			itemInstance.setValue(listModels);

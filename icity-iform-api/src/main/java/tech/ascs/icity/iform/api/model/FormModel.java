@@ -47,11 +47,8 @@ public class FormModel extends NameEntity {
 	@ApiModelProperty(value = "应用id", position = 6)
 	private String applicationId;
 
-    @ApiModelProperty(value = "新增时控件权限", position = 7)
-    private List<ItemPermissionModel> addPermissions = new ArrayList<ItemPermissionModel>();
-
-	@ApiModelProperty(value = "编辑时控件权限", position = 7)
-	private List<ItemPermissionModel> updatePermissions = new ArrayList<ItemPermissionModel>();
+	@ApiModelProperty(value = "控件权限", position = 7)
+	private List<ItemPermissionModel> permissions = new ArrayList<ItemPermissionModel>();
 
     @ApiModelProperty(value = "表单提交校验", position = 8)
     private List<FormSubmitCheckModel> submitChecks = new ArrayList<FormSubmitCheckModel>();
@@ -99,20 +96,12 @@ public class FormModel extends NameEntity {
 		this.applicationId = applicationId;
 	}
 
-	public List<ItemPermissionModel> getAddPermissions() {
-		return addPermissions;
+	public List<ItemPermissionModel> getPermissions() {
+		return permissions;
 	}
 
-	public void setAddPermissions(List<ItemPermissionModel> addPermissions) {
-		this.addPermissions = addPermissions;
-	}
-
-	public List<ItemPermissionModel> getUpdatePermissions() {
-		return updatePermissions;
-	}
-
-	public void setUpdatePermissions(List<ItemPermissionModel> updatePermissions) {
-		this.updatePermissions = updatePermissions;
+	public void setPermissions(List<ItemPermissionModel> permissions) {
+		this.permissions = permissions;
 	}
 
 	public List<FormSubmitCheckModel> getSubmitChecks() {

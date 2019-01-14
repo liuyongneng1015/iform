@@ -58,7 +58,7 @@ public class ItemModelEntity extends  BaseEntity implements Serializable {
 	private List<ListSortItem> sortItems = new ArrayList<ListSortItem>();
 
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "itemModel")
-	private List<ItemPermissionInfo> permissions = new ArrayList<>();
+	private List<ItemPermissionInfo> permissions = new ArrayList<ItemPermissionInfo>();
 
 	@JoinColumn(name="system_item_type")//系统控件类型
 	@Enumerated(EnumType.STRING)

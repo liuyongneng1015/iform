@@ -18,7 +18,7 @@ public class FileUploadModel extends NameEntity {
 	private String url;
 
 	@ApiModelProperty(value = "文件上传类型", position = 6)
-	private FileUploadType uploadType;
+	private FileUploadType uploadType = FileUploadType.ItemModel;
 
 	public String getFileKey() {
 		return fileKey;

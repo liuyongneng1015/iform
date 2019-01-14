@@ -24,10 +24,10 @@ public class ColumnModel extends NameEntity {
 	private String description;
 
 	@ApiModelProperty(value = "字段类型", position = 4)
-    private ColumnType dataType;
+    private ColumnType dataType = ColumnType.String;
 
     @ApiModelProperty(value = "字段长度", position = 5)
-	private Integer length;
+	private Integer length = 256;
 
     @ApiModelProperty(value = "精度", position = 6)
     private Integer precision;
@@ -36,7 +36,7 @@ public class ColumnModel extends NameEntity {
     private Integer scale;
 
     @ApiModelProperty(value = "不允许为空", position = 8)
-	private Boolean notNull;
+	private Boolean notNull = false;
 
     @ApiModelProperty(value = "是否主键", position = 9)
 	private Boolean key;
@@ -75,6 +75,9 @@ public class ColumnModel extends NameEntity {
 	}
 
 	public ColumnType getDataType() {
+		if(dataType == null){
+			dataType = ColumnType.String;
+		}
 		return dataType;
 	}
 

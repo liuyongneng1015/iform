@@ -118,7 +118,7 @@ public class ItemModel extends NameEntity {
 	private Boolean  selectFlag = false;
 
 	@ApiModelProperty(value="新增控件权限",position = 31)
-	private List<ItemPermissionModel>  permissions;
+	private ItemPermissionModel  permissions;
 
 	@ApiModelProperty(value="前缀业务标识",position = 32)
 	private String prefix;
@@ -340,11 +340,11 @@ public class ItemModel extends NameEntity {
 		this.referenceItemId = referenceItemId;
 	}
 
-	public List<ItemPermissionModel> getPermissions() {
+	public ItemPermissionModel getPermissions() {
 		return permissions;
 	}
 
-	public void setPermissions(List<ItemPermissionModel> permissions) {
+	public void setPermissions(ItemPermissionModel permissions) {
 		this.permissions = permissions;
 	}
 

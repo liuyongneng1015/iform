@@ -1,5 +1,6 @@
 package tech.ascs.icity.iform.model;
 
+import tech.ascs.icity.iform.api.model.DisplayTimingType;
 import tech.ascs.icity.jpa.dao.model.JPAEntity;
 
 import javax.persistence.*;
@@ -15,10 +16,6 @@ public class ItemPermissionInfo extends JPAEntity implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@ManyToOne(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH })
-	@JoinColumn(name="form_id")
-	private FormModelEntity formModel;
-
-	@ManyToOne(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH })
 	@JoinColumn(name="item_id")
 	private ItemModelEntity itemModel;
 
@@ -31,17 +28,10 @@ public class ItemPermissionInfo extends JPAEntity implements Serializable {
 	//必填
 	private Boolean required = false;
 
-	//显示时机(新增：add, 编辑：update)
-	private String displayTiming;
-
-
-	public FormModelEntity getFormModel() {
-		return formModel;
-	}
-
-	public void setFormModel(FormModelEntity formModel) {
-		this.formModel = formModel;
-	}
+	//显示时机 若为空标识所有时机都显示
+	@JoinColumn(name="display_timing_type")
+	@Enumerated(EnumType.STRING)
+	private DisplayTimingType displayTiming;
 
 	public ItemModelEntity getItemModel() {
 		return itemModel;
@@ -75,11 +65,11 @@ public class ItemPermissionInfo extends JPAEntity implements Serializable {
 		this.required = required;
 	}
 
-	public String getDisplayTiming() {
+	public DisplayTimingType getDisplayTiming() {
 		return displayTiming;
 	}
 
-	public void setDisplayTiming(String displayTiming) {
+	public void setDisplayTiming(DisplayTimingType displayTiming) {
 		this.displayTiming = displayTiming;
 	}
 }
