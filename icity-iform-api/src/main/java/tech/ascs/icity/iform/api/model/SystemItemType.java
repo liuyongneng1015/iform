@@ -96,6 +96,8 @@ public enum SystemItemType {
 			list.add(ColumnType.Double);
 		}else{
 			list.add(ColumnType.String);
+			list.add(ColumnType.Text);
+			list.add(ColumnType.Boolean);
 		}
 		return list;
 
