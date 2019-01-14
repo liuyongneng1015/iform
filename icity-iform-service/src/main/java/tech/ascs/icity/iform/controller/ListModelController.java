@@ -191,6 +191,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		ListModelEntity entity = listModelService.find(id);
 		ListFormBtnPermission listFormBtnPermission = new ListFormBtnPermission();
 		if (entity!=null) {
+			listFormBtnPermission.setListId(id);
 			listFormBtnPermission.setListPermissions(listModelService.findListBtnPermission(entity));
 			FormModelEntity formModel = entity.getMasterForm();
 			if (formModel!=null) {
