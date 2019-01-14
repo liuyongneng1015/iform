@@ -625,7 +625,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
             }
         }
         oldEntity.setDataModels(newAddDataModel);
-        FormModelEntity formModelEntity = this.doSave(oldEntity,dataModelUpdateNeeded(oldEntity));
+        FormModelEntity formModelEntity = this.doSave(oldEntity, dataModelUpdateNeeded(oldEntity));
 		if(newFlag){
 			//创建默认的表单功能
 			formFunctionsService.createDefaultFormFunctions(formModelEntity);
