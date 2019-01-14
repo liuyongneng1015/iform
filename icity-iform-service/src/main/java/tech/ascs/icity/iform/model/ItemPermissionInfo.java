@@ -16,10 +16,6 @@ public class ItemPermissionInfo extends JPAEntity implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@ManyToOne(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH })
-	@JoinColumn(name="form_id")
-	private FormModelEntity formModel;
-
-	@ManyToOne(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH })
 	@JoinColumn(name="item_id")
 	private ItemModelEntity itemModel;
 
@@ -36,14 +32,6 @@ public class ItemPermissionInfo extends JPAEntity implements Serializable {
 	@JoinColumn(name="display_timing_type")
 	@Enumerated(EnumType.STRING)
 	private DisplayTimingType displayTiming;
-
-	public FormModelEntity getFormModel() {
-		return formModel;
-	}
-
-	public void setFormModel(FormModelEntity formModel) {
-		this.formModel = formModel;
-	}
 
 	public ItemModelEntity getItemModel() {
 		return itemModel;

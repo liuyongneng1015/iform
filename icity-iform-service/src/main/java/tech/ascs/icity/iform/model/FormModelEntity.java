@@ -37,9 +37,6 @@ public class FormModelEntity extends BaseEntity implements Serializable {
 	private List<ItemModelEntity> items = new ArrayList<ItemModelEntity>();
 
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "formModel")
-	private List<ItemPermissionInfo> permissions = new ArrayList<ItemPermissionInfo>();
-
-	@OneToMany(cascade = CascadeType.ALL, mappedBy = "formModel")
 	private List<FormSubmitCheckInfo> submitChecks = new ArrayList<FormSubmitCheckInfo>();
 
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "formModel")
@@ -84,14 +81,6 @@ public class FormModelEntity extends BaseEntity implements Serializable {
 
 	public void setItems(List<ItemModelEntity> items) {
 		this.items = items;
-	}
-
-	public List<ItemPermissionInfo> getPermissions() {
-		return permissions;
-	}
-
-	public void setPermissions(List<ItemPermissionInfo> permissions) {
-		this.permissions = permissions;
 	}
 
 	public List<FormSubmitCheckInfo> getSubmitChecks() {
