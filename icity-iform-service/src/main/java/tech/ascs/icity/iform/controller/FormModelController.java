@@ -844,7 +844,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	//控件权限
 	private void setItemPermissions(ItemPermissionModel itemPermissionModel, Map<String, ItemModelEntity> itemModelEntityMap){
 		List<ItemPermissionInfo> itemPermissionInfos = new ArrayList<>();
-		ItemModelEntity entity = itemModelEntityMap.get(itemModelEntityMap.get(itemPermissionModel.getItemModel().getTableName()+"_"+itemPermissionModel.getItemModel().getColumnName()));
+		ItemModelEntity entity = itemModelEntityMap.get(itemPermissionModel.getItemModel().getTableName()+"_"+itemPermissionModel.getItemModel().getColumnName());
 		if(entity == null){
 			return;
 		}
