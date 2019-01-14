@@ -5,13 +5,14 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.util.StringUtils;
 import tech.ascs.icity.ICityException;
+import tech.ascs.icity.admin.api.model.ListFormIds;
 import tech.ascs.icity.admin.client.ResourceService;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
@@ -304,7 +305,7 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 	@Override
 	public List<ListModel> findListModelsByItemModelIds(List<String> itemModelIds) {
 		try {
-			String itemIds = StringUtils.join(itemModelIds, "','");
+			String itemIds = org.apache.commons.lang3.StringUtils.join(itemModelIds, "','");
 			List<String> idlist = jdbcTemplate.query("select t.list_id from ifm_list_display_item t where t.item_id in ('"+itemIds+"')",
 					new RowMapper<String>() {
 						@Override
@@ -359,67 +360,62 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 	}
 
 	@Override
-	public ItemBtnPermission findListBtnPermission(ListModelEntity entity) {
+	public List<BtnPermission> findListBtnPermission(ListModelEntity entity) {
 		return assemblyBtnPermissions(entity, null);
 	}
 
 	@Override
-	public ItemBtnPermission findFormBtnPermission(FormModelEntity entity) {
+	public List<BtnPermission> findFormBtnPermission(FormModelEntity entity) {
 		return assemblyBtnPermissions(null, entity);
 	}
 
-	public ItemBtnPermission assemblyBtnPermissions(ListModelEntity listModel, FormModelEntity formModel) {
+	public List<BtnPermission> assemblyBtnPermissions(ListModelEntity listModel, FormModelEntity formModel) {
 		List<ListFunction> listFunctions = null;
-		String id, suffix = null;
-		ItemBtnPermission listPermission = new ItemBtnPermission();
+		String suffix = null;
+		List<BtnPermission> btnPermissions = new ArrayList<>();
 		if (listModel!=null) {
 			listFunctions = listModel.getFunctions();
-			id = listModel.getId();
 			suffix = "(列表)";
 		} else if (formModel!=null) {
 			listFunctions = formModel.getFunctions();
-			id = formModel.getId();
 			suffix = "(表单)";
 		} else {
 			return null;
 		}
 		if (listFunctions.size()>0) {
-			List<ItemBtnPermission.Permission> permissions = new ArrayList<>();
+			List<BtnPermission> permissions = new ArrayList<>();
 			for (ListFunction function:listFunctions) {
 				if (function.getAction()!=null && function.getLabel()!=null) {
-					ItemBtnPermission.Permission permission = new ItemBtnPermission.Permission();
+					BtnPermission permission = new BtnPermission();
 					permission.setId(function.getId());
 					permission.setCode(function.getAction());
 					permission.setName(function.getLabel() + suffix);
 					permissions.add(permission);
 				}
 			}
-			listPermission.setId(id);
-			listPermission.setPermissions(permissions);
-			return listPermission;
+
 		}
-		return listPermission;
+		return btnPermissions;
 	}
 
 	@Override
 	public void submitListBtnPermission(ListModelEntity entity) {
-		ItemBtnPermission itemBtnPermission = assemblyBtnPermissions(entity, null);
-		if (itemBtnPermission!=null) {
+		List<BtnPermission> btnPermission = assemblyBtnPermissions(entity, null);
+		if (btnPermission !=null) {
 			ListFormBtnPermission listFormBtnPermission = new ListFormBtnPermission();
-			listFormBtnPermission.setListPermissions(itemBtnPermission);
+			listFormBtnPermission.setListPermissions(btnPermission);
 			tech.ascs.icity.admin.api.model.ListFormBtnPermission adminListFormBtnPermission = new tech.ascs.icity.admin.api.model.ListFormBtnPermission();
 			BeanUtils.copyProperties(listFormBtnPermission, adminListFormBtnPermission);
 			resourceService.editListFormPermissions(adminListFormBtnPermission);
 		}
-
 	}
 
 	@Override
 	public void submitFormBtnPermission(FormModelEntity entity) {
-		ItemBtnPermission itemBtnPermission = assemblyBtnPermissions(null, entity);
-		if (itemBtnPermission!=null) {
+		List<BtnPermission> btnPermission = assemblyBtnPermissions(null, entity);
+		if (btnPermission !=null) {
 			ListFormBtnPermission listFormBtnPermission = new ListFormBtnPermission();
-			listFormBtnPermission.setFormPermissions(itemBtnPermission);
+			listFormBtnPermission.setFormPermissions(btnPermission);
 			tech.ascs.icity.admin.api.model.ListFormBtnPermission adminListFormBtnPermission = new tech.ascs.icity.admin.api.model.ListFormBtnPermission();
 			BeanUtils.copyProperties(listFormBtnPermission, adminListFormBtnPermission);
 			resourceService.editListFormPermissions(adminListFormBtnPermission);
@@ -429,12 +425,20 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 	@Override
 	public void deleteListBtnPermission(String listId) {
 		// resourceService.deleteListFormPermissions(String listId,String formId);
-		resourceService.deleteListFormPermissions(listId, null);
+		if (!StringUtils.isEmpty(listId)) {
+			ListFormIds listFormIds = new ListFormIds();
+			listFormIds.setListIds(Arrays.asList(listId));
+			resourceService.deleteListFormPermissions(listFormIds);
+		}
 	}
 
 	@Override
 	public void deleteFormBtnPermission(String formId) {
 		// resourceService.deleteListFormPermissions(String listId,String formId);
-		resourceService.deleteListFormPermissions(null, formId);
+		if (!StringUtils.isEmpty(formId)) {
+			ListFormIds listFormIds = new ListFormIds();
+			listFormIds.setListIds(Arrays.asList(formId));
+			resourceService.deleteListFormPermissions(listFormIds);
+		}
 	}
 }
