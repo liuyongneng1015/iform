@@ -19,6 +19,8 @@ public class FormFunctionsServiceImpl extends DefaultJPAService<ListFunction> im
 
 	private JPAManager<ListFunction> listFunctionJPAManager;
 
+	private JPAManager<FormModelEntity> formModelEntityJPAManager;
+
 	@Autowired
 	private FormModelService formModelService;
 
@@ -30,6 +32,7 @@ public class FormFunctionsServiceImpl extends DefaultJPAService<ListFunction> im
 	protected void initManager() {
 		super.initManager();
 		listFunctionJPAManager = getJPAManagerFactory().getJPAManager(ListFunction.class);
+		formModelEntityJPAManager = getJPAManagerFactory().getJPAManager(FormModelEntity.class);
 	}
 
 
@@ -62,6 +65,6 @@ public class FormFunctionsServiceImpl extends DefaultJPAService<ListFunction> im
 			listFunctions.add(listFunction);
 		}
 		formModelEntity.setFunctions(listFunctions);
-		formModelService.save(formModelEntity);
+		formModelEntityJPAManager.save(formModelEntity);
 	}
 }

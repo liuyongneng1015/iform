@@ -625,7 +625,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
             }
         }
         oldEntity.setDataModels(newAddDataModel);
-        FormModelEntity formModelEntity = this.doSave(oldEntity,dataModelUpdateNeeded(oldEntity));
+        FormModelEntity formModelEntity = this.doSave(oldEntity, dataModelUpdateNeeded(oldEntity));
 		if(newFlag){
 			//创建默认的表单功能
 			formFunctionsService.createDefaultFormFunctions(formModelEntity);
@@ -826,7 +826,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		List<ListFunction> newFunctions= oldEntity.getFunctions();
 		if(newFunctions != null){
 			List<ListFunction> submitFunctions = new ArrayList<>();
-			for(ListFunction function : submitFunctions){
+			for(ListFunction function : newFunctions){
 				ListFunction listFunction = null;
 				boolean isNew = function.isNew();
 				if(!isNew){
@@ -840,9 +840,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 					listFunction.setOrderNo(orderNo == null ? 1 : orderNo + 1);
 				}
 				listFunction.setFormModel(formModelEntity);
-				newFunctions.add(listFunction);
+				submitFunctions.add(listFunction);
+				formModelEntity.setFunctions(submitFunctions);
 			}
-			formModelEntity.setFunctions(newFunctions);
 		}
 		for(String key : oldMap.keySet()){
 			formFunctionsService.deleteById(key);
