@@ -380,9 +380,9 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 			listFunctions = formModel.getFunctions();
 			suffix = "(表单)";
 		} else {
-			return null;
+			return new ArrayList<>();
 		}
-		if (listFunctions.size()>0) {
+		if (listFunctions!=null && listFunctions.size()>0) {
 			List<BtnPermission> permissions = new ArrayList<>();
 			for (ListFunction function:listFunctions) {
 				if (function.getAction()!=null && function.getLabel()!=null) {
@@ -393,7 +393,6 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 					permissions.add(permission);
 				}
 			}
-
 		}
 		return btnPermissions;
 	}
@@ -402,22 +401,24 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 	public void submitListBtnPermission(ListModelEntity entity) {
 		List<BtnPermission> btnPermission = assemblyBtnPermissions(entity, null);
 		if (btnPermission !=null) {
-//			ListFormBtnPermission listFormBtnPermission = new ListFormBtnPermission();
-//			listFormBtnPermission.setListPermissions(btnPermission);
-//			tech.ascs.icity.admin.api.model.ListFormBtnPermission adminListFormBtnPermission = new tech.ascs.icity.admin.api.model.ListFormBtnPermission();
-//			BeanUtils.copyProperties(listFormBtnPermission, adminListFormBtnPermission);
+			ListFormBtnPermission listFormBtnPermission = new ListFormBtnPermission();
+			listFormBtnPermission.setListId(entity.getId());
+			listFormBtnPermission.setListPermissions(btnPermission);
+			tech.ascs.icity.admin.api.model.ListFormBtnPermission adminListFormBtnPermission = new tech.ascs.icity.admin.api.model.ListFormBtnPermission();
+			BeanUtils.copyProperties(listFormBtnPermission, adminListFormBtnPermission);
 //			resourceService.editListFormPermissions(adminListFormBtnPermission);
 		}
 	}
 
 	@Override
 	public void submitFormBtnPermission(FormModelEntity entity) {
-		List<BtnPermission> btnPermission = assemblyBtnPermissions(null, entity);
-		if (btnPermission !=null) {
-//			ListFormBtnPermission listFormBtnPermission = new ListFormBtnPermission();
-//			listFormBtnPermission.setFormPermissions(btnPermission);
-//			tech.ascs.icity.admin.api.model.ListFormBtnPermission adminListFormBtnPermission = new tech.ascs.icity.admin.api.model.ListFormBtnPermission();
-//			BeanUtils.copyProperties(listFormBtnPermission, adminListFormBtnPermission);
+		List<BtnPermission> listPermissions = assemblyBtnPermissions(null, entity);
+		if (listPermissions !=null) {
+			ListFormBtnPermission listFormBtnPermission = new ListFormBtnPermission();
+			listFormBtnPermission.setFormId(entity.getId());
+			listFormBtnPermission.setFormPermissions(listPermissions);
+			tech.ascs.icity.admin.api.model.ListFormBtnPermission adminListFormBtnPermission = new tech.ascs.icity.admin.api.model.ListFormBtnPermission();
+			BeanUtils.copyProperties(listFormBtnPermission, adminListFormBtnPermission);
 //			resourceService.editListFormPermissions(adminListFormBtnPermission);
 		}
 	}
@@ -426,8 +427,8 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 	public void deleteListBtnPermission(String listId) {
 		// resourceService.deleteListFormPermissions(String listId,String formId);
 		if (!StringUtils.isEmpty(listId)) {
-//			ListFormIds listFormIds = new ListFormIds();
-//			listFormIds.setListIds(Arrays.asList(listId));
+			ListFormIds listFormIds = new ListFormIds();
+			listFormIds.setListIds(Arrays.asList(listId));
 //			resourceService.deleteListFormPermissions(listFormIds);
 		}
 	}
@@ -436,8 +437,8 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 	public void deleteFormBtnPermission(String formId) {
 		// resourceService.deleteListFormPermissions(String listId,String formId);
 		if (!StringUtils.isEmpty(formId)) {
-//			ListFormIds listFormIds = new ListFormIds();
-//			listFormIds.setListIds(Arrays.asList(formId));
+			ListFormIds listFormIds = new ListFormIds();
+			listFormIds.setListIds(Arrays.asList(formId));
 //			resourceService.deleteListFormPermissions(listFormIds);
 		}
 	}

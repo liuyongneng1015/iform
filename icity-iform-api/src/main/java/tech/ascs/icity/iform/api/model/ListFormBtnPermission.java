@@ -2,6 +2,7 @@ package tech.ascs.icity.iform.api.model;
 
 import io.swagger.annotations.ApiModelProperty;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -13,9 +14,9 @@ public class ListFormBtnPermission {
     @ApiModelProperty(value = "表单ID", position = 2)
     private String formId;
     @ApiModelProperty(value = "列表按钮权限", position = 3)
-    private List<BtnPermission> listPermissions;
+    private List<BtnPermission> listPermissions = new ArrayList<>();
     @ApiModelProperty(value = "表单按钮权限", position = 4)
-    private List<BtnPermission> formPermissions;
+    private List<BtnPermission> formPermissions = new ArrayList<>();
 
     public ListFormBtnPermission() { }
 
