@@ -96,6 +96,9 @@ public class ColumnModelEntity extends BaseEntity implements Serializable {
 	}
 
 	public Integer getLength() {
+		if(length == null){
+			length = 255;
+		}
 		return length;
 	}
 

@@ -27,7 +27,7 @@ public class ColumnModel extends NameEntity {
     private ColumnType dataType = ColumnType.String;
 
     @ApiModelProperty(value = "字段长度", position = 5)
-	private Integer length = 256;
+	private Integer length = 255;
 
     @ApiModelProperty(value = "精度", position = 6)
     private Integer precision;

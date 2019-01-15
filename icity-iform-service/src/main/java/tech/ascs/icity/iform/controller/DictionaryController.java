@@ -440,21 +440,19 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 		List<DictionaryItemModel> dictionaryItemModels = new ArrayList<>();
 		if(dictionaryItemEntity != null && dictionaryItemEntity.getChildrenItem() != null && dictionaryItemEntity.getChildrenItem().size() > 0 ) {
 			for(DictionaryItemEntity itemEntity : dictionaryItemEntity.getChildrenItem()) {
-				if(itemEntity.getParentItem() != null || ("root").equals(itemEntity.getParentItem().getCode())){
-					if(itemEntity.getDictionary() != null && !itemEntity.getDictionary().getId().equals(id)){
+				if(itemEntity.getParentItem() != null && ("root").equals(itemEntity.getParentItem().getCode())){
+					//根节点
+					if(itemEntity.getDictionary() == null || (itemEntity.getDictionary() != null && !itemEntity.getDictionary().getId().equals(id))){
 						continue;
 					}
 				}
 				DictionaryItemModel dictionaryItemModel = new DictionaryItemModel();
 				tech.ascs.icity.utils.BeanUtils.copyProperties(itemEntity, dictionaryItemModel, new String[]{"dictionary", "paraentItem", "childrenItem"});
-
-				if(itemEntity.getDictionary() != null){
+				if(itemEntity.getDictionary() != null) {
 					dictionaryItemModel.setDictionaryId(itemEntity.getDictionary().getId());
 				}
+				dictionaryItemModel.setParentId(itemId);
 
-				if(itemEntity.getParentItem() != null){
-					dictionaryItemModel.setParentId(itemEntity.getParentItem().getId());
-				}
 				dictionaryItemModels.add(dictionaryItemModel);
 			}
 		}
