@@ -92,8 +92,9 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 	}
 
 	// 新增列表的时候，自动创建新增、导出、导入、删除、二维码，为系统自带功能
-	private List<String> functionDefaultActions = Arrays.asList(new String[]{"add", "export", "import", "batchDelete", "erweima"});
-	private List<String> functionDefaultLabels  = Arrays.asList(new String[]{"新增", "导出", "导入", "删除", "二维码"});
+	private DefaultFunctionType[] functionDefaultActions = {DefaultFunctionType.Add, DefaultFunctionType.Export,
+															DefaultFunctionType.Import, DefaultFunctionType.BatchDelete, DefaultFunctionType.QrCode};
+	private List<String> functionDefaultLabels  = Arrays.asList(new String[]{"新增", "导出", "导入", "批量删除", "二维码"});
 	private List<String> functionDefaultMethods = Arrays.asList(new String[]{"POST", "GET", "POST", "DELETE", "GET"});
 	@Override
 	public IdEntity createListModel(@RequestBody ListModel ListModel) {
@@ -107,9 +108,9 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			ListModelEntity entity = wrap(ListModel);
 			// 创建默认的功能按钮
 			List<ListFunction> functions = new ArrayList<>();
-			for (int i = 0; i < functionDefaultActions.size(); i++) {
+			for (int i = 0; i < functionDefaultActions.length; i++) {
 				ListFunction function = new ListFunction();
-				function.setAction(functionDefaultActions.get(i));
+				function.setAction(functionDefaultActions[i].getValue());
 				function.setLabel(functionDefaultLabels.get(i));
 				function.setMethod(functionDefaultMethods.get(i));
                 function.setVisible(true);
@@ -139,7 +140,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			ListModelEntity entity = wrap(ListModel);
 			listModelService.save(entity);
 		} catch (Exception e) {
-			throw new IFormException("保存列表模型列表失败：" + e.getMessage(), e);
+		    throw new IFormException("保存列表模型列表失败：" + e.getMessage(), e);
 		}
 	}
 
@@ -158,8 +159,8 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			throw new IFormException("校验功能按钮的功能名能为空和同名");
 		}
 		// 校验默认的功能按钮是否被删除
-		for (int i = 0; i < functionDefaultActions.size(); i++) {
-			String action = functionDefaultActions.get(i);
+		for (int i = 0; i < functionDefaultActions.length; i++) {
+			String action = functionDefaultActions[i].getValue();
 			String label = functionDefaultLabels.get(i);
 			Optional<FunctionModel> optional = functions.stream().filter(item->!StringUtils.isEmpty(item.getId()) &&
 																				action.equals(item.getAction()) &&
@@ -195,6 +196,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			listFormBtnPermission.setListPermissions(listModelService.findListBtnPermission(entity));
 			FormModelEntity formModel = entity.getMasterForm();
 			if (formModel!=null) {
+                listFormBtnPermission.setFormId(formModel.getId());
 				listFormBtnPermission.setFormPermissions(listModelService.findFormBtnPermission(formModel));
 			}
 		}

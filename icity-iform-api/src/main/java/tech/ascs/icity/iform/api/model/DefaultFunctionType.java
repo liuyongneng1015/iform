@@ -20,7 +20,9 @@ public enum DefaultFunctionType {
 
 	QrCode("erweima","二维码"),
 
-	TempStore("TempStore", "暂存");
+	TempStore("tempStore", "暂存"),
+
+	BatchDelete("batchDelete", "批量删除");
 
 	private String value;
 	private String desc;
