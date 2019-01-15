@@ -304,11 +304,11 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 					BeanUtils.copyProperties(itemPermissionInfo, newItemPermiss, new String[]{"itemModel"});
 					newItemPermiss.setItemModel(saveItemModelEntity);
 				}
-				saveItemModelEntity.setPermissions(list);
 				for(String key: oldItemPermission.keySet()){
 					itemPermissionManager.deleteById(key);
 				}
 			}
+			saveItemModelEntity.setPermissions(list);
 		}
 	}
 
