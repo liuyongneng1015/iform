@@ -862,6 +862,14 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			itemUpdatePermissionInfo.setItemModel(entity);
 			itemPermissionInfos.add(itemUpdatePermissionInfo);
 		}
+
+		if(itemPermissionModel.getCheckPermissions() != null){
+			ItemPermissionInfo itemCheckPermissionInfo = new ItemPermissionInfo();
+			BeanUtils.copyProperties(itemPermissionModel.getCheckPermissions(), itemCheckPermissionInfo, new String[]{"itemModel"});
+			itemCheckPermissionInfo.setDisplayTiming(DisplayTimingType.Check);
+			itemCheckPermissionInfo.setItemModel(entity);
+			itemPermissionInfos.add(itemCheckPermissionInfo);
+		}
 		entity.setPermissions(itemPermissionInfos);
 
 	}
@@ -1018,8 +1026,10 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 					BeanUtils.copyProperties(itemPermissionInfo, itemPermissionInfoModel, new String[]{"itemModel"});
 					if(itemPermissionInfo.getDisplayTiming() == DisplayTimingType.Add) {
 						itemPermissionModel.setAddPermissions(itemPermissionInfoModel);
-					}else{
+					}else if(itemPermissionInfo.getDisplayTiming() == DisplayTimingType.Update){
 						itemPermissionModel.setUpdatePermissions(itemPermissionInfoModel);
+					}else {
+						itemPermissionModel.setCheckPermissions(itemPermissionInfoModel);
 					}
 				}
 				itemPermissionsList.add(itemPermissionModel);
@@ -1261,7 +1271,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		if (entity.getOptions().size() > 0) {
 			List<Option> options = new ArrayList<Option>();
 			for (ItemSelectOption optionEntity : entity.getOptions()) {
-				options.add(new Option(optionEntity.getId(), optionEntity.getLabel(), optionEntity.getValue()));
+				options.add(new Option(optionEntity.getId(), optionEntity.getLabel(), optionEntity.getValue(), optionEntity.getDefaultFlag()));
 			}
 			itemModel.setOptions(options);
 		}

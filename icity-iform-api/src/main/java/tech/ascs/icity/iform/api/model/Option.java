@@ -14,10 +14,11 @@ public class Option implements Serializable {
 	public Option() {
 		super();
 	}
-	public Option(String id, String label, String value) {
+	public Option(String id, String label, String value, Boolean defaultFlag) {
 		this.id = id;
 		this.label = label;
 		this.value = value;
+		this.defaultFlag = defaultFlag;
 	}
 	@ApiModelProperty(value = "选择id", position = 1)
 	private String id;

@@ -20,6 +20,9 @@ public class ItemPermissionModel extends NameEntity {
 	@ApiModelProperty(value = "编辑时控件权限", position = 7)
 	private ItemPermissionInfoModel updatePermissions;
 
+	@ApiModelProperty(value = "查看时控件权限", position = 7)
+	private ItemPermissionInfoModel checkPermissions;
+
 
 	public ItemModel getItemModel() {
 		return itemModel;
@@ -43,6 +46,14 @@ public class ItemPermissionModel extends NameEntity {
 
 	public void setUpdatePermissions(ItemPermissionInfoModel updatePermissions) {
 		this.updatePermissions = updatePermissions;
+	}
+
+	public ItemPermissionInfoModel getCheckPermissions() {
+		return checkPermissions;
+	}
+
+	public void setCheckPermissions(ItemPermissionInfoModel checkPermissions) {
+		this.checkPermissions = checkPermissions;
 	}
 
 	@Override
