@@ -173,7 +173,7 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 				List<ListFunction> functions = new ArrayList<>();
 				for (ListFunction function : entity.getFunctions()) {
 					ListFunction listFunction = function.isNew() ? new ListFunction() : oldFunctionMap.get(function.getId());
-					BeanUtils.copyProperties(function, listFunction, new String[]{"listModel", "listModel"});
+					BeanUtils.copyProperties(function, listFunction, new String[]{"listModel", "formModel"});
 					listFunction.setListModel(old);
 					functions.add(listFunction);
 				}
@@ -193,7 +193,10 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 				}
 				old.setQuickSearchItems(quickSearches);
 			}
-			return doUpdate(old, oldSortMap.keySet(), oldSearchItemMap.keySet(), oldFunctionMap.keySet(), oldQuickSearchMap.keySet());
+			ListModelEntity returnEntity = doUpdate(old, oldSortMap.keySet(), oldSearchItemMap.keySet(), oldFunctionMap.keySet(), oldQuickSearchMap.keySet());
+			// 给admin服务提交按钮权限
+			submitListBtnPermission(returnEntity);
+			return returnEntity;
 		} else {
             setFormModel(entity);
             return super.save(entity);
@@ -383,14 +386,13 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 			return new ArrayList<>();
 		}
 		if (listFunctions!=null && listFunctions.size()>0) {
-			List<BtnPermission> permissions = new ArrayList<>();
 			for (ListFunction function:listFunctions) {
 				if (function.getAction()!=null && function.getLabel()!=null) {
 					BtnPermission permission = new BtnPermission();
 					permission.setId(function.getId());
 					permission.setCode(function.getAction());
 					permission.setName(function.getLabel() + suffix);
-					permissions.add(permission);
+					btnPermissions.add(permission);
 				}
 			}
 		}
@@ -406,7 +408,7 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 			listFormBtnPermission.setListPermissions(btnPermission);
 			tech.ascs.icity.admin.api.model.ListFormBtnPermission adminListFormBtnPermission = new tech.ascs.icity.admin.api.model.ListFormBtnPermission();
 			BeanUtils.copyProperties(listFormBtnPermission, adminListFormBtnPermission);
-//			resourceService.editListFormPermissions(adminListFormBtnPermission);
+			resourceService.editListFormPermissions(adminListFormBtnPermission);
 		}
 	}
 
@@ -419,7 +421,7 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 			listFormBtnPermission.setFormPermissions(listPermissions);
 			tech.ascs.icity.admin.api.model.ListFormBtnPermission adminListFormBtnPermission = new tech.ascs.icity.admin.api.model.ListFormBtnPermission();
 			BeanUtils.copyProperties(listFormBtnPermission, adminListFormBtnPermission);
-//			resourceService.editListFormPermissions(adminListFormBtnPermission);
+			resourceService.editListFormPermissions(adminListFormBtnPermission);
 		}
 	}
 
@@ -429,7 +431,7 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 		if (!StringUtils.isEmpty(listId)) {
 			ListFormIds listFormIds = new ListFormIds();
 			listFormIds.setListIds(Arrays.asList(listId));
-//			resourceService.deleteListFormPermissions(listFormIds);
+			resourceService.deleteListFormPermissions(listFormIds);
 		}
 	}
 
@@ -439,7 +441,7 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 		if (!StringUtils.isEmpty(formId)) {
 			ListFormIds listFormIds = new ListFormIds();
 			listFormIds.setListIds(Arrays.asList(formId));
-//			resourceService.deleteListFormPermissions(listFormIds);
+			resourceService.deleteListFormPermissions(listFormIds);
 		}
 	}
 }
