@@ -3,6 +3,7 @@ package tech.ascs.icity.iform.controller;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.googlecode.genericdao.search.Sort;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -53,7 +54,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			if (StringUtils.hasText(applicationId)) {
 				query.filterEqual("applicationId", applicationId);
 			}
-			List<ListModelEntity> entities = query.list();
+			List<ListModelEntity> entities = query.sort(Sort.desc("id")).list();
 			return toDTO(entities);
 		} catch (Exception e) {
 			throw new IFormException("获取列表模型列表失败：" + e.getMessage(), e);
@@ -71,7 +72,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			if (StringUtils.hasText(applicationId)) {
 				query.filterEqual("applicationId", applicationId);
 			}
-			Page<ListModelEntity> entities = query.page(page, pagesize).page();
+			Page<ListModelEntity> entities = query.sort(Sort.desc("id")).page(page, pagesize).page();
 			return toDTO(entities);
 		} catch (Exception e) {
 			throw new IFormException("获取列表模型列表失败：" + e.getMessage(), e);
