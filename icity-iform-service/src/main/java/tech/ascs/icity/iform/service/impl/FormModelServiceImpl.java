@@ -322,7 +322,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			flag = null;
 		}
 		//可填
-		itemPermissionInfo.setCanFill(flag);
+		itemPermissionInfo.setCanFill(true);
 		//必填
 		itemPermissionInfo.setRequired(flag);
 
