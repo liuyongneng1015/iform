@@ -39,7 +39,7 @@ public class ListModel extends NameEntity {
 	private String description;
 
 	@ApiModelProperty(value = "是否支持多选", position = 3)
-	private boolean multiSelect = false;
+	private boolean multiSelect = true;
 
 	@ApiModelProperty(value = "主表单模型", position = 4)
 	private FormModel masterForm;
