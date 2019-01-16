@@ -286,6 +286,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		return saveItemModelEntity;
 	}
 
+	//设备表单权限
 	private void saveItempermissions(ItemModelEntity saveItemModelEntity, ItemModelEntity paramerItemModelEntity){
 		if(saveItemModelEntity.getColumnModel() != null && !"id".equals(saveItemModelEntity.getColumnModel().getColumnName())
 				&& !"master_id".equals(saveItemModelEntity.getColumnModel().getColumnName())) {
@@ -303,6 +304,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 					ItemPermissionInfo newItemPermiss = itemPermissionInfo.isNew() ? new ItemPermissionInfo() : oldItemPermission.remove(itemPermissionInfo.getId());
 					BeanUtils.copyProperties(itemPermissionInfo, newItemPermiss, new String[]{"itemModel"});
 					newItemPermiss.setItemModel(saveItemModelEntity);
+					list.add(newItemPermiss);
 				}
 				for(String key: oldItemPermission.keySet()){
 					itemPermissionManager.deleteById(key);
@@ -336,7 +338,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		if(!oldItemModelEntity.isNew()){
 			newItemModelEntity = oldMapItmes.get(oldItemModelEntity.getId());
 		}
-		BeanUtils.copyProperties(oldItemModelEntity, newItemModelEntity, new String[]{"searchItems", "sortItems", "parentItem","referenceList","items","formModel","columnModel","activities","options"});
+		BeanUtils.copyProperties(oldItemModelEntity, newItemModelEntity, new String[]{"permissions","searchItems", "sortItems", "parentItem","referenceList","items","formModel","columnModel","activities","options"});
 		return newItemModelEntity;
 	}
 
@@ -346,7 +348,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			newItemModelEntity = itemManager.get(oldItemModelEntity.getId());
 		}
 
-		BeanUtils.copyProperties(oldItemModelEntity, newItemModelEntity, new String[]{"searchItems", "sortItems", "referenceList","items","formModel","columnModel","activities","options"});
+		BeanUtils.copyProperties(oldItemModelEntity, newItemModelEntity, new String[]{"permissions","searchItems", "sortItems", "referenceList","items","formModel","columnModel","activities","options"});
 		return newItemModelEntity;
 	}
 
@@ -442,10 +444,10 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 	}
 
 	//获取item子item
-	private ItemModelEntity getNewItemModelEntity(Map<String, ItemModelEntity> oldMapItmes, Map<String, ColumnModelEntity> modelEntityMap, ItemModelEntity oldItemModelEntity){
-		ItemModelEntity newModelEntity = getNewItemModel(oldMapItmes, modelEntityMap, oldItemModelEntity);
-		if(oldItemModelEntity instanceof RowItemModelEntity){
-			RowItemModelEntity rowItemModelEntity = (RowItemModelEntity)oldItemModelEntity;
+	private ItemModelEntity getNewItemModelEntity(Map<String, ItemModelEntity> oldMapItmes, Map<String, ColumnModelEntity> modelEntityMap, ItemModelEntity paramerItemModelEntity){
+		ItemModelEntity newModelEntity = getNewItemModel(oldMapItmes, modelEntityMap, paramerItemModelEntity);
+		if(paramerItemModelEntity instanceof RowItemModelEntity){
+			RowItemModelEntity rowItemModelEntity = (RowItemModelEntity)paramerItemModelEntity;
 			List<ItemModelEntity> rowItems = new ArrayList<ItemModelEntity>();
 			for(int i = 0; i < rowItemModelEntity.getItems().size() ; i++) {
 				ItemModelEntity rowItem = rowItemModelEntity.getItems().get(i);
@@ -458,9 +460,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			}
 			rowItemModelEntity.setItems(rowItems);
 			((RowItemModelEntity)newModelEntity).setItems(rowItems);
-		}else if(oldItemModelEntity instanceof SubFormItemModelEntity){
+		}else if(paramerItemModelEntity instanceof SubFormItemModelEntity){
 			List<SubFormRowItemModelEntity> subFormItems = new ArrayList<>();
-			SubFormItemModelEntity subFormItemModel  = (SubFormItemModelEntity)oldItemModelEntity;
+			SubFormItemModelEntity subFormItemModel  = (SubFormItemModelEntity)paramerItemModelEntity;
 			for (int i = 0; i < subFormItemModel.getItems().size() ; i++) {
 				SubFormRowItemModelEntity subFormRowItemModelEntity = subFormItemModel.getItems().get(i);
 				SubFormRowItemModelEntity subFormRowItemModel  = (SubFormRowItemModelEntity)getNewSubFormRowItemModel(oldMapItmes, subFormRowItemModelEntity);
@@ -477,7 +479,6 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				subFormRowItemModel.setItems(rowItems);
 				subFormItems.add(subFormRowItemModel);
 			}
-			subFormItemModel.setItems(subFormItems);
 			((SubFormItemModelEntity)newModelEntity).setItems(subFormItems);
 		}
 		return newModelEntity;
@@ -795,40 +796,32 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		return formModelEntity;
 	}
 
-	@Override
 	//设置表单功能
-	public FormModelEntity saveFormModelFunctions(FormModelEntity formModelEntity, FormModelEntity oldEntity) {
+	private void saveFormModelFunctions(FormModelEntity formModelEntity, FormModelEntity paramerEntity) {
 
 		Map<String, ListFunction> oldMap = new HashMap<>();
-		List<ListFunction> oldFunctions = formModelEntity.getFunctions();
-		for(ListFunction function : oldFunctions){
+		for(ListFunction function : formModelEntity.getFunctions()){
 			oldMap.put(function.getId(), function);
 		}
-		List<ListFunction> newFunctions= oldEntity.getFunctions();
+		List<ListFunction> newFunctions= paramerEntity.getFunctions();
 		if(newFunctions != null){
 			List<ListFunction> submitFunctions = new ArrayList<>();
 			for(ListFunction function : newFunctions){
-				ListFunction listFunction = null;
 				boolean isNew = function.isNew();
-				if(!isNew){
-					listFunction = oldMap.remove(function.getId());
-				}else{
-					listFunction = new ListFunction() ;
-				}
-				BeanUtils.copyProperties(function, listFunction, new String[]{"formModel"});
+				ListFunction listFunction = isNew ? new ListFunction() : oldMap.remove(function.getId());
+				BeanUtils.copyProperties(function, listFunction, new String[]{"listModel", "formModel"});
 				if(isNew){
 					Integer orderNo = formFunctionsService.getMaxOrderNo();
 					listFunction.setOrderNo(orderNo == null ? 1 : orderNo + 1);
 				}
 				listFunction.setFormModel(formModelEntity);
 				submitFunctions.add(listFunction);
-				formModelEntity.setFunctions(submitFunctions);
 			}
+			formModelEntity.setFunctions(submitFunctions);
 		}
 		for(String key : oldMap.keySet()){
 			formFunctionsService.deleteById(key);
 		}
-		return formModelEntity;
 	}
 
 	//设置旧的item参数
