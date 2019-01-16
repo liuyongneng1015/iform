@@ -148,4 +148,17 @@ public interface FormInstanceService {
 	@DeleteMapping("/{formId}/{id}")
 	void removeFormInstance(@PathVariable(name="formId") String formId, @PathVariable(name="id") String id);
 
+
+	/**
+	 * 批量删除表单实例
+	 *
+	 * @param formId 表单模型ID
+	 */
+	@ApiOperation(value = "批量删除表单实例", position = 6)
+	@ApiImplicitParams({
+		@ApiImplicitParam(paramType = "path", name = "formId", value = "表单模型ID", required = true, dataType = "String")
+	})
+	@DeleteMapping("/{formId}/batchDelete")
+	void removeFormInstance(@PathVariable(name="formId") String formId, @RequestBody List<String> ids);
+
 }
