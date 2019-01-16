@@ -69,7 +69,10 @@ public enum SystemItemType {
 	/** 子表自定义（组合控件） */
 	RowItem("RowItem"),
 	/** 主表自定义（组合控件） */
-	Row("Row");
+	Row("Row"),
+	/** 富文本控件 */
+	Editor("Editor");
+
 	private String value;
 	private SystemItemType(String value) {
 		this.value= value;
