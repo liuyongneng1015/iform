@@ -1026,7 +1026,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			itemInstance.setDisplayValue(displayValuelist);
 		}else if(itemModel.getOptions() != null && itemModel.getOptions().size() > 0) {
 			for (ItemSelectOption option : itemModel.getOptions()) {
-				if (displayValuelist.contains(option.getId())) {
+				if (list.contains(option.getId())) {
 					displayValuelist.add(option.getLabel());
 				}
 			}
