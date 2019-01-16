@@ -11,6 +11,8 @@ import tech.ascs.icity.model.Page;
 
 public interface FormInstanceService extends JPAService<FormModelEntity> {
 
+	String buildPageSql(String sql, int page, int pagesize);
+
 	List<FormInstance> listFormInstance(ListModelEntity listModel, Map<String, String> queryParameters);
 
 	Page<FormInstance> pageFormInstance(ListModelEntity listModel, int page, int pagesize, Map<String, String> queryParameters);

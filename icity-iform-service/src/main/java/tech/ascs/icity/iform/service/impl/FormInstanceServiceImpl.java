@@ -420,7 +420,8 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 		return sql.toString();
 	}
 
-	private String buildPageSql(String sql, int page, int pagesize) {
+	@Override
+	public String buildPageSql(String sql, int page, int pagesize) {
 		String database = "";
 		try {
 			database = jdbcTemplate.getDataSource().getConnection().getMetaData().getDatabaseProductName().toLowerCase();

@@ -23,7 +23,7 @@ public interface ListModelService {
 	 * @param name （可选）列表名称
 	 * @return
 	 */
-	@ApiOperation(value = "获取所有列表模型", position = 0)
+	@ApiOperation(value = "获取所有列表模型，全部返回简要信息", position = 0)
 	@ApiImplicitParams({
 		@ApiImplicitParam(paramType = "query", name = "name", value = "列表名称", required = false),
 		@ApiImplicitParam(paramType = "query", name = "applicationId", value = "应用id", required = false)
@@ -40,7 +40,7 @@ public interface ListModelService {
 	 * @param pagesize （可选）每页记录数，默认为10
 	 * @return
 	 */
-	@ApiOperation(value = "获取列表模型分页数据", position = 1)
+	@ApiOperation(value = "获取列表模型分页数据，全部返回简要信息", position = 1)
 	@ApiImplicitParams({
 		@ApiImplicitParam(paramType = "query", name = "name", value = "列表名称", required = false),
 		@ApiImplicitParam(paramType = "query", name = "page", value = "页码", required = false, defaultValue = "1"),

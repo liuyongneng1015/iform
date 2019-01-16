@@ -46,37 +46,41 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 
 	@Override
 	public List<ListModel> list(@RequestParam(name="name", defaultValue="") String name, @RequestParam(name = "applicationId", required = false) String applicationId) {
-		try {
-			Query<ListModelEntity, ListModelEntity> query = listModelService.query();
-			if (StringUtils.hasText(name)) {
-				query.filterLike("name", "%" + name + "%");
-			}
-			if (StringUtils.hasText(applicationId)) {
-				query.filterEqual("applicationId", applicationId);
-			}
-			List<ListModelEntity> entities = query.sort(Sort.desc("id")).list();
-			return toDTO(entities);
-		} catch (Exception e) {
-			throw new IFormException("获取列表模型列表失败：" + e.getMessage(), e);
-		}
+		return listModelService.findListModelSimpleInfo(name, applicationId);
+//		try {
+//			Query<ListModelEntity, ListModelEntity> query = listModelService.query();
+//			if (StringUtils.hasText(name)) {
+//				query.filterLike("name", "%" + name + "%");
+//			}
+//			if (StringUtils.hasText(applicationId)) {
+//				query.filterEqual("applicationId", applicationId);
+//			}
+//			List<ListModelEntity> entities = query.sort(Sort.desc("id")).list();
+//			return toDTO(entities);
+//		} catch (Exception e) {
+//			throw new IFormException("获取列表模型列表失败：" + e.getMessage(), e);
+//		}
 	}
 
 	@Override
-	public Page<ListModel> page(@RequestParam(name="name", defaultValue="") String name, @RequestParam(name="page", defaultValue="1") int page,
-								@RequestParam(name="pagesize", defaultValue="10") int pagesize, @RequestParam(name = "applicationId", required = false) String applicationId) {
-		try {
-			Query<ListModelEntity, ListModelEntity> query = listModelService.query();
-			if (StringUtils.hasText(name)) {
-				query.filterLike("name", "%" + name + "%");
-			}
-			if (StringUtils.hasText(applicationId)) {
-				query.filterEqual("applicationId", applicationId);
-			}
-			Page<ListModelEntity> entities = query.sort(Sort.desc("id")).page(page, pagesize).page();
-			return toDTO(entities);
-		} catch (Exception e) {
-			throw new IFormException("获取列表模型列表失败：" + e.getMessage(), e);
-		}
+	public Page<ListModel> page(@RequestParam(name="name", defaultValue="") String name,
+								@RequestParam(name="page", defaultValue="1") int page,
+								@RequestParam(name="pagesize", defaultValue="10") int pagesize,
+								@RequestParam(name = "applicationId", required = false) String applicationId) {
+		return listModelService.findListModelSimplePageInfo(name, applicationId, page, pagesize);
+//		try {
+//			Query<ListModelEntity, ListModelEntity> query = listModelService.query();
+//			if (StringUtils.hasText(name)) {
+//				query.filterLike("name", "%" + name + "%");
+//			}
+//			if (StringUtils.hasText(applicationId)) {
+//				query.filterEqual("applicationId", applicationId);
+//			}
+//			Page<ListModelEntity> entities = query.sort(Sort.desc("id")).page(page, pagesize).page();
+//			return toDTO(entities);
+//		} catch (Exception e) {
+//			throw new IFormException("获取列表模型列表失败：" + e.getMessage(), e);
+//		}
 	}
 
 	@Override
@@ -185,7 +189,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 
 	@Override
 	public List<ApplicationModel> findListApplicationModel(@RequestParam(name="applicationId", required = true) String applicationId) {
-		return list(applicationId, listModelService.findListModelSimpleInfo());
+		return list(applicationId, listModelService.findListModelSimpleInfo(null, null));
 	}
 
 	@Override
