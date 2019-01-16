@@ -23,10 +23,10 @@ public class ItemPermissionInfo extends JPAEntity implements Serializable {
 	private Boolean visible = true;
 
 	//可填
-	private Boolean canFill = true;
+	private Boolean canFill;
 
 	//必填
-	private Boolean required = false;
+	private Boolean required;
 
 	//显示时机 若为空标识所有时机都显示
 	@JoinColumn(name="display_timing_type")

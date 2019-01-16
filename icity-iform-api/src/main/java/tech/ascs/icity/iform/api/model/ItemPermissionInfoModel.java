@@ -15,10 +15,10 @@ public class ItemPermissionInfoModel extends NameEntity {
 	private Boolean visible = true;
 
 	@ApiModelProperty(value = "可填", position = 5)
-	private Boolean canFill = true;
+	private Boolean canFill;
 
 	@ApiModelProperty(value = "必填", position = 6)
-	private Boolean required = false;
+	private Boolean required;
 
 	@ApiModelProperty(value ="显示时机(新增：add, 编辑：update)", position = 6)
 	private DisplayTimingType displayTiming;
