@@ -32,7 +32,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	private FormInstanceServiceEx formInstanceService;
 
 	@Override
-	public List<FormInstance> list(@PathVariable(name="listId") String listId, @RequestParam Map<String, String> parameters) {
+	public List<FormInstance> list(@PathVariable(name="listId") String listId, @RequestParam Map<String, Object> parameters) {
 		ListModelEntity listModel = listModelService.find(listId);
 		if (listModel == null) {
 			throw new IFormException(404, "列表模型【" + listId + "】不存在");
@@ -42,7 +42,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	}
 
 	@Override
-	public Page<FormInstance> page(@PathVariable(name="listId") String listId, @RequestParam(name = "page", defaultValue = "1") int page, @RequestParam(name="pagesize", defaultValue = "10") int pagesize, @RequestParam Map<String, String> parameters) {
+	public Page<FormInstance> page(@PathVariable(name="listId") String listId, @RequestParam(name = "page", defaultValue = "1") int page, @RequestParam(name="pagesize", defaultValue = "10") int pagesize, @RequestParam Map<String, Object> parameters) {
 		ListModelEntity listModel = listModelService.find(listId);
 		if (listModel == null) {
 			throw new IFormException(404, "列表模型【" + listId + "】不存在");

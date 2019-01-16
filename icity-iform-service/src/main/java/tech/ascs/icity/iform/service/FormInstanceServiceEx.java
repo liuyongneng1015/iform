@@ -12,9 +12,9 @@ import tech.ascs.icity.model.Page;
 
 public interface FormInstanceServiceEx {
 
-	List<FormInstance> listFormInstance(ListModelEntity listModel, Map<String, String> queryParameters);
+	List<FormInstance> listFormInstance(ListModelEntity listModel, Map<String, Object> queryParameters);
 
-	Page<FormInstance> pageFormInstance(ListModelEntity listModel, int page, int pagesize, Map<String, String> queryParameters);
+	Page<FormInstance> pageFormInstance(ListModelEntity listModel, int page, int pagesize, Map<String, Object> queryParameters);
 
 	Page<String> pageByTableName(String tableName, int page, int pagesize);
 

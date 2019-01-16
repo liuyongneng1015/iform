@@ -85,7 +85,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public List<FormInstance> listFormInstance(ListModelEntity listModel, Map<String, String> queryParameters) {
+	public List<FormInstance> listFormInstance(ListModelEntity listModel, Map<String, Object> queryParameters) {
 		Criteria criteria = generateCriteria(listModel, queryParameters);
 		addSort(listModel, criteria);
 
@@ -94,7 +94,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public Page<FormInstance> pageFormInstance(ListModelEntity listModel, int page, int pagesize, Map<String, String> queryParameters) {
+	public Page<FormInstance> pageFormInstance(ListModelEntity listModel, int page, int pagesize, Map<String, Object> queryParameters) {
 		Criteria criteria = generateCriteria(listModel, queryParameters);
 		addSort(listModel, criteria);
 
@@ -650,15 +650,42 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	}
 
 	@SuppressWarnings("deprecation")
-	protected Criteria generateCriteria(ListModelEntity listModel, Map<String, String> queryParameters) {
+	protected Criteria generateCriteria(ListModelEntity listModel, Map<String, Object> queryParameters) {
 		DataModelEntity dataModel = listModel.getMasterForm().getDataModels().get(0);
 		Session session = getSession(dataModel);
 		Criteria criteria = session.createCriteria(dataModel.getTableName());
 		for (ListSearchItem searchItem : listModel.getSearchItems()) {
-			String value = queryParameters.get(searchItem.getItemModel().getId());
-			if (StringUtils.hasText(value)) {
+			Object value = queryParameters.get(searchItem.getItemModel().getId());
+			if (value != null && StringUtils.hasText(String.valueOf(value))) {
 				String propertyName = searchItem.getItemModel().getColumnModel().getColumnName();
-				if (searchItem.getSearch().getSearchType() == SearchType.Like) {
+				boolean equalsFlag = false;
+				if(searchItem.getItemModel().getType() == ItemType.DatePicker){
+					if(!(value instanceof Date)){
+						String strValue = String.valueOf(value);
+						value = new Date(Long.parseLong(strValue));
+					}
+				}else if(searchItem.getItemModel().getType() == ItemType.InputNumber){
+					equalsFlag = true;
+					String strValue = String.valueOf(value);
+					if(searchItem.getItemModel().getColumnModel().getDataType() == ColumnType.Integer) {
+						value = Integer.parseInt(strValue);
+					}else if(searchItem.getItemModel().getColumnModel().getDataType() == ColumnType.Long) {
+							value = Long.parseLong(strValue);
+					}else if(searchItem.getItemModel().getColumnModel().getDataType() == ColumnType.Float) {
+						value = Float.parseFloat(strValue);
+					}else if(searchItem.getItemModel().getColumnModel().getDataType() == ColumnType.Double) {
+						value = Double.parseDouble(strValue);
+					}
+				}else if(searchItem.getItemModel().getColumnModel().getDataType() == ColumnType.Boolean){
+					equalsFlag = true;
+					if(!(value instanceof Boolean)){
+						String strValue = String.valueOf(value);
+						value = "true".equals(strValue);
+					}
+				}
+				if (equalsFlag){
+					criteria.add(Restrictions.eq(propertyName, value));
+				}else if(searchItem.getSearch().getSearchType() == SearchType.Like) {
 					criteria.add(Restrictions.like(propertyName, "%" + value + "%"));
 				} else {
 					criteria.add(Restrictions.eq(propertyName, value));
