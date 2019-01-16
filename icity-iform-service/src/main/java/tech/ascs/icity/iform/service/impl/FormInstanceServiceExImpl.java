@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import net.minidev.json.JSONObject;
 import org.apache.commons.lang.time.DateFormatUtils;
+import org.apache.commons.lang.time.DateUtils;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -660,6 +661,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				String propertyName = searchItem.getItemModel().getColumnModel().getColumnName();
 				boolean equalsFlag = false;
 				if(searchItem.getItemModel().getType() == ItemType.DatePicker){
+					equalsFlag = true;
 					if(!(value instanceof Date)){
 						String strValue = String.valueOf(value);
 						value = new Date(Long.parseLong(strValue));
@@ -684,7 +686,12 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					}
 				}
 				if (equalsFlag){
-					criteria.add(Restrictions.eq(propertyName, value));
+					if(searchItem.getItemModel().getType() == ItemType.DatePicker) {
+						criteria.add(Restrictions.ge(propertyName, value));
+						criteria.add(Restrictions.lt(propertyName, DateUtils.addDays((Date)value, 1)));
+					}else{
+						criteria.add(Restrictions.eq(propertyName, value));
+					}
 				}else if(searchItem.getSearch().getSearchType() == SearchType.Like) {
 					criteria.add(Restrictions.like(propertyName, "%" + value + "%"));
 				} else {
