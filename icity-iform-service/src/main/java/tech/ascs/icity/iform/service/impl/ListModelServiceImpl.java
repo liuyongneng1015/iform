@@ -280,29 +280,32 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 
 	@Override
 	public List<ListModel> findListModelSimpleInfo(String name, String applicationId) {
-		String sql = " select l.id, l.name, l.application_id, f.id form_id, f.name form_name from ifm_list_model l LEFT JOIN ifm_form_model f ON l.master_form=f.id WHERE 1=1 ";
+		String sql = " SELECT l.id, l.name, l.application_id, f.id form_id, f.name form_name FROM ifm_list_model l LEFT JOIN ifm_form_model f ON l.master_form=f.id WHERE 1=1 ";
 		if (!StringUtils.isEmpty(applicationId)) {
 			sql += " AND l.application_id='"+applicationId+"' ";
 		}
 		if (!StringUtils.isEmpty(name)) {
 			sql += " AND l.name LIKE '%"+name+"%' ";
 		}
+		sql += " ORDER BY l.id DESC ";
 		return assemblySqlListModel(sql);
 	}
 
 	@Override
 	public Page<ListModel> findListModelSimplePageInfo(String name, String applicationId, int page, int pagesize) {
-		String dataSql = " select l.id, l.name, l.application_id, f.id form_id, f.name form_name ";
+		String dataSql = " SELECT l.id, l.name, l.application_id, f.id form_id, f.name form_name ";
 		String countSql = " SELECT COUNT(1) ";
-		String querySql = " from ifm_list_model l LEFT JOIN ifm_form_model f ON l.master_form=f.id WHERE 1=1 ";
+		String querySql = " FROM ifm_list_model l LEFT JOIN ifm_form_model f ON l.master_form=f.id WHERE 1=1 ";
 		if (!StringUtils.isEmpty(applicationId)) {
 			querySql += " AND l.application_id='"+applicationId+"' ";
 		}
 		if (!StringUtils.isEmpty(name)) {
 			querySql += " AND l.name LIKE '%"+name+"%' ";
 		}
+		querySql += " ORDER BY l.id DESC ";
+		querySql = formInstanceService.buildPageSql(querySql, page, pagesize);
 		List<ListModel> data = assemblySqlListModel(dataSql+querySql);
-		int count = jdbcTemplate.queryForObject(countSql.toString(), Integer.class);
+		int count = jdbcTemplate.queryForObject(countSql+querySql, Integer.class);
 		Page<ListModel> result = Page.get(page, pagesize);
 		return result.data(count, data);
 	}
