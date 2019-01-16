@@ -19,7 +19,7 @@ public class ListModelEntity extends BaseEntity implements Serializable {
 
 	private String description;
 
-	private boolean multiSelect = false;
+	private boolean multiSelect = true;
 
 	@ManyToOne(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
 	@JoinColumn(name="master_form")
