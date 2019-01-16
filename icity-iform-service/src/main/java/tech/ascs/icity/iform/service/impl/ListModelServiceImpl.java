@@ -17,11 +17,13 @@ import tech.ascs.icity.admin.client.ResourceService;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.model.*;
+import tech.ascs.icity.iform.service.FormInstanceService;
 import tech.ascs.icity.iform.service.FormModelService;
 import tech.ascs.icity.iform.service.ItemModelService;
 import tech.ascs.icity.iform.service.ListModelService;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
+import tech.ascs.icity.model.Page;
 import tech.ascs.icity.utils.BeanUtils;
 
 public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> implements ListModelService {
@@ -46,8 +48,12 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 
 	@Autowired
 	private ItemModelService itemModelService;
+
 	@Autowired
 	private ResourceService resourceService;
+
+	@Autowired
+	private FormInstanceService formInstanceService;
 
 	public ListModelServiceImpl() {
 		super(ListModelEntity.class);
@@ -273,16 +279,51 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 	}
 
 	@Override
-	public List<ListModel> findListModelSimpleInfo() {
-		return jdbcTemplate.query("select id, name, application_id from ifm_list_model",
-			(rs, rowNum) -> {
-				ListModel item = new ListModel();
-				item.setId(rs.getString("id"));
-				item.setName(rs.getString("name"));
-				item.setApplicationId(rs.getString("application_id"));
-				return item;
+	public List<ListModel> findListModelSimpleInfo(String name, String applicationId) {
+		String sql = " select l.id, l.name, l.application_id, f.id form_id, f.name form_name from ifm_list_model l LEFT JOIN ifm_form_model f ON l.master_form=f.id WHERE 1=1 ";
+		if (!StringUtils.isEmpty(applicationId)) {
+			sql += " AND l.application_id='"+applicationId+"' ";
+		}
+		if (!StringUtils.isEmpty(name)) {
+			sql += " AND l.name LIKE '%"+name+"%' ";
+		}
+		return assemblySqlListModel(sql);
+	}
+
+	@Override
+	public Page<ListModel> findListModelSimplePageInfo(String name, String applicationId, int page, int pagesize) {
+		String dataSql = " select l.id, l.name, l.application_id, f.id form_id, f.name form_name ";
+		String countSql = " SELECT COUNT(1) ";
+		String querySql = " from ifm_list_model l LEFT JOIN ifm_form_model f ON l.master_form=f.id WHERE 1=1 ";
+		if (!StringUtils.isEmpty(applicationId)) {
+			querySql += " AND l.application_id='"+applicationId+"' ";
+		}
+		if (!StringUtils.isEmpty(name)) {
+			querySql += " AND l.name LIKE '%"+name+"%' ";
+		}
+		List<ListModel> data = assemblySqlListModel(dataSql+querySql);
+		int count = jdbcTemplate.queryForObject(countSql.toString(), Integer.class);
+		Page<ListModel> result = Page.get(page, pagesize);
+		return result.data(count, data);
+	}
+
+	private List<ListModel> assemblySqlListModel(String sql){
+		List<Map<String,Object>> list = jdbcTemplate.queryForList(sql);
+		List<ListModel> returnList = new ArrayList<>();
+		for (Map<String,Object> map:list) {
+			ListModel listModel = new ListModel();
+			listModel.setId((String) map.get("id"));
+			listModel.setName((String) map.get("name"));
+			listModel.setApplicationId((String) map.get("application_id"));
+			if (map.get("form_id")!=null) {
+				FormModel formModel = new FormModel();
+				formModel.setId((String) map.get("form_id"));
+				formModel.setName((String) map.get("form_name"));
+				listModel.setMasterForm(formModel);
 			}
-		);
+			returnList.add(listModel);
+		}
+		return returnList;
 	}
 
 	@Override

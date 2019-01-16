@@ -5,6 +5,7 @@ import tech.ascs.icity.iform.api.model.ListModel;
 import tech.ascs.icity.iform.model.FormModelEntity;
 import tech.ascs.icity.iform.model.ListModelEntity;
 import tech.ascs.icity.jpa.service.JPAService;
+import tech.ascs.icity.model.Page;
 
 import java.util.List;
 
@@ -25,8 +26,21 @@ public interface ListModelService extends JPAService<ListModelEntity> {
     //查询所有列表模型
     List<ListModel> findListModels();
 
-    //查询所有列表模型
-    List<ListModel> findListModelSimpleInfo();
+    /**
+     * 查询列表模型的简要信息
+     * @param name
+     * @param applicationId
+     * @return
+     */
+    List<ListModel> findListModelSimpleInfo(String name, String applicationId);
+
+    /**
+     * 查询列表模型的简要分页信息
+     * @param name
+     * @param applicationId
+     * @return
+     */
+    Page<ListModel> findListModelSimplePageInfo(String name, String applicationId, int page, int pagesize);
 
     //通过列表的id集合查询列表模型
     List<ListModel> findListModelSimpleByIds(List<String> ids);
