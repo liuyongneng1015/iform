@@ -109,4 +109,16 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		formInstanceService.deleteFormInstance(formModel, id);
 	}
 
+	@Override
+	public void removeFormInstance(@PathVariable(name="formId") String formId, @RequestBody List<String> ids) {
+		if (ids!=null && ids.size()>0) {
+			FormModelEntity formModel = formModelService.find(formId);
+			if (formModel == null) {
+				throw new IFormException(404, "表单模型【" + formId + "】不存在");
+			}
+			for (String id:ids) {
+				formInstanceService.deleteFormInstance(formModel, id);
+			}
+		}
+	}
 }
