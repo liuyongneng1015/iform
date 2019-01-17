@@ -24,6 +24,8 @@ import tech.ascs.icity.model.IdEntity;
 import tech.ascs.icity.model.Page;
 import tech.ascs.icity.utils.BeanUtils;
 
+import javax.websocket.server.PathParam;
+
 @Api(tags = "表单模型服务", description = "包含表单模型的增删改查等功能")
 @RestController
 public class FormModelController implements tech.ascs.icity.iform.api.service.FormModelService {
@@ -211,8 +213,19 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	}
 
 	@Override
-	public List<ApplicationModel> findApplicationFormModel(@RequestParam(name="applicationId", required = true) String applicationId) {
-		List<FormModelEntity> formModels = formModelService.findAll();
+	public List<ApplicationModel> findApplicationFormModel(@RequestParam(name="applicationId", required = true) String applicationId,
+														   @RequestParam(name="columnId", required = false) String columnId) {
+		List<FormModelEntity> formModels = null;
+		if(StringUtils.hasText(columnId)){
+			ColumnModelEntity columnModelEntity = columnModelService.get(columnId);
+			if(columnModelEntity == null){
+				throw new IFormException("未找到对应【" + columnId+"】的字段");
+			}
+			formModels = formModelService.listByDataModel(columnModelEntity.getDataModel());
+		}
+		if(formModels == null || formModels.size() < 1) {
+			 formModels = formModelService.findAll();
+		}
 		List<FormModel> formModelList = new ArrayList<>();
 		Map<String, List<FormModel>> map = new HashMap<>();
 		for(FormModelEntity entity : formModels){

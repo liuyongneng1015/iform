@@ -30,7 +30,6 @@ public interface FormModelService {
 	@GetMapping
 	List<FormModel> list(@RequestParam(name = "name", required = false ) String name, @RequestParam(name = "applicationId", required = false) String applicationId);
 
-
 	/**
 	 * 获取表单模型分页数据
 	 * 
@@ -155,10 +154,12 @@ public interface FormModelService {
 	 */
 	@ApiOperation(value = "应用表单模型", position = 3)
 	@ApiImplicitParams({
-			@ApiImplicitParam(paramType = "query", name = "applicationId", value = "应用id", required = true, dataType = "String")
+			@ApiImplicitParam(paramType = "query", name = "applicationId", value = "应用id", required = true, dataType = "String"),
+			@ApiImplicitParam(paramType = "query", name = "columnId", value = "字段id", required = true, dataType = "String")
 	})
 	@GetMapping(value = "/application")
-	List<ApplicationModel> findApplicationFormModel(@RequestParam(name="applicationId", required = true) String applicationId);
+	List<ApplicationModel> findApplicationFormModel(@RequestParam(name="applicationId", required = true) String applicationId,
+													@RequestParam(name="columnId", required = false) String columnId);
 
 
 	/**
