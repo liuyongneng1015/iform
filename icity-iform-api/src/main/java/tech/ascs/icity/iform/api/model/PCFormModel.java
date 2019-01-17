@@ -46,6 +46,9 @@ public class PCFormModel extends NameEntity {
 	@ApiModelProperty(value = "控件权限", position = 5)
 	private List<ItemPermissionModel> permissions = new ArrayList<ItemPermissionModel>();
 
+	@ApiModelProperty(value = "表单功能按钮", position = 8)
+	private List<FunctionModel> functions = new ArrayList<FunctionModel>();
+
 	@ApiModelProperty(value = "应用id", position = 6)
 	private String applicationId;
 
@@ -87,6 +90,14 @@ public class PCFormModel extends NameEntity {
 
 	public void setPermissions(List<ItemPermissionModel> permissions) {
 		this.permissions = permissions;
+	}
+
+	public List<FunctionModel> getFunctions() {
+		return functions;
+	}
+
+	public void setFunctions(List<FunctionModel> functions) {
+		this.functions = functions;
 	}
 
 	public String getApplicationId() {
