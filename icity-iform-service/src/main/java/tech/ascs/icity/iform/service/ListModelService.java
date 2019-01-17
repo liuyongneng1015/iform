@@ -32,7 +32,7 @@ public interface ListModelService extends JPAService<ListModelEntity> {
      * @param applicationId
      * @return
      */
-    List<ListModel> findListModelSimpleInfo(String name, String applicationId);
+    List<ListModel> findListModelSimpleInfo(String name, String applicationId, String formId);
 
     /**
      * 查询列表模型的简要分页信息
