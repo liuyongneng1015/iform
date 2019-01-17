@@ -45,8 +45,10 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 
 
 	@Override
-	public List<ListModel> list(@RequestParam(name="name", defaultValue="") String name, @RequestParam(name = "applicationId", required = false) String applicationId) {
-		return listModelService.findListModelSimpleInfo(name, applicationId);
+	public List<ListModel> list(@RequestParam(name = "name", defaultValue = "") String name,
+								@RequestParam(name = "formId", required = false) String formId,
+								@RequestParam(name = "applicationId", required = false) String applicationId) {
+		return listModelService.findListModelSimpleInfo(name, applicationId, formId);
 //		try {
 //			Query<ListModelEntity, ListModelEntity> query = listModelService.query();
 //			if (StringUtils.hasText(name)) {
@@ -63,9 +65,9 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 	}
 
 	@Override
-	public Page<ListModel> page(@RequestParam(name="name", defaultValue="") String name,
-								@RequestParam(name="page", defaultValue="1") int page,
-								@RequestParam(name="pagesize", defaultValue="10") int pagesize,
+	public Page<ListModel> page(@RequestParam(name = "name", defaultValue="") String name,
+								@RequestParam(name = "page", defaultValue="1") int page,
+								@RequestParam(name = "pagesize", defaultValue="10") int pagesize,
 								@RequestParam(name = "applicationId", required = false) String applicationId) {
 		return listModelService.findListModelSimplePageInfo(name, applicationId, page, pagesize);
 //		try {
@@ -189,7 +191,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 
 	@Override
 	public List<ApplicationModel> findListApplicationModel(@RequestParam(name="applicationId", required = true) String applicationId) {
-		return list(applicationId, listModelService.findListModelSimpleInfo(null, null));
+		return list(applicationId, listModelService.findListModelSimpleInfo(null, null, null));
 	}
 
 	@Override
