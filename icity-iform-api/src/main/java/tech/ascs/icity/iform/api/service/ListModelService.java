@@ -29,7 +29,8 @@ public interface ListModelService {
 		@ApiImplicitParam(paramType = "query", name = "applicationId", value = "应用id", required = false)
 	})
 	@GetMapping
-	List<ListModel> list(@RequestParam(name = "name", defaultValue = "") String name, @RequestParam(name = "applicationId", required = false) String applicationId);
+	List<ListModel> list(@RequestParam(name = "name", defaultValue = "") String name,
+						 @RequestParam(name = "applicationId", required = false) String applicationId);
 
 
 	/**
@@ -48,8 +49,10 @@ public interface ListModelService {
 		@ApiImplicitParam(paramType = "query", name = "applicationId", value = "应用id", required = false)
 	})
 	@GetMapping("/page")
-	Page<ListModel> page(@RequestParam(name = "name", defaultValue = "") String name, @RequestParam(name = "page", defaultValue = "1") int page,
-						 @RequestParam(name="pagesize", defaultValue = "10") int pagesize, @RequestParam(name = "applicationId", required = false) String applicationId);
+	Page<ListModel> page(@RequestParam(name = "name", defaultValue = "") String name,
+                         @RequestParam(name = "page", defaultValue = "1") int page,
+						 @RequestParam(name = "pagesize", defaultValue = "10") int pagesize,
+                         @RequestParam(name = "applicationId", required = false) String applicationId);
 
 
 	/**
@@ -115,9 +118,13 @@ public interface ListModelService {
 	 *
 	 */
 	@ApiOperation(value = "查询列表应用模型", position = 6)
-	@ApiImplicitParam(paramType = "query", name = "applicationId", value = "应用id", required = true, dataType = "String")
+    @ApiImplicitParams({
+        @ApiImplicitParam(paramType = "query", name = "formId", value = "表单ID", required = false, dataType = "String"),
+        @ApiImplicitParam(paramType = "query", name = "applicationId", value = "应用id", required = true, dataType = "String")
+    })
 	@GetMapping("/application")
-	List<ApplicationModel> findListApplicationModel(@RequestParam(name="applicationId", required = true) String applicationId);
+	List<ApplicationModel> findListApplicationModel(@RequestParam(name = "formId", required = false) String formId,
+                                                    @RequestParam(name="applicationId", required = true) String applicationId);
 
 	/**
 	 * 查询列表的权限和列表绑定的表单的权限

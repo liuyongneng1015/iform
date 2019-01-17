@@ -3,7 +3,6 @@ package tech.ascs.icity.iform.controller;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import com.googlecode.genericdao.search.Sort;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,7 +21,6 @@ import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.FormModelService;
 import tech.ascs.icity.iform.service.ItemModelService;
 import tech.ascs.icity.iform.service.ListModelService;
-import tech.ascs.icity.jpa.dao.Query;
 import tech.ascs.icity.model.IdEntity;
 import tech.ascs.icity.model.Page;
 import tech.ascs.icity.utils.BeanUtils;
@@ -45,8 +43,9 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 
 
 	@Override
-	public List<ListModel> list(@RequestParam(name="name", defaultValue="") String name, @RequestParam(name = "applicationId", required = false) String applicationId) {
-		return listModelService.findListModelSimpleInfo(name, applicationId);
+	public List<ListModel> list(@RequestParam(name = "name", defaultValue = "") String name,
+								@RequestParam(name = "applicationId", required = false) String applicationId) {
+		return listModelService.findListModelSimpleInfo(name, applicationId, null);
 //		try {
 //			Query<ListModelEntity, ListModelEntity> query = listModelService.query();
 //			if (StringUtils.hasText(name)) {
@@ -63,9 +62,9 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 	}
 
 	@Override
-	public Page<ListModel> page(@RequestParam(name="name", defaultValue="") String name,
-								@RequestParam(name="page", defaultValue="1") int page,
-								@RequestParam(name="pagesize", defaultValue="10") int pagesize,
+	public Page<ListModel> page(@RequestParam(name = "name", defaultValue="") String name,
+								@RequestParam(name = "page", defaultValue="1") int page,
+								@RequestParam(name = "pagesize", defaultValue="10") int pagesize,
 								@RequestParam(name = "applicationId", required = false) String applicationId) {
 		return listModelService.findListModelSimplePageInfo(name, applicationId, page, pagesize);
 //		try {
@@ -188,8 +187,9 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 	}
 
 	@Override
-	public List<ApplicationModel> findListApplicationModel(@RequestParam(name="applicationId", required = true) String applicationId) {
-		return list(applicationId, listModelService.findListModelSimpleInfo(null, null));
+	public List<ApplicationModel> findListApplicationModel(@RequestParam(name = "formId", required = false) String formId,
+														   @RequestParam(name="applicationId", required = true) String applicationId) {
+		return list(applicationId, listModelService.findListModelSimpleInfo(null, null, formId));
 	}
 
 	@Override
@@ -247,13 +247,13 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			//TODO 查询应用
 			List<Application> applicationList = applicationService.queryAppsByIds(new ArrayList<>(map.keySet()));
 			if(applicationList != null) {
-				for (Application application : applicationList) {
+				for (Application application:applicationList) {
 					if(application.getId().equals(applicationId)){
 						applicationFormModels.add(createApplicationModel(application, map));
 						break;
 					}
 				}
-				for (Application application : applicationList) {
+				for (Application application:applicationList) {
 					if(application.getId().equals(applicationId)){
 						continue;
 					}
