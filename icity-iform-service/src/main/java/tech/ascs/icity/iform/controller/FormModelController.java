@@ -1127,6 +1127,15 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			dataModelList.add(dataModel);
 		}
 		formModel.setDataModels(dataModelList);
+		if(entity.getFunctions() != null && entity.getFunctions().size() > 0){
+			List<FunctionModel> functionModels = new ArrayList<>();
+			for(ListFunction function : entity.getFunctions()){
+				FunctionModel functionModel = new FunctionModel();
+				BeanUtils.copyProperties(function, functionModel, new String[] {"formModel","itemModel"});
+				functionModels.add(functionModel);
+			}
+			formModel.setFunctions(functionModels);
+		}
 		return formModel;
 	}
 
