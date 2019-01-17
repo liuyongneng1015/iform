@@ -804,6 +804,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 	public List<FormModelEntity> listByDataModel(DataModelEntity dataModelEntity) {
 		List<String> idlist = jdbcTemplate.query("select fd.form_model from ifm_form_data_bind fd where fd.data_model='"+dataModelEntity.getId()+"'",
 				(rs, rowNum) -> rs.getString("form_model"));
+		if(idlist == null || idlist.size() < 1){
+			return null;
+		}
 		List<FormModelEntity> formModelEntities = query().filterIn("id",idlist).list();
 		return formModelEntities;
 	}
