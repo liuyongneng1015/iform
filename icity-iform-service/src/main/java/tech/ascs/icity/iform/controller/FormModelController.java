@@ -1115,9 +1115,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	    BeanUtils.copyProperties(entity, formModel, new String[] {"process","dataModels","items","permissions","submitChecks","functions"});
 
 		if (entity.getItems().size() > 0) {
-			//设置控件权限
 			List<ItemModel> items = new ArrayList<ItemModel>();
-			for (ItemModelEntity itemModelEntity : entity.getItems()) {
+			List<ItemModelEntity> itemModelEntities = entity.getItems() == null || entity.getItems().size() < 2 ? entity.getItems() : entity.getItems().parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
+			for (ItemModelEntity itemModelEntity : itemModelEntities) {
 				items.add(toDTO(itemModelEntity, true));
 			}
 			formModel.setItems(items);

@@ -268,7 +268,6 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 			List<ColumnModel> columns = new ArrayList<ColumnModel>();
 			for (ColumnModelEntity columnEntity : entity.getColumns()) {
 				ColumnModel column = toDTO(columnEntity);
-				//column.setDataModel(dataModel);
 				columns.add(column);
 			}
 			dataModel.setColumns(columns);
@@ -278,7 +277,6 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 			List<IndexModel> indexes = new ArrayList<IndexModel>();
 			for (IndexModelEntity indexEntity : entity.getIndexes()) {
 				IndexModel index = toDTO(indexEntity);
-				//index.setDataModel(dataModel);
 				indexes.add(index);
 			}
 			dataModel.setIndexes(indexes);
@@ -313,7 +311,6 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 		ColumnModel columnModel = new ColumnModel();
 		BeanUtils.copyProperties(entity, columnModel, new String[] {"dataModel","columnReferences"});
 		columnModel.setReferenceTables(columnModelService.getReferenceModel(entity));
-		columnModel.setDataModel(toDataModelDTO(entity.getDataModel()));
 		return columnModel;
 	}
 

@@ -721,16 +721,12 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				for(int j = 0 ; j < itemModelEntities1.size(); j++){
 					SubFormRowItemModelEntity subFormRowItemModelEntity = itemModelEntities1.get(j);
 					List<ItemModelEntity> itemModelEntities11 =  subFormRowItemModelEntity.getItems();
-					subFormRowItemModelEntity.setItems(null);
 					if(itemModelEntities11 != null && itemModelEntities11.size() > 0) {
 						itemManager.delete(itemModelEntities11.toArray(new ItemModelEntity[]{}));
 					}
+					itemModelEntities1.remove(subFormRowItemModelEntity);
 					itemManager.delete(subFormRowItemModelEntity);
 					j--;
-				}
-				((SubFormItemModelEntity) itemModelEntity).setItems(null);
-				if(itemModelEntities1 != null && itemModelEntities1.size() > 0) {
-					itemManager.delete(itemModelEntities1.toArray(new ItemModelEntity[]{}));
 				}
 			}
 			itemModelEntities.remove(itemModelEntity);
