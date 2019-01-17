@@ -1,13 +1,7 @@
 package tech.ascs.icity.iform.api.model;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import tech.ascs.icity.model.NameEntity;
 
 @ApiModel("列表搜索字段信息")
 public class SearchItem extends ItemModel {
