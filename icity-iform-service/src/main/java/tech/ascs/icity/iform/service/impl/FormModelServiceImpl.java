@@ -4,6 +4,7 @@ import java.util.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 import tech.ascs.icity.iflow.client.ProcessService;
@@ -52,6 +53,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 	@Autowired
 	FormFunctionsService formFunctionsService;
+
+	@Autowired
+	JdbcTemplate jdbcTemplate;
 
 	public FormModelServiceImpl() {
 		super(FormModelEntity.class);
@@ -794,6 +798,14 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		}
 		formModelManager.save(formModelEntity);
 		return formModelEntity;
+	}
+
+	@Override
+	public List<FormModelEntity> listByDataModel(DataModelEntity dataModelEntity) {
+		List<String> idlist = jdbcTemplate.query("select fd.form_model from ifm_form_data_bind fd where fd.data_model='"+dataModelEntity.getId()+"'",
+				(rs, rowNum) -> rs.getString("form_model"));
+		List<FormModelEntity> formModelEntities = query().filterIn("id",idlist).list();
+		return formModelEntities;
 	}
 
 	//设置表单功能

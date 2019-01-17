@@ -2,6 +2,7 @@ package tech.ascs.icity.iform.service;
 
 import tech.ascs.icity.iform.api.model.FormModel;
 import tech.ascs.icity.iform.api.model.ItemType;
+import tech.ascs.icity.iform.model.DataModelEntity;
 import tech.ascs.icity.iform.model.FormModelEntity;
 import tech.ascs.icity.iform.model.ItemModelEntity;
 import tech.ascs.icity.jpa.service.JPAService;
@@ -23,5 +24,8 @@ public interface FormModelService extends JPAService<FormModelEntity> {
 
      //保存检查校验
      FormModelEntity saveFormModelSubmitCheck(FormModelEntity entity);
+
+     //根据数据模型查询表单
+     List<FormModelEntity> listByDataModel(DataModelEntity dataModelEntity);
 
 }

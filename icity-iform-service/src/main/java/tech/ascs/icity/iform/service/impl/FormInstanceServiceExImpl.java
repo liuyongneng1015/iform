@@ -14,6 +14,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
+import org.omg.PortableInterceptor.DISCARDING;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -282,9 +283,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		session.beginTransaction();
 		Map<String, Object> data = new HashMap<String, Object>();
 		//主表数据
-		setMasterFormItemInstances(formInstance.getItems(), data);
+		setMasterFormItemInstances(formInstance.getItems(), data, DisplayTimingType.Add);
 		//设置关联数据
-		setReferenceData(session, dataModel.getTableName(), formInstance, data);
+		setReferenceData(session, dataModel.getTableName(), formInstance, data, DisplayTimingType.Add);
 
 		String newId = (String) session.save(dataModel.getTableName(), data);
 
@@ -349,9 +350,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			Map<String, Object> data = (Map<String, Object>) session.load(dataModel.getTableName(), instanceId);
 
 			//主表数据
-			setMasterFormItemInstances(formInstance.getItems(),data);
+			setMasterFormItemInstances(formInstance.getItems(),data, DisplayTimingType.Update);
 
-			setReferenceData(session, dataModel.getTableName(), formInstance, data);
+			setReferenceData(session, dataModel.getTableName(), formInstance, data, DisplayTimingType.Update);
 
 			// 流程操作
 			if (formInstance.getActivityInstanceId() != null) {
@@ -372,7 +373,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	}
 
 	//设置关联数据
-	private void setReferenceData(Session session, String tableName, FormInstance formInstance, Map<String, Object> data){
+	private void setReferenceData(Session session, String tableName, FormInstance formInstance, Map<String, Object> data,DisplayTimingType displayTimingType){
 		//TODO 子表数据
 		for(SubFormItemInstance subFormItemInstance : formInstance.getSubFormData()){
 			String key = subFormItemInstance.getTableName()+"_list";
@@ -384,7 +385,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				Map<String, Object> map = new HashMap<>();
 				for(SubFormRowItemInstance instance : subFormDataItemInstance.getItems()){
 					for(ItemInstance itemModelService : instance.getItems()){
-						setItemInstance(itemModelService, map);
+						setItemInstance(itemModelService, map, displayTimingType);
 					}
 				}
 				newListMap.add(map);
@@ -427,7 +428,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			for (DataModelRowInstance instances : dataModelInstance.getItems()) {
 				Map<String, Object> map = new HashMap<>();
 				for (ItemInstance itemModelService : instances.getItems()) {
-					setItemInstance(itemModelService, map);
+					setItemInstance(itemModelService, map, displayTimingType);
 				}
 				newListMap.add(map);
 			}
@@ -506,15 +507,16 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		return saveListMap;
 	}
 
-	private void setMasterFormItemInstances(List<ItemInstance> itemInstances, Map<String, Object> data){
+	private void setMasterFormItemInstances(List<ItemInstance> itemInstances, Map<String, Object> data, DisplayTimingType displayTimingType){
 		for (ItemInstance itemInstance : itemInstances) {
-			setItemInstance(itemInstance, data);
+			setItemInstance(itemInstance, data, displayTimingType);
 		}
 	}
 
-	private void setItemInstance(ItemInstance itemInstance, Map<String, Object> data){
+	private void setItemInstance(ItemInstance itemInstance, Map<String, Object> data ,DisplayTimingType displayTimingType){
 		ItemModelEntity itemModel = itemModelManager.get(itemInstance.getId());
 		Object value = itemInstance.getValue();
+		verifyValue(itemModel, value, displayTimingType);
 		if (itemModel.getType() == ItemType.DatePicker) {
 			try {
 				value = itemInstance.getValue() == null ? null : new Date(Long.parseLong(String.valueOf(itemInstance.getValue())));
@@ -578,7 +580,29 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 	}
 
-
+	//校验字段值
+	private  void verifyValue(ItemModelEntity itemModel, Object value, DisplayTimingType displayTimingType){
+		if(itemModel.getPermissions() != null){
+			ItemPermissionInfo addPermission = null;
+			ItemPermissionInfo updatePermission = null;
+			for(ItemPermissionInfo itemPermissionInfo : itemModel.getPermissions()) {
+				if (displayTimingType == DisplayTimingType.Add) {
+					addPermission = itemPermissionInfo;
+					break;
+				}
+				if (displayTimingType == DisplayTimingType.Update) {
+					updatePermission = itemPermissionInfo;
+					break;
+				}
+			}
+			if(addPermission != null && addPermission.getRequired() && value == null){
+				throw  new IFormException(itemModel.getName()+"为必填");
+			}
+			if(updatePermission != null && updatePermission.getRequired() && value == null){
+				throw  new IFormException(itemModel.getName()+"为必填");
+			}
+		}
+}
 
 	@Deprecated
 	private void ss(FormModelEntity formModel, List<ItemInstance> itemInstances){

@@ -32,6 +32,20 @@ public interface FormModelService {
 
 
 	/**
+	 * 查询关联的表单
+	 *
+	 * @param columnId （可选）字段id
+	 * @return
+	 */
+	@ApiOperation(value = "查询关联的表单", position = 0)
+	@ApiImplicitParams({
+			@ApiImplicitParam(paramType = "path", name = "columnId", value = "字段id", required = true)
+	})
+	@GetMapping("/reference/{columnId}")
+	List<FormModel> referenceFormModelList(@PathVariable(name = "columnId", required = true ) String columnId);
+
+
+	/**
 	 * 获取表单模型分页数据
 	 * 
 	 * @param name （可选）表单名称
