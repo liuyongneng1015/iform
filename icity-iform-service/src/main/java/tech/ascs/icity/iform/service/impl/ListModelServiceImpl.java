@@ -306,8 +306,7 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 			querySql += " AND l.name LIKE '%"+name+"%' ";
 		}
 		querySql += " ORDER BY l.id DESC ";
-		querySql = formInstanceService.buildPageSql(querySql, page, pagesize);
-		List<ListModel> data = assemblySqlListModel(dataSql+querySql);
+		List<ListModel> data = assemblySqlListModel(dataSql+formInstanceService.buildPageSql(querySql, page, pagesize));
 		int count = jdbcTemplate.queryForObject(countSql+querySql, Integer.class);
 		Page<ListModel> result = Page.get(page, pagesize);
 		return result.data(count, data);
