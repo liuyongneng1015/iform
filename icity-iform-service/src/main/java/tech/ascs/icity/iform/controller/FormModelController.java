@@ -221,7 +221,17 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			if(columnModelEntity == null){
 				throw new IFormException("未找到对应【" + columnId+"】的字段");
 			}
-			formModels = formModelService.listByDataModel(columnModelEntity.getDataModel());
+			List<ColumnReferenceEntity> referenceEntityList = columnModelEntity.getColumnReferences();
+			Set<FormModelEntity>  formModelEntitySet = new HashSet<>();
+			for(ColumnReferenceEntity columnReferenceEntity : referenceEntityList) {
+				List<FormModelEntity> formModelList = formModelService.listByDataModel(columnReferenceEntity.getToColumn().getDataModel());
+				if(formModelList != null){
+					for(FormModelEntity formModelEntity : formModelList) {
+						formModelEntitySet.add(formModelEntity);
+					}
+				}
+			}
+			formModels = new ArrayList<>(formModelEntitySet);
 		}
 		if(formModels == null || formModels.size() < 1) {
 			 formModels = formModelService.findAll();

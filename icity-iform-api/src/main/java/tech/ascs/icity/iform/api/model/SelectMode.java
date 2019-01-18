@@ -3,7 +3,8 @@ package tech.ascs.icity.iform.api.model;
 public enum SelectMode {
     Single("Single"),//单选
     Multiple("Multiple"),//多选
-    Inverse("Inverse");//反选
+    Inverse("Inverse"),//反选
+    Attribute("Attribute");//关联属性
     private String value;
     private SelectMode(String value) {
         this.value= value;
