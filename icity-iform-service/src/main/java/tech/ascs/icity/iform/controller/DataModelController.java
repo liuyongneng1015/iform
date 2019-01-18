@@ -3,6 +3,8 @@ package tech.ascs.icity.iform.controller;
 import java.util.*;
 
 import com.googlecode.genericdao.search.Sort;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,6 +30,7 @@ import tech.ascs.icity.utils.BeanUtils;
 @Api(tags = "数据模型服务", description = "包含数据模型的增删改查等功能")
 @RestController
 public class DataModelController implements tech.ascs.icity.iform.api.service.DataModelService {
+	private final Logger log = LoggerFactory.getLogger(DataModelController.class);
 
 	@Autowired
 	private DataModelService dataModelService;
@@ -281,6 +284,7 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 			}
 			dataModel.setIndexes(indexes);
 		}
+
 		return dataModel;
 	}
 
