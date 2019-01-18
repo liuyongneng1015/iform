@@ -382,18 +382,18 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			//新的数据
 			List<Map<String, Object>> newListMap = new ArrayList<>();
 			for(SubFormDataItemInstance subFormDataItemInstance : subFormItemInstance.getItemInstances()){
-				Map<String, Object> map = new HashMap<>();
 				for(SubFormRowItemInstance instance : subFormDataItemInstance.getItems()){
+					Map<String, Object> map = new HashMap<>();
 					for(ItemInstance itemModelService : instance.getItems()){
 						setItemInstance(itemModelService, map, displayTimingType);
 					}
+					newListMap.add(map);
 				}
-				newListMap.add(map);
 			}
 			List<String> idList = new ArrayList<>();
 			for(Map<String, Object> newMap : newListMap){
-				String id = String.valueOf(newMap.get("id"));
-				if(!StringUtils.isEmpty(id)) {
+				String id = newMap.get("id") == null ? null : String.valueOf(newMap.get("id"));
+				if(StringUtils.hasText(id)) {
 					idList.add(id);
 				}
 			}
@@ -434,8 +434,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}
 			List<String> idList = new ArrayList<>();
 			for (Map<String, Object> newMap : newListMap) {
-				String id = String.valueOf(newMap.get("id"));
-				if (id != null) {
+				String id = newMap.get("id") == null ? null : String.valueOf(newMap.get("id"));
+				if (StringUtils.hasText(id)) {
 					idList.add(id);
 				}
 			}
@@ -482,7 +482,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 		if(newListMap != null && newListMap.size() > 0) {
 			for (Map<String, Object> newMap : newListMap) {
-				String id = (String) newMap.get("id");
+				String id = newMap.get("id") == null ? null : String.valueOf(newMap.get("id"));
 				Map<String, Object> subFormData = new HashMap<>();
 				Session subFormSession = session;//getSession(dataModelEntity);
 				if (id != null) {
@@ -499,6 +499,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					}
 					subFormData = (Map<String, Object>) subFormSession.merge(dataModelEntity.getTableName(), dataMap);
 				}
+
 				//子表数据
 				subFormData.put(referenceKey, data);
 				saveListMap.add(subFormData);
