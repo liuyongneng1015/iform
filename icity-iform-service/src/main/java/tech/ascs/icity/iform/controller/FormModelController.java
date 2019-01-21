@@ -779,7 +779,12 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 
 		if(entity instanceof ReferenceItemModelEntity){
-			((ReferenceItemModelEntity) entity).setItemModelIds(String.join(",", itemModel.getItemModelList()));
+			if(itemModel.getParentItem() != null) {
+				((ReferenceItemModelEntity) entity).setParentItem((ReferenceItemModelEntity) getParentItemModel(itemModel));
+			}
+			if(itemModel.getItemModelList() != null && itemModel.getItemModelList().size() > 0) {
+				((ReferenceItemModelEntity) entity).setItemModelIds(String.join(",", itemModel.getItemModelList()));
+			}
 			((ReferenceItemModelEntity) entity).setReferenceList(setItemModelByListModel(itemModel));
 		}else if(entity instanceof SelectItemModelEntity){
 			SelectItemModelEntity selectItemModelEntity = (SelectItemModelEntity)entity;
@@ -797,15 +802,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			}
 
             if(itemModel.getDictionaryValueType() == DictionaryValueType.Linkage && itemModel.getParentItem() != null){
-                SelectItemModelEntity parentSelectItemModel = new SelectItemModelEntity();
-                BeanUtils.copyProperties(itemModel.getParentItem(), parentSelectItemModel, new String[] {"referenceList","parentItem", "searchItems","sortItems", "permissions", "items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});
-                ColumnModelEntity columnModel = new ColumnModelEntity();
-                columnModel.setColumnName(itemModel.getParentItem().getColumnName());
-                DataModelEntity dataModelEntity = new DataModelEntity();
-                dataModelEntity.setTableName(itemModel.getParentItem().getTableName());
-                columnModel.setDataModel(dataModelEntity);
-                parentSelectItemModel.setColumnModel(columnModel);
-                selectItemModelEntity.setParentItem(parentSelectItemModel);
+                selectItemModelEntity.setParentItem((SelectItemModelEntity) getParentItemModel(itemModel.getParentItem()));
             }
 
 		}else if(entity instanceof RowItemModelEntity){
@@ -862,6 +859,18 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			}
 		}
 		return entity;
+	}
+
+	private ItemModelEntity getParentItemModel(ItemModel itemModel){
+		ItemModelEntity parentItemModel = formModelService.getItemModelEntity(itemModel.getType());
+		BeanUtils.copyProperties(itemModel.getParentItem(), parentItemModel, new String[] {"referenceList","parentItem", "searchItems","sortItems", "permissions", "items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});
+		ColumnModelEntity columnModel = new ColumnModelEntity();
+		columnModel.setColumnName(itemModel.getParentItem().getColumnName());
+		DataModelEntity dataModelEntity = new DataModelEntity();
+		dataModelEntity.setTableName(itemModel.getParentItem().getTableName());
+		columnModel.setDataModel(dataModelEntity);
+		parentItemModel.setColumnModel(columnModel);
+		return parentItemModel;
 	}
 
 	//控件权限
