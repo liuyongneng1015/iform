@@ -687,11 +687,14 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		for (ItemModelEntity itemModel:formModelEntity.getItems()) {
 			// queryParameters的value可能是数组
 			Object value = queryParameters.get(itemModel.getId());
+			if (value==null) {
+				continue;
+			}
 			Object[] values = null;
-			if (value instanceof Object[]) {
-				List<Object> list = Arrays.asList(value).stream().filter(item->item!=null && StringUtils.hasText(String.valueOf(item))).collect(Collectors.toList());
-				values = list.toArray(new Object[]{});
-			} else {
+			if (value instanceof String[]) {
+				List<String> list = Arrays.asList((String[])value).stream().filter(item->item!=null && StringUtils.hasText(String.valueOf(item))).collect(Collectors.toList());
+				values = list.toArray(new String[]{});
+			} else if (value instanceof String) {
 				if (value != null && StringUtils.hasText(String.valueOf(value))) {
 					values = new Object[] {value};
 				}
@@ -709,28 +712,27 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					equalsFlag = true;
 					if (!(value instanceof Date)) {
 						String strValue = String.valueOf(value);
-						value = new Date(Long.parseLong(strValue));
+						values[i] = new Date(Long.parseLong(strValue));
 					}
 				} else if (itemModel.getType() == ItemType.InputNumber) {
 					equalsFlag = true;
 					String strValue = String.valueOf(value);
 					if (columnModel.getDataType() == ColumnType.Integer) {
-						value = Integer.parseInt(strValue);
+						values[i] = Integer.parseInt(strValue);
 					} else if (columnModel.getDataType() == ColumnType.Long) {
-						value = Long.parseLong(strValue);
+						values[i] = Long.parseLong(strValue);
 					} else if (columnModel.getDataType() == ColumnType.Float) {
-						value = Float.parseFloat(strValue);
+						values[i] = Float.parseFloat(strValue);
 					} else if (columnModel.getDataType() == ColumnType.Double) {
-						value = Double.parseDouble(strValue);
+						values[i] = Double.parseDouble(strValue);
 					}
 				} else if (columnModel.getDataType() == ColumnType.Boolean) {
 					equalsFlag = true;
 					if (!(value instanceof Boolean)) {
 						String strValue = String.valueOf(value);
-						value = "true".equals(strValue);
+						values[i] = "true".equals(strValue);
 					}
 				}
-				values[i] = value;
 			}
 
 			ListSearchItem searchItem = searchItemMap.get(itemModel.getId());
@@ -739,13 +741,16 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					criteria.add(Restrictions.ge(propertyName, value));
 					criteria.add(Restrictions.lt(propertyName, DateUtils.addDays((Date)value, 1)));
 				} else {
-					criteria.add(Restrictions.or(Arrays.asList(values).stream().map(item->Restrictions.eq(propertyName, item)).toArray(Criterion[]::new)));
+					Criterion[] conditions = Arrays.asList(values).stream().map(item->Restrictions.eq(propertyName, item)).toArray(Criterion[]::new);
+					criteria.add(Restrictions.or(conditions));
 //					criteria.add(Restrictions.eq(propertyName, value));  criteria.add(Restrictions.like(propertyName, "%" + value + "%"));
 				}
 			} else if (searchItem.getSearch().getSearchType() == SearchType.Like && itemModel.getType() != ItemType.InputNumber) {
-				criteria.add(Restrictions.or(Arrays.asList(values).stream().map(item->Restrictions.like(propertyName, "%" + item + "%")).toArray(Criterion[]::new)));
+				Criterion[] conditions = Arrays.asList(values).stream().map(item->Restrictions.like(propertyName, "%" + item + "%")).toArray(Criterion[]::new);
+				criteria.add(Restrictions.or(conditions));
 			} else {
-				criteria.add(Restrictions.or(Arrays.asList(values).stream().map(item->Restrictions.eq(propertyName, item)).toArray(Criterion[]::new)));
+				Criterion[] conditions = Arrays.asList(values).stream().map(item->Restrictions.eq(propertyName, item)).toArray(Criterion[]::new);
+				criteria.add(Restrictions.or(conditions));
 			}
 
 		}
