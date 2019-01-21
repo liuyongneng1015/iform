@@ -534,6 +534,8 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			dataModelService.deleteById(key);
 		}
 
+		//保存数据模型
+		dataModelService.save(masterDataModelEntity);
 
 		entity.setDataModels(dataModelEntities);
 
@@ -561,8 +563,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			wrapFormModelSubmitCheck(entity, formModel);
 		}
 
-		//保存数据模型
-		dataModelService.save(masterDataModelEntity);
 		return entity;
 	}
 
