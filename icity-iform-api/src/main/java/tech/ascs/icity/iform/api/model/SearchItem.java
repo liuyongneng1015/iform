@@ -38,11 +38,22 @@ public class SearchItem extends ItemModel {
 	@ApiModelProperty(value = "查询定义，用于列表中的查询条件", position = 6)
 	private Search search;
 
+	@ApiModelProperty("搜索框排序号")//排序号
+	private Integer orderNo = 0;
+
 	public Search getSearch() {
 		return search;
 	}
 
 	public void setSearch(Search search) {
 		this.search = search;
+	}
+
+	public Integer getOrderNo() {
+		return orderNo;
+	}
+
+	public void setOrderNo(Integer orderNo) {
+		this.orderNo = orderNo;
 	}
 }

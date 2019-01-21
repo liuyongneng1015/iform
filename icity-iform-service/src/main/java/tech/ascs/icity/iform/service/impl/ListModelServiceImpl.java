@@ -150,7 +150,10 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 
 			if (entity.getSearchItems() != null) {
 				List<ListSearchItem> searchItems = new ArrayList<ListSearchItem>();
-				for (ListSearchItem searchItem : entity.getSearchItems()) {
+				for (int i = 0; i < entity.getSearchItems().size(); i++) {
+					ListSearchItem searchItem = entity.getSearchItems().get(i);
+//				}
+//				for (ListSearchItem searchItem : entity.getSearchItems()) {
 					ListSearchItem searchItemEntity =  new ListSearchItem();
 					if(searchItem.getItemModel() != null) {
 						// 排序字段过滤掉ID组件
@@ -171,6 +174,7 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 					ItemSearchInfo dbSearch = searchItem.getSearch();
 					BeanUtils.copyProperties(dbSearch, searchInfo);
 					searchItemEntity.setSearch(searchInfo);
+					searchItemEntity.setOrderNo(i);
 					searchItems.add(searchItemEntity);
 				}
 				old.setSearchItems(searchItems);

@@ -324,7 +324,8 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 
 		if (listModel.getSearchItems() != null) {
 			List<ListSearchItem> searchItems = new ArrayList<ListSearchItem>();
-			for (SearchItem searchItem : listModel.getSearchItems()) {
+			for (int i = 0; i < listModel.getSearchItems().size(); i++) {
+				SearchItem searchItem =  listModel.getSearchItems().get(i);
 				ListSearchItem searchItemEntity =  new ListSearchItem();
 				if(searchItem.getId() != null) {
 					ItemModelEntity itemModelEntity = new ItemModelEntity();
@@ -344,6 +345,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				} else if(defalueValue != null && defalueValue instanceof String){
 					searchInfo.setDefaultValue(StringUtils.isEmpty(defalueValue) ? null : (String)defalueValue);
 				}
+				searchItemEntity.setOrderNo(i);
 				searchItemEntity.setSearch(searchInfo);
 				searchItems.add(searchItemEntity);
 			}
@@ -482,6 +484,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		}
 
 		if (entity.getSearchItems().size() > 0) {
+
 			List<SearchItem> searchItems = new ArrayList<SearchItem>();
 			for (ListSearchItem searchItemEntity : entity.getSearchItems()) {
 				SearchItem searchItem = new SearchItem();
