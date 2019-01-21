@@ -1,5 +1,7 @@
 package tech.ascs.icity.iform.controller;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -8,6 +10,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import io.swagger.annotations.Api;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.FormInstance;
 import tech.ascs.icity.iform.model.FormModelEntity;
@@ -17,6 +21,8 @@ import tech.ascs.icity.iform.service.FormModelService;
 import tech.ascs.icity.iform.service.ListModelService;
 import tech.ascs.icity.model.IdEntity;
 import tech.ascs.icity.model.Page;
+
+import javax.servlet.http.HttpServletRequest;
 
 @Api(tags = "表单实例服务", description = "包含业务表单数据的增删改查等功能")
 @RestController
@@ -41,6 +47,10 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		return formInstanceService.listFormInstance(listModel, parameters);
 	}
 
+	// url?param1=value1&param2=value2&param2=value3,value4&param2=value5
+	// @RequestParam Map<String, Object> parameters 有两个问题
+	// 1) 因为Object没有指定具体类型，接收后会变成字符串
+	// 2) 接收数组时，相同的Key会被覆盖掉，接收 param1=value1&param2=value2 的 param1参数，map的键值对会覆盖掉相同的Key
 	@Override
 	public Page<FormInstance> page(@PathVariable(name="listId") String listId, @RequestParam(name = "page", defaultValue = "1") int page, @RequestParam(name="pagesize", defaultValue = "10") int pagesize, @RequestParam Map<String, Object> parameters) {
 		ListModelEntity listModel = listModelService.find(listId);
@@ -48,7 +58,22 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			throw new IFormException(404, "列表模型【" + listId + "】不存在");
 		}
 
-		return formInstanceService.pageFormInstance(listModel, page, pagesize, parameters);
+		Map<String, Object> queryParameters = new HashMap<>();
+		for (Map.Entry<String, Object> entry:parameters.entrySet()) {
+			Object value = entry.getValue();
+			if (value instanceof String) {
+				if (!StringUtils.isEmpty(value)) {
+					String valueStr = value.toString();
+					// 如果传过来的参数是数组且以逗号划分开的话,组件ID的长度是32位，若32位是逗号，当作数组处理
+					if (valueStr.length()>32 && valueStr.substring(32,33).equals(",")) {
+						queryParameters.put(entry.getKey(), valueStr.split(","));
+					} else {
+						queryParameters.put(entry.getKey(), valueStr);
+					}
+				}
+			}
+		}
+		return formInstanceService.pageFormInstance(listModel, page, pagesize, queryParameters);
 	}
 
 	@Override
