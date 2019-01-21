@@ -112,8 +112,8 @@ public class ItemModel extends NameEntity {
 	@ApiModelProperty(value="创建类型：Create创建时，Update更新时，Normal普通", position = 29)
 	private SystemCreateType createType = SystemCreateType.Normal;
 
-	@ApiModelProperty(value="数据标识:控件id集合",position = 30)
-	private List<String> itemModelList = new ArrayList<>();
+	@ApiModelProperty(value="数据标识:控件集合",position = 30)
+	private List<ItemModel> itemModelList = new ArrayList<ItemModel>();
 	@ApiModelProperty(value="是否被选中:true选中，flse未选中",position = 31)
 	private Boolean  selectFlag = false;
 
@@ -444,11 +444,11 @@ public class ItemModel extends NameEntity {
 		this.createType = createType;
 	}
 
-	public List<String> getItemModelList() {
+	public List<ItemModel> getItemModelList() {
 		return itemModelList;
 	}
 
-	public void setItemModelList(List<String> itemModelList) {
+	public void setItemModelList(List<ItemModel> itemModelList) {
 		this.itemModelList = itemModelList;
 	}
 

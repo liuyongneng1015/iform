@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import com.googlecode.genericdao.search.Sort;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -214,25 +215,15 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 	@Override
 	public List<ApplicationModel> findApplicationFormModel(@RequestParam(name="applicationId", required = true) String applicationId,
-														   @RequestParam(name="columnId", required = false) String columnId) {
+														   @RequestParam(name="columnId", required = false) String columnId,
+														   @RequestParam(name="formModelId", required = false) String formModelId) {
 		List<FormModelEntity> formModels = null;
 		if(StringUtils.hasText(columnId)){
-			ColumnModelEntity columnModelEntity = columnModelService.get(columnId);
-			if(columnModelEntity == null){
-				throw new IFormException("未找到对应【" + columnId+"】的字段");
-			}
-			List<ColumnReferenceEntity> referenceEntityList = columnModelEntity.getColumnReferences();
-			Set<FormModelEntity>  formModelEntitySet = new HashSet<>();
-			for(ColumnReferenceEntity columnReferenceEntity : referenceEntityList) {
-				List<FormModelEntity> formModelList = formModelService.listByDataModel(columnReferenceEntity.getToColumn().getDataModel());
-				if(formModelList != null){
-					for(FormModelEntity formModelEntity : formModelList) {
-						formModelEntitySet.add(formModelEntity);
-					}
-				}
-			}
-			formModels = new ArrayList<>(formModelEntitySet);
+			formModels = findFormModelsByColumnId(columnId);
+		}else if(StringUtils.hasText(formModelId)){
+			formModels = findFormModelsByFormModelId(formModelId);
 		}
+
 		if(formModels == null || formModels.size() < 1) {
 			 formModels = formModelService.findAll();
 		}
@@ -292,6 +283,38 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		return applicationFormModels;
 	}
 
+	private List<FormModelEntity> findFormModelsByColumnId(String columnId){
+		ColumnModelEntity columnModelEntity = columnModelService.get(columnId);
+		if(columnModelEntity == null){
+			throw new IFormException("未找到对应【" + columnId+"】的字段");
+		}
+		List<ColumnReferenceEntity> referenceEntityList = columnModelEntity.getColumnReferences();
+		Set<FormModelEntity>  formModelEntitySet = new HashSet<>();
+		for(ColumnReferenceEntity columnReferenceEntity : referenceEntityList) {
+			List<FormModelEntity> formModelList = formModelService.listByDataModel(columnReferenceEntity.getToColumn().getDataModel());
+			if(formModelList != null){
+				for(FormModelEntity formModelEntity : formModelList) {
+					formModelEntitySet.add(formModelEntity);
+				}
+			}
+		}
+		return new ArrayList<>(formModelEntitySet);
+	}
+
+	private List<FormModelEntity> findFormModelsByFormModelId(String formModelId){
+		List<ReferenceItemModelEntity> itemModelEntities = itemModelService.findRefenceItemByFormModelId(formModelId);
+		if(itemModelEntities == null){
+			throw new IFormException("未找到对应【" + formModelId+"】的关联控件");
+		}
+		Set<FormModelEntity>  formModelEntitySet = new HashSet<>();
+		for(ReferenceItemModelEntity referenceItemModelEntity : itemModelEntities) {
+			if(referenceItemModelEntity.getFormModel() != null) {
+				formModelEntitySet.add(referenceItemModelEntity.getFormModel());
+			}
+		}
+		return new ArrayList<>(formModelEntitySet);
+	}
+
 	private ApplicationModel createApplicationModel(Application application, Map<String, List<FormModel>> map){
 		ApplicationModel applicationFormModel = new ApplicationModel();
 		applicationFormModel.setId(application.getId());
@@ -311,6 +334,10 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		if(list != null) {
 			for (ItemModelEntity itemModelEntity : list){
 				if(itemId != null && itemModelEntity.getId().equals(itemId)) {
+					if(itemModelEntity.getColumnModel() != null && (itemModelEntity.getColumnModel().getColumnName().equals("id")
+							|| itemModelEntity.getColumnModel().getColumnName().equals("master_id"))){
+						continue;
+					}
 					itemModelList.add(convertItemModelByEntity(itemModelEntity));
 					break;
 				}
@@ -319,10 +346,30 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				if(itemId != null && itemModelEntity.getId().equals(itemId)) {
 					continue;
 				}
+				if(itemModelEntity.getColumnModel() != null && (itemModelEntity.getColumnModel().getColumnName().equals("id")
+						|| itemModelEntity.getColumnModel().getColumnName().equals("master_id"))){
+					continue;
+				}
 				itemModelList.add(convertItemModelByEntity(itemModelEntity));
 			}
 		}
 		return itemModelList;
+	}
+
+	@Override
+	public List<ItemModel> findReferenceItemsByFormId(@RequestParam(name="formModelId", required = true) String formModelId,
+													  @RequestParam(name="referenceFormModelId", required = true) String referenceFormModelId) {
+		List<ReferenceItemModelEntity> itemModelEntities = itemModelService.findRefenceItemByFormModelId(formModelId);
+		List<ItemModel> list = new ArrayList<>();
+		for(ReferenceItemModelEntity entity : itemModelEntities){
+			if(!entity.getReferenceFormId().equals(referenceFormModelId)) {
+				continue;
+			}
+			ItemModel itemModel = new ItemModel();
+			BeanUtils.copyProperties(entity, itemModel, new String[]{"formModel", "columnModel", "activities", "options", "permissions", "items", "parentItem", "referenceList"});
+			list.add(itemModel);
+		}
+		return list;
 	}
 
 	private ItemModel convertItemModelByEntity(ItemModelEntity itemModelEntity){
@@ -779,11 +826,20 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 
 		if(entity instanceof ReferenceItemModelEntity){
+
+			if(!StringUtils.hasText(((ReferenceItemModelEntity) entity).getReferenceFormId())){
+				throw  new IFormException("关联控件"+entity.getName()+"未找到关联表单");
+			}
+
 			if(itemModel.getParentItem() != null) {
-				((ReferenceItemModelEntity) entity).setParentItem((ReferenceItemModelEntity) getParentItemModel(itemModel));
+				((ReferenceItemModelEntity) entity).setParentItem((ReferenceItemModelEntity) getParentItemModel(itemModel.getParentItem()));
 			}
 			if(itemModel.getItemModelList() != null && itemModel.getItemModelList().size() > 0) {
-				((ReferenceItemModelEntity) entity).setItemModelIds(String.join(",", itemModel.getItemModelList()));
+				List<ItemModelEntity> list = new ArrayList<>();
+				for(ItemModel itemModel1 : itemModel.getItemModelList()) {
+					list.add(getParentItemModel(itemModel1));
+				}
+				((ReferenceItemModelEntity) entity).setReferencesItemModels(list);
 			}
 			((ReferenceItemModelEntity) entity).setReferenceList(setItemModelByListModel(itemModel));
 		}else if(entity instanceof SelectItemModelEntity){
@@ -863,11 +919,11 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 	private ItemModelEntity getParentItemModel(ItemModel itemModel){
 		ItemModelEntity parentItemModel = formModelService.getItemModelEntity(itemModel.getType());
-		BeanUtils.copyProperties(itemModel.getParentItem(), parentItemModel, new String[] {"referenceList","parentItem", "searchItems","sortItems", "permissions", "items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});
+		BeanUtils.copyProperties(itemModel, parentItemModel, new String[] {"referenceList","parentItem", "searchItems","sortItems", "permissions", "items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});
 		ColumnModelEntity columnModel = new ColumnModelEntity();
-		columnModel.setColumnName(itemModel.getParentItem().getColumnName());
+		columnModel.setColumnName(itemModel.getColumnName());
 		DataModelEntity dataModelEntity = new DataModelEntity();
-		dataModelEntity.setTableName(itemModel.getParentItem().getTableName());
+		dataModelEntity.setTableName(itemModel.getTableName());
 		columnModel.setDataModel(dataModelEntity);
 		parentItemModel.setColumnModel(columnModel);
 		return parentItemModel;
@@ -1220,7 +1276,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 		if(entity instanceof ReferenceItemModelEntity && ((ReferenceItemModelEntity) entity).getItemModelIds() != null){
 			List<String> resultList= new ArrayList<>(Arrays.asList(((ReferenceItemModelEntity) entity).getItemModelIds().split(",")));
-			itemModel.setItemModelList(resultList);
+
+			itemModel.setItemModelList(getItemModelList(resultList));
+
 			String referenceItemId = ((ReferenceItemModelEntity) entity).getReferenceItemId();
 			if(referenceItemId != null){
 				ItemModelEntity itemModelEntity = itemModelService.get(referenceItemId);
@@ -1359,6 +1417,26 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			itemModel.setPermissions(itemPermissionModel);
 		}
 		return itemModel;
+	}
+
+
+	private List<ItemModel> getItemModelList(List<String> idResultList){
+		if(idResultList == null || idResultList.size() < 1){
+			return null;
+		}
+		List<ItemModelEntity> itemModelEntities = itemModelService.query().filterIn("id", idResultList).list();
+		List<ItemModel> list = new ArrayList<>();
+		for(ItemModelEntity itemModelEntity : itemModelEntities){
+			ItemModel itemModel = new ItemModel();
+			itemModel.setId(itemModelEntity.getId());
+			itemModel.setName(itemModelEntity.getName());
+			if(itemModelEntity.getColumnModel() != null) {
+				itemModel.setTableName(itemModelEntity.getColumnModel().getDataModel().getTableName());
+				itemModel.setColumnName(itemModelEntity.getColumnModel().getColumnName());
+			}
+			list.add(itemModel);
+		}
+		return list;
 	}
 
 
