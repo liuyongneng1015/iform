@@ -745,7 +745,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					criteria.add(Restrictions.or(conditions));
 //					criteria.add(Restrictions.eq(propertyName, value));  criteria.add(Restrictions.like(propertyName, "%" + value + "%"));
 				}
-			} else if (searchItem.getSearch().getSearchType() == SearchType.Like && itemModel.getType() != ItemType.InputNumber) {
+			// searchItem 为空时，表示是快速搜索的搜索条件
+			} else if (searchItem!=null && searchItem.getSearch()!=null && searchItem.getSearch().getSearchType() == SearchType.Like && itemModel.getType() != ItemType.InputNumber) {
 				Criterion[] conditions = Arrays.asList(values).stream().map(item->Restrictions.like(propertyName, "%" + item + "%")).toArray(Criterion[]::new);
 				criteria.add(Restrictions.or(conditions));
 			} else {
