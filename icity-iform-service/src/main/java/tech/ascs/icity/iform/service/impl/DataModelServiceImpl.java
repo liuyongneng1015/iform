@@ -321,6 +321,9 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 			BeanUtils.copyProperties(columnModelEntity, columnModel, new String[] {"dataModel","columnReferences"});
 			columnModel.setReferenceTables(columnModelService.getReferenceModel(columnModelEntity));
 			columnModel.setReferenceItem(itemModelEntities == null || itemModelEntities.size() < 1 ? false : true) ;
+			if(StringUtils.equals("master_id",columnModel.getColumnName())){
+				columnModel.setReferenceItem(true);
+			}
 			columnModels.add(columnModel);
 		}
 		dataModel.setColumns(columnModels);
