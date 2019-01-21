@@ -1,6 +1,7 @@
 package tech.ascs.icity.iform.service.impl;
 
 import java.sql.SQLException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -41,6 +42,7 @@ import tech.ascs.icity.rbac.feign.model.UserInfo;
 public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity> implements FormInstanceServiceEx {
 	
 	private static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+	private static final Random random = new Random();
 
 	@Autowired
 	private IFormSessionFactoryBuilder sessionFactoryBuilder;
@@ -264,7 +266,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				if(itemMap.keySet().contains(itemModelEntity.getId())){
 					list.remove(itemMap.get(itemModelEntity.getId()));
 				}
-				list.add(getItemInstance(itemModelEntity.getId(), new Date()));
+
+				list.add(getItemInstance(itemModelEntity.getId(), getNowTime(((TimeItemModelEntity) itemModelEntity).getTimeFormat())));
+
 			}else if(itemModelEntity.getSystemItemType() == SystemItemType.Creator && ((CreatorItemModelEntity)itemModelEntity).getCreateType() == SystemCreateType.Create){
 				if(itemMap.keySet().contains(itemModelEntity.getId())){
 					list.remove(itemMap.get(itemModelEntity.getId()));
@@ -274,7 +278,16 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				if(itemMap.keySet().contains(itemModelEntity.getId())){
 					list.remove(itemMap.get(itemModelEntity.getId()));
 				}
-				list.add(getItemInstance(itemModelEntity.getId(),System.currentTimeMillis()+"_"+new Random().nextInt(10000)));
+				String format = ((SerialNumberItemModelEntity)itemModelEntity).getTimeFormat();
+				StringBuffer str = new StringBuffer(((SerialNumberItemModelEntity)itemModelEntity).getPrefix());
+				str.append("_");
+				if(format != null){
+					SimpleDateFormat simpleDateFormat = new SimpleDateFormat(format);
+					str.append(simpleDateFormat.format(new Date()));
+					str.append("_");
+				}
+				str.append(getRandom(((SerialNumberItemModelEntity)itemModelEntity).getSuffix()));
+				list.add(getItemInstance(itemModelEntity.getId(),str));
 			}
 		}
 
@@ -299,6 +312,38 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		session.close();
 
 		return newId;
+	}
+
+	/**
+	 * 生成指定位数的随机数
+	 * @param length
+	 * @return
+	 */
+	public static String getRandom(Integer length){
+		if(length == null){
+			return "";
+		}
+		String val = "";
+		for (int i = 0; i < length; i++) {
+			val += String.valueOf(random.nextInt(10));
+		}
+		return val;
+	}
+
+
+
+
+	private Date getNowTime(String format){
+		String timeFormat = format == null ? "yyyy-MM-dd HH:mm:ss" : format;
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(timeFormat);
+		String dateStr = simpleDateFormat.format(new Date());
+		Date date = null;
+		try {
+			date = simpleDateFormat.parse(dateStr);
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		return  date;
 	}
 
 	private ItemInstance getItemInstance(String id, Object value){
@@ -332,7 +377,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				if(itemMap.keySet().contains(itemModelEntity.getId())){
 					list.remove(itemMap.get(itemModelEntity.getId()));
 				}
-				list.add(getItemInstance(itemModelEntity.getId(), new Date()));
+				list.add(getItemInstance(itemModelEntity.getId(), getNowTime(((TimeItemModelEntity) itemModelEntity).getTimeFormat())));
 			}else if(itemModelEntity.getSystemItemType() == SystemItemType.Creator && ((CreatorItemModelEntity)itemModelEntity).getCreateType() == SystemCreateType.Update){
 				if(itemMap.keySet().contains(itemModelEntity.getId())){
 					list.remove(itemMap.get(itemModelEntity.getId()));

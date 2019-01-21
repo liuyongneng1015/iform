@@ -155,11 +155,13 @@ public interface FormModelService {
 	@ApiOperation(value = "应用表单模型", position = 3)
 	@ApiImplicitParams({
 			@ApiImplicitParam(paramType = "query", name = "applicationId", value = "应用id", required = true, dataType = "String"),
-			@ApiImplicitParam(paramType = "query", name = "columnId", value = "字段id", required = true, dataType = "String")
-	})
+			@ApiImplicitParam(paramType = "query", name = "columnId", value = "字段id", required = true, dataType = "String"),
+            @ApiImplicitParam(paramType = "query", name = "formModelId", value = "表单模型id", required = true, dataType = "String")
+    })
 	@GetMapping(value = "/application")
 	List<ApplicationModel> findApplicationFormModel(@RequestParam(name="applicationId", required = true) String applicationId,
-													@RequestParam(name="columnId", required = false) String columnId);
+													@RequestParam(name="columnId", required = false) String columnId,
+                                                    @RequestParam(name="formModelId", required = false) String formModelId);
 
 
 	/**
@@ -173,5 +175,18 @@ public interface FormModelService {
 	})
 	@GetMapping(value = "/form-item")
 	List<ItemModel> findItemsByFormId(@RequestParam(name="id", required = true) String id, @RequestParam(name="itemId", required = false) String itemId);
+
+	/**
+	 * 查询关联表单的控件模型
+	 *
+	 */
+	@ApiOperation(value = "查询关联表单的关联控件", position = 3)
+	@ApiImplicitParams({
+			@ApiImplicitParam(paramType = "query", name = "formModelId", value = "当前表单模型ID", required = true, dataType = "String"),
+			@ApiImplicitParam(paramType = "query", name = "referenceFormModelId", value = "关联表单模型id", required = true, dataType = "String")
+	})
+	@GetMapping(value = "/form-reference")
+	List<ItemModel> findReferenceItemsByFormId(@RequestParam(name="formModelId", required = true) String formModelId,
+											   @RequestParam(name="referenceFormModelId", required = true) String referenceFormModelId);
 
 }

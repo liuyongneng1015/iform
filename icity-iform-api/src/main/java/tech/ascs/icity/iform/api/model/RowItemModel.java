@@ -92,7 +92,7 @@ public class RowItemModel extends ItemModel {
 	private SystemCreateType createType = SystemCreateType.Normal;
 
 	@ApiModelProperty(value="数据标识:控件id集合",position = 30)
-	private List<String> itemModelList = new ArrayList<>();
+	private List<ItemModel> itemModelList = new ArrayList<>();
 	@ApiModelProperty(value="是否被选中:true选中，flse未选中",position = 31)
 	private Boolean  selectFlag = false;
 
@@ -417,12 +417,12 @@ public class RowItemModel extends ItemModel {
 
 	@Override
 	@JsonIgnore
-	public List<String> getItemModelList() {
+	public List<ItemModel> getItemModelList() {
 		return itemModelList;
 	}
 
 	@Override
-	public void setItemModelList(List<String> itemModelList) {
+	public void setItemModelList(List<ItemModel> itemModelList) {
 		this.itemModelList = itemModelList;
 	}
 

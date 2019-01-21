@@ -221,6 +221,14 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 					&& ((ReferenceItemModelEntity) itemModelEntity).getParentItem().getColumnModel() != null){
 				setReferenceItem(map, itemModelEntity);
 			}
+			if(itemModelEntity instanceof ReferenceItemModelEntity && ((ReferenceItemModelEntity) itemModelEntity).getReferencesItemModels() != null
+					&& ((ReferenceItemModelEntity) itemModelEntity).getReferencesItemModels().size() > 0){
+				List<ItemModelEntity> list = new ArrayList<>();
+				for(ItemModelEntity referenceItemModelEntity : ((ReferenceItemModelEntity) itemModelEntity).getReferencesItemModels()){
+					ItemModelEntity referenceItemModelEntity1 =  map.get(referenceItemModelEntity.getColumnModel().getDataModel().getTableName()+"_"+referenceItemModelEntity.getColumnModel().getColumnName());
+					list.add(referenceItemModelEntity1);
+				}
+			}
 			for(ItemModelEntity itemModel : getChildRenItemModelEntity(itemModelEntity)) {
 				if(itemModel instanceof SelectItemModelEntity && ((SelectItemModelEntity) itemModel).getDictionaryValueType() == DictionaryValueType.Linkage
 						&& ((SelectItemModelEntity) itemModel).getParentItem() != null && ((SelectItemModelEntity) itemModel).getParentItem().getColumnModel() != null){
@@ -274,14 +282,25 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			saveItemModelEntity = oldMapItmes.get(paramerItemModelEntity.getId());
 		}
 
-		BeanUtils.copyProperties(paramerItemModelEntity, saveItemModelEntity, new String[]{"parentItem", "searchItems","sortItems","permissions", "referenceList","items","formModel","columnModel","activities","options"});
+		BeanUtils.copyProperties(paramerItemModelEntity, saveItemModelEntity, new String[]{"referencesItemModels","parentItem", "searchItems","sortItems","permissions", "referenceList","items","formModel","columnModel","activities","options"});
 
 		//newItemModelEntity.setFormModel(oldItemModelEntity.getFormModel());
 
 		//设置列表模型
-		if (paramerItemModelEntity instanceof ReferenceItemModelEntity && ((ReferenceItemModelEntity) paramerItemModelEntity).getReferenceList() != null) {
-			ListModelEntity listModelEntity = listModelManager.find(((ReferenceItemModelEntity) paramerItemModelEntity).getReferenceList().getId());
-			((ReferenceItemModelEntity)saveItemModelEntity).setReferenceList(listModelEntity);
+		if (paramerItemModelEntity instanceof ReferenceItemModelEntity ) {
+			if(((ReferenceItemModelEntity) paramerItemModelEntity).getReferenceList() != null) {
+				ListModelEntity listModelEntity = listModelManager.find(((ReferenceItemModelEntity) paramerItemModelEntity).getReferenceList().getId());
+				((ReferenceItemModelEntity) saveItemModelEntity).setReferenceList(listModelEntity);
+			}
+			if(((ReferenceItemModelEntity) paramerItemModelEntity).getReferencesItemModels() != null) {
+				List<ItemModelEntity> referenceItemModelEntityList = new ArrayList<>();
+				for(ItemModelEntity referenceItemModelEntity : ((ReferenceItemModelEntity) paramerItemModelEntity).getReferencesItemModels()){
+					ItemModelEntity referenceItemModelEntity1 = new ItemModelEntity();
+					BeanUtils.copyProperties(referenceItemModelEntity,referenceItemModelEntity1);
+					referenceItemModelEntityList.add(referenceItemModelEntity1);
+				}
+				((ReferenceItemModelEntity) saveItemModelEntity).setReferencesItemModels(referenceItemModelEntityList);
+			}
 		}
 
 		//设置下拉联动
@@ -304,7 +323,6 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		}else if(!"id".equals(saveItemModelEntity.getName())){
 			saveItemModelEntity.setColumnModel(null);
 		}
-
 
 		saveItempermissions(saveItemModelEntity, paramerItemModelEntity);
 

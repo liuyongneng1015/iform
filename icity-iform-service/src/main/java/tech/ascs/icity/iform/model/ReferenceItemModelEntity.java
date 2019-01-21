@@ -51,6 +51,8 @@ public class ReferenceItemModelEntity extends ItemModelEntity  {
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "parentItem")
 	private List<ReferenceItemModelEntity> items = new ArrayList<ReferenceItemModelEntity>();
 
+	@Transient//关联表单模型
+	private List<ItemModelEntity> referencesItemModels = new ArrayList<ItemModelEntity>();
 
 	public ReferenceType getReferenceType() {
 		return referenceType;
@@ -122,5 +124,13 @@ public class ReferenceItemModelEntity extends ItemModelEntity  {
 
 	public void setItems(List<ReferenceItemModelEntity> items) {
 		this.items = items;
+	}
+
+	public List<ItemModelEntity> getReferencesItemModels() {
+		return referencesItemModels;
+	}
+
+	public void setReferencesItemModels(List<ItemModelEntity> referencesItemModels) {
+		this.referencesItemModels = referencesItemModels;
 	}
 }
