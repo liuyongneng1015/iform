@@ -152,8 +152,6 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 				List<ListSearchItem> searchItems = new ArrayList<ListSearchItem>();
 				for (int i = 0; i < entity.getSearchItems().size(); i++) {
 					ListSearchItem searchItem = entity.getSearchItems().get(i);
-//				}
-//				for (ListSearchItem searchItem : entity.getSearchItems()) {
 					ListSearchItem searchItemEntity =  new ListSearchItem();
 					if(searchItem.getItemModel() != null) {
 						// 排序字段过滤掉ID组件
@@ -204,12 +202,24 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 				old.setQuickSearchItems(quickSearches);
 			}
 			ListModelEntity returnEntity = doUpdate(old, oldSortMap.keySet(), oldSearchItemMap.keySet(), oldFunctionMap.keySet(), oldQuickSearchMap.keySet());
+			saveDisplayItemSort(returnEntity);
 			// 给admin服务提交按钮权限
 			submitListBtnPermission(returnEntity);
 			return returnEntity;
 		} else {
             setFormModel(entity);
-            return super.save(entity);
+			ListModelEntity returnEntity = super.save(entity);
+			saveDisplayItemSort(returnEntity);
+			return returnEntity;
+		}
+	}
+
+	private void saveDisplayItemSort(ListModelEntity entity) {
+		List<ItemModelEntity> displayItems = entity.getDisplayItems();
+		if (displayItems!=null && displayItems.size()>0) {
+			List<String> ids = displayItems.stream().map(item->item.getId()).collect(Collectors.toList());
+			entity.setDisplayItemsSort(String.join(",", ids));
+			super.save(entity);
 		}
 	}
 
@@ -366,7 +376,7 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 							return rs.getString("list_id");
 						}});
 			List<ListModel> list = new ArrayList<>();
-			if(idlist == null || idlist.size() < 1){
+			if(idlist == null || idlist.size() < 1) {
 				return list;
 			}
 			List<ListModelEntity> listModelEntities = query().filterIn("id",idlist).list();

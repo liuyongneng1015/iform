@@ -33,13 +33,13 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 	private ListModelService listModelService;
 
 	@Autowired
-	private FormModelService formModelService ;
+	private FormModelService formModelService;
 
 	@Autowired
-	private ItemModelService itemModelService ;
+	private ItemModelService itemModelService;
 
 	@Autowired
-	private ApplicationService applicationService ;
+	private ApplicationService applicationService;
 
 
 	@Override
@@ -438,13 +438,25 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		}
 
 		if(entity.getDisplayItems() != null){
-			List<ItemModel> list  = new ArrayList<>();
+			List<ItemModel> list = new ArrayList<>();
 			for(ItemModelEntity itemModelEntity : entity.getDisplayItems()){
 				ItemModel itemModel = new ItemModel();
 				BeanUtils.copyProperties(itemModelEntity, itemModel, new String[] {"formModel","columnModel","activities","options","searchItems","sortItems","permissions","referenceList","items","parentItem"});
 				list.add(itemModel);
 			}
-			listModel.setDisplayItems(list);
+			if (!StringUtils.isEmpty(entity.getDisplayItemsSort())) {
+				List<String> ids = Arrays.asList(entity.getDisplayItemsSort().split(","));
+				List<ItemModel> displaySortList = new ArrayList<>();
+				for (String id:ids) {
+					Optional<ItemModel> optional = list.stream().filter(item->id.equals(item.getId())).findFirst();
+					if (optional.isPresent()) {
+						displaySortList.add(optional.get());
+					}
+				}
+				listModel.setDisplayItems(displaySortList);
+			} else {
+				listModel.setDisplayItems(list);
+			}
 		}
 
 		if(entity.getSlaverForms() != null){
@@ -484,12 +496,12 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		}
 
 		if (entity.getSearchItems().size() > 0) {
-
 			List<SearchItem> searchItems = new ArrayList<SearchItem>();
 			for (ListSearchItem searchItemEntity : entity.getSearchItems()) {
 				SearchItem searchItem = new SearchItem();
 				ItemModelEntity itemModelEntity = searchItemEntity.getItemModel();
 				if (itemModelEntity != null) {
+					searchItem.setOrderNo(searchItemEntity.getOrderNo());
 					BeanUtils.copyProperties(itemModelEntity, searchItem, new String[]{"formModel", "columnModel", "activities", "options","searchItems","sortItems", "permissions","items","parentItem","referenceList"});
 					List<ItemSelectOption> options = itemModelEntity.getOptions();
 					// 自定义的下拉框，在列表建模的渲染页面，要返回options属性
@@ -556,6 +568,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				}
 				searchItems.add(searchItem);
 			}
+			Collections.sort(searchItems);
 			listModel.setSearchItems(searchItems);
 		}
 
