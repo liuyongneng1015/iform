@@ -470,6 +470,15 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 		//主表的数据建模
 		DataModelEntity masterDataModelEntity = dataModelService.find(masterDataModel.getId());
+
+		//旧的子数据建模
+		Map<String, DataModelEntity> oldMasterDataModelMap = new HashMap<>();
+		for(DataModelEntity dataModelEntity : masterDataModelEntity.getSlaverModels()){
+			oldMasterDataModelMap.put(dataModelEntity.getId(), dataModelEntity);
+		}
+
+
+
 		//是否需要关联字段
 		boolean needMasterId = false;
 		if(masterDataModelEntity.getMasterModel() != null) {
@@ -493,41 +502,42 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 		List<DataModelEntity> slaverDataModelEntities = new ArrayList<>();
 		for(DataModel dataModel : dataModels) {
-			if (dataModel.getMasterModel() != null) {
-				DataModelEntity slaverDataModelEntity = new DataModelEntity();
-				//创建关联字段
-				boolean dataFlag = dataModel.isNew();
-				if (!dataFlag) {
-					slaverDataModelEntity = dataModelService.find(dataModel.getId());
-				}
-
-				slaverDataModelEntity.setModelType(DataModelType.Slaver);
-				slaverDataModelEntity.setSynchronized(false);
-				slaverDataModelEntity.setMasterModel(masterDataModelEntity);
-				BeanUtils.copyProperties(dataModel, slaverDataModelEntity, new String[]{"masterModel","slaverModels","columns","indexes"});
-
-				//设置数据模型行
-				setDataModelEntityColumns(dataModel, slaverDataModelEntity, true);
-
-				//创建获取主键未持久化到数据库
-				ColumnModelEntity idColumnReference = columnModelService.saveColumnModelEntity(slaverDataModelEntity, "id");
-
-				//子表不需要关联
-				setMasterIdColunm(slaverDataModelEntity, masterIdColumnEntity);
-
-				slaverDataModelEntities.add(slaverDataModelEntity);
+			if (dataModel.getMasterModel() == null) {
+				continue;
 			}
+			//创建关联字段
+			DataModelEntity slaverDataModelEntity = dataModel.isNew() ? new DataModelEntity() :  oldMasterDataModelMap.remove(dataModel.getId());
+
+			slaverDataModelEntity.setModelType(DataModelType.Slaver);
+			slaverDataModelEntity.setSynchronized(false);
+			slaverDataModelEntity.setMasterModel(masterDataModelEntity);
+			BeanUtils.copyProperties(dataModel, slaverDataModelEntity, new String[]{"masterModel","slaverModels","columns","indexes"});
+
+			//设置数据模型行
+			setDataModelEntityColumns(dataModel, slaverDataModelEntity, true);
+
+			//获取主键未持久化到数据库
+			columnModelService.saveColumnModelEntity(slaverDataModelEntity, "id");
+
+			//子表不需要关联
+			setMasterIdColunm(slaverDataModelEntity, masterIdColumnEntity);
+
+			slaverDataModelEntities.add(slaverDataModelEntity);
 		}
-		//masterDataModelEntity.setSlaverModels(slaverDataModelEntities);
+		masterDataModelEntity.setSlaverModels(slaverDataModelEntities);
 
 		//设置数据模型结构了
 		List<DataModelEntity> dataModelEntities = new ArrayList<>();
 		dataModelEntities.add(masterDataModelEntity);
-		entity.setDataModels(dataModelEntities);
+
+		for(String key : oldMasterDataModelMap.keySet()){
+			dataModelService.deleteById(key);
+		}
 
 		//保存数据模型
 		dataModelService.save(masterDataModelEntity);
 
+		entity.setDataModels(dataModelEntities);
 
 		List<ItemModelEntity> items = new ArrayList<ItemModelEntity>();
 		Map<String, ItemModelEntity> map = new HashMap<>();
@@ -536,6 +546,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			itemModelEntity.setFormModel(entity);
 			items.add(itemModelEntity);
 		}
+		entity.setItems(items);
 
 		//设置控件权限
 		if(formModel.getPermissions() != null && formModel.getPermissions().size() > 0) {
@@ -552,7 +563,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			wrapFormModelSubmitCheck(entity, formModel);
 		}
 
-		entity.setItems(items);
 		return entity;
 	}
 

@@ -67,6 +67,30 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 	}
 
 	@Override
+	public List<DataModel> findAllList(String name, String sync, String modelType, String applicationId) {
+		try {
+			Query<DataModelEntity, DataModelEntity> query = dataModelService.query();
+			if (StringUtils.hasText(name)) {
+				query.filterOr(Filter.like("name", "%" + name + "%"), Filter.like("tableName", "%" + name + "%"));
+			}
+			if (StringUtils.hasText(sync)) {
+				query.filterEqual("synchronized_", "1".equals(sync));
+			}
+			if (StringUtils.hasText(modelType)) {
+				query.filterIn("modelType",  getDataModelType(modelType));
+			}
+			if (StringUtils.hasText(applicationId)) {
+				query.filterEqual("applicationId",  applicationId);
+			}
+
+			List<DataModelEntity> entities = query.list();
+			return toSimpleDTO(entities);
+		} catch (Exception e) {
+			throw new IFormException("获取数据模型列表失败：" + e.getMessage(), e);
+		}
+	}
+
+	@Override
 	public List<ApplicationModel> listReferenceDataModel(@RequestParam(name = "tableName", required = false) String tableName,
 													 	 @RequestParam(name = "modelType", required = false) String modelType,
 														 @RequestParam(name = "applicationId", required = true) String applicationId) {
@@ -250,16 +274,24 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 		dataModelService.sync(entity);
 	}
 
-	private Page<DataModel> toDTO(Page<DataModelEntity> entities) throws InstantiationException, IllegalAccessException {
+	private Page<DataModel> toDTO(Page<DataModelEntity> entities) {
 		Page<DataModel> dataModels = Page.get(entities.getPage(), entities.getPagesize());
 		dataModels.data(entities.getTotalCount(), toDTO(entities.getResults()));
 		return dataModels;
 	}
 
-	private List<DataModel> toDTO(List<DataModelEntity> entities) throws InstantiationException, IllegalAccessException {
+	private List<DataModel> toDTO(List<DataModelEntity> entities) {
 		List<DataModel> dataModels = new ArrayList<DataModel>();
 		for (DataModelEntity entity : entities) {
 			dataModels.add(toDTO(entity));
+		}
+		return dataModels;
+	}
+
+	private List<DataModel> toSimpleDTO(List<DataModelEntity> entities) {
+		List<DataModel> dataModels = new ArrayList<DataModel>();
+		for (DataModelEntity entity : entities) {
+			dataModels.add(toSimpleDataModelDTO(entity));
 		}
 		return dataModels;
 	}
@@ -307,6 +339,19 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 				slaverModels.add(dataModelInfo);
 			}
 			dataModel.setSlaverModels(slaverModels);
+		}
+		return dataModel;
+	}
+
+	private DataModel toSimpleDataModelDTO(DataModelEntity entity)  {
+		DataModel dataModel = new DataModel();
+		BeanUtils.copyProperties(entity, dataModel, new String[] {"masterModel","slaverModels","columns", "indexes","referencesDataModel"});
+		dataModel.setSynchronized(entity.getSynchronized());
+
+		if(entity.getMasterModel() != null){
+			DataModelInfo masterModel = new DataModelInfo();
+			BeanUtils.copyProperties(entity.getMasterModel(), masterModel, new String[]{"masterModel","slaverModels","columns", "indexes","referencesDataModel"});
+			dataModel.setMasterModel(masterModel);
 		}
 		return dataModel;
 	}

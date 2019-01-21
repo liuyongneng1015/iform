@@ -33,6 +33,24 @@ public interface DataModelService {
 	List<DataModel> list(@RequestParam(name = "name", required = false) String name, @RequestParam(name = "sync", required = false) String sync,
 			@RequestParam(name = "modelType", required = false) String modelType, @RequestParam(name = "applicationId", required = false) String applicationId );
 
+
+	/**
+	 * 查找所有数据模型
+	 *
+	 * @param name （可选）模型名称
+	 * @return
+	 */
+	@ApiOperation(value = "查找所有数据模型", position = 0)
+	@ApiImplicitParams({
+			@ApiImplicitParam(paramType = "query", name = "name", value = "模型名称", required = false),
+			@ApiImplicitParam(paramType = "query", name = "sync", value = "同步状态（0 - 未同步； 1 - 已同步）", required = false),
+			@ApiImplicitParam(paramType = "query", name = "modelType", value = "模型类型", required = false),
+			@ApiImplicitParam(paramType = "query", name = "applicationId", value = "应用id", required = false)
+	})
+	@GetMapping("/find")
+	List<DataModel> findAllList(@RequestParam(name = "name", required = false) String name, @RequestParam(name = "sync", required = false) String sync,
+						 @RequestParam(name = "modelType", required = false) String modelType, @RequestParam(name = "applicationId", required = false) String applicationId );
+
 	/**
 	 * 查询新增关联数据模型
 	 *

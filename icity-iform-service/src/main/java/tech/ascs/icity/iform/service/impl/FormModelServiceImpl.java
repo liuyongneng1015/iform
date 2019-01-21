@@ -513,11 +513,12 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				List<ItemModelEntity> rowItems = new ArrayList<>();
 				for (int j = 0; j < subFormRowItemModelEntity.getItems().size() ; j ++) {
 					ItemModelEntity childRenItem = subFormRowItemModelEntity.getItems().get(j);
-					if(childRenItem instanceof ReferenceItemModelEntity) {
-						verifyReference((ReferenceItemModelEntity)childRenItem);
+					ItemModelEntity newRowItem = getNewItemModel(oldMapItmes, modelEntityMap, childRenItem);
+					if(newRowItem instanceof ReferenceItemModelEntity) {
+						verifyReference((ReferenceItemModelEntity)newRowItem);
 					}
-					childRenItem.setOrderNo(j);
-					rowItems.add(getNewItemModel(oldMapItmes, modelEntityMap, childRenItem));
+					newRowItem.setOrderNo(j);
+					rowItems.add(getNewItemModel(oldMapItmes, modelEntityMap, newRowItem));
 				}
 				subFormRowItemModel.setParentItem((SubFormItemModelEntity)newModelEntity);
 				subFormRowItemModel.setItems(rowItems);
@@ -744,36 +745,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		if(listModelEntities != null && listModelEntities.size() > 0){
 			throw new IFormException("删除表单模型失败：关联了多个列表建模，请先删除列表建模");
 		}
-		List<ItemModelEntity> itemModelEntities = formModelEntity.getItems();
-		for(int i = 0 ; i < itemModelEntities.size() ; i++){
-			ItemModelEntity itemModelEntity = itemModelEntities.get(i);
-			if(itemModelEntity.getColumnModel() != null){
-				itemModelEntity.setColumnModel(null);
-			}
-			if(itemModelEntity instanceof RowItemModelEntity){
-				List<ItemModelEntity> itemModelEntities1 = ((RowItemModelEntity) itemModelEntity).getItems();
-				((RowItemModelEntity) itemModelEntity).setItems(null);
-				if(itemModelEntities1 != null && itemModelEntities1.size() > 0) {
-					itemManager.delete(itemModelEntities1.toArray(new ItemModelEntity[]{}));
-				}
-			}else if(itemModelEntity instanceof SubFormItemModelEntity){
-				List<SubFormRowItemModelEntity> itemModelEntities1 = ((SubFormItemModelEntity) itemModelEntity).getItems();
-				for(int j = 0 ; j < itemModelEntities1.size(); j++){
-					SubFormRowItemModelEntity subFormRowItemModelEntity = itemModelEntities1.get(j);
-					List<ItemModelEntity> itemModelEntities11 =  subFormRowItemModelEntity.getItems();
-					if(itemModelEntities11 != null && itemModelEntities11.size() > 0) {
-						itemManager.delete(itemModelEntities11.toArray(new ItemModelEntity[]{}));
-					}
-					itemModelEntities1.remove(subFormRowItemModelEntity);
-					itemManager.delete(subFormRowItemModelEntity);
-					j--;
-				}
-			}
-			itemModelEntities.remove(itemModelEntity);
-			itemManager.delete(itemModelEntity);
-			i--;
-		}
-		delete(formModelEntity);
+		formModelManager.delete(formModelEntity);
 	}
 
 	@Override
