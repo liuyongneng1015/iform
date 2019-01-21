@@ -12,6 +12,7 @@ import org.apache.commons.lang.time.DateUtils;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
@@ -722,55 +723,95 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	@SuppressWarnings("deprecation")
 	protected Criteria generateCriteria(ListModelEntity listModel, Map<String, Object> queryParameters) {
-		DataModelEntity dataModel = listModel.getMasterForm().getDataModels().get(0);
+		FormModelEntity formModelEntity = listModel.getMasterForm();
+		DataModelEntity dataModel = formModelEntity.getDataModels().get(0);
 		Session session = getSession(dataModel);
 		Criteria criteria = session.createCriteria(dataModel.getTableName());
-		for (ListSearchItem searchItem : listModel.getSearchItems()) {
-			Object value = queryParameters.get(searchItem.getItemModel().getId());
-			if (value != null && StringUtils.hasText(String.valueOf(value))) {
-				String propertyName = searchItem.getItemModel().getColumnModel().getColumnName();
-				boolean equalsFlag = false;
-				if(searchItem.getItemModel().getType() == ItemType.DatePicker){
-					equalsFlag = true;
-					if(!(value instanceof Date)){
-						String strValue = String.valueOf(value);
-						value = new Date(Long.parseLong(strValue));
-					}
-				}else if(searchItem.getItemModel().getType() == ItemType.InputNumber){
-					equalsFlag = true;
-					String strValue = String.valueOf(value);
-					if(searchItem.getItemModel().getColumnModel().getDataType() == ColumnType.Integer) {
-						value = Integer.parseInt(strValue);
-					}else if(searchItem.getItemModel().getColumnModel().getDataType() == ColumnType.Long) {
-							value = Long.parseLong(strValue);
-					}else if(searchItem.getItemModel().getColumnModel().getDataType() == ColumnType.Float) {
-						value = Float.parseFloat(strValue);
-					}else if(searchItem.getItemModel().getColumnModel().getDataType() == ColumnType.Double) {
-						value = Double.parseDouble(strValue);
-					}
-				}else if(searchItem.getItemModel().getColumnModel().getDataType() == ColumnType.Boolean){
-					equalsFlag = true;
-					if(!(value instanceof Boolean)){
-						String strValue = String.valueOf(value);
-						value = "true".equals(strValue);
-					}
-				}
-				if (equalsFlag){
-					if(searchItem.getItemModel().getType() == ItemType.DatePicker) {
-						criteria.add(Restrictions.ge(propertyName, value));
-						criteria.add(Restrictions.lt(propertyName, DateUtils.addDays((Date)value, 1)));
-					}else{
-						criteria.add(Restrictions.eq(propertyName, value));
-					}
-				}else if(searchItem.getSearch().getSearchType() == SearchType.Like) {
-					criteria.add(Restrictions.like(propertyName, "%" + value + "%"));
-				} else {
-					criteria.add(Restrictions.eq(propertyName, value));
+		Map<String, ListSearchItem> searchItemMap = getSearchItemMaps(listModel.getSearchItems());
+		// 要查询listModel.getSearchItems()和listModel.getQuickSearchItems()的取值
+		for (ItemModelEntity itemModel:formModelEntity.getItems()) {
+			// queryParameters的value可能是数组
+			Object value = queryParameters.get(itemModel.getId());
+			if (value==null) {
+				continue;
+			}
+			Object[] values = null;
+			if (value instanceof String[]) {
+				List<String> list = Arrays.asList((String[])value).stream().filter(item->item!=null && StringUtils.hasText(String.valueOf(item))).collect(Collectors.toList());
+				values = list.toArray(new String[]{});
+			} else if (value instanceof String) {
+				if (value != null && StringUtils.hasText(String.valueOf(value))) {
+					values = new Object[] {value};
 				}
 			}
-		}
+			if (values==null || values.length==0) {
+				continue;
+			}
+			ColumnModelEntity columnModel = itemModel.getColumnModel();
+			String propertyName = columnModel.getColumnName();
+			boolean equalsFlag = false;
 
+			for (int i = 0; i < values.length; i++) {
+				value = values[i];
+				if (itemModel.getType() == ItemType.DatePicker) {
+					equalsFlag = true;
+					if (!(value instanceof Date)) {
+						String strValue = String.valueOf(value);
+						values[i] = new Date(Long.parseLong(strValue));
+					}
+				} else if (itemModel.getType() == ItemType.InputNumber) {
+					equalsFlag = true;
+					String strValue = String.valueOf(value);
+					if (columnModel.getDataType() == ColumnType.Integer) {
+						values[i] = Integer.parseInt(strValue);
+					} else if (columnModel.getDataType() == ColumnType.Long) {
+						values[i] = Long.parseLong(strValue);
+					} else if (columnModel.getDataType() == ColumnType.Float) {
+						values[i] = Float.parseFloat(strValue);
+					} else if (columnModel.getDataType() == ColumnType.Double) {
+						values[i] = Double.parseDouble(strValue);
+					}
+				} else if (columnModel.getDataType() == ColumnType.Boolean) {
+					equalsFlag = true;
+					if (!(value instanceof Boolean)) {
+						String strValue = String.valueOf(value);
+						values[i] = "true".equals(strValue);
+					}
+				}
+			}
+
+			ListSearchItem searchItem = searchItemMap.get(itemModel.getId());
+			if (equalsFlag) {
+				if(itemModel.getType() == ItemType.DatePicker) {
+					criteria.add(Restrictions.ge(propertyName, value));
+					criteria.add(Restrictions.lt(propertyName, DateUtils.addDays((Date)value, 1)));
+				} else {
+					Criterion[] conditions = Arrays.asList(values).stream().map(item->Restrictions.eq(propertyName, item)).toArray(Criterion[]::new);
+					criteria.add(Restrictions.or(conditions));
+//					criteria.add(Restrictions.eq(propertyName, value));  criteria.add(Restrictions.like(propertyName, "%" + value + "%"));
+				}
+			} else if (searchItem.getSearch().getSearchType() == SearchType.Like && itemModel.getType() != ItemType.InputNumber) {
+				Criterion[] conditions = Arrays.asList(values).stream().map(item->Restrictions.like(propertyName, "%" + item + "%")).toArray(Criterion[]::new);
+				criteria.add(Restrictions.or(conditions));
+			} else {
+				Criterion[] conditions = Arrays.asList(values).stream().map(item->Restrictions.eq(propertyName, item)).toArray(Criterion[]::new);
+				criteria.add(Restrictions.or(conditions));
+			}
+
+		}
 		return criteria;
+	}
+
+	// 封装控件ID和ListSearchItem的关系
+	public Map<String, ListSearchItem> getSearchItemMaps(List<ListSearchItem> listSearchItems) {
+		Map<String, ListSearchItem> map = new HashMap<>();
+		for (ListSearchItem searchItem:listSearchItems) {
+			ItemModelEntity itemModelEntity = searchItem.getItemModel();
+			if (itemModelEntity!=null) {
+				map.put(itemModelEntity.getId(), searchItem);
+			}
+		}
+		return map;
 	}
 
 	protected void addSort(ListModelEntity listModel, Criteria criteria) {
