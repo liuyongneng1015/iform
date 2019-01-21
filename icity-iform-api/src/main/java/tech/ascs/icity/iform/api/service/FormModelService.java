@@ -155,8 +155,8 @@ public interface FormModelService {
 	@ApiOperation(value = "应用表单模型", position = 3)
 	@ApiImplicitParams({
 			@ApiImplicitParam(paramType = "query", name = "applicationId", value = "应用id", required = true, dataType = "String"),
-			@ApiImplicitParam(paramType = "query", name = "columnId", value = "字段id", required = true, dataType = "String"),
-            @ApiImplicitParam(paramType = "query", name = "formModelId", value = "表单模型id", required = true, dataType = "String")
+			@ApiImplicitParam(paramType = "query", name = "columnId", value = "字段id", required = false, dataType = "String"),
+            @ApiImplicitParam(paramType = "query", name = "formModelId", value = "表单模型id", required = false, dataType = "String")
     })
 	@GetMapping(value = "/application")
 	List<ApplicationModel> findApplicationFormModel(@RequestParam(name="applicationId", required = true) String applicationId,
