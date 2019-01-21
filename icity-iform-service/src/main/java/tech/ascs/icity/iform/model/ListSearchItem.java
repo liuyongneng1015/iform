@@ -27,6 +27,9 @@ public class ListSearchItem extends BaseEntity implements Serializable {
 	@Embedded
 	private ItemSearchInfo search;
 
+	@Column(name="order_no",columnDefinition = "int default 0")//排序号
+	private Integer orderNo = 0;
+
 	public ListModelEntity getListModel() {
 		return listModel;
 	}
@@ -49,5 +52,13 @@ public class ListSearchItem extends BaseEntity implements Serializable {
 
 	public void setSearch(ItemSearchInfo search) {
 		this.search = search;
+	}
+
+	public Integer getOrderNo() {
+		return orderNo;
+	}
+
+	public void setOrderNo(Integer orderNo) {
+		this.orderNo = orderNo;
 	}
 }
