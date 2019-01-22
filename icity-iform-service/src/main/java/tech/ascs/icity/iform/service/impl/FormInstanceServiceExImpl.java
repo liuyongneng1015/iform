@@ -10,6 +10,7 @@ import net.minidev.json.JSONObject;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.hibernate.Criteria;
+import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Criterion;
@@ -105,13 +106,21 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 		criteria.setFirstResult((page - 1) * pagesize);
 		criteria.setMaxResults(pagesize);
-		List<FormInstance> list = wrapList(listModel, criteria.list());
+		List<Map<String, Object>> entities = null;
+		Page<FormInstance> result = Page.get(page, pagesize);
+		try {
+			entities = criteria.list();
+		} catch (HibernateException e) {
+			e.printStackTrace();
+			return result;
+		}
+
+		List<FormInstance> list = wrapList(listModel, entities);
 
 		criteria.setFirstResult(0);
 		criteria.setProjection(Projections.rowCount());
 		Number count = (Number) criteria.uniqueResult();
 
-		Page<FormInstance> result = Page.get(page, pagesize);
 		return result.data(count.intValue(), list);
 	}
 
@@ -818,8 +827,19 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	protected void addSort(ListModelEntity listModel, Criteria criteria) {
 		for (ListSortItem sortItem : listModel.getSortItems()) {
 			ItemModelEntity itemModel = sortItem.getItemModel();
+			if(listModel.getMasterForm() == null || listModel.getMasterForm().getDataModels() == null
+					|| listModel.getMasterForm().getDataModels().size() < 1){
+				continue;
+			}
+			List<String> columns = new ArrayList<>();
+			for(ColumnModelEntity columnModelEntity : listModel.getMasterForm().getDataModels().get(0).getColumns()){
+				columns.add(columnModelEntity.getDataModel().getTableName()+"_"+columnModelEntity.getColumnName());
+			}
 			if (Objects.nonNull(itemModel)) {
 				ColumnModelEntity columnModel = itemModel.getColumnModel();
+				if(!columns.contains(columnModel.getDataModel().getTableName()+"_"+columnModel.getColumnName())){
+					continue;
+				}
 				if (Objects.nonNull(columnModel)) {
 					String propertyName = columnModel.getColumnName();
 					if (sortItem.isAsc()) {

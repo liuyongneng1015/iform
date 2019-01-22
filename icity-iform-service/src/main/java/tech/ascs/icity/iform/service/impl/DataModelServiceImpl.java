@@ -279,6 +279,9 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		try {
 			sessionFactoryBuilder.getSessionFactory(dataModel, true);
 			dataModel.setSynchronized(true);
+			for(DataModelEntity slaverDataModelEntity : dataModel.getSlaverModels()){
+				slaverDataModelEntity.setSynchronized(true);
+			}
 			save(dataModel);
 		} catch (Exception e) {
 			throw new IFormException("同步数据模型【" + dataModel.getName() + "】失败：" + e.getMessage(), e);

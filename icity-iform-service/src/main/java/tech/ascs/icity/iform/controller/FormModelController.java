@@ -1,6 +1,8 @@
 package tech.ascs.icity.iform.controller;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.googlecode.genericdao.search.Sort;
@@ -457,6 +459,12 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			}
 		}
 		for(DataModel dataModel : formModel.getDataModels()){
+			if(!StringUtils.hasText(dataModel.getTableName())){
+				throw new IFormException("表名不允许为空");
+			}
+			if(isContainChinese(dataModel.getTableName())){
+				throw new IFormException("表名不允许包含中文字符");
+			}
 			List<String> columnModelEntities = dataModel.getColumns().parallelStream().map(ColumnModel::getColumnName).collect(Collectors.toList());
 			Map<String, Object> map = new HashMap<String, Object>();
 			for(String string : columnModelEntities){
@@ -564,6 +572,22 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		dataModelService.save(masterDataModelEntity);
 
 		return entity;
+	}
+
+	/**
+	 * 判断字符串中是否包含中文
+	 * @param str
+	 * 待校验字符串
+	 * @return 是否为中文
+	 * @warn 不能校验是否为中文标点符号
+	 */
+	private boolean isContainChinese(String str) {
+		Pattern p = Pattern.compile("[\u4e00-\u9fa5]");
+		Matcher m = p.matcher(str);
+		if (m.find()) {
+			return true;
+		}
+		return false;
 	}
 
 	//提交表单提交校验
