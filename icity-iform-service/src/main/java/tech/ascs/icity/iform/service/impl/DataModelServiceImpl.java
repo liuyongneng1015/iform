@@ -313,6 +313,11 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 	private DataModel entityToModel(DataModelEntity modelEntity){
 		DataModel dataModel = new DataModel();
 		BeanUtils.copyProperties(modelEntity, dataModel, new String[] {"columns","slaverModels","masterModel","parentsModel","childrenModels","indexes"});
+		if(modelEntity.getMasterModel() != null){
+			DataModelInfo masterModel = new DataModelInfo();
+			BeanUtils.copyProperties(modelEntity.getMasterModel(), masterModel, new String[]{"masterModel","slaverModels","columns", "indexes","referencesDataModel"});
+			dataModel.setMasterModel(masterModel);
+		}
 		List<ColumnModelEntity> columnModelEntities = modelEntity.getColumns();
 		List<ColumnModel> columnModels = new ArrayList<>();
 		for(ColumnModelEntity columnModelEntity : columnModelEntities){
