@@ -4,7 +4,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 @ApiModel("列表搜索字段信息")
-public class SearchItem extends ItemModel {
+public class SearchItem extends ItemModel implements Comparable<SearchItem> {
 
 	public static class Search {
 		@ApiModelProperty(value = "查询类型", position = 0)
@@ -56,4 +56,9 @@ public class SearchItem extends ItemModel {
 	public void setOrderNo(Integer orderNo) {
 		this.orderNo = orderNo;
 	}
+
+    @Override
+    public int compareTo(SearchItem target) {
+	    return this.getOrderNo().compareTo(target.getOrderNo());
+    }
 }

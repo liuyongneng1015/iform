@@ -56,6 +56,10 @@ public class ListModelEntity extends BaseEntity implements Serializable {
 	)
 	private List<ItemModelEntity> displayItems = new ArrayList<ItemModelEntity>();
 
+	// 展示字段排序
+	@Column(name = "display_item_sort", length = 4096)
+	private String displayItemsSort;
+
 	public String getDescription() {
 		return description;
 	}
@@ -134,5 +138,13 @@ public class ListModelEntity extends BaseEntity implements Serializable {
 
 	public void setDisplayItems(List<ItemModelEntity> displayItems) {
 		this.displayItems = displayItems;
+	}
+
+	public String getDisplayItemsSort() {
+		return displayItemsSort;
+	}
+
+	public void setDisplayItemsSort(String displayItemsSort) {
+		this.displayItemsSort = displayItemsSort;
 	}
 }
