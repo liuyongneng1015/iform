@@ -1075,7 +1075,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	}
 
 
-	private ItemInstance setItemInstance(Boolean visiblekey , ItemModelEntity itemModel, Object value, String activityId){
+	private ItemInstance setItemInstance(Boolean visiblekey , ItemModelEntity itemModel, Object value, String activityId) {
 		ItemInstance itemInstance = new ItemInstance();
 		itemInstance.setId(itemModel.getId());
 		itemInstance.setColumnModelId(itemModel.getColumnModel().getId());
@@ -1147,8 +1147,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		itemInstance.setValue(list);
 		List<String> displayValuelist = new ArrayList<>();
 		SelectItemModelEntity selectItemModelEntity = (SelectItemModelEntity)itemModel;
-		if((selectItemModelEntity.getSelectReferenceType() == SelectReferenceType.Dictionary || (selectItemModelEntity.getReferenceDictionaryItemId() != null && selectItemModelEntity.getReferenceDictionaryId() != null))
-				&& list != null && list.size() > 0){
+		if((	selectItemModelEntity.getSelectReferenceType() == SelectReferenceType.Dictionary ||
+				(selectItemModelEntity.getReferenceDictionaryId() != null && selectItemModelEntity.getReferenceDictionaryItemId() != null) ||
+				(selectItemModelEntity.getReferenceDictionaryId() != null && selectItemModelEntity.getParentItem()!=null && selectItemModelEntity.getParentItem().getReferenceDictionaryItemId()!=null)
+			) && list != null && list.size() > 0){
 			List<DictionaryItemEntity> dictionaryItemEntities = dictionaryItemManager.query().filterIn("id",list).list();
 			if(dictionaryItemEntities != null) {
 				for (DictionaryItemEntity dictionaryItemEntity : dictionaryItemEntities) {
