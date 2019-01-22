@@ -287,7 +287,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					str.append("_");
 				}
 				str.append(getRandom(((SerialNumberItemModelEntity)itemModelEntity).getSuffix()));
-				list.add(getItemInstance(itemModelEntity.getId(),str));
+				list.add(getItemInstance(itemModelEntity.getId(), str.toString()));
 			}
 		}
 
