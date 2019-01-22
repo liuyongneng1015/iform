@@ -96,9 +96,9 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 	}
 
 	// 新增列表的时候，自动创建新增、导出、导入、删除、二维码，为系统自带功能
-	private DefaultFunctionType[] functionDefaultActions = {DefaultFunctionType.Add, DefaultFunctionType.Export,
-															DefaultFunctionType.Import, DefaultFunctionType.BatchDelete, DefaultFunctionType.QrCode};
-	private List<String> functionDefaultLabels  = Arrays.asList(new String[]{"新增", "导出", "导入", "批量删除", "二维码"});
+	private DefaultFunctionType[] functionDefaultActions = {DefaultFunctionType.Add, DefaultFunctionType.BatchDelete, DefaultFunctionType.Export,
+															DefaultFunctionType.Import, DefaultFunctionType.QrCode};
+	private List<String> functionDefaultLabels  = Arrays.asList(new String[]{"新增", "批量删除", "导出", "导入", "二维码"});
 	private List<String> functionDefaultMethods = Arrays.asList(new String[]{"POST", "GET", "POST", "DELETE", "GET"});
 	@Override
 	public IdEntity createListModel(@RequestBody ListModel ListModel) {
