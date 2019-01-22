@@ -867,7 +867,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			}
 
 			if(itemModel.getParentItem() != null) {
-				((ReferenceItemModelEntity) entity).setParentItem((ReferenceItemModelEntity) getParentItemModel(itemModel.getParentItem()));
+				ItemModel parentItemModel = itemModel.getParentItem();
+				parentItemModel.setType(ItemType.ReferenceList);
+				((ReferenceItemModelEntity) entity).setParentItem((ReferenceItemModelEntity) getParentItemModel(parentItemModel));
 			}
 			if(itemModel.getItemModelList() != null && itemModel.getItemModelList().size() > 0) {
 				List<ItemModelEntity> list = new ArrayList<>();
@@ -884,6 +886,17 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			}else{
 				selectItemModelEntity.setDefaultReferenceValue((String)itemModel.getDefaultValue());
 			}
+			if(itemModel.getMultiple() != null && itemModel.getMultiple() && itemModel.getOptions() != null && itemModel.getOptions().size() > 0 ){
+				int i = 0;
+				for(Option option: itemModel.getOptions()){
+					if(option.getDefaultFlag() != null && option.getDefaultFlag()){
+						i++;
+					}
+				}
+				if(i > 1){
+					throw new IFormException("控件"+itemModel.getName()+"为单选下拉框，不能默认多个值");
+				}
+			}
 			selectItemModelEntity.setReferenceList(setItemModelByListModel(itemModel));
 			if(itemModel.getDictionaryValueType() == DictionaryValueType.Linkage && (itemModel.getReferenceDictionaryId() == null || itemModel.getParentItem() == null)){
 				throw new IFormException("控件"+itemModel.getName()+"未找到对应分类或联动目标");
@@ -893,7 +906,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			}
 
             if(itemModel.getDictionaryValueType() == DictionaryValueType.Linkage && itemModel.getParentItem() != null){
-                selectItemModelEntity.setParentItem((SelectItemModelEntity) getParentItemModel(itemModel.getParentItem()));
+				ItemModel parentItemModel = itemModel.getParentItem();
+				parentItemModel.setType(ItemType.Select);
+                selectItemModelEntity.setParentItem((SelectItemModelEntity) getParentItemModel(parentItemModel));
             }
 
 		}else if(entity instanceof RowItemModelEntity){
