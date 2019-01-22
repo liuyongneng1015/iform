@@ -267,7 +267,7 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 				List<ItemModelEntity> itemModelEntity = itemManager.findByProperty("columnModel.id", id);
 				if(itemModelEntity != null && itemModelEntity.size() > 0) {
 					for (ItemModelEntity itemModel : itemModelEntity) {
-						throw new IFormException(CommonUtils.exceptionCode, entity.getColumnName() + "字段被" + entity.getDataModel().getTableName() + "表单" + itemModel.getName() + "控件关联");
+						throw new IFormException(CommonUtils.exceptionCode, entity.getColumnName() + "字段被" + itemModel.getFormModel().getName() + "表单" + itemModel.getName() + "控件关联");
 					}
 				}
 			}

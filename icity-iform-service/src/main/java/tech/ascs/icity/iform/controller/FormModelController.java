@@ -534,9 +534,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			dataModelService.deleteById(key);
 		}
 
-		//保存数据模型
-		dataModelService.save(masterDataModelEntity);
-
 		entity.setDataModels(dataModelEntities);
 
 		List<ItemModelEntity> items = new ArrayList<ItemModelEntity>();
@@ -562,6 +559,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		if(formModel.getSubmitChecks() != null && formModel.getSubmitChecks().size() > 0){
 			wrapFormModelSubmitCheck(entity, formModel);
 		}
+
+		//保存数据模型
+		dataModelService.save(masterDataModelEntity);
 
 		return entity;
 	}
@@ -829,6 +829,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		//需要保持column
 		BeanUtils.copyProperties(itemModel, entity, new String[] {"defaultValue","referenceList","parentItem", "searchItems","sortItems", "permissions", "items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});
 
+		//设置控件字段
 		setColumnModel(entity, itemModel);
 
 		if(entity.getColumnModel() != null){
@@ -976,8 +977,15 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		if(itemModel.getColumnModel() == null){
 			entity.setColumnModel(null);
 		}else{
-			List<ColumnModelEntity> columnModelEntityList = columnModelService.query().filterEqual("columnName", itemModel.getColumnModel().getColumnName()).filterEqual("dataModel.tableName", itemModel.getColumnModel().getTableName()).list();
-			entity.setColumnModel(columnModelEntityList == null || columnModelEntityList.size() < 1 ? null : columnModelEntityList.get(0));
+			//List<ColumnModelEntity> columnModelEntityList = columnModelService.query().filterEqual("columnName", itemModel.getColumnModel().getColumnName()).filterEqual("dataModel.tableName", itemModel.getColumnModel().getTableName()).list();
+
+			ColumnModelEntity columnModelEntity = new ColumnModelEntity();
+			columnModelEntity.setColumnName(itemModel.getColumnModel().getColumnName());
+			columnModelEntity.setId(itemModel.getColumnModel().getId());
+			DataModelEntity dataModelEntity = new DataModelEntity();
+			dataModelEntity.setTableName(itemModel.getColumnModel().getTableName());
+			columnModelEntity.setDataModel(dataModelEntity);
+			entity.setColumnModel(columnModelEntity);
 		}
 	}
 
@@ -1037,7 +1045,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			List<DataModel> dataModelList = new ArrayList<>();
 			List<DataModelEntity> dataModelEntities = entity.getDataModels();
 			for(DataModelEntity dataModelEntity : dataModelEntities){
-				DataModel  dataModel = new DataModel();
+				DataModel dataModel = new DataModel();
 				BeanUtils.copyProperties(dataModelEntity, dataModel, new String[] {"masterModel","slaverModels","columns","indexes","referencesDataModel"});
 				dataModelList.add(dataModel);
 			}
