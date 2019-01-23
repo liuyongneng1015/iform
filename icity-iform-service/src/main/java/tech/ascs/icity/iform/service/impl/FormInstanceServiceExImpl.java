@@ -927,7 +927,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		ReferenceItemModelEntity fromItem = (ReferenceItemModelEntity)itemModel;
 
 		//关联表数据模型
-		FormModelEntity toModelEntity = fromItem.getReferenceList().getMasterForm();
+		FormModelEntity toModelEntity = formModelService.get(((ReferenceItemModelEntity) itemModel).getReferenceFormId());
 		if (toModelEntity == null) {
 			return;
 		}
