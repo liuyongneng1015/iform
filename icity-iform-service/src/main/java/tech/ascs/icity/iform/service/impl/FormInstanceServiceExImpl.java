@@ -737,8 +737,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		Session session = getSession(dataModel);
 		Criteria criteria = session.createCriteria(dataModel.getTableName());
 		Map<String, ListSearchItem> searchItemMap = getSearchItemMaps(listModel.getSearchItems());
+        List<ItemModelEntity> items = getFormAllItems(formModelEntity);
 		// 要查询listModel.getSearchItems()和listModel.getQuickSearchItems()的取值
-		for (ItemModelEntity itemModel:formModelEntity.getItems()) {
+		for (ItemModelEntity itemModel:items) {
 			// queryParameters的value可能是数组
 			Object value = queryParameters.get(itemModel.getId());
 			if (value==null) {
@@ -810,6 +811,25 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 		}
 		return criteria;
+	}
+
+	public List<ItemModelEntity> getFormAllItems(FormModelEntity formModelEntity) {
+		List<ItemModelEntity> list = new ArrayList<>();
+		for (ItemModelEntity itemModel:formModelEntity.getItems()) {
+			if (itemModel instanceof RowItemModelEntity) {
+				RowItemModelEntity rowItemModelEntity = (RowItemModelEntity)itemModel;
+				list.addAll(rowItemModelEntity.getItems());
+			} else if (itemModel instanceof ReferenceItemModelEntity) {
+                ReferenceItemModelEntity referenceItemModelEntity = (ReferenceItemModelEntity)itemModel;
+                list.addAll(referenceItemModelEntity.getItems());
+			} else if (itemModel instanceof SelectItemModelEntity) {
+                SelectItemModelEntity selectItemModelEntity = (SelectItemModelEntity)itemModel;
+                list.addAll(selectItemModelEntity.getItems());
+            } else {
+				list.add(itemModel);
+			}
+		}
+		return list;
 	}
 
 	// 封装控件ID和ListSearchItem的关系
