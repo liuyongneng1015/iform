@@ -224,6 +224,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			formModels = findFormModelsByColumnId(columnId);
 		}else if(StringUtils.hasText(formModelId)){
 			formModels = findFormModelsByFormModelId(formModelId);
+			if(formModels == null || formModels.size() < 1){
+				return new ArrayList<>();
+			}
 		}
 
 		if(formModels == null || formModels.size() < 1) {
@@ -867,8 +870,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 		if(entity instanceof ReferenceItemModelEntity){
 
-			if(((ReferenceItemModelEntity) entity).getSelectMode() != SelectMode.Attribute && !StringUtils.hasText(((ReferenceItemModelEntity) entity).getReferenceFormId())){
-				throw  new IFormException("关联控件"+entity.getName()+"未找到关联表单");
+			if(((ReferenceItemModelEntity) entity).getSelectMode() != SelectMode.Attribute && (!StringUtils.hasText(((ReferenceItemModelEntity) entity).getReferenceFormId())
+					|| ((ReferenceItemModelEntity) entity).getReferenceList() == null)){
+				throw  new IFormException("关联控件"+entity.getName()+"未找到关联表单或列表模型");
 			}
 
 			if(itemModel.getParentItem() != null) {
@@ -1336,10 +1340,11 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		ItemModel itemModel = new ItemModel();
 		BeanUtils.copyProperties(entity, itemModel, new String[]{"formModel", "columnModel", "activities", "options","searchItems","sortItems", "permissions","items","parentItem","referenceList"});
 
-		if(entity instanceof ReferenceItemModelEntity && ((ReferenceItemModelEntity) entity).getItemModelIds() != null){
-			List<String> resultList= new ArrayList<>(Arrays.asList(((ReferenceItemModelEntity) entity).getItemModelIds().split(",")));
-
-			itemModel.setItemModelList(getItemModelList(resultList));
+		if(entity instanceof ReferenceItemModelEntity){
+			if(((ReferenceItemModelEntity) entity).getItemModelIds() != null) {
+				List<String> resultList = new ArrayList<>(Arrays.asList(((ReferenceItemModelEntity) entity).getItemModelIds().split(",")));
+				itemModel.setItemModelList(getItemModelList(resultList));
+			}
 
 			String referenceItemId = ((ReferenceItemModelEntity) entity).getReferenceItemId();
 			if(referenceItemId != null){

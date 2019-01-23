@@ -217,7 +217,6 @@ public class ReferenceItemModel extends ItemModel {
 	}
 
 	@Override
-	@JsonIgnore
 	public String getReferenceFormId() {
 		return referenceFormId;
 	}
@@ -228,7 +227,6 @@ public class ReferenceItemModel extends ItemModel {
 	}
 
 	@Override
-	@JsonIgnore
 	public String getReferenceFormName() {
 		return referenceFormName;
 	}
@@ -239,7 +237,6 @@ public class ReferenceItemModel extends ItemModel {
 	}
 
 	@Override
-	@JsonIgnore
 	public String getReferenceItemId() {
 		return referenceItemId;
 	}
@@ -250,7 +247,6 @@ public class ReferenceItemModel extends ItemModel {
 	}
 
 	@Override
-	@JsonIgnore
 	public String getReferenceItemName() {
 		return referenceItemName;
 	}
@@ -294,7 +290,6 @@ public class ReferenceItemModel extends ItemModel {
 	}
 
 	@Override
-	@JsonIgnore
 	public String getTableName() {
 		return tableName;
 	}
@@ -305,7 +300,6 @@ public class ReferenceItemModel extends ItemModel {
 	}
 
 	@Override
-	@JsonIgnore
 	public ItemModel getParentItem() {
 		return parentItem;
 	}
