@@ -1358,6 +1358,16 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			}else{
 				itemModel.setDefaultValue((String)defaultValue);
 			}
+			if(entity.getOptions() != null && entity.getOptions().size() > 0){
+				List<String> defaultList = new ArrayList<>();
+				for(ItemSelectOption option : entity.getOptions()){
+					if(option.getDefaultFlag() != null && option.getDefaultFlag()){
+						defaultList.add(option.getId());
+					}
+				}
+				itemModel.setDefaultValue(defaultList);
+			}
+
 			itemModel.setReferenceList(getItemModelByEntity(entity));
 
 			if(((SelectItemModelEntity) entity).getReferenceDictionaryId() != null){
