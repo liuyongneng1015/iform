@@ -545,6 +545,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					if(subFormData == null || subFormData.keySet() == null) {
 						throw new IFormException("没有查询到【" + dataModelEntity.getTableName() + "】表，id【"+ id +"】的数据");
 					}
+					for (String keyString : newMap.keySet()) {
+						if (!"id".equals(keyString)) {
+							subFormData.put(keyString, newMap.get(keyString));
+						}
+					}
 				} else {
 					Map<String, Object> dataMap = new HashMap<>();
 					for (String keyString : newMap.keySet()) {
