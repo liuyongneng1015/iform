@@ -224,6 +224,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			formModels = findFormModelsByColumnId(columnId);
 		}else if(StringUtils.hasText(formModelId)){
 			formModels = findFormModelsByFormModelId(formModelId);
+			if(formModels == null || formModels.size() < 1){
+				return new ArrayList<>();
+			}
 		}
 
 		if(formModels == null || formModels.size() < 1) {
