@@ -775,10 +775,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			for(int i = 0 ; i < oldColumnReferences.size() ; i++) {
 				ColumnReferenceEntity columnReferenceEntity = oldColumnReferences.get(i);
 				oldColumnReferences.remove(i);
-				i--;
 				columnModelService.deleteColumnReferenceEntity(columnReferenceEntity);
+				i--;
 			}
-			oldColumnModelEntity.setColumnReferences(null);
 
 			oldColumnModelEntity.setDataModel(oldDataModelEntity);
 			if(columnModel.getReferenceTables() != null){
