@@ -52,7 +52,7 @@ public class ReferenceModel extends NameEntity {
 	}
 
 	public String getReferenceValueColumn() {
-		if(!StringUtils.isEmpty(this.referenceValueColumn)){
+		if(!StringUtils.hasText(this.referenceValueColumn)){
 			referenceValueColumn = "id";
 		}
 		return referenceValueColumn;

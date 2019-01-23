@@ -784,7 +784,13 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			if(columnModel.getReferenceTables() != null){
 				for(ReferenceModel columnReferenceEntity : columnModel.getReferenceTables()){
 					DataModelEntity dataModelEntity = dataModelService.findUniqueByProperty("tableName", columnReferenceEntity.getReferenceTable());
+					if(dataModelEntity == null){
+						throw new IFormException("未找到【"+columnReferenceEntity.getReferenceTable()+"】对应的数据表");
+					}
 					ColumnModelEntity columnModelEntity = columnModelService.saveColumnModelEntity(dataModelEntity, columnReferenceEntity.getReferenceValueColumn());
+					if(columnModelEntity == null){
+						throw new IFormException("未找到【"+columnReferenceEntity.getReferenceValueColumn()+"】对应的字段");
+					}
 					ColumnModel referenceColumnModel = new ColumnModel();
 					referenceColumnModel.setId(columnModelEntity.getId());
 					columnModelService.saveColumnReferenceEntity(oldColumnModelEntity, setColumn(referenceColumnModel), columnReferenceEntity.getReferenceType(), columnReferenceEntity.getReferenceMiddleTableName());
