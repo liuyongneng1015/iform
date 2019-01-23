@@ -1339,10 +1339,11 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		ItemModel itemModel = new ItemModel();
 		BeanUtils.copyProperties(entity, itemModel, new String[]{"formModel", "columnModel", "activities", "options","searchItems","sortItems", "permissions","items","parentItem","referenceList"});
 
-		if(entity instanceof ReferenceItemModelEntity && ((ReferenceItemModelEntity) entity).getItemModelIds() != null){
-			List<String> resultList= new ArrayList<>(Arrays.asList(((ReferenceItemModelEntity) entity).getItemModelIds().split(",")));
-
-			itemModel.setItemModelList(getItemModelList(resultList));
+		if(entity instanceof ReferenceItemModelEntity){
+			if(((ReferenceItemModelEntity) entity).getItemModelIds() != null) {
+				List<String> resultList = new ArrayList<>(Arrays.asList(((ReferenceItemModelEntity) entity).getItemModelIds().split(",")));
+				itemModel.setItemModelList(getItemModelList(resultList));
+			}
 
 			String referenceItemId = ((ReferenceItemModelEntity) entity).getReferenceItemId();
 			if(referenceItemId != null){
