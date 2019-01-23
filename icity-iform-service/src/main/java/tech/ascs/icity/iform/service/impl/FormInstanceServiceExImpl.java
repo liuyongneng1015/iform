@@ -856,7 +856,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		List<FormInstance> FormInstanceList = new ArrayList<FormInstance>();
 		FormModelEntity formModel = listModel.getMasterForm();
 		for (Map<String, Object> entity : entities) {
-			FormInstanceList.add(wrapEntity(formModel, entity,String.valueOf(entity.get("id")),false));
+			FormInstanceList.add(wrapEntity(formModel, entity,String.valueOf(entity.get("id")),true));
 		}
 		return FormInstanceList;
 	}
