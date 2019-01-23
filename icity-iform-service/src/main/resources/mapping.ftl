@@ -25,7 +25,7 @@
                     <#if column.columnName != "id">
                         <many-to-one name="${column.columnName!''}" entity-name="${reference.toColumn.dataModel.tableName!''}" column="${column.columnName!''}" cascade="save-update" fetch="select"   unique="true"/>
                     <#else >
-                       <one-to-one name="${column.columnName!''}" entity-name="${reference.toColumn.dataModel.tableName!''}"  <#if reference.toColumn.columnName != "id"> property-ref="${reference.toColumn.columnName!''}"</#if> cascade="all" constrained="true"/>
+                       <one-to-one name="${reference.toColumn.dataModel.tableName!''}_list" entity-name="${reference.toColumn.dataModel.tableName!''}"  <#if reference.toColumn.columnName != "id"> property-ref="${reference.toColumn.columnName!''}"</#if> cascade="all" constrained="true"/>
                     </#if>
                 <#elseif reference.referenceType.value = "ManyToOne">
                         <many-to-one name="${column.columnName!''}" entity-name="${reference.toColumn.dataModel.tableName!''}" column="${column.columnName!''}" cascade="save-update" fetch="select" />
@@ -96,7 +96,7 @@
                     <#if column.columnName != "id">
                          <many-to-one name="${column.columnName!''}" entity-name="${reference.toColumn.dataModel.tableName!''}" column="${column.columnName!''}" unique="true" fetch="select"  cascade="save-update"/>
                     <#else >
-                        <one-to-one name="${column.columnName!''}" entity-name="${reference.toColumn.dataModel.tableName!''}" <#if reference.toColumn.columnName != "id">  property-ref="${reference.toColumn.columnName!''}"</#if> cascade="all" constrained="true" />
+                        <one-to-one name="${reference.toColumn.dataModel.tableName!''}_list" entity-name="${reference.toColumn.dataModel.tableName!''}" <#if reference.toColumn.columnName != "id">  property-ref="${reference.toColumn.columnName!''}"</#if> cascade="all" constrained="true" />
                     </#if>
                 <#elseif reference.referenceType.value = "ManyToOne">
                     <many-to-one name="${column.columnName!''}" entity-name="${reference.toColumn.dataModel.tableName!''}" column="${column.columnName!''}" cascade="save-update" fetch="select"  />
