@@ -368,6 +368,14 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		}
 
 		if (listModel.getQuickSearchItems() !=null) {
+			// 检测快速筛选的个数
+			Long count = listModel.getQuickSearchItems().stream().filter(item->item.getDefaultActive()!=null && item.getDefaultActive()==true).count();
+//			if (count==0) {
+//				throw new IFormException("启动了快速筛选，必须勾选默认的快速刷选条件");
+//			}
+			if (count>1) {
+				throw new IFormException("快速筛选的默认勾选个数不能超过1个");
+			}
 		    List<QuickSearchEntity> quickSearches = new ArrayList<>();
             int i = 0;
 		    for (QuickSearchItem searchItem : listModel.getQuickSearchItems()) {
@@ -388,6 +396,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
                 }
                 quickSearchEntity.setOrderNo(++i);
                 quickSearchEntity.setListModel(entity);
+				quickSearchEntity.setDefaultActive(searchItem.getDefaultActive());
                 quickSearches.add(quickSearchEntity);
             }
             entity.setQuickSearchItems(quickSearches);
