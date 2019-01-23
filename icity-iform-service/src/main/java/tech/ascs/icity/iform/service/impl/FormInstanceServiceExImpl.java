@@ -823,16 +823,38 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		for (ItemModelEntity itemModel:formModelEntity.getItems()) {
 			if (itemModel instanceof RowItemModelEntity) {
 				RowItemModelEntity rowItemModelEntity = (RowItemModelEntity)itemModel;
-				list.addAll(rowItemModelEntity.getItems());
+				if (rowItemModelEntity.getItems()!=null && rowItemModelEntity.getItems().size()>0) {
+					list.addAll(rowItemModelEntity.getItems());
+				}
 			} else if (itemModel instanceof ReferenceItemModelEntity) {
                 ReferenceItemModelEntity referenceItemModelEntity = (ReferenceItemModelEntity)itemModel;
-                list.addAll(referenceItemModelEntity.getItems());
+				if (referenceItemModelEntity.getItems()!=null && referenceItemModelEntity.getItems().size()>0) {
+					list.addAll(referenceItemModelEntity.getItems());
+				}
+				list.add(referenceItemModelEntity);
+				ReferenceItemModelEntity parentReferenceItemModelEntity = referenceItemModelEntity.getParentItem();
+				if (parentReferenceItemModelEntity!=null) {
+                	list.add(parentReferenceItemModelEntity);
+					ReferenceItemModelEntity grandfather = parentReferenceItemModelEntity.getParentItem();
+					if (grandfather!=null) {
+						list.add(grandfather);
+					}
+				}
 			} else if (itemModel instanceof SelectItemModelEntity) {
                 SelectItemModelEntity selectItemModelEntity = (SelectItemModelEntity)itemModel;
-                list.addAll(selectItemModelEntity.getItems());
+                if (selectItemModelEntity.getItems()!=null && selectItemModelEntity.getItems().size()>0) {
+					list.addAll(selectItemModelEntity.getItems());
+					for (SelectItemModelEntity sonSelectItemModelEntity:selectItemModelEntity.getItems()) {
+						if (sonSelectItemModelEntity!=null && sonSelectItemModelEntity.getItems()!=null && sonSelectItemModelEntity.getItems().size()>0) {
+							list.addAll(sonSelectItemModelEntity.getItems());
+						}
+					}
+				}
+				list.add(selectItemModelEntity);
             } else {
 				list.add(itemModel);
 			}
+
 		}
 		return list;
 	}
