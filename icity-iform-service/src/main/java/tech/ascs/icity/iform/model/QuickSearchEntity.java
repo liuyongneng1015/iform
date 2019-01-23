@@ -25,6 +25,7 @@ public class QuickSearchEntity extends BaseEntity implements Serializable {
     private Boolean use = false;
     private String searchValues;
     private Boolean countVisible = false;
+    private Boolean defaultActive = false;
     @Column(name="order_no")
     private Integer orderNo = 0;
 
@@ -58,6 +59,14 @@ public class QuickSearchEntity extends BaseEntity implements Serializable {
 
     public void setSearchValues(String searchValues) {
         this.searchValues = searchValues;
+    }
+
+    public Boolean getDefaultActive() {
+        return defaultActive;
+    }
+
+    public void setDefaultActive(Boolean defaultActive) {
+        this.defaultActive = defaultActive;
     }
 
     public Boolean getCountVisible() {

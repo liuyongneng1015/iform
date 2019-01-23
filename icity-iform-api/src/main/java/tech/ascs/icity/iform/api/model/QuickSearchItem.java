@@ -23,7 +23,11 @@ public class QuickSearchItem extends NameEntity implements Comparable<QuickSearc
     private Boolean countVisible = false;
 
     @ApiModelProperty(value ="排序号", position = 5)
+    private Boolean defaultActive = false;
+
+    @ApiModelProperty(value ="排序号", position = 6)
     private Integer orderNo = 0;
+
 
     public Boolean getUse() {
         return use;
@@ -55,6 +59,14 @@ public class QuickSearchItem extends NameEntity implements Comparable<QuickSearc
 
     public void setCountVisible(Boolean countVisible) {
         this.countVisible = countVisible;
+    }
+
+    public Boolean getDefaultActive() {
+        return defaultActive;
+    }
+
+    public void setDefaultActive(Boolean defaultActive) {
+        this.defaultActive = defaultActive;
     }
 
     public Integer getOrderNo() {
