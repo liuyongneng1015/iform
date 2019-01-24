@@ -17,7 +17,6 @@ import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
-import org.omg.PortableInterceptor.DISCARDING;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -1243,7 +1242,7 @@ private DataModelInstance setDataModelInstance(FormModelEntity toModelEntity, Re
 		SelectItemModelEntity selectItemModelEntity = (SelectItemModelEntity)itemModel;
 		if((	selectItemModelEntity.getSelectReferenceType() == SelectReferenceType.Dictionary ||
 				(selectItemModelEntity.getReferenceDictionaryId() != null && selectItemModelEntity.getReferenceDictionaryItemId() != null) ||
-				(selectItemModelEntity.getReferenceDictionaryId() != null && selectItemModelEntity.getParentItem()!=null && selectItemModelEntity.getParentItem().getReferenceDictionaryItemId()!=null)
+				(selectItemModelEntity.getReferenceDictionaryId() != null && checkParentSelectItemHasDictionaryItem(selectItemModelEntity))
 			) && list != null && list.size() > 0){
 			List<DictionaryItemEntity> dictionaryItemEntities = dictionaryItemManager.query().filterIn("id",list).list();
 			if(dictionaryItemEntities != null) {
@@ -1260,8 +1259,31 @@ private DataModelInstance setDataModelInstance(FormModelEntity toModelEntity, Re
 			}
 			itemInstance.setDisplayValue(displayValuelist);
 		}else {
+			System.out.println("=====>>>>>"+itemModel.getClass());
 			displayValuelist.add(valueString);
 			itemInstance.setDisplayValue(displayValuelist);
+		}
+	}
+
+	/**
+	 * 当SelectItemModel是联动的时候，遍历递归查询获取上级存在getReferenceDictionaryId和referenceDictionaryItemId的item，直到找到为止，否则返回nul
+	 * @param selectItemModelEntity
+	 * @return
+	 */
+	public Boolean checkParentSelectItemHasDictionaryItem(SelectItemModelEntity selectItemModelEntity) {
+		if (selectItemModelEntity==null) {
+			return false;
+		} else {
+			if (selectItemModelEntity.getParentItem()!=null) {
+				SelectItemModelEntity parentItem = selectItemModelEntity.getParentItem();
+				if (parentItem.getReferenceDictionaryId()!=null && parentItem.getReferenceDictionaryItemId()!=null) {
+					return true;
+				} else {
+					return checkParentSelectItemHasDictionaryItem(parentItem);
+				}
+			} else {
+				return false;
+			}
 		}
 	}
 
