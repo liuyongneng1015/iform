@@ -1,6 +1,7 @@
 package tech.ascs.icity.iform.controller;
 
 import java.util.*;
+import java.util.regex.Pattern;
 
 import com.googlecode.genericdao.search.Sort;
 import org.slf4j.Logger;
@@ -223,10 +224,28 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 		}
 	}
 
+	private String regEx = "[a-zA-Z]{1,}[a-zA-Z0-9_]{0,}";
 	@Override
 	public IdEntity createDataModel(@RequestBody DataModel dataModel) {
 		if (StringUtils.hasText(dataModel.getId())) {
 			throw new IFormException("数据模型ID不为空，请使用更新操作");
+		}
+		if (StringUtils.isEmpty(dataModel.getTableName())) {
+			throw new IFormException("表名不允许为空");
+		}
+		if (Pattern.matches(regEx, dataModel.getTableName()) == false) {
+			throw new IFormException("表名必须以字母开头，只能包含数字，字母，下划线，不能包含中文，横杆等特殊字符");
+		}
+		if (dataModel.getColumns()==null || dataModel.getColumns().size()==0) {
+			throw new IFormException("至少包含一个字段");
+		}
+		for (ColumnModel column:dataModel.getColumns()) {
+			if (StringUtils.isEmpty(column.getColumnName())) {
+				throw new IFormException("字段名称不允许为空");
+			}
+			if (Pattern.matches(regEx, column.getColumnName()) == false) {
+				throw new IFormException("字段名称必须以字母开头，只能包含数字，字母，下划线，不能包含中文，横杆等特殊字符");
+			}
 		}
 		try {
 			DataModelEntity entity = dataModelService.save(dataModel);
@@ -240,6 +259,20 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 	public void updateDataModel(@PathVariable(name = "id") String id, @RequestBody DataModel dataModel) {
 		if (!StringUtils.hasText(dataModel.getId()) || !id.equals(dataModel.getId())) {
 			throw new IFormException("数据模型ID不一致");
+		}
+		if (dataModel.getColumns()==null || dataModel.getColumns().size()==0) {
+			throw new IFormException("至少包含一个字段");
+		}
+		if (dataModel.getColumns()==null || dataModel.getColumns().size()==0) {
+			throw new IFormException("至少包含一个字段");
+		}
+		for (ColumnModel column:dataModel.getColumns()) {
+			if (StringUtils.isEmpty(column.getColumnName())) {
+				throw new IFormException("字段名称不允许为空");
+			}
+			if (Pattern.matches(regEx, column.getColumnName()) == false) {
+				throw new IFormException("字段名称必须以字母开头，只能包含数字，字母，下划线，不能包含中文，横杆等特殊字符");
+			}
 		}
 		try {
 			dataModelService.save(dataModel);
