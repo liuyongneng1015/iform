@@ -1119,7 +1119,7 @@ private DataModelInstance setDataModelInstance(FormModelEntity toModelEntity, Re
 				subFormRowItemInstance.setItems(instances);
 				subFormRowItemInstanceList.add(subFormRowItemInstance);
 			}
-			subFormDataItemInstance.setRowNubmer(row ++);
+			subFormDataItemInstance.setRowNumber(row ++);
 			subFormDataItemInstance.setItems(subFormRowItemInstanceList);
 			subFormItemInstances.add(subFormDataItemInstance);
 		}

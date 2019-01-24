@@ -216,7 +216,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		for(ItemModelEntity itemModelEntity : itemModelEntities) {
 			if(itemModelEntity instanceof SelectItemModelEntity ){
 				setSelectItem(map, itemModelEntity);
-			}else if(itemModelEntity instanceof ReferenceItemModelEntity 	&& ((ReferenceItemModelEntity) itemModelEntity).getParentItem() != null){
+			}else if(itemModelEntity instanceof ReferenceItemModelEntity ){
 				setReferenceItem(map, itemModelEntity);
 			}
 			if(itemModelEntity instanceof ReferenceItemModelEntity && ((ReferenceItemModelEntity) itemModelEntity).getReferencesItemModels() != null
@@ -228,11 +228,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				}
 			}
 			for(ItemModelEntity itemModel : getChildRenItemModelEntity(itemModelEntity)) {
-				if(itemModel instanceof SelectItemModelEntity && ((SelectItemModelEntity) itemModel).getDictionaryValueType() == DictionaryValueType.Linkage
-						&& ((SelectItemModelEntity) itemModel).getParentItem() != null && ((SelectItemModelEntity) itemModel).getParentItem().getColumnModel() != null){
+				if(itemModel instanceof SelectItemModelEntity){
 					setSelectItem(map, itemModel);
-				}else if(itemModel instanceof ReferenceItemModelEntity
-						&& ((ReferenceItemModelEntity) itemModel).getParentItem() != null && ((ReferenceItemModelEntity) itemModel).getParentItem().getColumnModel() != null){
+				}else if(itemModel instanceof ReferenceItemModelEntity){
 					setReferenceItem(map, itemModel);
 				}
 			}
@@ -242,14 +240,17 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 	//设置关联控件父控件
 	private void setSelectItem(Map<String, ItemModelEntity> map, ItemModelEntity itemModel){
 		SelectItemModelEntity selectItemModelEntity = ((SelectItemModelEntity) itemModel);
-		SelectItemModelEntity parentSelectItem = (SelectItemModelEntity) map.get(selectItemModelEntity.getParentItem().getColumnModel().getDataModel().getTableName()+"_"+selectItemModelEntity.getParentItem().getColumnModel().getColumnName());
+		SelectItemModelEntity parentSelectItem = null;
+		if(selectItemModelEntity.getParentItem() != null && selectItemModelEntity.getParentItem().getColumnModel() != null) {
+			parentSelectItem = (SelectItemModelEntity) map.get(selectItemModelEntity.getParentItem().getColumnModel().getDataModel().getTableName() + "_" + selectItemModelEntity.getParentItem().getColumnModel().getColumnName());
+		}
 		SelectItemModelEntity oldSelectItem = null;
 		if(!selectItemModelEntity.isNew()){
 			SelectItemModelEntity selectItemModelEntitys = (SelectItemModelEntity)itemManager.get(selectItemModelEntity.getId());
 			oldSelectItem = selectItemModelEntitys.getParentItem();
 		}
 
-		if(oldSelectItem != null && (oldSelectItem.getColumnModel().getColumnName().equals(parentSelectItem.getColumnModel().getColumnName())
+		if(oldSelectItem != null  && (parentSelectItem == null || parentSelectItem.getColumnModel() == null || oldSelectItem.getColumnModel().getColumnName().equals(parentSelectItem.getColumnModel().getColumnName())
 				|| !oldSelectItem.getColumnModel().getDataModel().getTableName().equals(parentSelectItem.getColumnModel().getDataModel().getTableName()))){
 			List<SelectItemModelEntity> list = oldSelectItem.getItems();
 			for(int i = 0; i < list.size(); i++){
@@ -261,29 +262,33 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				}
 			}
 		}
-
 		((SelectItemModelEntity) itemModel).setParentItem(parentSelectItem);
-		for (int i = 0 ; i < parentSelectItem.getItems().size() ; i++) {
-			SelectItemModelEntity childItem = parentSelectItem.getItems().get(i);
-			if(!selectItemModelEntity.isNew() && StringUtils.equals(childItem.getId(), selectItemModelEntity.getId())){
-				parentSelectItem.getItems().remove(childItem);
-				i--;
+		if(parentSelectItem != null) {
+			for (int i = 0; i < parentSelectItem.getItems().size(); i++) {
+				SelectItemModelEntity childItem = parentSelectItem.getItems().get(i);
+				if (!selectItemModelEntity.isNew() && StringUtils.equals(childItem.getId(), selectItemModelEntity.getId())) {
+					parentSelectItem.getItems().remove(childItem);
+					i--;
+				}
 			}
+			parentSelectItem.getItems().add(selectItemModelEntity);
 		}
-		parentSelectItem.getItems().add(selectItemModelEntity);
 	}
 
 	//设置关联控件父控件
 	private void setReferenceItem(Map<String, ItemModelEntity> map, ItemModelEntity itemModel){
 		ReferenceItemModelEntity referenceItemModelEntity = ((ReferenceItemModelEntity) itemModel);
-		ReferenceItemModelEntity parentSelectItem = (ReferenceItemModelEntity) map.get(referenceItemModelEntity.getParentItem().getColumnModel().getDataModel().getTableName()+"_"+referenceItemModelEntity.getParentItem().getColumnModel().getColumnName());
+		ReferenceItemModelEntity parentSelectItem = null;
+		if(referenceItemModelEntity.getParentItem() != null && referenceItemModelEntity.getParentItem().getColumnModel() != null) {
+			parentSelectItem = (ReferenceItemModelEntity) map.get(referenceItemModelEntity.getParentItem().getColumnModel().getDataModel().getTableName() + "_" + referenceItemModelEntity.getParentItem().getColumnModel().getColumnName());
+		}
 		ReferenceItemModelEntity oldReferenceItem = null;
 		if(!referenceItemModelEntity.isNew()){
 			ReferenceItemModelEntity referenceItemModelEntity1 = (ReferenceItemModelEntity)itemManager.get(referenceItemModelEntity.getId());
 			oldReferenceItem = referenceItemModelEntity1.getParentItem();
 		}
 
-		if(oldReferenceItem != null && (oldReferenceItem.getColumnModel().getColumnName().equals(parentSelectItem.getColumnModel().getColumnName())
+		if(oldReferenceItem != null && (parentSelectItem == null || parentSelectItem.getColumnModel() == null || oldReferenceItem.getColumnModel().getColumnName().equals(parentSelectItem.getColumnModel().getColumnName())
 				|| !oldReferenceItem.getColumnModel().getDataModel().getTableName().equals(parentSelectItem.getColumnModel().getDataModel().getTableName()))){
 			List<ReferenceItemModelEntity> list = oldReferenceItem.getItems();
 			for(int i = 0; i < list.size(); i++){
@@ -297,14 +302,16 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		}
 
 		((ReferenceItemModelEntity) itemModel).setParentItem(parentSelectItem);
-		for (int i = 0 ; i < parentSelectItem.getItems().size() ; i++) {
-			ReferenceItemModelEntity childItem = parentSelectItem.getItems().get(i);
-			if(!referenceItemModelEntity.isNew() && StringUtils.equals(childItem.getId(), referenceItemModelEntity.getId())){
-				parentSelectItem.getItems().remove(childItem);
-				i--;
+		if(parentSelectItem != null) {
+			for (int i = 0; i < parentSelectItem.getItems().size(); i++) {
+				ReferenceItemModelEntity childItem = parentSelectItem.getItems().get(i);
+				if (!referenceItemModelEntity.isNew() && StringUtils.equals(childItem.getId(), referenceItemModelEntity.getId())) {
+					parentSelectItem.getItems().remove(childItem);
+					i--;
+				}
 			}
+			parentSelectItem.getItems().add(referenceItemModelEntity);
 		}
-		parentSelectItem.getItems().add(referenceItemModelEntity);
 	}
 
 	private ItemModelEntity  getNewItemModel(Map<String, ItemModelEntity> oldMapItmes, Map<String, ColumnModelEntity> modelEntityMap, ItemModelEntity paramerItemModelEntity){

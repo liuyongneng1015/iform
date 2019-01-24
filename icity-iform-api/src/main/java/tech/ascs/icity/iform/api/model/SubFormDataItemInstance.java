@@ -13,7 +13,7 @@ public class SubFormDataItemInstance extends IdEntity {
 	private List<SubFormRowItemInstance> items = new ArrayList<>();
 
 	@ApiModelProperty(value = "行数", position = 2)
-	private Integer rowNubmer;
+	private Integer rowNumber;
 
 	@ApiModelProperty(value = "字段模型ID（uuid）", position = 0)
 	@Override
@@ -33,11 +33,11 @@ public class SubFormDataItemInstance extends IdEntity {
 		this.items = items;
 	}
 
-	public Integer getRowNubmer() {
-		return rowNubmer;
+	public Integer getRowNumber() {
+		return rowNumber;
 	}
 
-	public void setRowNubmer(Integer rowNubmer) {
-		this.rowNubmer = rowNubmer;
+	public void setRowNumber(Integer rowNumber) {
+		this.rowNumber = rowNumber;
 	}
 }
