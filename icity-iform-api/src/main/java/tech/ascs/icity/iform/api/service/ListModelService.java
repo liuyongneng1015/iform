@@ -32,7 +32,6 @@ public interface ListModelService {
 	List<ListModel> list(@RequestParam(name = "name", defaultValue = "") String name,
 						 @RequestParam(name = "applicationId", required = false) String applicationId);
 
-
 	/**
 	 * 获取列表模型分页数据
 	 * 

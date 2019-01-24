@@ -889,11 +889,11 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				((ReferenceItemModelEntity) entity).setParentItem((ReferenceItemModelEntity) getParentItemModel(parentItemModel));
 			}
 			if(itemModel.getItemModelList() != null && itemModel.getItemModelList().size() > 0) {
-				List<ItemModelEntity> list = new ArrayList<>();
+				List<String> list = new ArrayList<>();
 				for(ItemModel itemModel1 : itemModel.getItemModelList()) {
-					list.add(getParentItemModel(itemModel1));
+					list.add(itemModel1.getTableName()+"_"+itemModel1.getColumnName());
 				}
-				((ReferenceItemModelEntity) entity).setReferencesItemModels(list);
+				((ReferenceItemModelEntity) entity).setItemTableColunmName(String.join(",", list));
 			}
 			((ReferenceItemModelEntity) entity).setReferenceList(setItemModelByListModel(itemModel));
 		}else if(entity instanceof SelectItemModelEntity){
@@ -1382,6 +1382,13 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				FormModelEntity formModelEntity = formModelService.get(referenceFormId);
 				itemModel.setReferenceFormName(formModelEntity == null ? null : formModelEntity.getName());
 			}
+
+			if(((ReferenceItemModelEntity) entity).getReferenceList() != null){
+				ListModel referenceList = new ListModel();
+				BeanUtils.copyProperties(((ReferenceItemModelEntity) entity).getReferenceList(), referenceList, new String[] {"masterForm", "slaverForms", "sortItems", "searchItems", "functions", "displayItems", "quickSearchItems"});
+				itemModel.setReferenceList(referenceList);
+			}
+
 		}else if(entity instanceof SelectItemModelEntity){
 			String defaultValue = ((SelectItemModelEntity) entity).getDefaultReferenceValue();
 			if(defaultValue != null &&  !StringUtils.isEmpty(defaultValue) && entity.getType() == ItemType.CheckboxGroup) {

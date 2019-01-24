@@ -1,6 +1,7 @@
 package tech.ascs.icity.iform.service.impl;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -160,7 +161,33 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 			//设置关联关系
 			//setReferenceItems(deletedItemIds, idColumnModelEntity, allItems);
-			return doSave(old, dataModelUpdateNeeded);
+			FormModelEntity formModelEntity = doSave(old, dataModelUpdateNeeded);
+
+			List<ItemModelEntity> allColumns = formModelEntity.getItems();
+			for(ItemModelEntity itemModelEntity : formModelEntity.getItems()) {
+				allColumns.addAll(getChildRenItemModelEntity(itemModelEntity));
+			}
+			for(int i = 0 ;i <  allColumns.size() ; i++){
+				ItemModelEntity itemModelEntity = allColumns.get(i);
+				if(itemModelEntity instanceof ReferenceItemModelEntity){
+					List<ItemModelEntity> itemModelEntityList = getAllColumnItems(get(((ReferenceItemModelEntity) itemModelEntity).getReferenceFormId()).getItems());
+					Map<String, ItemModelEntity> colunmMap = new HashMap<>();
+					for(ItemModelEntity itemModelEntity1 : itemModelEntityList){
+						colunmMap.put(itemModelEntity1.getColumnModel().getDataModel().getTableName()+"_"+itemModelEntity1.getColumnModel().getColumnName(), itemModelEntity1);
+					}
+					if(((ReferenceItemModelEntity) itemModelEntity).getItemTableColunmName() != null){
+						String[] strings = ((ReferenceItemModelEntity) itemModelEntity).getItemTableColunmName().split(",");
+						List<ItemModelEntity> list = new ArrayList<>();
+						for(String str : strings){
+							list.add(colunmMap.get(str));
+						}
+						((ReferenceItemModelEntity) itemModelEntity).setItemModelIds(String.join(",",list.parallelStream().map(ItemModelEntity::getId).collect(Collectors.toList())));
+					}
+					itemManager.save(itemModelEntity);
+				}
+			}
+
+			return formModelEntity;
 		}
 		return doSave(entity, dataModelUpdateNeeded);
 
@@ -219,14 +246,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			}else if(itemModelEntity instanceof ReferenceItemModelEntity ){
 				setReferenceItem(map, itemModelEntity);
 			}
-			if(itemModelEntity instanceof ReferenceItemModelEntity && ((ReferenceItemModelEntity) itemModelEntity).getReferencesItemModels() != null
-					&& ((ReferenceItemModelEntity) itemModelEntity).getReferencesItemModels().size() > 0){
-				List<ItemModelEntity> list = new ArrayList<>();
-				for(ItemModelEntity referenceItemModelEntity : ((ReferenceItemModelEntity) itemModelEntity).getReferencesItemModels()){
-					ItemModelEntity referenceItemModelEntity1 =  map.get(referenceItemModelEntity.getColumnModel().getDataModel().getTableName()+"_"+referenceItemModelEntity.getColumnModel().getColumnName());
-					list.add(referenceItemModelEntity1);
-				}
-			}
+
 			for(ItemModelEntity itemModel : getChildRenItemModelEntity(itemModelEntity)) {
 				if(itemModel instanceof SelectItemModelEntity){
 					setSelectItem(map, itemModel);
@@ -334,15 +354,6 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			if(((ReferenceItemModelEntity) paramerItemModelEntity).getReferenceList() != null) {
 				ListModelEntity listModelEntity = listModelManager.find(((ReferenceItemModelEntity) paramerItemModelEntity).getReferenceList().getId());
 				((ReferenceItemModelEntity) saveItemModelEntity).setReferenceList(listModelEntity);
-			}
-			if(((ReferenceItemModelEntity) paramerItemModelEntity).getReferencesItemModels() != null) {
-				List<ItemModelEntity> referenceItemModelEntityList = new ArrayList<>();
-				for(ItemModelEntity referenceItemModelEntity : ((ReferenceItemModelEntity) paramerItemModelEntity).getReferencesItemModels()){
-					ItemModelEntity referenceItemModelEntity1 = new ItemModelEntity();
-					BeanUtils.copyProperties(referenceItemModelEntity,referenceItemModelEntity1);
-					referenceItemModelEntityList.add(referenceItemModelEntity1);
-				}
-				((ReferenceItemModelEntity) saveItemModelEntity).setReferencesItemModels(referenceItemModelEntityList);
 			}
 			((ReferenceItemModelEntity)saveItemModelEntity).setParentItem(((ReferenceItemModelEntity) paramerItemModelEntity).getParentItem());
 		}

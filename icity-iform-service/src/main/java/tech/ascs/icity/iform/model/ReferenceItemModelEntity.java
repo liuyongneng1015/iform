@@ -40,7 +40,7 @@ public class ReferenceItemModelEntity extends ItemModelEntity  {
 	@ManyToOne(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH })
 	private ListModelEntity referenceList;
 
-	@Column(name="item_model_ids") // 关联数据标识：控件id集合
+	@Column(name="item_model_ids", length = 4048) // 关联数据标识：控件id集合
 	private String itemModelIds;
 
 	@ManyToOne(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH })
@@ -51,8 +51,8 @@ public class ReferenceItemModelEntity extends ItemModelEntity  {
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "parentItem")
 	private List<ReferenceItemModelEntity> items = new ArrayList<ReferenceItemModelEntity>();
 
-	@Transient//关联表单模型
-	private List<ItemModelEntity> referencesItemModels = new ArrayList<ItemModelEntity>();
+	@Column(name="item_table_colunm_name", length = 4048) // 关联数据标识：控件对应的表名和字段名
+	private String itemTableColunmName;
 
 	public ReferenceType getReferenceType() {
 		return referenceType;
@@ -126,11 +126,11 @@ public class ReferenceItemModelEntity extends ItemModelEntity  {
 		this.items = items;
 	}
 
-	public List<ItemModelEntity> getReferencesItemModels() {
-		return referencesItemModels;
+	public String getItemTableColunmName() {
+		return itemTableColunmName;
 	}
 
-	public void setReferencesItemModels(List<ItemModelEntity> referencesItemModels) {
-		this.referencesItemModels = referencesItemModels;
+	public void setItemTableColunmName(String itemTableColunmName) {
+		this.itemTableColunmName = itemTableColunmName;
 	}
 }
