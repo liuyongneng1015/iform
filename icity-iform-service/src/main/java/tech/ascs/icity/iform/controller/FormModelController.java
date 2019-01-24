@@ -1,6 +1,7 @@
 package tech.ascs.icity.iform.controller;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -784,7 +785,14 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 			oldColumnModelEntity.setDataModel(oldDataModelEntity);
 			if(columnModel.getReferenceTables() != null){
+				Map<String, Object> map = new HashMap<>();
 				for(ReferenceModel columnReferenceEntity : columnModel.getReferenceTables()){
+					if(map.get(columnModel.getColumnName()+"_"+columnReferenceEntity.getReferenceTable()+"_"+columnReferenceEntity.getReferenceValueColumn()) != null){
+						continue;
+					}else{
+						 map.put(columnModel.getColumnName()+"_"+columnReferenceEntity.getReferenceTable()+"_"+columnReferenceEntity.getReferenceValueColumn(), System.currentTimeMillis());
+					}
+
 					DataModelEntity dataModelEntity = dataModelService.findUniqueByProperty("tableName", columnReferenceEntity.getReferenceTable());
 					if(dataModelEntity == null){
 						throw new IFormException("未找到【"+columnReferenceEntity.getReferenceTable()+"】对应的数据表");
@@ -940,6 +948,24 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				rowItemModelEntities.add(subFormRowItemModelEntity);
 			}
 			((SubFormItemModelEntity) entity).setItems(rowItemModelEntities);
+		}else if(entity instanceof TabsItemModelEntity){
+			List<ItemModel> tabsItemModels = itemModel.getItems();
+			List<TabPaneItemModelEntity> list = new ArrayList<>();
+			if(tabsItemModels != null) {
+				for (ItemModel itemModel1 : tabsItemModels){
+					TabPaneItemModelEntity tabPaneItemModelEntity = new TabPaneItemModelEntity();
+					List<ItemModelEntity> rowItemList = new ArrayList<>();
+					if(itemModel1.getItems() != null) {
+						for (ItemModel childrenItem : itemModel1.getItems()) {
+							rowItemList.add(wrap(childrenItem, map));
+						}
+					}
+					tabPaneItemModelEntity.setParentItem((TabsItemModelEntity)entity);
+					tabPaneItemModelEntity.setItems(rowItemList);
+					list.add(tabPaneItemModelEntity);
+				}
+				((TabsItemModelEntity) entity).setItems(list);
+			}
 		}
 
 		List<ItemActivityInfo> activities = new ArrayList<ItemActivityInfo>();

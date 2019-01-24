@@ -565,6 +565,21 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				subFormItems.add(subFormRowItemModel);
 			}
 			((SubFormItemModelEntity)newModelEntity).setItems(subFormItems);
+		}else if(paramerItemModelEntity instanceof TabsItemModelEntity){
+			TabsItemModelEntity tabPaneItemModelEntity = (TabsItemModelEntity)paramerItemModelEntity;
+			List<TabPaneItemModelEntity> tabPaneItemModelEntities = new ArrayList<>();
+			for (int j = 0; j < tabPaneItemModelEntity.getItems().size() ; j ++) {
+				TabPaneItemModelEntity childRenItem = tabPaneItemModelEntity.getItems().get(j);
+				TabPaneItemModelEntity newRowItem = (TabPaneItemModelEntity)getNewItemModel(oldMapItmes, modelEntityMap, childRenItem);
+				List<ItemModelEntity> list = new ArrayList<>();
+				for(ItemModelEntity itemModelEntity : childRenItem.getItems()){
+					list.add(getNewItemModel(oldMapItmes, modelEntityMap, itemModelEntity));
+				}
+				newRowItem.setParentItem((TabsItemModelEntity) newModelEntity);
+				newRowItem.setOrderNo(j);
+				newRowItem.setItems(list);
+				tabPaneItemModelEntities.add(newRowItem);
+			}
 		}
 		return newModelEntity;
 	}
@@ -578,6 +593,11 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			list.addAll(((SubFormItemModelEntity) itemModelEntity).getItems());
 			for (SubFormRowItemModelEntity subFormRowItemModelEntity :  ((SubFormItemModelEntity)itemModelEntity).getItems()) {
 				list.addAll(subFormRowItemModelEntity.getItems());
+			}
+		}else if(itemModelEntity instanceof TabsItemModelEntity){
+			list.addAll(((TabsItemModelEntity) itemModelEntity).getItems());
+			for (TabPaneItemModelEntity tabPaneItemModelEntity :  ((TabsItemModelEntity)itemModelEntity).getItems()) {
+				list.addAll(tabPaneItemModelEntity.getItems());
 			}
 		}
 		return list;
@@ -631,6 +651,14 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			}else if(itemModelEntity instanceof SubFormItemModelEntity){
 				deleteItemActivityOption(itemModelEntity);
 				for(SubFormRowItemModelEntity item : ((SubFormItemModelEntity) itemModelEntity).getItems()) {
+					deleteItemActivityOption(item);
+					for(ItemModelEntity childrenItem : item.getItems()) {
+						deleteItemActivityOption(childrenItem);
+					}
+				}
+			}else if(itemModelEntity instanceof TabsItemModelEntity){
+				deleteItemActivityOption(itemModelEntity);
+				for(TabPaneItemModelEntity item : ((TabsItemModelEntity) itemModelEntity).getItems()) {
 					deleteItemActivityOption(item);
 					for(ItemModelEntity childrenItem : item.getItems()) {
 						deleteItemActivityOption(childrenItem);
@@ -771,6 +799,12 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				break;
 			case  Row:
 				entity = new RowItemModelEntity();
+				break;
+			case  Tabs:
+				entity = new TabsItemModelEntity();
+				break;
+			case  TabPane:
+				entity = new TabPaneItemModelEntity();
 				break;
 			default:
 				entity = new ItemModelEntity();

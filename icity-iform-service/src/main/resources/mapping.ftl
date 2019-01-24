@@ -92,27 +92,29 @@
                 </property>
             </#if>
             <#list column.columnReferences as reference>
-                <#if reference.referenceType.value = "OneToOne">
-                    <#if column.columnName != "id">
-                         <many-to-one name="${column.columnName!''}" entity-name="${reference.toColumn.dataModel.tableName!''}" column="${column.columnName!''}" unique="true" fetch="select"  cascade="save-update"/>
-                    <#else >
-                        <one-to-one name="${reference.toColumn.dataModel.tableName!''}_list" entity-name="${reference.toColumn.dataModel.tableName!''}" <#if reference.toColumn.columnName != "id">  property-ref="${reference.toColumn.columnName!''}"</#if> cascade="all" constrained="true" />
-                    </#if>
-                <#elseif reference.referenceType.value = "ManyToOne">
-                    <many-to-one name="${column.columnName!''}" entity-name="${reference.toColumn.dataModel.tableName!''}" column="${column.columnName!''}" cascade="save-update" fetch="select"  />
-                <#elseif reference.referenceType.value = "OneToMany">
-                    <bag name="${reference.toColumn.dataModel.tableName!''}_list" inverse="true" cascade="all" lazy="false" >
-                        <key column="${reference.toColumn.columnName!''}" />
-                        <one-to-many entity-name="${reference.toColumn.dataModel.tableName!''}" />
-                    </bag>
-                <#else>
-                    <#if dataModel.tableName = reference.toColumn.dataModel.tableName>
-                        <bag name="${reference.toColumn.dataModel.tableName!''}_list" <#if reference.referenceMiddleTableName?? && reference.referenceMiddleTableName!=""> table="if_${reference.referenceMiddleTableName}_list" <#else > table="if_${reference.toColumn.dataModel.tableName!''}_${reference.fromColumn.dataModel.tableName}_list" </#if> <#if reference.inverse?? >inverse="${reference.inverse}" </#if>  <#if reference.inverse?? && reference.inverse="true">cascade="all" <#else>cascade="save-update" </#if> lazy="false" fetch="select">
-                            <key column="${reference.fromColumn.dataModel.tableName}_id"></key>
-                            <many-to-many entity-name="${reference.toColumn.dataModel.tableName!''}" column="${reference.toColumn.dataModel.tableName!''}_id"></many-to-many>
+                <#if reference.toColumn.dataModel.tableName = dataModel.tableName>
+                    <#if reference.referenceType.value = "OneToOne">
+                        <#if column.columnName != "id">
+                             <many-to-one name="${column.columnName!''}" entity-name="${reference.toColumn.dataModel.tableName!''}" column="${column.columnName!''}" unique="true" fetch="select"  cascade="save-update"/>
+                        <#else >
+                            <one-to-one name="${reference.toColumn.dataModel.tableName!''}_list" entity-name="${reference.toColumn.dataModel.tableName!''}" <#if reference.toColumn.columnName != "id">  property-ref="${reference.toColumn.columnName!''}"</#if> cascade="all" constrained="true" />
+                        </#if>
+                    <#elseif reference.referenceType.value = "ManyToOne">
+                        <many-to-one name="${column.columnName!''}" entity-name="${reference.toColumn.dataModel.tableName!''}" column="${column.columnName!''}" cascade="save-update" fetch="select"  />
+                    <#elseif reference.referenceType.value = "OneToMany">
+                        <bag name="${reference.toColumn.dataModel.tableName!''}_list" inverse="true" cascade="all" lazy="false" >
+                            <key column="${reference.toColumn.columnName!''}" />
+                            <one-to-many entity-name="${reference.toColumn.dataModel.tableName!''}" />
                         </bag>
+                    <#else>
+                        <#if dataModel.tableName = reference.toColumn.dataModel.tableName>
+                            <bag name="${reference.toColumn.dataModel.tableName!''}_list" <#if reference.referenceMiddleTableName?? && reference.referenceMiddleTableName!=""> table="if_${reference.referenceMiddleTableName}_list" <#else > table="if_${reference.toColumn.dataModel.tableName!''}_${reference.fromColumn.dataModel.tableName}_list" </#if> <#if reference.inverse?? >inverse="${reference.inverse}" </#if>  <#if reference.inverse?? && reference.inverse="true">cascade="all" <#else>cascade="save-update" </#if> lazy="false" fetch="select">
+                                <key column="${reference.fromColumn.dataModel.tableName}_id"></key>
+                                <many-to-many entity-name="${reference.toColumn.dataModel.tableName!''}" column="${reference.toColumn.dataModel.tableName!''}_id"></many-to-many>
+                            </bag>
+                        </#if>
                     </#if>
-                </#if>
+                 </#if>
             </#list>
         </#list>
 

@@ -38,7 +38,13 @@ public enum ItemType {
 	Row("Row"),
 
     /** 富文本控件 */
-    Editor("Editor");
+    Editor("Editor"),
+
+	/** 标签页 */
+	Tabs("Tabs"),
+
+	/** 标签页子项 */
+	TabPane("TabPane");
 
 	private String value;
 	private ItemType(String value) {

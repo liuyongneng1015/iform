@@ -94,6 +94,13 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 							continue;
 						}
 					}
+				}else if(itemModelEntity instanceof TabsItemModelEntity){
+					for(TabPaneItemModelEntity itemModel : ((TabsItemModelEntity) itemModelEntity).getItems()) {
+						if (itemModel.getColumnModel() != null) {
+							itemModels.add(itemModel);
+							continue;
+						}
+					}
 				}
 			}
 			return itemModels;
