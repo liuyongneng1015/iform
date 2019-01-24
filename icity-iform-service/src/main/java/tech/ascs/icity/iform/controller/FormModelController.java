@@ -878,9 +878,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 		if(entity instanceof ReferenceItemModelEntity){
 
-			if(((ReferenceItemModelEntity) entity).getSelectMode() != SelectMode.Attribute && (!StringUtils.hasText(((ReferenceItemModelEntity) entity).getReferenceFormId())
-					|| ((ReferenceItemModelEntity) entity).getReferenceList() == null)){
-				throw  new IFormException("关联控件"+entity.getName()+"未找到关联表单或列表模型");
+			if(itemModel.getSelectMode() != SelectMode.Attribute && (!StringUtils.hasText(itemModel.getReferenceFormId())
+					|| itemModel.getReferenceList() == null)){
+				throw  new IFormException("关联控件【"+itemModel.getName()+"】未找到关联表单或列表模型");
 			}
 
 			if(itemModel.getParentItem() != null) {
