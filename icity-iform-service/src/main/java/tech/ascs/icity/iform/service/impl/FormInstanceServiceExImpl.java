@@ -1,6 +1,7 @@
 package tech.ascs.icity.iform.service.impl;
 
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -797,8 +798,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			ListSearchItem searchItem = searchItemMap.get(itemModel.getId());
 			if (equalsFlag) {
 				if(itemModel.getType() == ItemType.DatePicker) {
-					criteria.add(Restrictions.ge(propertyName, value));
-					criteria.add(Restrictions.lt(propertyName, DateUtils.addDays((Date)value, 1)));
+					Date dateParams = timestampNumberToDate(value);
+					if (Objects.nonNull(value)) {  // Timestamp
+						criteria.add(Restrictions.ge(propertyName, dateParams));
+						criteria.add(Restrictions.lt(propertyName, DateUtils.addDays(dateParams, 1)));
+					}
 				} else {
 					Criterion[] conditions = Arrays.asList(values).stream().map(item->Restrictions.eq(propertyName, item)).toArray(Criterion[]::new);
 					criteria.add(Restrictions.or(conditions));
@@ -815,6 +819,24 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 		}
 		return criteria;
+	}
+
+	/**
+	 * 时间戳数字字符串转时间
+	 * @param object
+	 * @return
+	 */
+	public Date timestampNumberToDate(Object object) {
+		if (Objects.nonNull(object) && !StringUtils.isEmpty(object.toString())) {
+			String valueStr = object.toString();
+			try {
+				return new Date(Long.valueOf(valueStr));
+			} catch (Exception e) {
+				throw new IFormException("时间参数不对，时间查询条件应该是时间戳数字类型");
+			}
+		} else {
+			return null;
+		}
 	}
 
 	public List<ItemModelEntity> getFormAllItems(FormModelEntity formModelEntity) {
@@ -973,7 +995,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		ReferenceItemModelEntity fromItem = (ReferenceItemModelEntity)itemModel;
 
 		//关联表数据模型
-		FormModelEntity toModelEntity = formModelService.get(((ReferenceItemModelEntity) itemModel).getReferenceFormId());
+		if (StringUtils.isEmpty(((ReferenceItemModelEntity) itemModel).getReferenceFormId())) {
+			return;
+		}
+		FormModelEntity toModelEntity = formModelService.find(((ReferenceItemModelEntity) itemModel).getReferenceFormId());
 		if (toModelEntity == null) {
 			return;
 		}
@@ -1240,9 +1265,20 @@ private DataModelInstance setDataModelInstance(FormModelEntity toModelEntity, Re
 		itemInstance.setValue(list);
 		List<String> displayValuelist = new ArrayList<>();
 		SelectItemModelEntity selectItemModelEntity = (SelectItemModelEntity)itemModel;
-		if((	selectItemModelEntity.getSelectReferenceType() == SelectReferenceType.Dictionary ||
-				(selectItemModelEntity.getReferenceDictionaryId() != null && selectItemModelEntity.getReferenceDictionaryItemId() != null) ||
-				(selectItemModelEntity.getReferenceDictionaryId() != null && checkParentSelectItemHasDictionaryItem(selectItemModelEntity))
+//		if((	selectItemModelEntity.getSelectReferenceType() == SelectReferenceType.Dictionary ||
+//				(selectItemModelEntity.getReferenceDictionaryId() != null && selectItemModelEntity.getReferenceDictionaryItemId() != null) ||
+//				(selectItemModelEntity.getReferenceDictionaryId() != null && checkParentSelectItemHasDictionaryItem(selectItemModelEntity))
+//		) && list != null && list.size() > 0) {
+//			List<DictionaryItemEntity> dictionaryItemEntities = dictionaryItemManager.query().filterIn("id", list).list();
+//			if (dictionaryItemEntities != null) {
+//				for (DictionaryItemEntity dictionaryItemEntity : dictionaryItemEntities) {
+//					displayValuelist.add(dictionaryItemEntity.getName());
+//				}
+//			}
+//		}
+		if((selectItemModelEntity.getSelectReferenceType() == SelectReferenceType.Dictionary ||
+			selectItemModelEntity.getReferenceDictionaryItemId() != null ||
+			checkParentSelectItemHasDictionaryItem(selectItemModelEntity)
 			) && list != null && list.size() > 0){
 			List<DictionaryItemEntity> dictionaryItemEntities = dictionaryItemManager.query().filterIn("id",list).list();
 			if(dictionaryItemEntities != null) {
@@ -1251,6 +1287,10 @@ private DataModelInstance setDataModelInstance(FormModelEntity toModelEntity, Re
 				}
 			}
 			itemInstance.setDisplayValue(displayValuelist);
+			// displayValuelist为空，说明在字典表里面已经删掉该内容，因此value也要设为空
+			if (displayValuelist==null || displayValuelist.size()==0) {
+				itemInstance.setValue(new ArrayList<>());
+			}
 		}else if(itemModel.getOptions() != null && itemModel.getOptions().size() > 0) {
 			for (ItemSelectOption option : itemModel.getOptions()) {
 				if (list.contains(option.getId())) {
@@ -1259,7 +1299,6 @@ private DataModelInstance setDataModelInstance(FormModelEntity toModelEntity, Re
 			}
 			itemInstance.setDisplayValue(displayValuelist);
 		}else {
-			System.out.println("=====>>>>>"+itemModel.getClass());
 			displayValuelist.add(valueString);
 			itemInstance.setDisplayValue(displayValuelist);
 		}
