@@ -1,6 +1,7 @@
 package tech.ascs.icity.iform.service.impl;
 
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -797,8 +798,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			ListSearchItem searchItem = searchItemMap.get(itemModel.getId());
 			if (equalsFlag) {
 				if(itemModel.getType() == ItemType.DatePicker) {
-					criteria.add(Restrictions.ge(propertyName, value));
-					criteria.add(Restrictions.lt(propertyName, DateUtils.addDays((Date)value, 1)));
+					Date dateParams = timestampNumberToDate(value);
+					if (Objects.nonNull(value)) {  // Timestamp
+						criteria.add(Restrictions.ge(propertyName, dateParams));
+						criteria.add(Restrictions.lt(propertyName, DateUtils.addDays(dateParams, 1)));
+					}
 				} else {
 					Criterion[] conditions = Arrays.asList(values).stream().map(item->Restrictions.eq(propertyName, item)).toArray(Criterion[]::new);
 					criteria.add(Restrictions.or(conditions));
@@ -815,6 +819,24 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 		}
 		return criteria;
+	}
+
+	/**
+	 * 时间戳数字字符串转时间
+	 * @param object
+	 * @return
+	 */
+	public Date timestampNumberToDate(Object object) {
+		if (Objects.nonNull(object) && !StringUtils.isEmpty(object.toString())) {
+			String valueStr = object.toString();
+			try {
+				return new Date(Long.valueOf(valueStr));
+			} catch (Exception e) {
+				throw new IFormException("时间参数不对，时间查询条件应该是时间戳数字类型");
+			}
+		} else {
+			return null;
+		}
 	}
 
 	public List<ItemModelEntity> getFormAllItems(FormModelEntity formModelEntity) {
