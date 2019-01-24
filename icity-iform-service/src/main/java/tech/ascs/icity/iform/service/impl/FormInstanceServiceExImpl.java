@@ -1243,9 +1243,20 @@ private DataModelInstance setDataModelInstance(FormModelEntity toModelEntity, Re
 		itemInstance.setValue(list);
 		List<String> displayValuelist = new ArrayList<>();
 		SelectItemModelEntity selectItemModelEntity = (SelectItemModelEntity)itemModel;
-		if((	selectItemModelEntity.getSelectReferenceType() == SelectReferenceType.Dictionary ||
-				(selectItemModelEntity.getReferenceDictionaryId() != null && selectItemModelEntity.getReferenceDictionaryItemId() != null) ||
-				(selectItemModelEntity.getReferenceDictionaryId() != null && checkParentSelectItemHasDictionaryItem(selectItemModelEntity))
+//		if((	selectItemModelEntity.getSelectReferenceType() == SelectReferenceType.Dictionary ||
+//				(selectItemModelEntity.getReferenceDictionaryId() != null && selectItemModelEntity.getReferenceDictionaryItemId() != null) ||
+//				(selectItemModelEntity.getReferenceDictionaryId() != null && checkParentSelectItemHasDictionaryItem(selectItemModelEntity))
+//		) && list != null && list.size() > 0) {
+//			List<DictionaryItemEntity> dictionaryItemEntities = dictionaryItemManager.query().filterIn("id", list).list();
+//			if (dictionaryItemEntities != null) {
+//				for (DictionaryItemEntity dictionaryItemEntity : dictionaryItemEntities) {
+//					displayValuelist.add(dictionaryItemEntity.getName());
+//				}
+//			}
+//		}
+		if((selectItemModelEntity.getSelectReferenceType() == SelectReferenceType.Dictionary ||
+			selectItemModelEntity.getReferenceDictionaryItemId() != null ||
+			checkParentSelectItemHasDictionaryItem(selectItemModelEntity)
 			) && list != null && list.size() > 0){
 			List<DictionaryItemEntity> dictionaryItemEntities = dictionaryItemManager.query().filterIn("id",list).list();
 			if(dictionaryItemEntities != null) {
@@ -1254,6 +1265,10 @@ private DataModelInstance setDataModelInstance(FormModelEntity toModelEntity, Re
 				}
 			}
 			itemInstance.setDisplayValue(displayValuelist);
+			// displayValuelist为空，说明在字典表里面已经删掉该内容，因此value也要设为空
+			if (displayValuelist==null || displayValuelist.size()==0) {
+				itemInstance.setValue(new ArrayList<>());
+			}
 		}else if(itemModel.getOptions() != null && itemModel.getOptions().size() > 0) {
 			for (ItemSelectOption option : itemModel.getOptions()) {
 				if (list.contains(option.getId())) {
@@ -1262,7 +1277,6 @@ private DataModelInstance setDataModelInstance(FormModelEntity toModelEntity, Re
 			}
 			itemInstance.setDisplayValue(displayValuelist);
 		}else {
-			System.out.println("=====>>>>>"+itemModel.getClass());
 			displayValuelist.add(valueString);
 			itemInstance.setDisplayValue(displayValuelist);
 		}
