@@ -273,6 +273,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		return applicationFormModel;
 	}
 
+
 	private ListModelEntity wrap(ListModel listModel)  {
 
 		verfyListName(listModel);
@@ -456,9 +457,11 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		if(entity.getDisplayItems() != null){
 			List<ItemModel> list = new ArrayList<>();
 			for(ItemModelEntity itemModelEntity : entity.getDisplayItems()) {
-				ItemModel itemModel = new ItemModel();
-				BeanUtils.copyProperties(itemModelEntity, itemModel, new String[] {"formModel","columnModel","activities","options","searchItems","sortItems","permissions","referenceList","items","parentItem"});
-				list.add(itemModel);
+				if (isMasterFormItemModel(itemModelEntity, entity.getMasterForm())) {
+					ItemModel itemModel = new ItemModel();
+					BeanUtils.copyProperties(itemModelEntity, itemModel, new String[]{"formModel", "columnModel", "activities", "options", "searchItems", "sortItems", "permissions", "referenceList", "items", "parentItem"});
+					list.add(itemModel);
+				}
 			}
 			// displayItem是有排序的，排序的ID全部拼接到displayItemsSort这个字段
 			if (!StringUtils.isEmpty(entity.getDisplayItemsSort())) {
@@ -501,12 +504,14 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			List<SortItem> sortItems = new ArrayList<SortItem>();
 			for (ListSortItem sortItemEntity: entity.getSortItems()) {
 				if(sortItemEntity.getItemModel() != null) {
-					SortItem sortItem = new SortItem();
-					BeanUtils.copyProperties(sortItemEntity, sortItem, new String[]{"listModel","itemModel"});
-					ItemModel itemModel = new ItemModel();
-					BeanUtils.copyProperties(sortItemEntity.getItemModel(), itemModel, new String[] {"formModel","columnModel","activities","options","searchItems","sortItems","permissions","referenceList","items","parentItem"});
-					sortItem.setItemModel(itemModel);
-					sortItems.add(sortItem);
+					if (isMasterFormItemModel(sortItemEntity.getItemModel(), entity.getMasterForm())) {
+						SortItem sortItem = new SortItem();
+						BeanUtils.copyProperties(sortItemEntity, sortItem, new String[]{"listModel", "itemModel"});
+						ItemModel itemModel = new ItemModel();
+						BeanUtils.copyProperties(sortItemEntity.getItemModel(), itemModel, new String[]{"formModel", "columnModel", "activities", "options", "searchItems", "sortItems", "permissions", "referenceList", "items", "parentItem"});
+						sortItem.setItemModel(itemModel);
+						sortItems.add(sortItem);
+					}
 				}
 			}
 			listModel.setSortItems(sortItems);
@@ -516,6 +521,9 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			List<SearchItem> searchItems = new ArrayList<SearchItem>();
 			for (ListSearchItem searchItemEntity : entity.getSearchItems()) {
 				if (searchItemEntity.getItemModel() != null) {
+					if (isMasterFormItemModel(searchItemEntity.getItemModel(), entity.getMasterForm())==false) {
+						continue;
+					}
 					SearchItem searchItem = new SearchItem();
 					ItemModelEntity itemModelEntity = searchItemEntity.getItemModel();
 					searchItem.setOrderNo(searchItemEntity.getOrderNo());
@@ -593,6 +601,9 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		    List<QuickSearchItem> quickSearches = new ArrayList<>();
 		    for (QuickSearchEntity quickSearchEntity:entity.getQuickSearchItems()) {
 				if (quickSearchEntity.getItemModel() != null) {
+					if (isMasterFormItemModel(quickSearchEntity.getItemModel(), entity.getMasterForm())==false) {
+						continue;
+					}
 					QuickSearchItem quickSearch = new QuickSearchItem();
 					BeanUtils.copyProperties(quickSearchEntity, quickSearch, new String[]{"listModel", "itemModel", "searchValues"});
 					if (!StringUtils.isEmpty(quickSearchEntity.getSearchValues())) {
@@ -608,5 +619,18 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
             listModel.setQuickSearchItems(quickSearches);
         }
 		return listModel;
+	}
+
+	public boolean isMasterFormItemModel(ItemModelEntity itemModelEntity, FormModelEntity masterForm) {
+		if (itemModelEntity==null || masterForm==null) {
+			return false;
+		}
+		List<ItemModelEntity> list = masterForm.getItems();
+		for (ItemModelEntity item:list) {
+			if (item.getId().equals(itemModelEntity.getId())) {
+				return true;
+			}
+		}
+		return false;
 	}
 }
