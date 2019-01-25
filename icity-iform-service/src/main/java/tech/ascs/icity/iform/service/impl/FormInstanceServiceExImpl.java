@@ -905,15 +905,17 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}
 			if (Objects.nonNull(itemModel)) {
 				ColumnModelEntity columnModel = itemModel.getColumnModel();
-				if(!columns.contains(columnModel.getDataModel().getTableName()+"_"+columnModel.getColumnName())){
-					continue;
-				}
-				if (Objects.nonNull(columnModel)) {
-					String propertyName = columnModel.getColumnName();
-					if (sortItem.isAsc()) {
-						criteria.addOrder(Order.asc(propertyName));
-					} else {
-						criteria.addOrder(Order.desc(propertyName));
+				if (columnModel!=null) {
+					if (!columns.contains(columnModel.getDataModel().getTableName() + "_" + columnModel.getColumnName())) {
+						continue;
+					}
+					if (Objects.nonNull(columnModel)) {
+						String propertyName = columnModel.getColumnName();
+						if (sortItem.isAsc()) {
+							criteria.addOrder(Order.asc(propertyName));
+						} else {
+							criteria.addOrder(Order.desc(propertyName));
+						}
 					}
 				}
 			}
