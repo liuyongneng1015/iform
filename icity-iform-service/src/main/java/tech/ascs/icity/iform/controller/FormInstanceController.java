@@ -71,7 +71,6 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 				}
 				for(FormInstance formInstance : list){
 					DataInstance dataInstance = new DataInstance();
-					dataInstance.setFormId(formInstance.getFormId());
 					List<String> displayValue = new ArrayList<>();
 					for(ItemInstance itemInstance : formInstance.getItems()){
 						if(itemInstance.getSystemItemType() == SystemItemType.ID){

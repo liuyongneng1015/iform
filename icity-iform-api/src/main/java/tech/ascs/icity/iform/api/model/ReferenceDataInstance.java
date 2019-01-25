@@ -13,6 +13,9 @@ public class ReferenceDataInstance extends IdEntity {
 	@ApiModelProperty(value = "控件的数据", position = 3)
 	private List<DataInstance> items = new ArrayList<>();
 
+	@ApiModelProperty(value = "数据条数", position = 4)
+	private Integer size;
+
 	@ApiModelProperty(value = "关联类型", position = 5)
 	private ReferenceType referenceType;
 
@@ -27,6 +30,14 @@ public class ReferenceDataInstance extends IdEntity {
 
 	public void setItems(List<DataInstance> items) {
 		this.items = items;
+	}
+
+	public Integer getSize() {
+		return size;
+	}
+
+	public void setSize(Integer size) {
+		this.size = size;
 	}
 
 	public ReferenceType getReferenceType() {

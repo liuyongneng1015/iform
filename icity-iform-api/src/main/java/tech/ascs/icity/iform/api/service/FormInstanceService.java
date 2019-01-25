@@ -39,7 +39,7 @@ public interface FormInstanceService {
 	 * @return
 	 */
 	@ApiOperation(value = "获取表单实例列表", notes = "附加查询条件（可选）：列表建模中的查询条件，以key=value的形式拼接到url，其中key为字段模型ID", position = 0)
-	@GetMapping("/reference-data/{listId}/{itemId}")
+	@GetMapping("/reference-data/{itemId}")
 	@ApiImplicitParams({
 			@ApiImplicitParam(paramType = "path", name = "listId", value = "列表模型ID", required = true, dataType = "String"),
 			@ApiImplicitParam(paramType = "path", name = "itemId", value = "控件模型ID", required = true, dataType = "String"),

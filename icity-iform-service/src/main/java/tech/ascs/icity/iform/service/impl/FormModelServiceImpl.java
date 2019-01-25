@@ -509,6 +509,13 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 	private void deleteItem(List<ItemModelEntity> list,  ItemModelEntity itemModelEntity){
 		list.remove(itemModelEntity);
+		for(int i = 0 ; i < itemModelEntity.getPermissions().size() ; i++){
+			ItemPermissionInfo info = itemModelEntity.getPermissions().get(i);
+			itemModelEntity.getPermissions().remove(info);
+			itemPermissionManager.delete(info);
+			i--;
+		}
+
 		itemManager.delete(itemModelEntity);
 	}
 

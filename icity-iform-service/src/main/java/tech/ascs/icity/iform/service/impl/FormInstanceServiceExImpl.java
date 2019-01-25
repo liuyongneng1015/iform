@@ -519,7 +519,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		//旧的数据
 		if(oldListMap != null && oldListMap.size() > 0) {
 			for (Map<String, Object> map : oldListMap) {
-				if (idList.contains(String.valueOf(map.get("id")))) {
+				if (map == null || map.get("id") == null || idList.contains(String.valueOf(map.get("id")))) {
 					continue;
 				}
 				Session subFormSession = session;//getSession(dataModelEntity);
@@ -656,10 +656,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					break;
 				}
 			}
-			if(addPermission != null && addPermission.getRequired() && value == null){
+			if(addPermission != null && addPermission.getRequired() && (value == null || !StringUtils.hasText((String)value))){
 				throw  new IFormException(itemModel.getName()+"为必填");
 			}
-			if(updatePermission != null && updatePermission.getRequired() && value == null){
+			if(updatePermission != null && updatePermission.getRequired() && (value == null || !StringUtils.hasText((String)value))){
 				throw  new IFormException(itemModel.getName()+"为必填");
 			}
 		}
@@ -905,7 +905,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}
 			if (Objects.nonNull(itemModel)) {
 				ColumnModelEntity columnModel = itemModel.getColumnModel();
-				if(!columns.contains(columnModel.getDataModel().getTableName()+"_"+columnModel.getColumnName())){
+				if(columnModel == null || !columns.contains(columnModel.getDataModel().getTableName()+"_"+columnModel.getColumnName())){
 					continue;
 				}
 				if (Objects.nonNull(columnModel)) {

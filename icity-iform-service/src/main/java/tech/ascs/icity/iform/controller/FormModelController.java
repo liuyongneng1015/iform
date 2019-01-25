@@ -1371,7 +1371,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				List<String> resultList = new ArrayList<>(Arrays.asList(((ReferenceItemModelEntity) entity).getItemModelIds().split(",")));
 				itemModel.setItemModelList(getItemModelList(resultList));
 			}
-
 			String referenceItemId = ((ReferenceItemModelEntity) entity).getReferenceItemId();
 			if(referenceItemId != null){
 				ItemModelEntity itemModelEntity = itemModelService.get(referenceItemId);
@@ -1534,7 +1533,11 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		if(idResultList == null || idResultList.size() < 1){
 			return null;
 		}
-		List<ItemModelEntity> itemModelEntities = itemModelService.query().filterIn("id", idResultList).list();
+		Set<ItemModelEntity> itemModelEntities = new HashSet<>();
+		for(String itemId : idResultList) {
+			itemModelEntities.add(itemModelService.get(itemId));
+		}
+
 		List<ItemModel> list = new ArrayList<>();
 		for(ItemModelEntity itemModelEntity : itemModelEntities){
 			ItemModel itemModel = new ItemModel();
