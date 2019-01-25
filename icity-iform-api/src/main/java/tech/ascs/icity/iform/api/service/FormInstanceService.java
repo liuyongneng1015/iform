@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.*;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import tech.ascs.icity.iform.api.model.DataInstance;
+import tech.ascs.icity.iform.api.model.FormDataSaveInstance;
 import tech.ascs.icity.iform.api.model.FormInstance;
 import tech.ascs.icity.model.IdEntity;
 import tech.ascs.icity.model.Page;
@@ -29,6 +31,21 @@ public interface FormInstanceService {
 		@ApiImplicitParam(paramType = "query", name = "parameters", value = "查询参数", required = false)
 	})
 	List<FormInstance> list(@PathVariable(name="listId") String listId, @RequestParam Map<String, Object> parameters);
+
+	/**
+	 * 获取表单实例列表
+	 *
+	 * @param listId 列表模型ID
+	 * @return
+	 */
+	@ApiOperation(value = "获取表单实例列表", notes = "附加查询条件（可选）：列表建模中的查询条件，以key=value的形式拼接到url，其中key为字段模型ID", position = 0)
+	@GetMapping("/reference-data/{listId}/{itemId}")
+	@ApiImplicitParams({
+			@ApiImplicitParam(paramType = "path", name = "listId", value = "列表模型ID", required = true, dataType = "String"),
+			@ApiImplicitParam(paramType = "path", name = "itemId", value = "控件模型ID", required = true, dataType = "String"),
+			@ApiImplicitParam(paramType = "query", name = "parameters", value = "查询参数", required = false)
+	})
+	List<DataInstance> listRefereceData(@PathVariable(name="listId") String listId, @PathVariable(name="itemId") String itemId, @RequestParam Map<String, Object> parameters);
 
 
 	/**
@@ -115,7 +132,7 @@ public interface FormInstanceService {
 		@ApiImplicitParam(paramType = "path", name = "formId", value = "表单模型ID", required = true, dataType = "String")
 	})
 	@PostMapping("/{formId}")
-	IdEntity createFormInstance(@PathVariable(name="formId", required = true) String formId, @RequestBody FormInstance formInstance);
+	IdEntity createFormInstance(@PathVariable(name="formId", required = true) String formId, @RequestBody FormDataSaveInstance formInstance);
 
 
 	/**
@@ -131,7 +148,7 @@ public interface FormInstanceService {
 		@ApiImplicitParam(paramType = "path", name = "id", value = "表单实例ID", required = true, dataType = "String")
 	})
 	@PutMapping("/{formId}/{id}")
-	void updateFormInstance(@PathVariable(name="formId") String formId, @PathVariable(name="id") String id, @RequestBody FormInstance formInstance);
+	void updateFormInstance(@PathVariable(name="formId") String formId, @PathVariable(name="id") String id, @RequestBody FormDataSaveInstance formInstance);
 
 
 	/**

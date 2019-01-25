@@ -170,18 +170,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			for(int i = 0 ;i <  allColumns.size() ; i++){
 				ItemModelEntity itemModelEntity = allColumns.get(i);
 				if(itemModelEntity instanceof ReferenceItemModelEntity){
-					List<ItemModelEntity> itemModelEntityList = getAllColumnItems(get(((ReferenceItemModelEntity) itemModelEntity).getReferenceFormId()).getItems());
-					Map<String, ItemModelEntity> colunmMap = new HashMap<>();
-					for(ItemModelEntity itemModelEntity1 : itemModelEntityList){
-						colunmMap.put(itemModelEntity1.getColumnModel().getDataModel().getTableName()+"_"+itemModelEntity1.getColumnModel().getColumnName(), itemModelEntity1);
-					}
 					if(((ReferenceItemModelEntity) itemModelEntity).getItemTableColunmName() != null){
-						String[] strings = ((ReferenceItemModelEntity) itemModelEntity).getItemTableColunmName().split(",");
-						List<ItemModelEntity> list = new ArrayList<>();
-						for(String str : strings){
-							list.add(colunmMap.get(str));
-						}
-						((ReferenceItemModelEntity) itemModelEntity).setItemModelIds(String.join(",",list.parallelStream().map(ItemModelEntity::getId).collect(Collectors.toList())));
+						((ReferenceItemModelEntity) itemModelEntity).setItemModelIds(String.join(",",
+								getReferenceItemModelList((ReferenceItemModelEntity)itemModelEntity).parallelStream().map(ItemModelEntity::getId).collect(Collectors.toList())));
 					}
 					itemManager.save(itemModelEntity);
 				}
@@ -191,6 +182,23 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		}
 		return doSave(entity, dataModelUpdateNeeded);
 
+	}
+
+	@Override
+	public List<ItemModelEntity> getReferenceItemModelList(ReferenceItemModelEntity itemModelEntity){
+		List<ItemModelEntity> itemModelEntityList = getAllColumnItems(get(itemModelEntity.getReferenceFormId()).getItems());
+		Map<String, ItemModelEntity> colunmMap = new HashMap<>();
+		for(ItemModelEntity itemModelEntity1 : itemModelEntityList){
+			colunmMap.put(itemModelEntity1.getColumnModel().getDataModel().getTableName()+"_"+itemModelEntity1.getColumnModel().getColumnName(), itemModelEntity1);
+		}
+		List<ItemModelEntity> list = new ArrayList<>();
+		if(itemModelEntity.getItemTableColunmName() != null){
+			String[] strings =  itemModelEntity.getItemTableColunmName().split(",");
+			for(String str : strings){
+				list.add(colunmMap.get(str));
+			}
+		}
+		return list;
 	}
 
 	//设置关联关系
