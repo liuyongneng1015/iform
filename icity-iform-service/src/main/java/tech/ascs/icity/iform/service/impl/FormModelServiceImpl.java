@@ -163,7 +163,8 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			//setReferenceItems(deletedItemIds, idColumnModelEntity, allItems);
 			FormModelEntity formModelEntity = doSave(old, dataModelUpdateNeeded);
 
-			List<ItemModelEntity> allColumns = formModelEntity.getItems();
+			List<ItemModelEntity> allColumns = new ArrayList<>();
+			allColumns.addAll(formModelEntity.getItems());
 			for(ItemModelEntity itemModelEntity : formModelEntity.getItems()) {
 				allColumns.addAll(getChildRenItemModelEntity(itemModelEntity));
 			}
@@ -422,14 +423,14 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		itemPermissionInfo.setItemModel(itemModelEntity);
 		//可见
 		itemPermissionInfo.setVisible(true);
-		Boolean flag = false;
-		if(DisplayTimingType.Check == displayTimingType) {
-			flag = null;
-		}
 		//可填
 		itemPermissionInfo.setCanFill(true);
 		//必填
-		itemPermissionInfo.setRequired(flag);
+		itemPermissionInfo.setRequired(false);
+		if(DisplayTimingType.Check == displayTimingType) {
+			itemPermissionInfo.setCanFill(null);
+			itemPermissionInfo.setRequired(null);
+		}
 
 		//显示时机 若为空标识所有时机都显示
 		itemPermissionInfo.setDisplayTiming(displayTimingType);
@@ -758,11 +759,10 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 	//获取关联行的控件
 	@Override
 	public  List<ItemModelEntity> getAllColumnItems(List<ItemModelEntity> itemModelEntities){
-		List<ItemModelEntity> itemModels = new ArrayList<>();
+		Set<ItemModelEntity> itemModels = new HashSet<>();
 		for(ItemModelEntity itemModelEntity : itemModelEntities){
 			if(itemModelEntity.getColumnModel() != null){
 				itemModels.add(itemModelEntity);
-				continue;
 			}
 			if(itemModelEntity instanceof SubFormItemModelEntity){
 				List<SubFormRowItemModelEntity> subRowItems = ((SubFormItemModelEntity) itemModelEntity).getItems();
@@ -770,7 +770,6 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 					for(ItemModelEntity itemModel : rowItemModelEntity.getItems()) {
 						if (itemModel.getColumnModel() != null) {
 							itemModels.add(itemModel);
-							continue;
 						}
 					}
 				}
@@ -778,12 +777,11 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				for(ItemModelEntity itemModel : ((RowItemModelEntity) itemModelEntity).getItems()) {
 					if (itemModel.getColumnModel() != null) {
 						itemModels.add(itemModel);
-						continue;
 					}
 				}
 			}
 		}
-		return itemModels;
+		return new ArrayList<>(itemModels);
 	}
 
 	@Override

@@ -62,7 +62,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	@Override
 	public List<FormModel> list(@RequestParam(name="name", defaultValue="") String name, @RequestParam(name = "applicationId", required = false) String applicationId) {
 		try {
-			Query<FormModelEntity, FormModelEntity> query = formModelService.query();
+			Query<FormModelEntity, FormModelEntity> query = formModelService.query().sort(Sort.desc("id"));
 			if (StringUtils.hasText(name)) {
 				query.filterLike("name", CommonUtils.convertParamOfFuzzySearch(name));
 			}
