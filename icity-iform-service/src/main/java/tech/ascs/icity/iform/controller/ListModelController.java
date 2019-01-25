@@ -1,5 +1,6 @@
 package tech.ascs.icity.iform.controller;
 
+import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -454,10 +455,12 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			listModel.setMasterForm(masterForm);
 		}
 
+		Set<String> masterFormItemIds = getAllMasterFormItemModel(entity.getMasterForm());
+
 		if(entity.getDisplayItems() != null){
 			List<ItemModel> list = new ArrayList<>();
 			for(ItemModelEntity itemModelEntity : entity.getDisplayItems()) {
-				if (isMasterFormItemModel(itemModelEntity, entity.getMasterForm())) {
+				if (masterFormItemIds.contains(itemModelEntity.getId())) {
 					ItemModel itemModel = new ItemModel();
 					BeanUtils.copyProperties(itemModelEntity, itemModel, new String[]{"formModel", "columnModel", "activities", "options", "searchItems", "sortItems", "permissions", "referenceList", "items", "parentItem"});
 					list.add(itemModel);
@@ -504,14 +507,15 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			List<SortItem> sortItems = new ArrayList<SortItem>();
 			for (ListSortItem sortItemEntity: entity.getSortItems()) {
 				if(sortItemEntity.getItemModel() != null) {
-					if (isMasterFormItemModel(sortItemEntity.getItemModel(), entity.getMasterForm())) {
-						SortItem sortItem = new SortItem();
-						BeanUtils.copyProperties(sortItemEntity, sortItem, new String[]{"listModel", "itemModel"});
-						ItemModel itemModel = new ItemModel();
-						BeanUtils.copyProperties(sortItemEntity.getItemModel(), itemModel, new String[]{"formModel", "columnModel", "activities", "options", "searchItems", "sortItems", "permissions", "referenceList", "items", "parentItem"});
-						sortItem.setItemModel(itemModel);
-						sortItems.add(sortItem);
+					if (masterFormItemIds.contains(sortItemEntity.getItemModel().getId())==false) {
+						continue;
 					}
+					SortItem sortItem = new SortItem();
+					BeanUtils.copyProperties(sortItemEntity, sortItem, new String[]{"listModel", "itemModel"});
+					ItemModel itemModel = new ItemModel();
+					BeanUtils.copyProperties(sortItemEntity.getItemModel(), itemModel, new String[]{"formModel", "columnModel", "activities", "options", "searchItems", "sortItems", "permissions", "referenceList", "items", "parentItem"});
+					sortItem.setItemModel(itemModel);
+					sortItems.add(sortItem);
 				}
 			}
 			listModel.setSortItems(sortItems);
@@ -521,7 +525,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			List<SearchItem> searchItems = new ArrayList<SearchItem>();
 			for (ListSearchItem searchItemEntity : entity.getSearchItems()) {
 				if (searchItemEntity.getItemModel() != null) {
-					if (isMasterFormItemModel(searchItemEntity.getItemModel(), entity.getMasterForm())==false) {
+					if (masterFormItemIds.contains(searchItemEntity.getItemModel().getId())==false) {
 						continue;
 					}
 					SearchItem searchItem = new SearchItem();
@@ -601,7 +605,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		    List<QuickSearchItem> quickSearches = new ArrayList<>();
 		    for (QuickSearchEntity quickSearchEntity:entity.getQuickSearchItems()) {
 				if (quickSearchEntity.getItemModel() != null) {
-					if (isMasterFormItemModel(quickSearchEntity.getItemModel(), entity.getMasterForm())==false) {
+					if (masterFormItemIds.contains(quickSearchEntity.getItemModel().getId())==false) {
 						continue;
 					}
 					QuickSearchItem quickSearch = new QuickSearchItem();
@@ -621,16 +625,57 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		return listModel;
 	}
 
-	public boolean isMasterFormItemModel(ItemModelEntity itemModelEntity, FormModelEntity masterForm) {
-		if (itemModelEntity==null || masterForm==null) {
-			return false;
-		}
-		List<ItemModelEntity> list = masterForm.getItems();
-		for (ItemModelEntity item:list) {
-			if (item.getId().equals(itemModelEntity.getId())) {
-				return true;
+//	public boolean isMasterFormItemModel(ItemModelEntity itemModelEntity, FormModelEntity masterForm) {
+//		if (itemModelEntity==null || masterForm==null) {
+//			return false;
+//		}
+//		List<ItemModelEntity> list = masterForm.getItems();
+//		for (ItemModelEntity item:list) {
+//			if (item.getId().equals(itemModelEntity.getId())) {
+//				return true;
+//			}
+//		}
+//		return false;
+//	}
+
+	/**
+	 * 获取主表单包含的所有item的id，
+	 * @param masterForm
+	 * @return
+	 */
+	public Set<String> getAllMasterFormItemModel(FormModelEntity masterForm) {
+		Set<String> ids = new HashSet<>();
+		if (masterForm!=null && masterForm.getItems()!=null) {
+			for (ItemModelEntity item:masterForm.getItems()) {
+				ids.addAll(getItemSubItemIds(item));
 			}
 		}
-		return false;
+		return ids;
+	}
+
+	public Set<String> getItemSubItemIds(ItemModelEntity itemModelEntity) {
+		Set<String> ids = new HashSet<>();
+		if (itemModelEntity!=null) {
+			ids.add(itemModelEntity.getId());
+			Class clazz = itemModelEntity.getClass();  //得到类对象
+			Field[] fs = clazz.getDeclaredFields();    //得到属性集合
+			for (Field f:fs) {                         //遍历属性
+				if (f.getName().equals("items")) {
+					f.setAccessible(true);             //设置属性是可以访问的(私有的也可以)
+					try {
+						Object itemValues = f.get(itemModelEntity);
+						if (itemValues!=null && itemValues instanceof List) {
+							List<ItemModelEntity> items = (List<ItemModelEntity>)itemValues;
+							for (ItemModelEntity subItem:items) {
+								ids.addAll(getItemSubItemIds(subItem));
+							}
+						}
+					} catch (IllegalAccessException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+		return ids;
 	}
 }
