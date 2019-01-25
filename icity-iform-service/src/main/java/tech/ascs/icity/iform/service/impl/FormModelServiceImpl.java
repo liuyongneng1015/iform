@@ -163,25 +163,17 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			//setReferenceItems(deletedItemIds, idColumnModelEntity, allItems);
 			FormModelEntity formModelEntity = doSave(old, dataModelUpdateNeeded);
 
-			List<ItemModelEntity> allColumns = formModelEntity.getItems();
+			List<ItemModelEntity> allColumns = new ArrayList<>();
+			allColumns.addAll(formModelEntity.getItems());
 			for(ItemModelEntity itemModelEntity : formModelEntity.getItems()) {
 				allColumns.addAll(getChildRenItemModelEntity(itemModelEntity));
 			}
 			for(int i = 0 ;i <  allColumns.size() ; i++){
 				ItemModelEntity itemModelEntity = allColumns.get(i);
 				if(itemModelEntity instanceof ReferenceItemModelEntity){
-					List<ItemModelEntity> itemModelEntityList = getAllColumnItems(get(((ReferenceItemModelEntity) itemModelEntity).getReferenceFormId()).getItems());
-					Map<String, ItemModelEntity> colunmMap = new HashMap<>();
-					for(ItemModelEntity itemModelEntity1 : itemModelEntityList){
-						colunmMap.put(itemModelEntity1.getColumnModel().getDataModel().getTableName()+"_"+itemModelEntity1.getColumnModel().getColumnName(), itemModelEntity1);
-					}
 					if(((ReferenceItemModelEntity) itemModelEntity).getItemTableColunmName() != null){
-						String[] strings = ((ReferenceItemModelEntity) itemModelEntity).getItemTableColunmName().split(",");
-						List<ItemModelEntity> list = new ArrayList<>();
-						for(String str : strings){
-							list.add(colunmMap.get(str));
-						}
-						((ReferenceItemModelEntity) itemModelEntity).setItemModelIds(String.join(",",list.parallelStream().map(ItemModelEntity::getId).collect(Collectors.toList())));
+						((ReferenceItemModelEntity) itemModelEntity).setItemModelIds(String.join(",",
+								getReferenceItemModelList((ReferenceItemModelEntity)itemModelEntity).parallelStream().map(ItemModelEntity::getId).collect(Collectors.toList())));
 					}
 					itemManager.save(itemModelEntity);
 				}
@@ -191,6 +183,23 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		}
 		return doSave(entity, dataModelUpdateNeeded);
 
+	}
+
+	@Override
+	public List<ItemModelEntity> getReferenceItemModelList(ReferenceItemModelEntity itemModelEntity){
+		List<ItemModelEntity> itemModelEntityList = getAllColumnItems(get(itemModelEntity.getReferenceFormId()).getItems());
+		Map<String, ItemModelEntity> colunmMap = new HashMap<>();
+		for(ItemModelEntity itemModelEntity1 : itemModelEntityList){
+			colunmMap.put(itemModelEntity1.getColumnModel().getDataModel().getTableName()+"_"+itemModelEntity1.getColumnModel().getColumnName(), itemModelEntity1);
+		}
+		List<ItemModelEntity> list = new ArrayList<>();
+		if(itemModelEntity.getItemTableColunmName() != null){
+			String[] strings =  itemModelEntity.getItemTableColunmName().split(",");
+			for(String str : strings){
+				list.add(colunmMap.get(str));
+			}
+		}
+		return list;
 	}
 
 	//设置关联关系
@@ -414,14 +423,14 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		itemPermissionInfo.setItemModel(itemModelEntity);
 		//可见
 		itemPermissionInfo.setVisible(true);
-		Boolean flag = false;
-		if(DisplayTimingType.Check == displayTimingType) {
-			flag = null;
-		}
 		//可填
 		itemPermissionInfo.setCanFill(true);
 		//必填
-		itemPermissionInfo.setRequired(flag);
+		itemPermissionInfo.setRequired(false);
+		if(DisplayTimingType.Check == displayTimingType) {
+			itemPermissionInfo.setCanFill(null);
+			itemPermissionInfo.setRequired(null);
+		}
 
 		//显示时机 若为空标识所有时机都显示
 		itemPermissionInfo.setDisplayTiming(displayTimingType);
@@ -501,6 +510,13 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 	private void deleteItem(List<ItemModelEntity> list,  ItemModelEntity itemModelEntity){
 		list.remove(itemModelEntity);
+		for(int i = 0 ; i < itemModelEntity.getPermissions().size() ; i++){
+			ItemPermissionInfo info = itemModelEntity.getPermissions().get(i);
+			itemModelEntity.getPermissions().remove(info);
+			itemPermissionManager.delete(info);
+			i--;
+		}
+
 		itemManager.delete(itemModelEntity);
 	}
 
@@ -743,11 +759,10 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 	//获取关联行的控件
 	@Override
 	public  List<ItemModelEntity> getAllColumnItems(List<ItemModelEntity> itemModelEntities){
-		List<ItemModelEntity> itemModels = new ArrayList<>();
+		Set<ItemModelEntity> itemModels = new HashSet<>();
 		for(ItemModelEntity itemModelEntity : itemModelEntities){
 			if(itemModelEntity.getColumnModel() != null){
 				itemModels.add(itemModelEntity);
-				continue;
 			}
 			if(itemModelEntity instanceof SubFormItemModelEntity){
 				List<SubFormRowItemModelEntity> subRowItems = ((SubFormItemModelEntity) itemModelEntity).getItems();
@@ -755,7 +770,6 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 					for(ItemModelEntity itemModel : rowItemModelEntity.getItems()) {
 						if (itemModel.getColumnModel() != null) {
 							itemModels.add(itemModel);
-							continue;
 						}
 					}
 				}
@@ -763,12 +777,11 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				for(ItemModelEntity itemModel : ((RowItemModelEntity) itemModelEntity).getItems()) {
 					if (itemModel.getColumnModel() != null) {
 						itemModels.add(itemModel);
-						continue;
 					}
 				}
 			}
 		}
-		return itemModels;
+		return new ArrayList<>(itemModels);
 	}
 
 	@Override

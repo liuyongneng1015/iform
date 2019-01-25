@@ -3,6 +3,7 @@ package tech.ascs.icity.iform.service;
 import java.util.List;
 import java.util.Map;
 
+import tech.ascs.icity.iform.api.model.FormDataSaveInstance;
 import tech.ascs.icity.iform.api.model.FormInstance;
 import tech.ascs.icity.iform.api.model.ItemInstance;
 import tech.ascs.icity.iform.model.FormModelEntity;
@@ -22,9 +23,9 @@ public interface FormInstanceServiceEx {
 
 	FormInstance newFormInstance(FormModelEntity formModel);
 
-	String createFormInstance(FormModelEntity formModel, FormInstance formInstance);
+	String createFormInstance(FormModelEntity formModel, FormDataSaveInstance formInstance);
 
-	void updateFormInstance(FormModelEntity formModel, String instanceId, FormInstance formInstance);
+	void updateFormInstance(FormModelEntity formModel, String instanceId, FormDataSaveInstance formInstance);
 
 	void deleteFormInstance(FormModelEntity formModel, String instanceId);
 

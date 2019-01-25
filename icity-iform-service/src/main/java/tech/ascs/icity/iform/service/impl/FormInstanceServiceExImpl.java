@@ -257,7 +257,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	}
 
 	@Override
-	public String createFormInstance(FormModelEntity formModel, FormInstance formInstance) {
+	public String createFormInstance(FormModelEntity formModel, FormDataSaveInstance formInstance) {
 		FormModelEntity formModelEntity = formModelService.get(formInstance.getFormId());
 		List<ItemInstance> list = formInstance.getItems();
 		Map<String, ItemInstance> itemMap = new HashMap<>();
@@ -367,7 +367,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public void updateFormInstance(FormModelEntity formModel, String instanceId, FormInstance formInstance) {
+	public void updateFormInstance(FormModelEntity formModel, String instanceId, FormDataSaveInstance formInstance) {
 
 		FormModelEntity formModelEntity = formModelService.get(formInstance.getFormId());
 		List<ItemInstance> list = formInstance.getItems();
@@ -428,7 +428,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	}
 
 	//设置关联数据
-	private void setReferenceData(Session session, String tableName, FormInstance formInstance, Map<String, Object> data,DisplayTimingType displayTimingType){
+	private void setReferenceData(Session session, String tableName, FormDataSaveInstance formInstance, Map<String, Object> data,DisplayTimingType displayTimingType){
 		//TODO 子表数据
 		for(SubFormItemInstance subFormItemInstance : formInstance.getSubFormData()){
 			String key = subFormItemInstance.getTableName()+"_list";
@@ -461,7 +461,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 
 		//TODO 关联表数据
-		for(DataModelInstance dataModelInstance : formInstance.getReferenceData()) {
+		for(ReferenceDataInstance dataModelInstance : formInstance.getReferenceData()) {
 			String key = dataModelInstance.getReferenceTable() + "_list";
 			boolean flag = false;
 			if (dataModelInstance.getReferenceType() == ReferenceType.ManyToOne || dataModelInstance.getReferenceType() == ReferenceType.OneToOne) {
@@ -480,11 +480,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 
 			List<Map<String, Object>> newListMap = new ArrayList<>();
-			for (DataModelRowInstance instances : dataModelInstance.getItems()) {
+			for (DataInstance instances : dataModelInstance.getItems()) {
 				Map<String, Object> map = new HashMap<>();
-				for (ItemInstance itemModelService : instances.getItems()) {
-					setItemInstance(itemModelService, map, displayTimingType);
-				}
+				map.put("id", instances.getId());
 				newListMap.add(map);
 			}
 			List<String> idList = new ArrayList<>();
@@ -521,7 +519,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		//旧的数据
 		if(oldListMap != null && oldListMap.size() > 0) {
 			for (Map<String, Object> map : oldListMap) {
-				if (idList.contains(String.valueOf(map.get("id")))) {
+				if (map == null || map.get("id") == null || idList.contains(String.valueOf(map.get("id")))) {
 					continue;
 				}
 				Session subFormSession = session;//getSession(dataModelEntity);
@@ -545,9 +543,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					if(subFormData == null || subFormData.keySet() == null) {
 						throw new IFormException("没有查询到【" + dataModelEntity.getTableName() + "】表，id【"+ id +"】的数据");
 					}
-					for (String keyString : newMap.keySet()) {
-						if (!"id".equals(keyString)) {
-							subFormData.put(keyString, newMap.get(keyString));
+					if("master_id".equals(referenceKey)) {
+						for (String keyString : newMap.keySet()) {
+							if (!"id".equals(keyString)) {
+								subFormData.put(keyString, newMap.get(keyString));
+							}
 						}
 					}
 				} else {
@@ -656,10 +656,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					break;
 				}
 			}
-			if(addPermission != null && addPermission.getRequired() && value == null){
+			if(addPermission != null && addPermission.getRequired() && (value == null || !StringUtils.hasText((String)value))){
 				throw  new IFormException(itemModel.getName()+"为必填");
 			}
-			if(updatePermission != null && updatePermission.getRequired() && value == null){
+			if(updatePermission != null && updatePermission.getRequired() && (value == null || !StringUtils.hasText((String)value))){
 				throw  new IFormException(itemModel.getName()+"为必填");
 			}
 		}
@@ -905,17 +905,15 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}
 			if (Objects.nonNull(itemModel)) {
 				ColumnModelEntity columnModel = itemModel.getColumnModel();
-				if (columnModel!=null) {
-					if (!columns.contains(columnModel.getDataModel().getTableName() + "_" + columnModel.getColumnName())) {
-						continue;
-					}
-					if (Objects.nonNull(columnModel)) {
-						String propertyName = columnModel.getColumnName();
-						if (sortItem.isAsc()) {
-							criteria.addOrder(Order.asc(propertyName));
-						} else {
-							criteria.addOrder(Order.desc(propertyName));
-						}
+				if(columnModel == null || !columns.contains(columnModel.getDataModel().getTableName()+"_"+columnModel.getColumnName())){
+					continue;
+				}
+				if (Objects.nonNull(columnModel)) {
+					String propertyName = columnModel.getColumnName();
+					if (sortItem.isAsc()) {
+						criteria.addOrder(Order.asc(propertyName));
+					} else {
+						criteria.addOrder(Order.desc(propertyName));
 					}
 				}
 			}
