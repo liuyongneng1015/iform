@@ -397,7 +397,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 //				if(itemModel == null || StringUtils.isEmpty(itemModel.getId())) {
 //					throw new IFormException("快速筛选必须勾选要刷选控件");
 //				}
-				if ((itemModel != null && !StringUtils.isEmpty(itemModel.getId()) && (searchItem.getSearchValues()==null || searchItem.getSearchValues().size()==0)) {
+				if ((itemModel != null && !StringUtils.isEmpty(itemModel.getId()) && (searchItem.getSearchValues()==null || searchItem.getSearchValues().size()==0))) {
 					throw new IFormException("快速筛选必须勾选筛选值");
 				}
                 QuickSearchEntity quickSearchEntity = new QuickSearchEntity();
