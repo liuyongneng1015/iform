@@ -1405,7 +1405,8 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 		}else if(entity instanceof SelectItemModelEntity){
 			String defaultValue = ((SelectItemModelEntity) entity).getDefaultReferenceValue();
-			if(defaultValue != null &&  !StringUtils.isEmpty(defaultValue) && entity.getType() == ItemType.CheckboxGroup) {
+			if(defaultValue != null &&  !StringUtils.isEmpty(defaultValue) && (entity.getType() == ItemType.CheckboxGroup
+					||entity.getType() == ItemType.RadioGroup ||entity.getType() == ItemType.Select)) {
 				itemModel.setDefaultValue(Arrays.asList(defaultValue.split(",")));
 			}else{
 				itemModel.setDefaultValue((String)defaultValue);

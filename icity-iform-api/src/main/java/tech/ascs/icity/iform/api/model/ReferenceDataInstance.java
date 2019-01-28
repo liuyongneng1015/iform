@@ -11,10 +11,14 @@ import java.util.List;
 @ApiModel("关联数据实例DataInstance")
 public class ReferenceDataInstance extends IdEntity {
 	@ApiModelProperty(value = "控件的数据", position = 3)
-	private List<String> value = new ArrayList<>();
+	private Object value;
 
-	public List<String> getValue() {
+	public Object getValue() {
 		return value;
+	}
+
+	public void setValue(Object value) {
+		this.value = value;
 	}
 
 	public void setValue(List<String> value) {

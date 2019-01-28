@@ -503,9 +503,15 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 
 			List<Map<String, Object>> newListMap = new ArrayList<>();
-			for (String instances : dataModelInstance.getValue()) {
+			if(dataModelInstance.getValue() != null && dataModelInstance.getValue() instanceof List) {
+				for (String instances : (List<String>)dataModelInstance.getValue()) {
+					Map<String, Object> map = new HashMap<>();
+					map.put("id", instances);
+					newListMap.add(map);
+				}
+			}else{
 				Map<String, Object> map = new HashMap<>();
-				map.put("id", instances);
+				map.put("id", dataModelInstance.getValue());
 				newListMap.add(map);
 			}
 			List<String> idList = new ArrayList<>();
