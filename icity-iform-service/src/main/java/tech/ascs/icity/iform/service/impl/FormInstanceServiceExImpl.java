@@ -30,6 +30,7 @@ import tech.ascs.icity.iflow.client.TaskService;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.model.*;
+import tech.ascs.icity.iform.service.ColumnModelService;
 import tech.ascs.icity.iform.service.FormInstanceServiceEx;
 import tech.ascs.icity.iform.service.FormModelService;
 import tech.ascs.icity.iform.service.UploadService;
@@ -74,6 +75,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	@Autowired
 	UploadService uploadService;
+
+	@Autowired
+	ColumnModelService columnModelService;
 
 	public
 	FormInstanceServiceExImpl() {
@@ -463,12 +467,28 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 		//TODO 关联表数据
 		for(ReferenceDataInstance dataModelInstance : formInstance.getReferenceData()) {
-			String key = dataModelInstance.getReferenceTable() + "_list";
+			ReferenceItemModelEntity  referenceItemModelEntity = (ReferenceItemModelEntity)itemModelManager.get(dataModelInstance.getId());
+			FormModelEntity formModelEntity = formModelService.get(referenceItemModelEntity.getReferenceFormId());
+			DataModelEntity dataModelEntity = formModelEntity.getDataModels().get(0);
+
+			String key = dataModelEntity.getTableName() + "_list";
 			boolean flag = false;
-			if (dataModelInstance.getReferenceType() == ReferenceType.ManyToOne || dataModelInstance.getReferenceType() == ReferenceType.OneToOne) {
-				key = dataModelInstance.getReferenceValueColumn();
+			if (referenceItemModelEntity.getSelectMode() == SelectMode.Single && (referenceItemModelEntity.getReferenceType() == ReferenceType.ManyToOne
+					|| referenceItemModelEntity.getReferenceType() == ReferenceType.OneToOne)) {
+				key = referenceItemModelEntity.getColumnModel().getColumnName();
 				flag = true;
+			}else if(referenceItemModelEntity.getSelectMode() == SelectMode.Multiple){
+				List<ColumnReferenceEntity> referenceEntityList = columnModelService.saveColumnModelEntity(dataModelEntity, "id").getColumnReferences();
+				for(ColumnReferenceEntity columnReferenceEntity : referenceEntityList){
+					if(columnReferenceEntity.getToColumn().getDataModel().getId().equals(dataModelEntity.getId())){
+						key = columnReferenceEntity.getReferenceMiddleTableName();
+						break;
+					}
+				}
 			}
+
+
+
 			List<Map<String, Object>> oldListMap = new ArrayList<>();
 			//旧的数据
 			Object oldData = data.get(key);
@@ -477,13 +497,12 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			} else {
 				oldListMap = (List<Map<String, Object>>) oldData;
 			}
-			DataModelEntity dataModelEntity = dataModelManager.findUniqueByProperty("tableName", dataModelInstance.getReferenceTable());
 
 
 			List<Map<String, Object>> newListMap = new ArrayList<>();
-			for (DataInstance instances : dataModelInstance.getItems()) {
+			for (String instances : dataModelInstance.getValue()) {
 				Map<String, Object> map = new HashMap<>();
-				map.put("id", instances.getId());
+				map.put("id", instances);
 				newListMap.add(map);
 			}
 			List<String> idList = new ArrayList<>();
@@ -493,10 +512,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					idList.add(id);
 				}
 			}
-			String keyStr = dataModelInstance.getReferenceValueColumn();
-			if("id".equals(keyStr)){
-				keyStr = tableName+"_list";
-			}
+
 			Object o = null;
 			if (flag) {
 				o = data;
@@ -506,7 +522,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				o = map;
 			}
 			//新的数据
-			List<Map<String, Object>> saveListMap = getNewMapData(keyStr, session, o, dataModelEntity,  oldListMap,  idList,  newListMap);
+			List<Map<String, Object>> saveListMap = getNewMapData(key, session, o, dataModelEntity,  oldListMap,  idList,  newListMap);
 			if (flag && saveListMap.size() > 0) {
 				data.put(key, new ArrayList<>(saveListMap).get(0));
 			}else{

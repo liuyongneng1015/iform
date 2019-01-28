@@ -772,7 +772,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				columnModelService.delete(columnModelEntity);
 			}
 		}
-
+		Map<String, Object> map = new HashMap<>();
 		for(ColumnModel columnModel : newDataModel.getColumns()){
 			ColumnModelEntity oldColumnModelEntity = setColumn(columnModel);
 			List<ColumnReferenceEntity> oldColumnReferences = oldColumnModelEntity.getColumnReferences();
@@ -785,7 +785,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 			oldColumnModelEntity.setDataModel(oldDataModelEntity);
 			if(columnModel.getReferenceTables() != null){
-				Map<String, Object> map = new HashMap<>();
 				for(ReferenceModel columnReferenceEntity : columnModel.getReferenceTables()){
 					if(map.get(columnModel.getColumnName()+"_"+columnReferenceEntity.getReferenceTable()+"_"+columnReferenceEntity.getReferenceValueColumn()) != null){
 						continue;
