@@ -385,15 +385,19 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			}
 		    List<QuickSearchEntity> quickSearches = new ArrayList<>();
             int i = 0;
+            int allQuickSearchCount = 0;
 		    for (QuickSearchItem searchItem : listModel.getQuickSearchItems()) {
 		    	if (searchItem==null || StringUtils.isEmpty(searchItem.getName())) {
 					throw new IFormException("快速筛选有导航名为空");
 				}
 				ItemModel itemModel = searchItem.getItemModel();
-				if(itemModel == null || StringUtils.isEmpty(itemModel.getId())) {
-					throw new IFormException("快速筛选必须勾选要刷选控件");
+		    	if (itemModel==null || StringUtils.isEmpty(itemModel.getId())) {
+					allQuickSearchCount++;
 				}
-				if (searchItem.getSearchValues()==null || searchItem.getSearchValues().size()==0) {
+//				if(itemModel == null || StringUtils.isEmpty(itemModel.getId())) {
+//					throw new IFormException("快速筛选必须勾选要刷选控件");
+//				}
+				if ((itemModel != null && !StringUtils.isEmpty(itemModel.getId()) && (searchItem.getSearchValues()==null || searchItem.getSearchValues().size()==0)) {
 					throw new IFormException("快速筛选必须勾选筛选值");
 				}
                 QuickSearchEntity quickSearchEntity = new QuickSearchEntity();
@@ -408,6 +412,9 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				quickSearchEntity.setDefaultActive(searchItem.getDefaultActive());
                 quickSearches.add(quickSearchEntity);
             }
+            if (allQuickSearchCount>1) {
+		    	throw new IFormException("快速搜索只允许有一个条件为空，该条件默认查询所有");
+			}
             entity.setQuickSearchItems(quickSearches);
 		}
 		return entity;
@@ -604,7 +611,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		if (entity.getQuickSearchItems().size() > 0) {
 		    List<QuickSearchItem> quickSearches = new ArrayList<>();
 		    for (QuickSearchEntity quickSearchEntity:entity.getQuickSearchItems()) {
-				if (quickSearchEntity.getItemModel() != null) {
+//				if (quickSearchEntity.getItemModel() != null) {
 					if (masterFormItemIds.contains(quickSearchEntity.getItemModel().getId())==false) {
 						continue;
 					}
@@ -617,7 +624,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
                     BeanUtils.copyProperties(quickSearchEntity.getItemModel(), itemModel, new String[]{"formModel", "columnModel", "activities", "options","searchItems","sortItems", "permissions","items","parentItem","referenceList"});
                     quickSearch.setItemModel(itemModel);
                 	quickSearches.add(quickSearch);
-				}
+//				}
             }
             Collections.sort(quickSearches);
             listModel.setQuickSearchItems(quickSearches);
