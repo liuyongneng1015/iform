@@ -666,19 +666,17 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			ItemPermissionInfo addPermission = null;
 			ItemPermissionInfo updatePermission = null;
 			for(ItemPermissionInfo itemPermissionInfo : itemModel.getPermissions()) {
-				if (displayTimingType == DisplayTimingType.Add) {
+				if (displayTimingType == DisplayTimingType.Add && displayTimingType == itemPermissionInfo.getDisplayTiming()) {
 					addPermission = itemPermissionInfo;
-					break;
 				}
-				if (displayTimingType == DisplayTimingType.Update) {
+				if (displayTimingType == DisplayTimingType.Update && displayTimingType == itemPermissionInfo.getDisplayTiming()) {
 					updatePermission = itemPermissionInfo;
-					break;
 				}
 			}
-			if(addPermission != null && addPermission.getRequired() && (value == null || !StringUtils.hasText(String.valueOf(value)))){
+			if(addPermission != null && addPermission.getRequired() != null && addPermission.getRequired() && (value == null || !StringUtils.hasText(String.valueOf(value)))){
 				throw  new IFormException(itemModel.getName()+"为必填");
 			}
-			if(updatePermission != null && updatePermission.getRequired() && (value == null || !StringUtils.hasText(String.valueOf(value)))){
+			if(updatePermission != null && updatePermission.getRequired() != null &&  updatePermission.getRequired() && (value == null || !StringUtils.hasText(String.valueOf(value)))){
 				throw  new IFormException(itemModel.getName()+"为必填");
 			}
 		}

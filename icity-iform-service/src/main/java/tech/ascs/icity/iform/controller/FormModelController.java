@@ -369,7 +369,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		List<ReferenceItemModelEntity> itemModelEntities = itemModelService.findRefenceItemByFormModelId(formModelId);
 		List<ItemModel> list = new ArrayList<>();
 		for(ReferenceItemModelEntity entity : itemModelEntities){
-			if(!entity.getReferenceFormId().equals(referenceFormModelId)) {
+			if(!entity.getFormModel().getId().equals(referenceFormModelId)) {
 				continue;
 			}
 			ItemModel itemModel = new ItemModel();
