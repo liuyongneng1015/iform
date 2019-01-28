@@ -175,6 +175,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 						((ReferenceItemModelEntity) itemModelEntity).setItemModelIds(String.join(",",
 								getReferenceItemModelList((ReferenceItemModelEntity)itemModelEntity).parallelStream().map(ItemModelEntity::getId).collect(Collectors.toList())));
 					}
+					if(((ReferenceItemModelEntity) itemModelEntity).getSelectMode() == SelectMode.Attribute && ((ReferenceItemModelEntity) itemModelEntity).getItemTableColunmName() != null){
+						((ReferenceItemModelEntity) itemModelEntity).setReferenceItemId(getItemModelByTableAndColumn(formModelEntity, ((ReferenceItemModelEntity) itemModelEntity).getItemTableColunmName()).getId());
+					}
 					itemManager.save(itemModelEntity);
 				}
 			}
@@ -200,6 +203,15 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			}
 		}
 		return list;
+	}
+
+	private ItemModelEntity getItemModelByTableAndColumn(FormModelEntity formModelEntity, String key){
+		List<ItemModelEntity> itemModelEntityList = getAllColumnItems(formModelEntity.getItems());
+		Map<String, ItemModelEntity> colunmMap = new HashMap<>();
+		for(ItemModelEntity itemModelEntity1 : itemModelEntityList){
+			colunmMap.put(itemModelEntity1.getColumnModel().getDataModel().getTableName()+"_"+itemModelEntity1.getColumnModel().getColumnName(), itemModelEntity1);
+		}
+		return colunmMap.get(key);
 	}
 
 	//设置关联关系

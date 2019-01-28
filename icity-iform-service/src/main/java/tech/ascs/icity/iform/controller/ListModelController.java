@@ -232,7 +232,8 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			return new ArrayList<>();
 		}
 		Map<String, List<ListModel>> map = new HashMap<>();
-		for(ListModel entity : entities){
+		List<ListModel> listModelEntityList = entities.parallelStream().sorted(Comparator.comparing(ListModel::getId).reversed()).collect(Collectors.toList());
+		for(ListModel entity : listModelEntityList){
 			if(!StringUtils.hasText(entity.getApplicationId())){
 				continue;
 			}

@@ -129,8 +129,14 @@ public class ItemModel extends NameEntity {
 	@ApiModelProperty(value="数据字典值类型",position = 34)
 	private DictionaryValueType dictionaryValueType;
 
-	@ApiModelProperty(value = "字段名", position = 2)
+	@ApiModelProperty(value = "字段名", position = 35)
 	private String columnName;
+
+	@ApiModelProperty(value = "控件表名", position = 36)
+	private String itemTableName;
+
+	@ApiModelProperty(value = "控件字段名", position = 37)
+	private String itemColunmName;
 
 	public ItemType getType() {
 		return type;
@@ -482,6 +488,22 @@ public class ItemModel extends NameEntity {
 
 	public void setDictionaryValueType(DictionaryValueType dictionaryValueType) {
 		this.dictionaryValueType = dictionaryValueType;
+	}
+
+	public String getItemTableName() {
+		return itemTableName;
+	}
+
+	public void setItemTableName(String itemTableName) {
+		this.itemTableName = itemTableName;
+	}
+
+	public String getItemColunmName() {
+		return itemColunmName;
+	}
+
+	public void setItemColunmName(String itemColunmName) {
+		this.itemColunmName = itemColunmName;
 	}
 
 	@Override

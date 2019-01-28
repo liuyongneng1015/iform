@@ -235,7 +235,8 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 		List<FormModel> formModelList = new ArrayList<>();
 		Map<String, List<FormModel>> map = new HashMap<>();
-		for(FormModelEntity entity : formModels){
+		List<FormModelEntity> formModelEntityList = formModels.parallelStream().sorted(Comparator.comparing(FormModelEntity::getId).reversed()).collect(Collectors.toList());
+		for(FormModelEntity entity : formModelEntityList){
 
 			FormModel formModel = new FormModel();
 			BeanUtils.copyProperties(entity, formModel, new String[] {"items","dataModels","permissions","submitChecks","functions"});
@@ -882,8 +883,8 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				throw  new IFormException("关联控件【"+itemModel.getName()+"】未找到关联表单或列表模型");
 			}
 
-			if(itemModel.getSelectMode() == SelectMode.Attribute && (!StringUtils.hasText(itemModel.getReferenceItemId())
-					|| itemModel.getParentItem() == null)){
+			if(itemModel.getSelectMode() == SelectMode.Attribute && ((!StringUtils.hasText(itemModel.getReferenceItemId()) ||
+					(!StringUtils.hasText(itemModel.getItemTableName()) && !StringUtils.hasText(itemModel.getItemColunmName()))) || itemModel.getParentItem() == null)){
 				throw  new IFormException("关联属性控件【"+itemModel.getName()+"】未找到关联控件");
 			}
 
@@ -898,6 +899,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 					list.add(itemModel1.getTableName()+"_"+itemModel1.getColumnName());
 				}
 				((ReferenceItemModelEntity) entity).setItemTableColunmName(String.join(",", list));
+			}
+			if(itemModel.getSelectMode() == SelectMode.Attribute && StringUtils.hasText(itemModel.getItemTableName()) && StringUtils.hasText(itemModel.getItemColunmName())){
+				((ReferenceItemModelEntity) entity).setItemTableColunmName(itemModel.getTableName()+"_"+itemModel.getColumnName());
 			}
 			((ReferenceItemModelEntity) entity).setReferenceList(setItemModelByListModel(itemModel));
 		}else if(entity instanceof SelectItemModelEntity){
@@ -1145,7 +1149,11 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			formModel.setPermissions(itemPermissionModels.size() > 0 ? itemPermissionModels : null);
 
 			for (ItemModelEntity itemModelEntity : itemModelEntities) {
-				items.add(toDTO(itemModelEntity, false));
+				ItemModel itemModel = toDTO(itemModelEntity, false);
+				if(itemModel.getSelectMode() == SelectMode.Attribute){
+					itemModel.setTableName(entity.getDataModels().get(0).getTableName());
+				}
+				items.add(itemModel);
 			}
 			formModel.setItems(items);
 		}

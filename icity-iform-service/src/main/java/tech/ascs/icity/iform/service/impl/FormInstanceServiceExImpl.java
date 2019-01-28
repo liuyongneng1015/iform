@@ -424,6 +424,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			session.getTransaction().commit();
 		} catch (Exception e) {
 			e.printStackTrace();
+			if(e instanceof IFormException){
+				throw e;
+			}
 			throw new IFormException("没有查询到【" + dataModel.getTableName() + "】表，id【"+instanceId+"】的数据");
 		}finally {
 			if(session != null){
