@@ -75,7 +75,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	@Autowired
 	UploadService uploadService;
 
-	public FormInstanceServiceExImpl() {
+	public
+	FormInstanceServiceExImpl() {
 		super(FormModelEntity.class);
 	}
 	@Override
@@ -576,8 +577,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	private void setItemInstance(ItemInstance itemInstance, Map<String, Object> data ,DisplayTimingType displayTimingType){
 		ItemModelEntity itemModel = itemModelManager.get(itemInstance.getId());
-		Object value = itemInstance.getValue();
-		verifyValue(itemModel, value, displayTimingType);
+		Object value = null;
+		verifyValue(itemModel, itemInstance.getValue(), displayTimingType);
 		if (itemModel.getType() == ItemType.DatePicker) {
 			try {
 				value = itemInstance.getValue() == null ? null : new Date(Long.parseLong(String.valueOf(itemInstance.getValue())));
@@ -592,7 +593,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
                 value = o == null || StringUtils.isEmpty(o) ? null : o;
             }
 		} else if (itemModel.getType() == ItemType.Media || itemModel.getType() == ItemType.Attachment) {
-            JSONObject allJson = new JSONObject();
             Object o = itemInstance.getValue();
 			if(o != null && o instanceof List){
 				List<FileUploadEntity> oldList = fileUploadManager.query().filterEqual("fromSource", itemModel.getId()).filterEqual("uploadType", FileUploadType.ItemModel).list();
@@ -656,10 +656,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					break;
 				}
 			}
-			if(addPermission != null && addPermission.getRequired() && (value == null || !StringUtils.hasText((String)value))){
+			if(addPermission != null && addPermission.getRequired() && (value == null || !StringUtils.hasText(String.valueOf(value)))){
 				throw  new IFormException(itemModel.getName()+"为必填");
 			}
-			if(updatePermission != null && updatePermission.getRequired() && (value == null || !StringUtils.hasText((String)value))){
+			if(updatePermission != null && updatePermission.getRequired() && (value == null || !StringUtils.hasText(String.valueOf(value)))){
 				throw  new IFormException(itemModel.getName()+"为必填");
 			}
 		}
