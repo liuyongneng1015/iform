@@ -193,7 +193,7 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 				for (QuickSearchEntity quickSearch : entity.getQuickSearchItems()) {
 					QuickSearchEntity quickSearchEntity = quickSearch.isNew() ? new QuickSearchEntity() : oldQuickSearchMap.get(quickSearch.getId());
 					BeanUtils.copyProperties(quickSearch, quickSearchEntity, "itemModel", "listModel");
-					if(quickSearch.getItemModel() != null) {
+					if(quickSearch.getItemModel() != null && !StringUtils.isEmpty(quickSearch.getItemModel().getId())) {
 						quickSearchEntity.setItemModel(itemModelService.find(quickSearch.getItemModel().getId()));
 					}
 					quickSearchEntity.setListModel(old);
