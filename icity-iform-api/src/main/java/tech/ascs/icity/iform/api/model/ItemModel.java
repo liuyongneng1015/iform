@@ -138,6 +138,12 @@ public class ItemModel extends NameEntity {
 	@ApiModelProperty(value = "控件字段名", position = 37)
 	private String itemColunmName;
 
+	@ApiModelProperty(value = "控件标识", position = 38)
+	private String uuid;
+
+	@ApiModelProperty(value = "关联控件标识", position = 39)
+	private String referenceUuid;
+
 	public ItemType getType() {
 		return type;
 	}
@@ -504,6 +510,22 @@ public class ItemModel extends NameEntity {
 
 	public void setItemColunmName(String itemColunmName) {
 		this.itemColunmName = itemColunmName;
+	}
+
+	public String getUuid() {
+		return uuid;
+	}
+
+	public void setUuid(String uuid) {
+		this.uuid = uuid;
+	}
+
+	public String getReferenceUuid() {
+		return referenceUuid;
+	}
+
+	public void setReferenceUuid(String referenceUuid) {
+		this.referenceUuid = referenceUuid;
 	}
 
 	@Override

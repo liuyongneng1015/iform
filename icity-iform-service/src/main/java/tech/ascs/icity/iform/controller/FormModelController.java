@@ -878,6 +878,13 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 		if(entity instanceof ReferenceItemModelEntity){
 
+			if(StringUtils.hasText(itemModel.getUuid())){
+				ItemModelEntity itemModelEntity = itemModelService.findUniqueByProperty("uuid", itemModel.getUuid());
+				if(itemModelEntity != null && !itemModelEntity.getId().equals(itemModel.getId())){
+					throw  new IFormException("关联控件【"+itemModel.getName()+"】UUID重复了");
+				}
+			}
+
 			if(itemModel.getSelectMode() != SelectMode.Attribute && (!StringUtils.hasText(itemModel.getReferenceFormId())
 					|| itemModel.getReferenceList() == null || itemModel.getReferenceList().getId() == null)){
 				throw  new IFormException("关联控件【"+itemModel.getName()+"】未找到关联表单或列表模型");
@@ -886,6 +893,10 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			if(itemModel.getSelectMode() == SelectMode.Attribute && ((!StringUtils.hasText(itemModel.getReferenceItemId()) ||
 					(!StringUtils.hasText(itemModel.getItemTableName()) && !StringUtils.hasText(itemModel.getItemColunmName()))) || itemModel.getParentItem() == null)){
 				throw  new IFormException("关联属性控件【"+itemModel.getName()+"】未找到关联控件");
+			}
+
+			if(itemModel.getSelectMode() == SelectMode.Attribute){
+				itemModel.setParentItem(null);
 			}
 
 			if(itemModel.getParentItem() != null) {
@@ -899,9 +910,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 					list.add(itemModel1.getTableName()+"_"+itemModel1.getColumnName());
 				}
 				((ReferenceItemModelEntity) entity).setItemTableColunmName(String.join(",", list));
-			}
-			if(itemModel.getSelectMode() == SelectMode.Attribute && StringUtils.hasText(itemModel.getItemTableName()) && StringUtils.hasText(itemModel.getItemColunmName())){
-				((ReferenceItemModelEntity) entity).setItemTableColunmName(itemModel.getTableName()+"_"+itemModel.getColumnName());
 			}
 			((ReferenceItemModelEntity) entity).setReferenceList(setItemModelByListModel(itemModel));
 		}else if(entity instanceof SelectItemModelEntity){

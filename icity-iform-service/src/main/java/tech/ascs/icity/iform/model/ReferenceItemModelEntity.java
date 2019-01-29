@@ -133,4 +133,5 @@ public class ReferenceItemModelEntity extends ItemModelEntity  {
 	public void setItemTableColunmName(String itemTableColunmName) {
 		this.itemTableColunmName = itemTableColunmName;
 	}
+
 }

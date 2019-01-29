@@ -64,7 +64,7 @@ public interface FormInstanceService {
 		@ApiImplicitParam(paramType = "query", name = "parameters", value = "查询参数", required = false)
 	})
 	@GetMapping("/{listId}/page")
-	Page<FormInstance> page(
+	Page<FormDataSaveInstance> page(
 			@PathVariable(name="listId") String listId,
 			@RequestParam(name = "page", defaultValue = "1") int page,
 			@RequestParam(name="pagesize", defaultValue = "10") int pagesize,

@@ -21,10 +21,6 @@ public class ReferenceDataInstance extends IdEntity {
 		this.value = value;
 	}
 
-	public void setValue(List<String> value) {
-		this.value = value;
-	}
-
 	@ApiModelProperty(value = "表单实例ID", position = 0)
 	@Override
 	public String getId() {

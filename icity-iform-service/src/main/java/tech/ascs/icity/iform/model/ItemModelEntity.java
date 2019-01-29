@@ -64,6 +64,13 @@ public class ItemModelEntity extends  BaseEntity implements Serializable {
 	@Enumerated(EnumType.STRING)
 	private SystemItemType systemItemType;
 
+	@Column(name="uuid", length = 255) // 控件标识
+	private String uuid;
+
+	@Column(name="reference_uuid", length = 255) // 关联控件标识
+	private String referenceUuid;
+
+
 	public FormModelEntity getFormModel() {
 		return formModel;
 	}
@@ -158,5 +165,21 @@ public class ItemModelEntity extends  BaseEntity implements Serializable {
 
 	public void setSortItems(List<ListSortItem> sortItems) {
 		this.sortItems = sortItems;
+	}
+
+	public String getUuid() {
+		return uuid;
+	}
+
+	public void setUuid(String uuid) {
+		this.uuid = uuid;
+	}
+
+	public String getReferenceUuid() {
+		return referenceUuid;
+	}
+
+	public void setReferenceUuid(String referenceUuid) {
+		this.referenceUuid = referenceUuid;
 	}
 }

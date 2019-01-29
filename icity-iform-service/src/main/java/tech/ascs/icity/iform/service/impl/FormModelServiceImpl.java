@@ -175,9 +175,16 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 						((ReferenceItemModelEntity) itemModelEntity).setItemModelIds(String.join(",",
 								getReferenceItemModelList((ReferenceItemModelEntity)itemModelEntity).parallelStream().map(ItemModelEntity::getId).collect(Collectors.toList())));
 					}
-					if(((ReferenceItemModelEntity) itemModelEntity).getSelectMode() == SelectMode.Attribute && ((ReferenceItemModelEntity) itemModelEntity).getItemTableColunmName() != null){
-						((ReferenceItemModelEntity) itemModelEntity).setReferenceItemId(getItemModelByTableAndColumn(formModelEntity, ((ReferenceItemModelEntity) itemModelEntity).getItemTableColunmName()).getId());
+					if(((ReferenceItemModelEntity) itemModelEntity).getSelectMode() == SelectMode.Attribute ){
+						if(((ReferenceItemModelEntity) itemModelEntity).getItemTableColunmName() != null) {
+							((ReferenceItemModelEntity) itemModelEntity).setReferenceItemId(getItemModelByTableAndColumn(formModelEntity, ((ReferenceItemModelEntity) itemModelEntity).getItemTableColunmName()).getId());
+						}
+						if(((ReferenceItemModelEntity) itemModelEntity).getReferenceUuid() != null && ((ReferenceItemModelEntity) itemModelEntity).getParentItem() == null){
+							ReferenceItemModelEntity referenceItemModelEntity = (ReferenceItemModelEntity)itemManager.query().filterEqual("uuid", ((ReferenceItemModelEntity) itemModelEntity).getReferenceUuid());
+							((ReferenceItemModelEntity) itemModelEntity).setParentItem(referenceItemModelEntity);
+						}
 					}
+
 					itemManager.save(itemModelEntity);
 				}
 			}
@@ -323,6 +330,12 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		if(referenceItemModelEntity.getParentItem() != null && referenceItemModelEntity.getParentItem().getColumnModel() != null) {
 			parentSelectItem = (ReferenceItemModelEntity) map.get(referenceItemModelEntity.getParentItem().getColumnModel().getDataModel().getTableName() + "_" + referenceItemModelEntity.getParentItem().getColumnModel().getColumnName());
 		}
+
+		if(referenceItemModelEntity.getSelectMode() == SelectMode.Attribute){
+
+		}
+
+
 		ReferenceItemModelEntity oldReferenceItem = null;
 		if(!referenceItemModelEntity.isNew()){
 			ReferenceItemModelEntity referenceItemModelEntity1 = (ReferenceItemModelEntity)itemManager.get(referenceItemModelEntity.getId());
