@@ -13,12 +13,24 @@ public class ReferenceDataInstance extends IdEntity {
 	@ApiModelProperty(value = "控件的数据", position = 3)
 	private Object value;
 
+	@ApiModelProperty(value = " 关联表单模型", position = 6)
+	private String referenceTable;
+
+
 	public Object getValue() {
 		return value;
 	}
 
 	public void setValue(Object value) {
 		this.value = value;
+	}
+
+	public String getReferenceTable() {
+		return referenceTable;
+	}
+
+	public void setReferenceTable(String referenceTable) {
+		this.referenceTable = referenceTable;
 	}
 
 	@ApiModelProperty(value = "表单实例ID", position = 0)

@@ -1175,6 +1175,12 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				return;
 			}
 			ReferenceDataInstance dataModelInstance = new ReferenceDataInstance();
+			String formId = ((ReferenceItemModelEntity) itemModel).getReferenceFormId();
+			if(StringUtils.hasText(formId)) {
+				FormModelEntity formModelEntity = formModelService.find(formId);
+				dataModelInstance.setReferenceTable(formModelEntity == null ? null :formModelEntity.getDataModels().get(0).getTableName());
+			}
+			dataModelInstance.setId(itemModel.getId());
 			dataModelInstance.setValue(listMap.get("id"));
 			referenceDataModelList.add(dataModelInstance);
 		}else if(fromItem.getReferenceType() == ReferenceType.ManyToMany || fromItem.getReferenceType() == ReferenceType.OneToMany){
@@ -1187,6 +1193,12 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				return;
 			}
 			ReferenceDataInstance dataModelInstance =  new ReferenceDataInstance();
+			String formId = ((ReferenceItemModelEntity) itemModel).getReferenceFormId();
+			if(StringUtils.hasText(formId)) {
+				FormModelEntity formModelEntity = formModelService.find(formId);
+				dataModelInstance.setReferenceTable(formModelEntity == null ? null :formModelEntity.getDataModels().get(0).getTableName());
+			}
+			dataModelInstance.setId(itemModel.getId());
 			List<Object> values = new ArrayList<>();
 			for(Map<String, Object> map  : listMap) {
 				values.add(map.get("id"));
@@ -1227,6 +1239,12 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				return;
 			}
 			ReferenceDataInstance dataModelInstance = new ReferenceDataInstance();
+			String formId = ((ReferenceItemModelEntity) fromItem).getReferenceFormId();
+			if(StringUtils.hasText(formId)) {
+				FormModelEntity formModelEntity = formModelService.find(formId);
+				dataModelInstance.setReferenceTable(formModelEntity == null ? null :formModelEntity.getDataModels().get(0).getTableName());
+			}
+			dataModelInstance.setId(fromItem.getId());
 			List<Object> values = new ArrayList<>();
 			for(Map<String, Object> map : listMap){
 				values.add(map.get("id"));
@@ -1240,6 +1258,12 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				return;
 			}
 			ReferenceDataInstance dataModelInstance = new ReferenceDataInstance();
+			String formId = ((ReferenceItemModelEntity) fromItem).getReferenceFormId();
+			if(StringUtils.hasText(formId)) {
+				FormModelEntity formModelEntity = formModelService.find(formId);
+				dataModelInstance.setReferenceTable(formModelEntity == null ? null :formModelEntity.getDataModels().get(0).getTableName());
+			}
+			dataModelInstance.setId(fromItem.getId());
 			dataModelInstance.setValue(mapData.get("id"));
 			referenceDataModelList.add(dataModelInstance);
 		}
