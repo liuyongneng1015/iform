@@ -144,6 +144,9 @@ public class ItemModel extends NameEntity {
 	@ApiModelProperty(value = "关联控件标识", position = 39)
 	private String referenceUuid;
 
+	@ApiModelProperty(value = "下拉数据来源", position = 40)
+	private TreeSelectDataSource dataSource;
+
 	public ItemType getType() {
 		return type;
 	}
@@ -526,6 +529,14 @@ public class ItemModel extends NameEntity {
 
 	public void setReferenceUuid(String referenceUuid) {
 		this.referenceUuid = referenceUuid;
+	}
+
+	public TreeSelectDataSource getDataSource() {
+		return dataSource;
+	}
+
+	public void setDataSource(TreeSelectDataSource dataSource) {
+		this.dataSource = dataSource;
 	}
 
 	@Override

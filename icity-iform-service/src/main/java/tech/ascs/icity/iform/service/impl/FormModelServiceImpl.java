@@ -855,6 +855,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			case  TabPane:
 				entity = new TabPaneItemModelEntity();
 				break;
+			case  Treeselect:
+				entity = new TreeSelectItemModelEntity();
+				break;
 			default:
 				entity = new ItemModelEntity();
 				break;
