@@ -350,7 +350,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				Object defalueValue = searchItem.getSearch().getDefaultValue();
 				if(defalueValue != null && defalueValue instanceof List){
 					searchInfo.setDefaultValue(String.join(",", (List)searchItem.getSearch().getDefaultValue()));
-				} else if(defalueValue != null) {
+				} else if(defalueValue != null  && !StringUtils.isEmpty(String.valueOf(defalueValue))) {
 					searchInfo.setDefaultValue(StringUtils.isEmpty(defalueValue) ? null : String.valueOf(defalueValue));
 				}
 				searchItemEntity.setOrderNo(i);
@@ -595,7 +595,8 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 						if(StringUtils.hasText(defaultValue)) {
 							ItemType itemType = searchItem.getType();
 							// Input, InputNumber返回的defaultValue是字符串格式，不是数组格式
-							if (ItemType.Input.equals(itemType) || ItemType.InputNumber.equals(itemType) || ItemType.RadioGroup.equals(itemType)) {
+							if (ItemType.Input.equals(itemType) || ItemType.InputNumber.equals(itemType) || ItemType.RadioGroup.equals(itemType) ||
+								ItemType.Editor.equals(itemType) || ItemType.DatePicker.equals(itemType)) {
 								search.setDefaultValue(defaultValue);
 							} else {
 								search.setDefaultValue(Arrays.asList(defaultValue.split(",")));
