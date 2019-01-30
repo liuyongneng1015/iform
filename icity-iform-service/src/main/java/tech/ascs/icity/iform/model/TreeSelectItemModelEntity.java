@@ -18,7 +18,7 @@ public class TreeSelectItemModelEntity extends ItemModelEntity  {
 	@Column(name="multiple")// 是否多选
 	private Boolean multiple;
 
-	@Column(name="data_sources")//创建类型
+	@Column(name="data_sources")//下拉数据来源
 	@Enumerated(EnumType.STRING)
 	private TreeSelectDataSource dataSource;
 

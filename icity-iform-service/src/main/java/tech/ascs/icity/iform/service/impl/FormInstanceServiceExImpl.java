@@ -24,6 +24,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import tech.ascs.icity.admin.api.model.User;
+import tech.ascs.icity.admin.client.UserService;
 import tech.ascs.icity.iflow.api.model.ProcessInstance;
 import tech.ascs.icity.iflow.client.ProcessInstanceService;
 import tech.ascs.icity.iflow.client.TaskService;
@@ -57,6 +59,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	@Autowired
 	private TaskService taskService;
+
+	@Autowired
+	private UserService userService;
 
 	private JPAManager<FormModelEntity> formModelEntityJPAManager;
 
@@ -275,7 +280,15 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+
+		List<ItemModelEntity> itemModelEntityList = new ArrayList<>();
+		itemModelEntityList.addAll(formModelEntity.getItems());
 		for(ItemModelEntity itemModelEntity : formModelEntity.getItems()){
+			if(itemModelEntity instanceof RowItemModelEntity){
+				itemModelEntityList.addAll(((RowItemModelEntity)itemModelEntity).getItems());
+			}
+		}
+		for(ItemModelEntity itemModelEntity : itemModelEntityList){
 			if(itemModelEntity.getSystemItemType() == SystemItemType.CreateDate && ((TimeItemModelEntity)itemModelEntity).getCreateType() == SystemCreateType.Create){
 				if(itemMap.keySet().contains(itemModelEntity.getId())){
 					list.remove(itemMap.get(itemModelEntity.getId()));
@@ -327,6 +340,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 		return newId;
 	}
+
 
 	/**
 	 * 生成指定位数的随机数
@@ -386,7 +400,14 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		List<ItemModelEntity> itemModelEntityList = new ArrayList<>();
+		itemModelEntityList.addAll(formModelEntity.getItems());
 		for(ItemModelEntity itemModelEntity : formModelEntity.getItems()){
+			if(itemModelEntity instanceof RowItemModelEntity){
+				itemModelEntityList.addAll(((RowItemModelEntity)itemModelEntity).getItems());
+			}
+		}
+		for(ItemModelEntity itemModelEntity : itemModelEntityList){
 			if(itemModelEntity.getSystemItemType() == SystemItemType.CreateDate && ((TimeItemModelEntity)itemModelEntity).getCreateType() == SystemCreateType.Update){
 				if(itemMap.keySet().contains(itemModelEntity.getId())){
 					list.remove(itemMap.get(itemModelEntity.getId()));
@@ -396,7 +417,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				if(itemMap.keySet().contains(itemModelEntity.getId())){
 					list.remove(itemMap.get(itemModelEntity.getId()));
 				}
-				list.add(getItemInstance(itemModelEntity.getId(),user != null ? user.getId() : "-1"));
+				list.add(getItemInstance(itemModelEntity.getId(), user != null ? user.getId() : "-1"));
 			}
 		}
 
@@ -1454,7 +1475,12 @@ private DataModelInstance setDataModelInstance(FormModelEntity toModelEntity, Re
 			default:
                 String valueStr = value == null || StringUtils.isEmpty(value) ?  null : String.valueOf(value);
                 itemInstance.setValue(value);
-				itemInstance.setDisplayValue(valueStr);
+				if(itemModel.getSystemItemType() == SystemItemType.Creator && value != null && StringUtils.hasText((String)value)){
+					User user = userService.getUserInfo(String.valueOf(value));
+					itemInstance.setDisplayValue(user == null ? null : user.getUsername());
+				}else {
+					itemInstance.setDisplayValue(valueStr);
+				}
 				break;
 		}
 	}
