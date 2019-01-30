@@ -350,8 +350,8 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				Object defalueValue = searchItem.getSearch().getDefaultValue();
 				if(defalueValue != null && defalueValue instanceof List){
 					searchInfo.setDefaultValue(String.join(",", (List)searchItem.getSearch().getDefaultValue()));
-				} else if(defalueValue != null && defalueValue instanceof String) {
-					searchInfo.setDefaultValue(StringUtils.isEmpty(defalueValue) ? null : (String)defalueValue);
+				} else if(defalueValue != null) {
+					searchInfo.setDefaultValue(StringUtils.isEmpty(defalueValue) ? null : String.valueOf(defalueValue));
 				}
 				searchItemEntity.setOrderNo(i);
 				searchItemEntity.setSearch(searchInfo);
@@ -399,7 +399,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 //					throw new IFormException("快速筛选必须勾选要刷选控件");
 //				}
 				if ((itemModel!=null && !StringUtils.isEmpty(itemModel.getId()) && (searchItem.getSearchValues()==null || searchItem.getSearchValues().size()==0))) {
-					throw new IFormException("快速筛选必须勾选筛选值");
+					throw new IFormException("快速筛选勾选了筛选控件后必须勾选筛选值");
 				}
                 QuickSearchEntity quickSearchEntity = new QuickSearchEntity();
 		    	if (itemModel!=null && !StringUtils.isEmpty(itemModel.getId())) {
@@ -595,7 +595,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 						if(StringUtils.hasText(defaultValue)) {
 							ItemType itemType = searchItem.getType();
 							// Input, InputNumber返回的defaultValue是字符串格式，不是数组格式
-							if (ItemType.Input.equals(itemType) || ItemType.InputNumber.equals(itemType)) {
+							if (ItemType.Input.equals(itemType) || ItemType.InputNumber.equals(itemType) || ItemType.RadioGroup.equals(itemType)) {
 								search.setDefaultValue(defaultValue);
 							} else {
 								search.setDefaultValue(Arrays.asList(defaultValue.split(",")));
