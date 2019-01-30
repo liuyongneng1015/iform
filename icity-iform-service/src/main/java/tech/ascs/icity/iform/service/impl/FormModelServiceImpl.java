@@ -185,7 +185,8 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 						if(((ReferenceItemModelEntity) itemModelEntity).getParentItem() != null) {
 							FormModelEntity formModelEntity1 = formModelManager.find(((ReferenceItemModelEntity) itemModelEntity).getParentItem().getReferenceFormId());
 							if(formModelEntity1 != null) {
-								((ReferenceItemModelEntity) itemModelEntity).setReferenceItemId(getItemModelByTableAndColumn(formModelEntity, ((ReferenceItemModelEntity) itemModelEntity).getItemTableColunmName()).getId());
+								ItemModelEntity itemModelEntity1 = getItemModelByTableAndColumn(formModelEntity1, ((ReferenceItemModelEntity) itemModelEntity).getItemTableColunmName());
+								((ReferenceItemModelEntity) itemModelEntity).setReferenceItemId(itemModelEntity1 == null ? null : itemModelEntity1.getId());
 							}
 						}
 
