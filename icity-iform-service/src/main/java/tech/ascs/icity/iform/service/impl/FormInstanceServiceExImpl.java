@@ -361,7 +361,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 
 
-	private Date getNowTime(String format){
+	private long getNowTime(String format){
 		String timeFormat = format == null ? "yyyy-MM-dd HH:mm:ss" : format;
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(timeFormat);
 		String dateStr = simpleDateFormat.format(new Date());
@@ -370,8 +370,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			date = simpleDateFormat.parse(dateStr);
 		} catch (ParseException e) {
 			e.printStackTrace();
+			throw new IFormException("时间转换异常");
 		}
-		return  date;
+		return  date.getTime();
 	}
 
 	private ItemInstance getItemInstance(String id, Object value){
