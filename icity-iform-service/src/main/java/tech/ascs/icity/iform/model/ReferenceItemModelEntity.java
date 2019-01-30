@@ -44,10 +44,10 @@ public class ReferenceItemModelEntity extends ItemModelEntity  {
 	private String itemModelIds;
 
 	@ManyToOne(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH })
-	@JoinColumn(name="parent_reference_id")// 关联字典联动目标
+	@JoinColumn(name="parent_reference_id")// 父类控件
 	private ReferenceItemModelEntity parentItem;
 
-	/** 被关联字典联动目标 */
+	/** 子类控件 */
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "parentItem")
 	private List<ReferenceItemModelEntity> items = new ArrayList<ReferenceItemModelEntity>();
 
