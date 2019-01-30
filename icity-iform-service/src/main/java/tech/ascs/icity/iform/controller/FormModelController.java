@@ -918,6 +918,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				}
 				((ReferenceItemModelEntity) entity).setItemTableColunmName(String.join(",", list));
 			}
+			if(itemModel.getType() == ItemType.ReferenceLabel){
+				((ReferenceItemModelEntity) entity).setItemTableColunmName(itemModel.getItemTableName()+"_"+itemModel.getItemColunmName());
+			}
 			((ReferenceItemModelEntity) entity).setReferenceList(setItemModelByListModel(itemModel));
 		}else if(entity instanceof SelectItemModelEntity){
 			SelectItemModelEntity selectItemModelEntity = (SelectItemModelEntity)entity;
