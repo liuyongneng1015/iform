@@ -2,6 +2,7 @@ package tech.ascs.icity.iform.controller;
 
 import java.util.*;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import com.googlecode.genericdao.search.Sort;
 import org.slf4j.Logger;
@@ -115,7 +116,8 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 			return new ArrayList<>();
 		}
 		Map<String, List<DataModel>> map = new HashMap<>();
-		for(DataModel entity : entities){
+		List<DataModel> dataModelEntityList = entities.parallelStream().sorted(Comparator.comparing(DataModel::getId).reversed()).collect(Collectors.toList());
+		for(DataModel entity : dataModelEntityList){
 			if(!StringUtils.hasText(entity.getApplicationId())){
 				continue;
 			}

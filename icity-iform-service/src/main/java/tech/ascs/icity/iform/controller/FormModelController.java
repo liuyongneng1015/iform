@@ -235,7 +235,8 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 		List<FormModel> formModelList = new ArrayList<>();
 		Map<String, List<FormModel>> map = new HashMap<>();
-		for(FormModelEntity entity : formModels){
+		List<FormModelEntity> formModelEntityList = formModels.parallelStream().sorted(Comparator.comparing(FormModelEntity::getId).reversed()).collect(Collectors.toList());
+		for(FormModelEntity entity : formModelEntityList){
 
 			FormModel formModel = new FormModel();
 			BeanUtils.copyProperties(entity, formModel, new String[] {"items","dataModels","permissions","submitChecks","functions"});
@@ -368,7 +369,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		List<ReferenceItemModelEntity> itemModelEntities = itemModelService.findRefenceItemByFormModelId(formModelId);
 		List<ItemModel> list = new ArrayList<>();
 		for(ReferenceItemModelEntity entity : itemModelEntities){
-			if(!entity.getReferenceFormId().equals(referenceFormModelId)) {
+			if(!entity.getFormModel().getId().equals(referenceFormModelId)) {
 				continue;
 			}
 			ItemModel itemModel = new ItemModel();
@@ -772,7 +773,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				columnModelService.delete(columnModelEntity);
 			}
 		}
-
+		Map<String, Object> map = new HashMap<>();
 		for(ColumnModel columnModel : newDataModel.getColumns()){
 			ColumnModelEntity oldColumnModelEntity = setColumn(columnModel);
 			List<ColumnReferenceEntity> oldColumnReferences = oldColumnModelEntity.getColumnReferences();
@@ -785,7 +786,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 			oldColumnModelEntity.setDataModel(oldDataModelEntity);
 			if(columnModel.getReferenceTables() != null){
-				Map<String, Object> map = new HashMap<>();
 				for(ReferenceModel columnReferenceEntity : columnModel.getReferenceTables()){
 					if(map.get(columnModel.getColumnName()+"_"+columnReferenceEntity.getReferenceTable()+"_"+columnReferenceEntity.getReferenceValueColumn()) != null){
 						continue;
@@ -878,14 +878,25 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 		if(entity instanceof ReferenceItemModelEntity){
 
+			if(StringUtils.hasText(itemModel.getUuid())){
+				ItemModelEntity itemModelEntity = itemModelService.findUniqueByProperty("uuid", itemModel.getUuid());
+				if(itemModelEntity != null && !itemModelEntity.getId().equals(itemModel.getId())){
+					throw  new IFormException("关联控件【"+itemModel.getName()+"】UUID重复了");
+				}
+			}
+
 			if(itemModel.getSelectMode() != SelectMode.Attribute && (!StringUtils.hasText(itemModel.getReferenceFormId())
 					|| itemModel.getReferenceList() == null || itemModel.getReferenceList().getId() == null)){
 				throw  new IFormException("关联控件【"+itemModel.getName()+"】未找到关联表单或列表模型");
 			}
 
-			if(itemModel.getSelectMode() == SelectMode.Attribute && (!StringUtils.hasText(itemModel.getReferenceItemId())
-					|| itemModel.getParentItem() == null)){
+			if(itemModel.getSelectMode() == SelectMode.Attribute && ((!StringUtils.hasText(itemModel.getReferenceItemId()) ||
+					(!StringUtils.hasText(itemModel.getItemTableName()) && !StringUtils.hasText(itemModel.getItemColunmName()))) || itemModel.getParentItem() == null)){
 				throw  new IFormException("关联属性控件【"+itemModel.getName()+"】未找到关联控件");
+			}
+
+			if(itemModel.getSelectMode() == SelectMode.Attribute){
+				itemModel.setParentItem(null);
 			}
 
 			if(itemModel.getParentItem() != null) {
@@ -1146,7 +1157,11 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			formModel.setPermissions(itemPermissionModels.size() > 0 ? itemPermissionModels : null);
 
 			for (ItemModelEntity itemModelEntity : itemModelEntities) {
-				items.add(toDTO(itemModelEntity, false));
+				ItemModel itemModel = toDTO(itemModelEntity, false);
+				if(itemModel.getSelectMode() == SelectMode.Attribute){
+					itemModel.setTableName(entity.getDataModels().get(0).getTableName());
+				}
+				items.add(itemModel);
 			}
 			formModel.setItems(items);
 		}
@@ -1398,7 +1413,8 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 		}else if(entity instanceof SelectItemModelEntity){
 			String defaultValue = ((SelectItemModelEntity) entity).getDefaultReferenceValue();
-			if(defaultValue != null &&  !StringUtils.isEmpty(defaultValue) && entity.getType() == ItemType.CheckboxGroup) {
+			if(defaultValue != null &&  !StringUtils.isEmpty(defaultValue) && (entity.getType() == ItemType.CheckboxGroup
+					||entity.getType() == ItemType.RadioGroup ||entity.getType() == ItemType.Select)) {
 				itemModel.setDefaultValue(Arrays.asList(defaultValue.split(",")));
 			}else{
 				itemModel.setDefaultValue((String)defaultValue);

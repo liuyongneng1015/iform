@@ -93,7 +93,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	// 1) 因为Object没有指定具体类型，接收后会变成字符串
 	// 2) 接收数组时，相同的Key会被覆盖掉，接收 param1=value1&param2=value2 的 param1参数，map的键值对会覆盖掉相同的Key
 	@Override
-	public Page<FormInstance> page(@PathVariable(name="listId") String listId, @RequestParam(name = "page", defaultValue = "1") int page, @RequestParam(name="pagesize", defaultValue = "10") int pagesize, @RequestParam Map<String, Object> parameters) {
+	public Page<FormDataSaveInstance> page(@PathVariable(name="listId") String listId, @RequestParam(name = "page", defaultValue = "1") int page, @RequestParam(name="pagesize", defaultValue = "10") int pagesize, @RequestParam Map<String, Object> parameters) {
 		ListModelEntity listModel = listModelService.find(listId);
 		if (listModel == null) {
 			throw new IFormException(404, "列表模型【" + listId + "】不存在");

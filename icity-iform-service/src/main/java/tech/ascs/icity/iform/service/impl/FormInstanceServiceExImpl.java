@@ -24,12 +24,15 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import tech.ascs.icity.admin.api.model.User;
+import tech.ascs.icity.admin.client.UserService;
 import tech.ascs.icity.iflow.api.model.ProcessInstance;
 import tech.ascs.icity.iflow.client.ProcessInstanceService;
 import tech.ascs.icity.iflow.client.TaskService;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.model.*;
+import tech.ascs.icity.iform.service.ColumnModelService;
 import tech.ascs.icity.iform.service.FormInstanceServiceEx;
 import tech.ascs.icity.iform.service.FormModelService;
 import tech.ascs.icity.iform.service.UploadService;
@@ -57,6 +60,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	@Autowired
 	private TaskService taskService;
 
+	@Autowired
+	private UserService userService;
+
 	private JPAManager<FormModelEntity> formModelEntityJPAManager;
 
 	private JPAManager<DictionaryEntity> dictionaryEntityJPAManager;
@@ -74,6 +80,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	@Autowired
 	UploadService uploadService;
+
+	@Autowired
+	ColumnModelService columnModelService;
 
 	public
 	FormInstanceServiceExImpl() {
@@ -101,14 +110,14 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public Page<FormInstance> pageFormInstance(ListModelEntity listModel, int page, int pagesize, Map<String, Object> queryParameters) {
+	public Page<FormDataSaveInstance> pageFormInstance(ListModelEntity listModel, int page, int pagesize, Map<String, Object> queryParameters) {
 		Criteria criteria = generateCriteria(listModel, queryParameters);
 		addSort(listModel, criteria);
 
 		criteria.setFirstResult((page - 1) * pagesize);
 		criteria.setMaxResults(pagesize);
 		List<Map<String, Object>> entities = null;
-		Page<FormInstance> result = Page.get(page, pagesize);
+		Page<FormDataSaveInstance> result = Page.get(page, pagesize);
 		try {
 			entities = criteria.list();
 		} catch (HibernateException e) {
@@ -116,7 +125,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			return result;
 		}
 
-		List<FormInstance> list = wrapList(listModel, entities);
+		List<FormDataSaveInstance> list = wrapFormDataList(listModel, entities);
 
 		criteria.setFirstResult(0);
 		criteria.setProjection(Projections.rowCount());
@@ -271,7 +280,15 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+
+		List<ItemModelEntity> itemModelEntityList = new ArrayList<>();
+		itemModelEntityList.addAll(formModelEntity.getItems());
 		for(ItemModelEntity itemModelEntity : formModelEntity.getItems()){
+			if(itemModelEntity instanceof RowItemModelEntity){
+				itemModelEntityList.addAll(((RowItemModelEntity)itemModelEntity).getItems());
+			}
+		}
+		for(ItemModelEntity itemModelEntity : itemModelEntityList){
 			if(itemModelEntity.getSystemItemType() == SystemItemType.CreateDate && ((TimeItemModelEntity)itemModelEntity).getCreateType() == SystemCreateType.Create){
 				if(itemMap.keySet().contains(itemModelEntity.getId())){
 					list.remove(itemMap.get(itemModelEntity.getId()));
@@ -323,6 +340,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 		return newId;
 	}
+
 
 	/**
 	 * 生成指定位数的随机数
@@ -382,7 +400,14 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		List<ItemModelEntity> itemModelEntityList = new ArrayList<>();
+		itemModelEntityList.addAll(formModelEntity.getItems());
 		for(ItemModelEntity itemModelEntity : formModelEntity.getItems()){
+			if(itemModelEntity instanceof RowItemModelEntity){
+				itemModelEntityList.addAll(((RowItemModelEntity)itemModelEntity).getItems());
+			}
+		}
+		for(ItemModelEntity itemModelEntity : itemModelEntityList){
 			if(itemModelEntity.getSystemItemType() == SystemItemType.CreateDate && ((TimeItemModelEntity)itemModelEntity).getCreateType() == SystemCreateType.Update){
 				if(itemMap.keySet().contains(itemModelEntity.getId())){
 					list.remove(itemMap.get(itemModelEntity.getId()));
@@ -392,7 +417,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				if(itemMap.keySet().contains(itemModelEntity.getId())){
 					list.remove(itemMap.get(itemModelEntity.getId()));
 				}
-				list.add(getItemInstance(itemModelEntity.getId(),user != null ? user.getId() : "-1"));
+				list.add(getItemInstance(itemModelEntity.getId(), user != null ? user.getId() : "-1"));
 			}
 		}
 
@@ -420,6 +445,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			session.getTransaction().commit();
 		} catch (Exception e) {
 			e.printStackTrace();
+			if(e instanceof IFormException){
+				throw e;
+			}
 			throw new IFormException("没有查询到【" + dataModel.getTableName() + "】表，id【"+instanceId+"】的数据");
 		}finally {
 			if(session != null){
@@ -463,12 +491,28 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 		//TODO 关联表数据
 		for(ReferenceDataInstance dataModelInstance : formInstance.getReferenceData()) {
-			String key = dataModelInstance.getReferenceTable() + "_list";
+			ReferenceItemModelEntity  referenceItemModelEntity = (ReferenceItemModelEntity)itemModelManager.get(dataModelInstance.getId());
+			FormModelEntity formModelEntity = formModelService.get(referenceItemModelEntity.getReferenceFormId());
+			DataModelEntity dataModelEntity = formModelEntity.getDataModels().get(0);
+
+			String key = dataModelEntity.getTableName() + "_list";
 			boolean flag = false;
-			if (dataModelInstance.getReferenceType() == ReferenceType.ManyToOne || dataModelInstance.getReferenceType() == ReferenceType.OneToOne) {
-				key = dataModelInstance.getReferenceValueColumn();
+			if (referenceItemModelEntity.getSelectMode() == SelectMode.Single && (referenceItemModelEntity.getReferenceType() == ReferenceType.ManyToOne
+					|| referenceItemModelEntity.getReferenceType() == ReferenceType.OneToOne)) {
+				key = referenceItemModelEntity.getColumnModel().getColumnName();
 				flag = true;
+			}else if(referenceItemModelEntity.getSelectMode() == SelectMode.Multiple){
+				List<ColumnReferenceEntity> referenceEntityList = columnModelService.saveColumnModelEntity(dataModelEntity, "id").getColumnReferences();
+				for(ColumnReferenceEntity columnReferenceEntity : referenceEntityList){
+					if(columnReferenceEntity.getToColumn().getDataModel().getId().equals(dataModelEntity.getId())){
+						key = columnReferenceEntity.getReferenceMiddleTableName();
+						break;
+					}
+				}
 			}
+
+
+
 			List<Map<String, Object>> oldListMap = new ArrayList<>();
 			//旧的数据
 			Object oldData = data.get(key);
@@ -477,13 +521,18 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			} else {
 				oldListMap = (List<Map<String, Object>>) oldData;
 			}
-			DataModelEntity dataModelEntity = dataModelManager.findUniqueByProperty("tableName", dataModelInstance.getReferenceTable());
 
 
 			List<Map<String, Object>> newListMap = new ArrayList<>();
-			for (DataInstance instances : dataModelInstance.getItems()) {
+			if(dataModelInstance.getValue() != null && dataModelInstance.getValue() instanceof List) {
+				for (String instances : (List<String>)dataModelInstance.getValue()) {
+					Map<String, Object> map = new HashMap<>();
+					map.put("id", instances);
+					newListMap.add(map);
+				}
+			}else{
 				Map<String, Object> map = new HashMap<>();
-				map.put("id", instances.getId());
+				map.put("id", dataModelInstance.getValue());
 				newListMap.add(map);
 			}
 			List<String> idList = new ArrayList<>();
@@ -493,10 +542,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					idList.add(id);
 				}
 			}
-			String keyStr = dataModelInstance.getReferenceValueColumn();
-			if("id".equals(keyStr)){
-				keyStr = tableName+"_list";
-			}
+
 			Object o = null;
 			if (flag) {
 				o = data;
@@ -506,7 +552,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				o = map;
 			}
 			//新的数据
-			List<Map<String, Object>> saveListMap = getNewMapData(keyStr, session, o, dataModelEntity,  oldListMap,  idList,  newListMap);
+			List<Map<String, Object>> saveListMap = getNewMapData(key, session, o, dataModelEntity,  oldListMap,  idList,  newListMap);
 			if (flag && saveListMap.size() > 0) {
 				data.put(key, new ArrayList<>(saveListMap).get(0));
 			}else{
@@ -647,19 +693,17 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			ItemPermissionInfo addPermission = null;
 			ItemPermissionInfo updatePermission = null;
 			for(ItemPermissionInfo itemPermissionInfo : itemModel.getPermissions()) {
-				if (displayTimingType == DisplayTimingType.Add) {
+				if (displayTimingType == DisplayTimingType.Add && displayTimingType == itemPermissionInfo.getDisplayTiming()) {
 					addPermission = itemPermissionInfo;
-					break;
 				}
-				if (displayTimingType == DisplayTimingType.Update) {
+				if (displayTimingType == DisplayTimingType.Update && displayTimingType == itemPermissionInfo.getDisplayTiming()) {
 					updatePermission = itemPermissionInfo;
-					break;
 				}
 			}
-			if(addPermission != null && addPermission.getRequired() && (value == null || !StringUtils.hasText(String.valueOf(value)))){
+			if(addPermission != null && addPermission.getRequired() != null && addPermission.getRequired() && (value == null || !StringUtils.hasText(String.valueOf(value)))){
 				throw  new IFormException(itemModel.getName()+"为必填");
 			}
-			if(updatePermission != null && updatePermission.getRequired() && (value == null || !StringUtils.hasText(String.valueOf(value)))){
+			if(updatePermission != null && updatePermission.getRequired() != null &&  updatePermission.getRequired() && (value == null || !StringUtils.hasText(String.valueOf(value)))){
 				throw  new IFormException(itemModel.getName()+"为必填");
 			}
 		}
@@ -920,6 +964,15 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 	}
 
+	protected List<FormDataSaveInstance> wrapFormDataList(ListModelEntity listModel, List<Map<String, Object>> entities) {
+		List<FormDataSaveInstance> FormInstanceList = new ArrayList<FormDataSaveInstance>();
+		FormModelEntity formModel = listModel.getMasterForm();
+		for (Map<String, Object> entity : entities) {
+			FormInstanceList.add(wrapFormDataEntity(formModel, entity,String.valueOf(entity.get("id")),true));
+		}
+		return FormInstanceList;
+	}
+
 	protected List<FormInstance> wrapList(ListModelEntity listModel, List<Map<String, Object>> entities) {
 		List<FormInstance> FormInstanceList = new ArrayList<FormInstance>();
 		FormModelEntity formModel = listModel.getMasterForm();
@@ -943,6 +996,20 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		return setFormInstanceModel(formInstance, formModel, entity, referenceFlag);
 	}
 
+	protected FormDataSaveInstance wrapFormDataEntity(FormModelEntity formModel, Map<String, Object> entity, String instanceId, boolean referenceFlag) {
+		FormDataSaveInstance formInstance = new FormDataSaveInstance();
+		formInstance.setFormId(formModel.getId());
+		//数据id
+		formInstance.setId(instanceId);
+		if (formModel.getProcess() != null && StringUtils.hasText(formModel.getProcess().getId())) {
+			formInstance.setProcessId((String) entity.get("PROCESS_ID"));
+			formInstance.setProcessInstanceId((String) entity.get("PROCESS_INSTANCE"));
+			formInstance.setActivityId((String) entity.get("ACTIVITY_ID"));
+			formInstance.setActivityInstanceId((String) entity.get("ACTIVITY_INSTANCE"));
+		}
+		return setFormDataInstanceModel(formInstance, formModel, entity, referenceFlag);
+	}
+
 	private FormInstance setFormInstanceModel(FormInstance formInstance, FormModelEntity fromFormModel, Map<String, Object> entity, boolean referenceFlag){
 		List<ItemInstance> items = new ArrayList<>();
 		List<ItemModelEntity> list = fromFormModel.getItems();
@@ -951,6 +1018,19 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		for (ItemModelEntity itemModel : list) {
 			setItemInstance(itemModel, referenceFlag, entity, referenceDataModelList,
 					 subFormItems, items, formInstance);
+		}
+		formInstance.getItems().addAll(items);
+		return formInstance;
+	}
+
+	private FormDataSaveInstance setFormDataInstanceModel(FormDataSaveInstance formInstance, FormModelEntity fromFormModel, Map<String, Object> entity, boolean referenceFlag){
+		List<ItemInstance> items = new ArrayList<>();
+		List<ItemModelEntity> list = fromFormModel.getItems();
+		List<ReferenceDataInstance> referenceDataModelList = formInstance.getReferenceData();
+		List<SubFormItemInstance> subFormItems = formInstance.getSubFormData();
+		for (ItemModelEntity itemModel : list) {
+			setFormDataItemInstance(itemModel, referenceFlag, entity, referenceDataModelList,
+					subFormItems, items, formInstance);
 		}
 		formInstance.getItems().addAll(items);
 		return formInstance;
@@ -976,7 +1056,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			if(!referenceFlag){
 				return;
 			}
-			setSubFormItemInstance( itemModel,  entity,  subFormItems, formInstance);
+			setSubFormItemInstance( itemModel,  entity,  subFormItems, formInstance.getActivityId());
 		}else if(itemModel instanceof RowItemModelEntity){
 			for(ItemModelEntity itemModelEntity : ((RowItemModelEntity) itemModel).getItems()) {
 				setItemInstance(itemModelEntity, referenceFlag, entity, referenceDataModelList,
@@ -989,6 +1069,42 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 		System.out.println(itemModel.getId()+"____end");
 	}
+
+
+	private void setFormDataItemInstance(ItemModelEntity itemModel, boolean referenceFlag, Map<String, Object> entity, List<ReferenceDataInstance> referenceDataModelList,
+								 List<SubFormItemInstance> subFormItems, List<ItemInstance> items, FormDataSaveInstance formInstance){
+		System.out.println(itemModel.getId()+"____begin");
+		ColumnModelEntity column = itemModel.getColumnModel();
+		if(column == null && !(itemModel instanceof  ReferenceItemModelEntity) && !(itemModel instanceof  RowItemModelEntity) && !(itemModel instanceof SubFormItemModelEntity)){
+			return;
+		}
+		Object value = new Object();
+		if(column != null) {
+			value = entity.get(column.getColumnName());
+		}
+		if(itemModel instanceof ReferenceItemModelEntity){
+			if(!referenceFlag){
+				return;
+			}
+			setFormDataReferenceItemInstance(itemModel,  entity,  referenceDataModelList);
+		}else if(itemModel instanceof SubFormItemModelEntity) {
+			if(!referenceFlag){
+				return;
+			}
+			setSubFormItemInstance( itemModel,  entity,  subFormItems, formInstance.getActivityId());
+		}else if(itemModel instanceof RowItemModelEntity){
+			for(ItemModelEntity itemModelEntity : ((RowItemModelEntity) itemModel).getItems()) {
+				setFormDataItemInstance(itemModelEntity, referenceFlag, entity, referenceDataModelList,
+						subFormItems,  items, formInstance);
+			}
+		}else{
+			ItemInstance itemInstance = setItemInstance(column.getKey(), itemModel, value, formInstance.getActivityId());
+			items.add(itemInstance);
+			formInstance.addData(itemModel.getColumnModel().getId(), itemInstance.getValue());
+		}
+		System.out.println(itemModel.getId()+"____end");
+	}
+
 
 	private void setReferenceItemInstance(ItemModelEntity itemModel, Map<String, Object> entity, List<DataModelInstance> referenceDataModelList){
 		//主表字段
@@ -1043,6 +1159,76 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 	}
 
+
+	private void setFormDataReferenceItemInstance(ItemModelEntity itemModel, Map<String, Object> entity, List<ReferenceDataInstance> referenceDataModelList){
+		//主表字段
+		ReferenceItemModelEntity fromItem = (ReferenceItemModelEntity)itemModel;
+
+		//关联表数据模型
+		if (StringUtils.isEmpty(((ReferenceItemModelEntity) itemModel).getReferenceFormId())) {
+			return;
+		}
+		FormModelEntity toModelEntity = formModelService.find(((ReferenceItemModelEntity) itemModel).getReferenceFormId());
+		if (toModelEntity == null) {
+			return;
+		}
+		if(!StringUtils.hasText(fromItem.getReferenceItemId()) && !StringUtils.hasText(fromItem.getReferenceFormId())){
+			throw new IFormException("关联控件【"+fromItem.getName()+"】未找到关联属性");
+		}
+
+		ColumnModelEntity columnModelEntity = fromItem.getColumnModel();
+		if(fromItem.getReferenceType() != ReferenceType.ManyToMany && columnModelEntity == null){
+			return;
+		}
+
+		//设置关联属性
+		if(fromItem.getSelectMode() == SelectMode.Attribute){
+			setFormDataReferenceAttribute(fromItem, toModelEntity,  columnModelEntity, entity, referenceDataModelList);
+			return;
+		}
+
+
+		//关联字段
+		String referenceColumnName = fromItem.getColumnModel() == null ? null : fromItem.getColumnModel().getColumnName();
+		if(fromItem.getReferenceType() == ReferenceType.ManyToOne || fromItem.getReferenceType() == ReferenceType.OneToOne){
+			Map<String, Object> listMap = (Map<String, Object>)entity.get(referenceColumnName);
+			if( listMap == null || listMap.size() == 0) {
+				return;
+			}
+			ReferenceDataInstance dataModelInstance = new ReferenceDataInstance();
+			String formId = ((ReferenceItemModelEntity) itemModel).getReferenceFormId();
+			if(StringUtils.hasText(formId)) {
+				FormModelEntity formModelEntity = formModelService.find(formId);
+				dataModelInstance.setReferenceTable(formModelEntity == null ? null :formModelEntity.getDataModels().get(0).getTableName());
+			}
+			dataModelInstance.setId(itemModel.getId());
+			dataModelInstance.setValue(listMap.get("id"));
+			referenceDataModelList.add(dataModelInstance);
+		}else if(fromItem.getReferenceType() == ReferenceType.ManyToMany || fromItem.getReferenceType() == ReferenceType.OneToMany){
+			String key = toModelEntity.getDataModels().get(0).getTableName()+"_list";
+			if(fromItem.getReferenceType() == ReferenceType.OneToMany){
+				key = getRefenrenceItem(fromItem).getColumnModel().getColumnName();
+			}
+			List<Map<String, Object>> listMap = (List<Map<String, Object>>)entity.get(key);
+			if( listMap == null || listMap.size() == 0) {
+				return;
+			}
+			ReferenceDataInstance dataModelInstance =  new ReferenceDataInstance();
+			String formId = ((ReferenceItemModelEntity) itemModel).getReferenceFormId();
+			if(StringUtils.hasText(formId)) {
+				FormModelEntity formModelEntity = formModelService.find(formId);
+				dataModelInstance.setReferenceTable(formModelEntity == null ? null :formModelEntity.getDataModels().get(0).getTableName());
+			}
+			dataModelInstance.setId(itemModel.getId());
+			List<Object> values = new ArrayList<>();
+			for(Map<String, Object> map  : listMap) {
+				values.add(map.get("id"));
+			}
+			dataModelInstance.setValue(values);
+			referenceDataModelList.add(dataModelInstance);
+		}
+	}
+
 	private void setReferenceAttribute(ReferenceItemModelEntity fromItem,FormModelEntity toModelEntity, ColumnModelEntity columnModelEntity,
 									   Map<String, Object> entity, List<DataModelInstance> referenceDataModelList){
 		if(fromItem.getReferenceType() == ReferenceType.ManyToOne){
@@ -1061,6 +1247,45 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				return;
 			}
 			DataModelInstance dataModelInstance = setDataModelInstance(toModelEntity, fromItem, columnModelEntity, mapData);
+			referenceDataModelList.add(dataModelInstance);
+		}
+	}
+
+	private void setFormDataReferenceAttribute(ReferenceItemModelEntity fromItem,FormModelEntity toModelEntity, ColumnModelEntity columnModelEntity,
+									   Map<String, Object> entity, List<ReferenceDataInstance> referenceDataModelList){
+		if(fromItem.getReferenceType() == ReferenceType.ManyToOne){
+			String key = toModelEntity.getDataModels().get(0).getTableName()+"_list";
+			List<Map<String, Object>> listMap = (List<Map<String, Object>>)entity.get(key);
+			if( listMap == null || listMap.size() == 0) {
+				return;
+			}
+			ReferenceDataInstance dataModelInstance = new ReferenceDataInstance();
+			String formId = ((ReferenceItemModelEntity) fromItem).getReferenceFormId();
+			if(StringUtils.hasText(formId)) {
+				FormModelEntity formModelEntity = formModelService.find(formId);
+				dataModelInstance.setReferenceTable(formModelEntity == null ? null :formModelEntity.getDataModels().get(0).getTableName());
+			}
+			dataModelInstance.setId(fromItem.getId());
+			List<Object> values = new ArrayList<>();
+			for(Map<String, Object> map : listMap){
+				values.add(map.get("id"));
+			}
+			dataModelInstance.setValue(values);
+			referenceDataModelList.add(dataModelInstance);
+		}else{
+			String key = toModelEntity.getDataModels().get(0).getTableName()+"_list";
+			Map<String, Object> mapData = (Map<String, Object>)entity.get(key);
+			if( mapData == null || mapData.size() == 0) {
+				return;
+			}
+			ReferenceDataInstance dataModelInstance = new ReferenceDataInstance();
+			String formId = ((ReferenceItemModelEntity) fromItem).getReferenceFormId();
+			if(StringUtils.hasText(formId)) {
+				FormModelEntity formModelEntity = formModelService.find(formId);
+				dataModelInstance.setReferenceTable(formModelEntity == null ? null :formModelEntity.getDataModels().get(0).getTableName());
+			}
+			dataModelInstance.setId(fromItem.getId());
+			dataModelInstance.setValue(mapData.get("id"));
 			referenceDataModelList.add(dataModelInstance);
 		}
 	}
@@ -1098,7 +1323,7 @@ private DataModelInstance setDataModelInstance(FormModelEntity toModelEntity, Re
 	return dataModelInstance;
 }
 
-	private void setSubFormItemInstance(ItemModelEntity itemModel, Map<String, Object> entity, List<SubFormItemInstance> subFormItems, FormInstance formInstance){
+	private void setSubFormItemInstance(ItemModelEntity itemModel, Map<String, Object> entity, List<SubFormItemInstance> subFormItems, String activityId){
 		//TODO 子表数据结构
 		SubFormItemModelEntity itemModelEntity = (SubFormItemModelEntity)itemModel;
 		String key =((SubFormItemModelEntity) itemModel).getTableName()+"_list";
@@ -1126,7 +1351,7 @@ private DataModelInstance setDataModelInstance(FormModelEntity toModelEntity, Re
 					if(columnModelEntity == null){
 						continue;
 					}
-					ItemInstance itemInstance = setItemInstance(columnModelEntity.getKey(), item, map.get(columnModelEntity.getColumnName()), formInstance.getActivityId());
+					ItemInstance itemInstance = setItemInstance(columnModelEntity.getKey(), item, map.get(columnModelEntity.getColumnName()), activityId);
 					instances.add(itemInstance);
 				}
 				//这一行没有数据
@@ -1135,7 +1360,7 @@ private DataModelInstance setDataModelInstance(FormModelEntity toModelEntity, Re
 				}
 				//子表主键id
 				ColumnModelEntity subFormColumnModelEntity  = itemModel.getColumnModel();
-				ItemInstance subFomrItemInstance = setItemInstance(subFormColumnModelEntity.getKey(), itemModel, map.get("id"), formInstance.getActivityId());
+				ItemInstance subFomrItemInstance = setItemInstance(subFormColumnModelEntity.getKey(), itemModel, map.get("id"), activityId);
 				instances.add(subFomrItemInstance);
 
 				subFormRowItemInstance.setItems(instances);
@@ -1250,7 +1475,12 @@ private DataModelInstance setDataModelInstance(FormModelEntity toModelEntity, Re
 			default:
                 String valueStr = value == null || StringUtils.isEmpty(value) ?  null : String.valueOf(value);
                 itemInstance.setValue(value);
-				itemInstance.setDisplayValue(valueStr);
+				if(itemModel.getSystemItemType() == SystemItemType.Creator && value != null && StringUtils.hasText((String)value)){
+					User user = userService.getUserInfo(String.valueOf(value));
+					itemInstance.setDisplayValue(user == null ? null : user.getUsername());
+				}else {
+					itemInstance.setDisplayValue(valueStr);
+				}
 				break;
 		}
 	}

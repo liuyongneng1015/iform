@@ -175,6 +175,16 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 						((ReferenceItemModelEntity) itemModelEntity).setItemModelIds(String.join(",",
 								getReferenceItemModelList((ReferenceItemModelEntity)itemModelEntity).parallelStream().map(ItemModelEntity::getId).collect(Collectors.toList())));
 					}
+					if(((ReferenceItemModelEntity) itemModelEntity).getSelectMode() == SelectMode.Attribute ){
+						if(((ReferenceItemModelEntity) itemModelEntity).getItemTableColunmName() != null) {
+							((ReferenceItemModelEntity) itemModelEntity).setReferenceItemId(getItemModelByTableAndColumn(formModelEntity, ((ReferenceItemModelEntity) itemModelEntity).getItemTableColunmName()).getId());
+						}
+						if(((ReferenceItemModelEntity) itemModelEntity).getReferenceUuid() != null && ((ReferenceItemModelEntity) itemModelEntity).getParentItem() == null){
+							ReferenceItemModelEntity referenceItemModelEntity = (ReferenceItemModelEntity)itemManager.query().filterEqual("uuid", ((ReferenceItemModelEntity) itemModelEntity).getReferenceUuid());
+							((ReferenceItemModelEntity) itemModelEntity).setParentItem(referenceItemModelEntity);
+						}
+					}
+
 					itemManager.save(itemModelEntity);
 				}
 			}
@@ -200,6 +210,15 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			}
 		}
 		return list;
+	}
+
+	private ItemModelEntity getItemModelByTableAndColumn(FormModelEntity formModelEntity, String key){
+		List<ItemModelEntity> itemModelEntityList = getAllColumnItems(formModelEntity.getItems());
+		Map<String, ItemModelEntity> colunmMap = new HashMap<>();
+		for(ItemModelEntity itemModelEntity1 : itemModelEntityList){
+			colunmMap.put(itemModelEntity1.getColumnModel().getDataModel().getTableName()+"_"+itemModelEntity1.getColumnModel().getColumnName(), itemModelEntity1);
+		}
+		return colunmMap.get(key);
 	}
 
 	//设置关联关系
@@ -311,6 +330,12 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		if(referenceItemModelEntity.getParentItem() != null && referenceItemModelEntity.getParentItem().getColumnModel() != null) {
 			parentSelectItem = (ReferenceItemModelEntity) map.get(referenceItemModelEntity.getParentItem().getColumnModel().getDataModel().getTableName() + "_" + referenceItemModelEntity.getParentItem().getColumnModel().getColumnName());
 		}
+
+		if(referenceItemModelEntity.getSelectMode() == SelectMode.Attribute){
+
+		}
+
+
 		ReferenceItemModelEntity oldReferenceItem = null;
 		if(!referenceItemModelEntity.isNew()){
 			ReferenceItemModelEntity referenceItemModelEntity1 = (ReferenceItemModelEntity)itemManager.get(referenceItemModelEntity.getId());
@@ -829,6 +854,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				break;
 			case  TabPane:
 				entity = new TabPaneItemModelEntity();
+				break;
+			case  Treeselect:
+				entity = new TreeSelectItemModelEntity();
 				break;
 			default:
 				entity = new ItemModelEntity();
