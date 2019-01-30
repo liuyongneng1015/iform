@@ -16,7 +16,6 @@ public class ReferenceDataInstance extends IdEntity {
 	@ApiModelProperty(value = " 关联表单模型", position = 6)
 	private String referenceTable;
 
-
 	public Object getValue() {
 		return value;
 	}
