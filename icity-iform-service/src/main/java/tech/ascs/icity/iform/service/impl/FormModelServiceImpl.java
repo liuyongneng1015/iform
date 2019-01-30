@@ -176,13 +176,19 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 								getReferenceItemModelList((ReferenceItemModelEntity)itemModelEntity).parallelStream().map(ItemModelEntity::getId).collect(Collectors.toList())));
 					}
 					if(((ReferenceItemModelEntity) itemModelEntity).getSelectMode() == SelectMode.Attribute ){
-						if(((ReferenceItemModelEntity) itemModelEntity).getItemTableColunmName() != null) {
-							((ReferenceItemModelEntity) itemModelEntity).setReferenceItemId(getItemModelByTableAndColumn(formModelEntity, ((ReferenceItemModelEntity) itemModelEntity).getItemTableColunmName()).getId());
-						}
+
 						if(((ReferenceItemModelEntity) itemModelEntity).getReferenceUuid() != null && ((ReferenceItemModelEntity) itemModelEntity).getParentItem() == null){
-							ReferenceItemModelEntity referenceItemModelEntity = (ReferenceItemModelEntity)itemManager.query().filterEqual("uuid", ((ReferenceItemModelEntity) itemModelEntity).getReferenceUuid());
-							((ReferenceItemModelEntity) itemModelEntity).setParentItem(referenceItemModelEntity);
+							ItemModelEntity referenceItemModelEntity = itemManager.query().filterEqual("uuid", ((ReferenceItemModelEntity) itemModelEntity).getReferenceUuid()).first();
+							((ReferenceItemModelEntity) itemModelEntity).setParentItem((ReferenceItemModelEntity)referenceItemModelEntity);
 						}
+
+						if(((ReferenceItemModelEntity) itemModelEntity).getParentItem() != null) {
+							FormModelEntity formModelEntity1 = formModelManager.find(((ReferenceItemModelEntity) itemModelEntity).getParentItem().getReferenceFormId());
+							if(formModelEntity1 != null) {
+								((ReferenceItemModelEntity) itemModelEntity).setReferenceItemId(getItemModelByTableAndColumn(formModelEntity, ((ReferenceItemModelEntity) itemModelEntity).getItemTableColunmName()).getId());
+							}
+						}
+
 					}
 
 					itemManager.save(itemModelEntity);

@@ -892,8 +892,8 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				throw  new IFormException("关联控件【"+itemModel.getName()+"】未找到关联表单或列表模型");
 			}
 
-			if(itemModel.getType() == ItemType.ReferenceLabel  && ((!StringUtils.hasText(itemModel.getReferenceItemId()) ||
-					(!StringUtils.hasText(itemModel.getItemTableName()) && !StringUtils.hasText(itemModel.getItemColunmName()))) || itemModel.getParentItem() == null)){
+			if(itemModel.getType() == ItemType.ReferenceLabel  &&
+					!StringUtils.hasText(itemModel.getItemTableName()) && !StringUtils.hasText(itemModel.getItemColunmName())){
 				throw  new IFormException("关联属性控件【"+itemModel.getName()+"】未找到关联控件");
 			}
 
