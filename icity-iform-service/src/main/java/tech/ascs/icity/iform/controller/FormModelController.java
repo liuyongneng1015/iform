@@ -463,7 +463,12 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				break;
 			}
 		}
+		Map<String, Object> dataMap = new HashMap<>();
 		for(DataModel dataModel : formModel.getDataModels()){
+			if(dataMap.get(dataModel.getTableName()) != null){
+				throw new IFormException("存在相同数据建模");
+			}
+			dataMap.put(dataModel.getTableName(), System.currentTimeMillis());
 			if(!StringUtils.hasText(dataModel.getTableName())){
 				throw new IFormException("表名不允许为空");
 			}
