@@ -594,8 +594,16 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 						String defaultValue = searchItemEntity.getSearch().getDefaultValue();
 						if(StringUtils.hasText(defaultValue)) {
 							ItemType itemType = searchItem.getType();
-							// Input, InputNumber返回的defaultValue是字符串格式，不是数组格式
-							if (ItemType.Input.equals(itemType) || ItemType.InputNumber.equals(itemType) || ItemType.RadioGroup.equals(itemType)) {
+							// ItemType.InputNumber和ItemType.DatePicker返回的是数字，不是字符串数组格式
+							if (ItemType.DatePicker.equals(itemType) || ItemType.InputNumber.equals(itemType)) {
+								try {
+									search.setDefaultValue(Long.valueOf(defaultValue));
+								} catch (Exception e) {
+									e.printStackTrace();
+									search.setDefaultValue(null);
+								}
+							// ItemType.Input，ItemType.RadioGroup和ItemType.Editor返回的defaultValue是字符串格式，不是字符串数组格式
+							} else if (ItemType.Input.equals(itemType) || ItemType.RadioGroup.equals(itemType) || ItemType.Editor.equals(itemType)) {
 								search.setDefaultValue(defaultValue);
 							} else {
 								search.setDefaultValue(Arrays.asList(defaultValue.split(",")));
