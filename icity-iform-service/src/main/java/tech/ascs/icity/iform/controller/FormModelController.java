@@ -858,7 +858,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	}
 
 	private ItemModelEntity wrap(ItemModel itemModel, Map<String, ItemModelEntity> map) {
-
+		if(itemModel.getType() == ItemType.ReferenceLabel){
+			itemModel.setSelectMode(SelectMode.Attribute);
+		}
 		//TODO 根据类型映射对应的item
 		ItemModelEntity entity = formModelService.getItemModelEntity(itemModel.getType());
 		if(itemModel.getSystemItemType() == SystemItemType.SerialNumber){
@@ -885,17 +887,17 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				}
 			}
 
-			if(itemModel.getSelectMode() != SelectMode.Attribute && (!StringUtils.hasText(itemModel.getReferenceFormId())
+			if(itemModel.getType() != ItemType.ReferenceLabel && (!StringUtils.hasText(itemModel.getReferenceFormId())
 					|| itemModel.getReferenceList() == null || itemModel.getReferenceList().getId() == null)){
 				throw  new IFormException("关联控件【"+itemModel.getName()+"】未找到关联表单或列表模型");
 			}
 
-			if(itemModel.getSelectMode() == SelectMode.Attribute && ((!StringUtils.hasText(itemModel.getReferenceItemId()) ||
+			if(itemModel.getType() == ItemType.ReferenceLabel  && ((!StringUtils.hasText(itemModel.getReferenceItemId()) ||
 					(!StringUtils.hasText(itemModel.getItemTableName()) && !StringUtils.hasText(itemModel.getItemColunmName()))) || itemModel.getParentItem() == null)){
 				throw  new IFormException("关联属性控件【"+itemModel.getName()+"】未找到关联控件");
 			}
 
-			if(itemModel.getSelectMode() == SelectMode.Attribute){
+			if(itemModel.getType() == ItemType.ReferenceLabel){
 				itemModel.setParentItem(null);
 			}
 
