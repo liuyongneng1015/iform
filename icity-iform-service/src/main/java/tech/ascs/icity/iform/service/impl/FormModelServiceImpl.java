@@ -171,7 +171,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			for(int i = 0 ;i <  allColumns.size() ; i++){
 				ItemModelEntity itemModelEntity = allColumns.get(i);
 				if(itemModelEntity instanceof ReferenceItemModelEntity){
-					if(((ReferenceItemModelEntity) itemModelEntity).getItemTableColunmName() != null){
+					if(((ReferenceItemModelEntity) itemModelEntity).getItemTableColunmName() != null && ((ReferenceItemModelEntity) itemModelEntity).getType() == ItemType.ReferenceList ){
 						((ReferenceItemModelEntity) itemModelEntity).setItemModelIds(String.join(",",
 								getReferenceItemModelList((ReferenceItemModelEntity)itemModelEntity).parallelStream().map(ItemModelEntity::getId).collect(Collectors.toList())));
 					}
@@ -876,6 +876,10 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 	public void deleteFormModelEntity(FormModelEntity formModelEntity) {
 		List<ListModelEntity> listModelEntities = listModelManager.query().filterEqual("masterForm.id", formModelEntity.getId()).list();
 		if(listModelEntities != null && listModelEntities.size() > 0){
+			/*for(ListModelEntity listModelEntity : listModelEntities){
+				listModelEntity.setMasterForm(null);
+				listModelManager.save(listModelEntity);
+			}*/
 			throw new IFormException("删除表单模型失败：关联了多个列表建模，请先删除列表建模");
 		}
 		formModelManager.delete(formModelEntity);
