@@ -9,7 +9,7 @@ package tech.ascs.icity.iform.api.model;
 public enum SystemCreateType {
 
 	/** 创建时 */
-	Create("create"),
+	Create("Create"),
 
 	/** 更新时 */
 	Update("Update"),
