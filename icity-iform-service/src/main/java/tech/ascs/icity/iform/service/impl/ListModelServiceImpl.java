@@ -70,13 +70,6 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 		referenceItemModelEntityManager = getJPAManagerFactory().getJPAManager(ReferenceItemModelEntity.class);
 	}
 
-	/**
-	 * 划分新增时和编辑时两套逻辑
-	 * 新增时逻辑：通过主表单ID和附属表单ID在数据库查出表单，对entity赋值，然后直接保存
-	 * 编辑时逻辑：把之前的列表字段列表，查询条件列表，快速导航列表，功能设置列表，排序字段列表，批量操作删除，然后绑定新的列表
-	 * @param entity
-	 * @return
-	 */
 	@Override
 	public ListModelEntity save(ListModelEntity entity) {
 		validate(entity);

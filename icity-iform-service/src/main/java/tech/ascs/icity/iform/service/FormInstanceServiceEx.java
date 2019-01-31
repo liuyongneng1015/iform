@@ -3,6 +3,7 @@ package tech.ascs.icity.iform.service;
 import java.util.List;
 import java.util.Map;
 
+import tech.ascs.icity.admin.api.model.User;
 import tech.ascs.icity.iform.api.model.FormDataSaveInstance;
 import tech.ascs.icity.iform.api.model.FormInstance;
 import tech.ascs.icity.iform.api.model.ItemInstance;
@@ -32,4 +33,5 @@ public interface FormInstanceServiceEx {
 	//赋值itemmodel
 	void updateValue(ItemModelEntity itemModel, ItemInstance itemInstance, Object value);
 
+	List<User> getUserInfoByIds(List<String> ids);
 }

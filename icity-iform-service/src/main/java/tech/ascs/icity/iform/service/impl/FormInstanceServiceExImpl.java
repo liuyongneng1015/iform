@@ -44,7 +44,7 @@ import tech.ascs.icity.rbac.feign.model.UserInfo;
 
 @Service
 public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity> implements FormInstanceServiceEx {
-	
+
 	private static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 	private static final Random random = new Random();
 
@@ -1582,5 +1582,13 @@ private DataModelInstance setDataModelInstance(FormModelEntity toModelEntity, Re
 			}
 		}
 		throw new IFormException(404, "表单控件模型不存在");
+	}
+
+	public List<User> getUserInfoByIds(List<String> ids) {
+		if (ids!=null && ids.size()>0) {
+			return userService.queryUserInfoByIds(ids);
+		} else {
+			return new ArrayList<>();
+		}
 	}
 }

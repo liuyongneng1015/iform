@@ -156,6 +156,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		FormModelEntity formModelEntity = formModelService.get(id);
 		if(formModelEntity != null) {
 			formModelService.deleteFormModelEntity(formModelEntity);
+			listModelService.deleteFormBtnPermission(id);
 		}
 	}
 
