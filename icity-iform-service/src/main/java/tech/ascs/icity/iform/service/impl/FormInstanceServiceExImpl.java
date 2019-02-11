@@ -2,6 +2,7 @@ package tech.ascs.icity.iform.service.impl;
 
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -1480,11 +1481,44 @@ private DataModelInstance setDataModelInstance(FormModelEntity toModelEntity, Re
 				if(itemModel.getSystemItemType() == SystemItemType.Creator && value != null && StringUtils.hasText((String)value)){
 					User user = userService.getUserInfo(String.valueOf(value));
 					itemInstance.setDisplayValue(user == null ? null : user.getUsername());
+				}else if(itemModel.getType() == ItemType.InputNumber){
+					try {
+						NumberItemModelEntity numberItemModelEntity = (NumberItemModelEntity)itemModel;
+						DecimalFormat df = new DecimalFormat(getNumberFormat(numberItemModelEntity));
+						itemInstance.setDisplayValue(df.format(value));
+					} catch (Exception e) {
+						e.printStackTrace();
+						itemInstance.setDisplayValue(valueStr);
+					}
 				}else {
 					itemInstance.setDisplayValue(valueStr);
 				}
 				break;
 		}
+	}
+
+	private String getNumberFormat(NumberItemModelEntity numberItemModelEntity){
+		StringBuffer stringBuffer = new StringBuffer();
+		if(numberItemModelEntity.getThousandSeparator() != null && numberItemModelEntity.getThousandSeparator()) {
+			if(numberItemModelEntity.getDecimalDigits() != null){
+				stringBuffer.append(",###,##0.	");
+				for(int i = 0 ; i < numberItemModelEntity.getDecimalDigits(); i++){
+					stringBuffer.append("0");
+				}
+			}else {
+				stringBuffer.append(",###,##0");
+			}
+		}else {
+			if (numberItemModelEntity.getDecimalDigits() != null) {
+				stringBuffer.append("#.	");
+				for (int i = 0; i < numberItemModelEntity.getDecimalDigits(); i++) {
+					stringBuffer.append("0");
+				}
+			} else {
+				stringBuffer.append("#0");
+			}
+		}
+		return stringBuffer.toString();
 	}
 
 	private void setSelectItemValue(ItemModelEntity itemModel, ItemInstance itemInstance, Object value){

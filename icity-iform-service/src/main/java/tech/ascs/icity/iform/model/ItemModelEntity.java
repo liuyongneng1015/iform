@@ -64,6 +64,8 @@ public class ItemModelEntity extends  BaseEntity implements Serializable {
 	@Column(name="reference_uuid", length = 255) // 关联控件标识
 	private String referenceUuid;
 
+	@Column(name="uniquene") // 是否唯一
+	private Boolean uniquene = false;
 
 	public FormModelEntity getFormModel() {
 		return formModel;
@@ -160,4 +162,13 @@ public class ItemModelEntity extends  BaseEntity implements Serializable {
 	public void setReferenceUuid(String referenceUuid) {
 		this.referenceUuid = referenceUuid;
 	}
+
+	public Boolean getUniquene() {
+		return uniquene;
+	}
+
+	public void setUniquene(Boolean uniquene) {
+		this.uniquene = uniquene;
+	}
+
 }

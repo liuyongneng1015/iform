@@ -849,6 +849,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			return entity;
 		}
 		switch (itemType){
+			case InputNumber:
+				entity = new NumberItemModelEntity();
+				break;
 			case Media:
 				entity = new FileItemModelEntity();
 				break;
