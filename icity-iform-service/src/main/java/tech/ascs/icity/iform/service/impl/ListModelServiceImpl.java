@@ -497,4 +497,24 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 			resourceService.deleteListFormPermissions(listFormIds);
 		}
 	}
+
+	@Override
+	public List<ListModelEntity> findListModelsByItemModelId(String itemModelId) {
+		try {
+			List<String> idlist = jdbcTemplate.query("select t.list_id from ifm_list_display_item t where t.item_id in ('"+itemModelId+"')",
+					new RowMapper<String>() {
+						@Override
+						public String mapRow(ResultSet rs, int rowNum) throws SQLException {
+							return rs.getString("list_id");
+						}});
+			List<ListModelEntity> list = new ArrayList<>();
+			if(idlist == null || idlist.size() < 1) {
+				return list;
+			}
+			List<ListModelEntity> listModelEntities = query().filterIn("id",idlist).list();
+			return listModelEntities;
+		} catch (Exception e) {
+			throw new IFormException("获取列表模型列表失败：" + e.getMessage(), e);
+		}
+	}
 }

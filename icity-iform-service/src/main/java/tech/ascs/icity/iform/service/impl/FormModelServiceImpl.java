@@ -37,6 +37,14 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 	private JPAManager<FormModelEntity> formModelManager;
 
+
+	private JPAManager<ListSearchItem> listSearchItemManager;
+
+	private JPAManager<ListSortItem> listSortItemManager;
+
+	private JPAManager<QuickSearchEntity> quickSearchEntityManager;
+
+
 	@Autowired
 	ProcessService processService;
 
@@ -74,6 +82,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		itemPermissionManager = getJPAManagerFactory().getJPAManager(ItemPermissionInfo.class);
 		formSubmitCheckManager = getJPAManagerFactory().getJPAManager(FormSubmitCheckInfo.class);
 		formModelManager = getJPAManagerFactory().getJPAManager(FormModelEntity.class);
+		listSearchItemManager = getJPAManagerFactory().getJPAManager(ListSearchItem.class);
+		listSortItemManager = getJPAManagerFactory().getJPAManager(ListSortItem.class);
+		quickSearchEntityManager = getJPAManagerFactory().getJPAManager(QuickSearchEntity.class);
 	}
 
 	@Override
@@ -528,8 +539,43 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			itemPermissionManager.delete(info);
 			i--;
 		}
-
+		updateOtherReferenceEntity(itemModelEntity);
 		itemManager.delete(itemModelEntity);
+	}
+
+	//更新控件关联实体
+	private void updateOtherReferenceEntity(ItemModelEntity itemModelEntity){
+		List<ListSearchItem> listSearchItems = listSearchItemManager.query().filterEqual("itemModel.id", itemModelEntity.getId()).list();
+		for(ListSearchItem listSearchItem : listSearchItems){
+			listSearchItem.setItemModel(null);
+			listSearchItemManager.save(listSearchItem);
+		}
+
+		List<ListSortItem> listSortItems = listSortItemManager.query().filterEqual("itemModel.id", itemModelEntity.getId()).list();
+		for(ListSortItem ListSortItem : listSortItems){
+			ListSortItem.setItemModel(null);
+			listSortItemManager.save(ListSortItem);
+		}
+
+		List<QuickSearchEntity> quickSearchEntities = quickSearchEntityManager.query().filterEqual("itemModel.id", itemModelEntity.getId()).list();
+		for(QuickSearchEntity quickSearch : quickSearchEntities){
+			quickSearch.setItemModel(null);
+			quickSearchEntityManager.save(quickSearch);
+		}
+		List<String> ids = new ArrayList<>();
+		ids.add(itemModelEntity.getId());
+		List<ListModelEntity> listModelEntities = listModelService.findListModelsByItemModelId(itemModelEntity.getId());
+		for(ListModelEntity listModelEntity : listModelEntities){
+			List<ItemModelEntity> itemModelEntities = listModelEntity.getDisplayItems();
+			for(int i = 0; i < itemModelEntities.size(); i++){
+				ItemModelEntity itemModelEntity1 = itemModelEntities.get(i);
+				if(itemModelEntity1.getId().equals(itemModelEntity.getId())){
+					listModelEntity.getDisplayItems().remove(itemModelEntity1);
+					i--;
+					listModelService.save(listModelEntity);
+				}
+			}
+		}
 	}
 
 	//得到最新的item
