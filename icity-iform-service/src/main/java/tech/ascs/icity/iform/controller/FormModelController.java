@@ -146,6 +146,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		try {
 			FormModelEntity entity = wrap(formModel);
 			formModelService.save(entity);
+			listModelService.submitFormBtnPermission(entity);
 		} catch (Exception e) {
 			throw new IFormException("保存表单模型列表失败：" + e.getMessage(), e);
 		}

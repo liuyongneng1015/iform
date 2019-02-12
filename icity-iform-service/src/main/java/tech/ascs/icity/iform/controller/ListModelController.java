@@ -100,7 +100,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 	private DefaultFunctionType[] functionDefaultActions = {DefaultFunctionType.Add, DefaultFunctionType.BatchDelete, DefaultFunctionType.Export,
 															DefaultFunctionType.Import, DefaultFunctionType.QrCode};
 	private List<String> functionDefaultLabels  = Arrays.asList(new String[]{"新增", "批量删除", "导出", "导入", "二维码"});
-	private List<String> functionDefaultMethods = Arrays.asList(new String[]{"POST", "GET", "POST", "DELETE", "GET"});
+	private List<String> functionDefaultMethods = Arrays.asList(new String[]{"POST", "DELETE", "GET", "POST", "GET"});
 	@Override
 	public IdEntity createListModel(@RequestBody ListModel ListModel) {
 		if (StringUtils.hasText(ListModel.getId())) {
