@@ -1423,6 +1423,24 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				}
 			}
 
+			if(((ReferenceItemModelEntity) entity).getReferenceType() == ReferenceType.ManyToMany){
+				itemModel.setMultiple(true);
+			}else if(((ReferenceItemModelEntity) entity).getReferenceType() == ReferenceType.OneToOne){
+				itemModel.setMultiple(false);
+			}else if(((ReferenceItemModelEntity) entity).getReferenceType() == ReferenceType.ManyToOne){
+				if(((ReferenceItemModelEntity) entity).getSelectMode() != SelectMode.Inverse){
+					itemModel.setMultiple(false);
+				}else{
+					itemModel.setMultiple(true);
+				}
+			}else if(((ReferenceItemModelEntity) entity).getReferenceType() == ReferenceType.OneToMany){
+				if(((ReferenceItemModelEntity) entity).getSelectMode() != SelectMode.Inverse){
+					itemModel.setMultiple(true);
+				}else{
+					itemModel.setMultiple(false);
+				}
+			}
+
 			if(((ReferenceItemModelEntity) entity).getParentItem() != null){
 				ItemModel itemModel1 = new ItemModel();
 				BeanUtils.copyProperties(((ReferenceItemModelEntity) entity).getParentItem(), itemModel1, new String[]{"formModel", "columnModel", "activities", "options","searchItems","sortItems", "permissions","items","parentItem","referenceList"});
