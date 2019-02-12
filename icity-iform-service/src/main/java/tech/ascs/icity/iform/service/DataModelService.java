@@ -19,7 +19,7 @@ public interface DataModelService extends JPAService<DataModelEntity> {
 
 	void deleteColumnReferenceEntity(ColumnModelEntity columnEntity);
 
-	PCDataModel transitionToModel(String formId, DataModelEntity modelEntity);
+	PCDataModel transitionToModel(String formId, DataModelEntity modelEntity, List<String> displayColuns);
 
 	void deleteDataModel(DataModelEntity modelEntity);
 }

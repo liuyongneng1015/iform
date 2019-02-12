@@ -339,12 +339,16 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 	}
 
 	@Override
-	public PCDataModel transitionToModel(String formId, DataModelEntity modelEntity){
+	public PCDataModel transitionToModel(String formId, DataModelEntity modelEntity, List<String> displayColuns){
 		PCDataModel dataModel = new PCDataModel();
 		BeanUtils.copyProperties(modelEntity, dataModel, new String[] {"columns","slaverModels","masterModel","parentsModel","childrenModels","indexes"});
 		List<ColumnModelEntity> columnModelEntities = modelEntity.getColumns();
 		List<ColumnModelInfo> columnModels = new ArrayList<>();
 		for(ColumnModelEntity columnModelEntity : columnModelEntities){
+			//主表全显示
+			if(displayColuns != null && displayColuns.size() > 0 && !displayColuns.contains(columnModelEntity.getColumnName())){
+				continue;
+			}
 			List<ItemModelEntity> itemModelEntities = itemManager.findByProperty("columnModel.id", columnModelEntity.getId());
 			ColumnModelInfo columnModel = new ColumnModelInfo();
 			BeanUtils.copyProperties(columnModelEntity, columnModel, new String[] {"dataModel","columnReferences"});
@@ -355,6 +359,7 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 				if (item.getFormModel()!=null) {
 					if (item.getFormModel().getId().equals(formId)) {
 						columnModel.setItemId(item.getId());
+						columnModel.setTableName(item.getName());
 					}
 				}
 			}
