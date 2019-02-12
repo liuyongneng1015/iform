@@ -197,7 +197,7 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 			ListModelEntity returnEntity = doUpdate(old, oldSortMap.keySet(), oldSearchItemMap.keySet(), oldFunctionMap.keySet(), oldQuickSearchMap.keySet());
 			saveDisplayItemSort(returnEntity);
 			// 给admin服务提交按钮权限
-			submitListBtnPermission(returnEntity);
+//			submitListBtnPermission(returnEntity);
 			return returnEntity;
 		} else {
             setFormModel(entity);
