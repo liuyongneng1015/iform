@@ -352,8 +352,10 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 			columnModel.setReferenceItem(itemModelEntities == null || itemModelEntities.size() < 1 ? false : true) ;
 			columnModel.setTableName(modelEntity.getTableName());
 			for(ItemModelEntity item : itemModelEntities) {
-				if(item.getFormModel().getId().equals(formId)) {
-					columnModel.setItemId(item.getId());
+				if (item.getFormModel()!=null) {
+					if (item.getFormModel().getId().equals(formId)) {
+						columnModel.setItemId(item.getId());
+					}
 				}
 			}
 			columnModels.add(columnModel);
