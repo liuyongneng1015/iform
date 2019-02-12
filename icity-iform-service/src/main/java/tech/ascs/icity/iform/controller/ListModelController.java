@@ -464,12 +464,12 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			listModel.setMasterForm(masterForm);
 		}
 
-		Set<String> masterFormItemIds = getAllMasterFormItemModel(entity.getMasterForm());
+		Set<String> masterFormCommonItemId = getMasterFormCommonItemId(entity.getMasterForm());
 
 		if(entity.getDisplayItems() != null){
 			List<ItemModel> list = new ArrayList<>();
 			for(ItemModelEntity itemModelEntity : entity.getDisplayItems()) {
-				if (masterFormItemIds.contains(itemModelEntity.getId())) {
+				if (masterFormCommonItemId.contains(itemModelEntity.getId())) {
 					ItemModel itemModel = new ItemModel();
 					BeanUtils.copyProperties(itemModelEntity, itemModel, new String[]{"formModel", "columnModel", "activities", "options", "searchItems", "sortItems", "permissions", "referenceList", "items", "parentItem"});
 					list.add(itemModel);
@@ -516,7 +516,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			List<SortItem> sortItems = new ArrayList<SortItem>();
 			for (ListSortItem sortItemEntity: entity.getSortItems()) {
 				if(sortItemEntity.getItemModel() != null) {
-					if (masterFormItemIds.contains(sortItemEntity.getItemModel().getId())==false) {
+					if (masterFormCommonItemId.contains(sortItemEntity.getItemModel().getId())==false) {
 						continue;
 					}
 					SortItem sortItem = new SortItem();
@@ -534,7 +534,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			List<SearchItem> searchItems = new ArrayList<SearchItem>();
 			for (ListSearchItem searchItemEntity : entity.getSearchItems()) {
 				if (searchItemEntity.getItemModel() != null) {
-					if (masterFormItemIds.contains(searchItemEntity.getItemModel().getId())==false) {
+					if (masterFormCommonItemId.contains(searchItemEntity.getItemModel().getId())==false) {
 						continue;
 					}
 					SearchItem searchItem = new SearchItem();
@@ -622,7 +622,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		    List<QuickSearchItem> quickSearches = new ArrayList<>();
 		    for (QuickSearchEntity quickSearchEntity:entity.getQuickSearchItems()) {
 //				if (quickSearchEntity.getItemModel() != null) {
-					if (quickSearchEntity.getItemModel() != null && masterFormItemIds.contains(quickSearchEntity.getItemModel().getId())==false) {
+					if (quickSearchEntity.getItemModel() != null && masterFormCommonItemId.contains(quickSearchEntity.getItemModel().getId())==false) {
 						continue;
 					}
 					QuickSearchItem quickSearch = new QuickSearchItem();
