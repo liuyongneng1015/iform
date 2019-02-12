@@ -658,15 +658,20 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 //	}
 
 	/**
-	 * 获取主表单包含的所有item的id，
+	 * 获取主表单包含的普通控件item的id集合
 	 * @param masterForm
 	 * @return
 	 */
-	public Set<String> getAllMasterFormItemModel(FormModelEntity masterForm) {
+	public Set<String> getMasterFormCommonItemId(FormModelEntity masterForm) {
 		Set<String> ids = new HashSet<>();
 		if (masterForm!=null && masterForm.getItems()!=null) {
 			for (ItemModelEntity item:masterForm.getItems()) {
-				ids.addAll(getItemSubItemIds(item));
+				if (item.getType()!=null && item.getType()!=ItemType.Row &&
+						item.getType()!=ItemType.SubForm && item.getType()!=ItemType.RowItem &&
+						item.getType()!=ItemType.ReferenceList && item.getType()!=ItemType.ReferenceLabel &&
+						item.getType()!=ItemType.Row && item.getType()!=ItemType.Tabs && item.getType()!=ItemType.TabPane) {
+					ids.addAll(getItemSubItemIds(item));
+				}
 			}
 		}
 		return ids;
