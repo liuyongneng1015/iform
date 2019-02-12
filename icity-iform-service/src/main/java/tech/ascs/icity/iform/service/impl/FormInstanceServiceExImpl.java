@@ -148,6 +148,13 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		return result.data(count, list);
 	}
 
+
+    public List<Map> listByTableName(String tableName, String key, String value) {
+        StringBuilder sql = new StringBuilder("SELECT * FROM if_").append(tableName).append(" and ").append(key).append("='"+value+"'");
+        List<Map> list = jdbcTemplate.queryForList(sql.toString(),Map.class);
+        return list;
+    }
+
 	private String buildPageSql(String sql, int page, int pagesize) {
 		String database = "";
 		try {
@@ -471,7 +478,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				for(SubFormRowItemInstance instance : subFormDataItemInstance.getItems()){
 					Map<String, Object> map = new HashMap<>();
 					for(ItemInstance itemModelService : instance.getItems()){
-						setItemInstance(itemModelService, map, displayTimingType);
+                        ItemModelEntity itemModel = itemModelManager.get(itemModelService.getId());
+						setItemInstance(itemModel, itemModelService, map, displayTimingType);
 					}
 					newListMap.add(map);
 				}
@@ -618,13 +626,27 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	}
 
 	private void setMasterFormItemInstances(List<ItemInstance> itemInstances, Map<String, Object> data, DisplayTimingType displayTimingType){
+	    String idValue = null;
 		for (ItemInstance itemInstance : itemInstances) {
-			setItemInstance(itemInstance, data, displayTimingType);
+            ItemModelEntity itemModel = itemModelManager.get(itemInstance.getId());
+            if(displayTimingType == DisplayTimingType.Update && itemModel.getName().equals("id")){
+                idValue = String.valueOf(itemInstance.getValue());
+            }
+            //唯一校验
+            if(itemModel.getUniquene() != null && itemModel.getUniquene()){
+               List<Map> list = listByTableName(itemModel.getColumnModel().getDataModel().getTableName(), itemModel.getColumnModel().getColumnName(), String.valueOf(itemInstance.getValue()));
+
+               for(Map map : list){
+                   if(!org.apache.commons.lang3.StringUtils.equals(String.valueOf(map.get(itemModel.getColumnModel().getColumnName())),idValue)){
+                        throw new IFormException(itemModel.getColumnModel().getColumnName()+"必须唯一");
+                   }
+               }
+            }
+            setItemInstance(itemModel, itemInstance, data, displayTimingType);
 		}
 	}
 
-	private void setItemInstance(ItemInstance itemInstance, Map<String, Object> data ,DisplayTimingType displayTimingType){
-		ItemModelEntity itemModel = itemModelManager.get(itemInstance.getId());
+	private void setItemInstance(ItemModelEntity itemModel, ItemInstance itemInstance, Map<String, Object> data ,DisplayTimingType displayTimingType){
 		Object value = null;
 		verifyValue(itemModel, itemInstance.getValue(), displayTimingType);
 		if (itemModel.getType() == ItemType.DatePicker) {
