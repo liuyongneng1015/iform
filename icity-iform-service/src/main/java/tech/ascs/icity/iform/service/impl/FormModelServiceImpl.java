@@ -542,13 +542,14 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			itemPermissionManager.delete(info);
 		}
 		itemModelEntity.setPermissions(new ArrayList<>());
+		deleteItemOtherReferenceEntity(itemModelEntity);
 		itemManager.save(itemModelEntity);
-		updateOtherReferenceEntity(itemModelEntity);
 		itemManager.delete(itemModelEntity);
 	}
 
-	//更新控件关联实体
-	private void updateOtherReferenceEntity(ItemModelEntity itemModelEntity){
+	//软删除控件关联实体
+	@Override
+	public void deleteItemOtherReferenceEntity(ItemModelEntity itemModelEntity){
 		List<ListSearchItem> listSearchItems = listSearchItemManager.query().filterEqual("itemModel.id", itemModelEntity.getId()).list();
 		for(ListSearchItem listSearchItem : listSearchItems){
 			listSearchItem.setItemModel(null);
@@ -907,13 +908,12 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 	@Override
 	public void deleteFormModelEntity(FormModelEntity formModelEntity) {
-		List<ListModelEntity> listModelEntities = listModelManager.query().filterEqual("masterForm.id", formModelEntity.getId()).list();
-		if(listModelEntities != null && listModelEntities.size() > 0){
-			/*for(ListModelEntity listModelEntity : listModelEntities){
-				listModelEntity.setMasterForm(null);
-				listModelManager.save(listModelEntity);
-			}*/
-			throw new IFormException("删除表单模型失败：关联了多个列表建模，请先删除列表建模");
+		List<ItemModelEntity> itemModelEntities = formModelEntity.getItems();
+		if(itemModelEntities != null && itemModelEntities.size() > 0){
+			for(ItemModelEntity itemModelEntity : itemModelEntities) {
+				deleteItemOtherReferenceEntity(itemModelEntity);
+				itemManager.save(itemModelEntity);
+			}
 		}
 		formModelManager.delete(formModelEntity);
 	}

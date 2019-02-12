@@ -388,6 +388,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			ColumnModelInfo columnModel = new ColumnModelInfo();
 			BeanUtils.copyProperties(itemModelEntity.getColumnModel(), columnModel, new String[]{"dataModel", "columnReferences"});
 			columnModel.setItemId(itemModel.getId());
+			columnModel.setItemName(itemModel.getName());
 			if(itemModelEntity.getColumnModel().getDataModel() != null){
 				DataModel dataModel = new DataModel();
 				BeanUtils.copyProperties(itemModelEntity.getColumnModel().getDataModel(), dataModel, new String[]{"masterModel","slaverModels","columns","indexes","referencesDataModel"});
@@ -1297,6 +1298,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				if(columnModelEntity.getColumnReferences() != null && columnModelEntity.getColumnReferences().size() > 0){
 					List<ReferenceModel> referenceModelList = new ArrayList<>();
 					for(ColumnReferenceEntity referenceEntity : columnModelEntity.getColumnReferences()){
+						if(referenceEntity.getToColumn() == null || referenceEntity.getToColumn().getDataModel() == null){
+							continue;
+						}
 						ReferenceModel referenceModel = new ReferenceModel();
 						referenceModel.setReferenceType(referenceEntity.getReferenceType());
 						referenceModel.setReferenceTable(referenceEntity.getToColumn().getDataModel().getTableName());
@@ -1319,32 +1323,44 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		PCFormModel formModel = new PCFormModel();
 	    BeanUtils.copyProperties(entity, formModel, new String[] {"process","dataModels","items","permissions","submitChecks","functions"});
 
+
+		List<PCDataModel> dataModelList = new ArrayList<>();
+		List<ItemModelEntity> itemModelEntities = formModelService.findAllItems(entity);
+		Map<String, DataModelEntity> dataModelEntities = new HashMap<>();
+		Map<String, List<String>> columnsMap = new HashMap<>();
+		for(ItemModelEntity itemModelEntity : itemModelEntities){
+			if(itemModelEntity instanceof ReferenceItemModelEntity && ((ReferenceItemModelEntity) itemModelEntity).getReferenceList() != null) {
+				List<String> displayColuns = new ArrayList<>();
+				ListModelEntity listModelEntity = ((ReferenceItemModelEntity) itemModelEntity).getReferenceList();
+				if(listModelEntity == null || listModelEntity.getMasterForm() == null){
+					continue;
+				}
+				for(ItemModelEntity itemModelEntity1 : listModelEntity.getDisplayItems()){
+					if(itemModelEntity1.getColumnModel() != null){
+						displayColuns.add(itemModelEntity1.getColumnModel().getColumnName());
+					}
+				}
+				columnsMap.put(listModelEntity.getMasterForm().getId(), displayColuns);
+				dataModelEntities.put(listModelEntity.getMasterForm().getId(), listModelEntity.getMasterForm().getDataModels().get(0));
+			}
+		}
+		for(String formId : dataModelEntities.keySet()){
+			PCDataModel dataModel = dataModelService.transitionToModel(formId, dataModelEntities.get(formId), columnsMap.get(formId));
+			dataModelList.add(dataModel);
+		}
+		formModel.setDataModels(dataModelList);
+
+
 		if (entity.getItems().size() > 0) {
 			List<ItemModel> items = new ArrayList<ItemModel>();
-			List<ItemModelEntity> itemModelEntities = entity.getItems() == null || entity.getItems().size() < 2 ? entity.getItems() : entity.getItems().parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
-			for (ItemModelEntity itemModelEntity : itemModelEntities) {
+			List<ItemModelEntity> itemModelEntityList = entity.getItems() == null || entity.getItems().size() < 2 ? entity.getItems() : entity.getItems().parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
+			for (ItemModelEntity itemModelEntity : itemModelEntityList) {
 				items.add(toDTO(itemModelEntity, true));
 			}
 			formModel.setItems(items);
 		}
 
-		List<PCDataModel> dataModelList = new ArrayList<>();
-		List<ItemModelEntity> itemModelEntities = formModelService.findAllItems(entity);
-		Map<String, DataModelEntity> dataModelEntities = new HashMap<>();
-		for(ItemModelEntity itemModelEntity : itemModelEntities){
-			if(itemModelEntity instanceof ReferenceItemModelEntity && ((ReferenceItemModelEntity) itemModelEntity).getReferenceList() != null) {
-				ListModelEntity listModelEntity = ((ReferenceItemModelEntity) itemModelEntity).getReferenceList();
-				if(listModelEntity == null || listModelEntity.getMasterForm() == null){
-					continue;
-				}
-				dataModelEntities.put(listModelEntity.getMasterForm().getId(), listModelEntity.getMasterForm().getDataModels().get(0));
-			}
-		}
-		for(String formId : dataModelEntities.keySet()){
-			PCDataModel dataModel = dataModelService.transitionToModel(formId, dataModelEntities.get(formId));
-			dataModelList.add(dataModel);
-		}
-		formModel.setDataModels(dataModelList);
+
 		if(entity.getFunctions() != null && entity.getFunctions().size() > 0){
 			List<FunctionModel> functionModels = new ArrayList<>();
 			for(ListFunction function : entity.getFunctions()){

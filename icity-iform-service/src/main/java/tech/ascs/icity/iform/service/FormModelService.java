@@ -32,4 +32,6 @@ public interface FormModelService extends JPAService<FormModelEntity> {
      //获取关联数据标识控件
      List<ItemModelEntity> getReferenceItemModelList(ReferenceItemModelEntity itemModelEntity);
 
+     void deleteItemOtherReferenceEntity(ItemModelEntity itemModelEntity);
+
 }
