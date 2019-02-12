@@ -125,9 +125,18 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
 
 	@Override
 	public void deleteColumnReferenceEntity(ColumnReferenceEntity columnReferenceEntity) {
-		columnReferenceEntity.setFromColumn(null);
-		columnReferenceEntity.setToColumn(null);
-		columnReferenceEntity.setReferenceType(null);
+		ColumnModelEntity fromColumn = columnReferenceEntity.getFromColumn();
+		ColumnModelEntity toColumn = columnReferenceEntity.getToColumn();
+		for(int i = 0; i < toColumn.getColumnReferences().size() ; i++){
+			ColumnReferenceEntity columnReferenceEntity1 = toColumn.getColumnReferences().get(i);
+			ColumnModelEntity toColumn1 = columnReferenceEntity1.getToColumn();
+			if(toColumn1.getId().equals(fromColumn.getId())){
+				toColumn.getColumnReferences().remove(columnReferenceEntity1);
+				i--;
+				columnReferenceManager.delete(columnReferenceEntity1);
+			}
+		}
+		columnModelManager.save(toColumn);
 		columnReferenceManager.delete(columnReferenceEntity);
 	}
 

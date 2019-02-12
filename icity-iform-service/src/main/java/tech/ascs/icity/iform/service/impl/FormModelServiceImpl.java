@@ -185,6 +185,8 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 					if(((ReferenceItemModelEntity) itemModelEntity).getItemTableColunmName() != null && ((ReferenceItemModelEntity) itemModelEntity).getType() == ItemType.ReferenceList ){
 						((ReferenceItemModelEntity) itemModelEntity).setItemModelIds(String.join(",",
 								getReferenceItemModelList((ReferenceItemModelEntity)itemModelEntity).parallelStream().map(ItemModelEntity::getId).collect(Collectors.toList())));
+					}else{
+						((ReferenceItemModelEntity) itemModelEntity).setItemModelIds(null);
 					}
 					if(((ReferenceItemModelEntity) itemModelEntity).getSelectMode() == SelectMode.Attribute ){
 
@@ -388,6 +390,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				((ReferenceItemModelEntity) saveItemModelEntity).setReferenceList(listModelEntity);
 			}
 			((ReferenceItemModelEntity)saveItemModelEntity).setParentItem(((ReferenceItemModelEntity) paramerItemModelEntity).getParentItem());
+			((ReferenceItemModelEntity)saveItemModelEntity).setItemTableColunmName(((ReferenceItemModelEntity) paramerItemModelEntity).getItemTableColunmName());
 		}
 
 		//设置下拉联动

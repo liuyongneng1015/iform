@@ -147,6 +147,19 @@ public class ItemModel extends NameEntity {
 	@ApiModelProperty(value = "下拉数据来源", position = 40)
 	private TreeSelectDataSource dataSource;
 
+
+	@ApiModelProperty(value = "是否唯一", position = 41)
+	private Boolean uniquene = false;
+
+	@ApiModelProperty(value = "自动计算", position = 42)
+	private String calculationFormula;
+
+	@ApiModelProperty(value = "数字位数", position = 43)
+	private Integer decimalDigits;
+
+	@ApiModelProperty(value = "千分位分隔符", position = 44)
+	private Boolean thousandSeparator;
+
 	public ItemType getType() {
 		return type;
 	}
@@ -537,6 +550,38 @@ public class ItemModel extends NameEntity {
 
 	public void setDataSource(TreeSelectDataSource dataSource) {
 		this.dataSource = dataSource;
+	}
+
+	public Boolean getUniquene() {
+		return uniquene;
+	}
+
+	public void setUniquene(Boolean uniquene) {
+		this.uniquene = uniquene;
+	}
+
+	public String getCalculationFormula() {
+		return calculationFormula;
+	}
+
+	public void setCalculationFormula(String calculationFormula) {
+		this.calculationFormula = calculationFormula;
+	}
+
+	public Integer getDecimalDigits() {
+		return decimalDigits;
+	}
+
+	public void setDecimalDigits(Integer decimalDigits) {
+		this.decimalDigits = decimalDigits;
+	}
+
+	public Boolean getThousandSeparator() {
+		return thousandSeparator;
+	}
+
+	public void setThousandSeparator(Boolean thousandSeparator) {
+		this.thousandSeparator = thousandSeparator;
 	}
 
 	@Override

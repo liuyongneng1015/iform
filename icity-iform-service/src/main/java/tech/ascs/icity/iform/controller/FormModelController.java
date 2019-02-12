@@ -785,11 +785,11 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			List<ColumnReferenceEntity> oldColumnReferences = oldColumnModelEntity.getColumnReferences();
 			for(int i = 0 ; i < oldColumnReferences.size() ; i++) {
 				ColumnReferenceEntity columnReferenceEntity = oldColumnReferences.get(i);
-				oldColumnReferences.remove(i);
-				columnModelService.deleteColumnReferenceEntity(columnReferenceEntity);
+				oldColumnReferences.remove(columnReferenceEntity);
 				i--;
+				columnModelService.deleteColumnReferenceEntity(columnReferenceEntity);
 			}
-
+			oldColumnModelEntity.setColumnReferences(new ArrayList<ColumnReferenceEntity>());
 			oldColumnModelEntity.setDataModel(oldDataModelEntity);
 			if(columnModel.getReferenceTables() != null){
 				for(ReferenceModel columnReferenceEntity : columnModel.getReferenceTables()){
@@ -918,9 +918,15 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 					list.add(itemModel1.getTableName()+"_"+itemModel1.getColumnName());
 				}
 				((ReferenceItemModelEntity) entity).setItemTableColunmName(String.join(",", list));
+			}else{
+				((ReferenceItemModelEntity) entity).setItemTableColunmName(null);
 			}
 			if(itemModel.getType() == ItemType.ReferenceLabel){
-				((ReferenceItemModelEntity) entity).setItemTableColunmName(itemModel.getItemTableName()+"_"+itemModel.getItemColunmName());
+				if(StringUtils.hasText(itemModel.getItemTableName())) {
+					((ReferenceItemModelEntity) entity).setItemTableColunmName(itemModel.getItemTableName() + "_" + itemModel.getItemColunmName());
+				}else{
+					((ReferenceItemModelEntity) entity).setItemTableColunmName(null);
+				}
 			}
 			((ReferenceItemModelEntity) entity).setReferenceList(setItemModelByListModel(itemModel));
 		}else if(entity instanceof SelectItemModelEntity){
