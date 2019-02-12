@@ -145,6 +145,9 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
 		List<ReferenceModel> list = new ArrayList<>();
 		if(entity.getColumnReferences() != null){
 			for(ColumnReferenceEntity columnReferenceEntity : entity.getColumnReferences()){
+				if(columnReferenceEntity.getToColumn() == null || columnReferenceEntity.getToColumn().getDataModel() == null){
+					continue;
+				}
 				ReferenceModel referenceModel = new ReferenceModel();
 				referenceModel.setReferenceTable(columnReferenceEntity.getToColumn().getDataModel().getTableName());
 				referenceModel.setReferenceType(columnReferenceEntity.getReferenceType());
