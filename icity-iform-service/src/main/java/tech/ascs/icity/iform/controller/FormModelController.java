@@ -1436,6 +1436,14 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				}
 			}
 
+			if(entity.getType() == ItemType.ReferenceLabel && ((ReferenceItemModelEntity) entity).getReferenceItemId() != null){
+				ItemModelEntity itemModelEntity = itemModelService.get(((ReferenceItemModelEntity) entity).getReferenceItemId());
+				if(itemModelEntity != null && itemModelEntity.getColumnModel() != null) {
+					itemModel.setItemTableName(itemModelEntity.getColumnModel().getDataModel().getTableName());
+					itemModel.setItemColunmName(itemModelEntity.getColumnModel().getColumnName());
+				}
+			}
+
 			if(((ReferenceItemModelEntity) entity).getReferenceType() == ReferenceType.ManyToMany){
 				itemModel.setMultiple(true);
 			}else if(((ReferenceItemModelEntity) entity).getReferenceType() == ReferenceType.OneToOne){
@@ -1460,11 +1468,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				if(((ReferenceItemModelEntity) entity).getParentItem() != null && ((ReferenceItemModelEntity) entity).getParentItem().getColumnModel().getDataModel() != null) {
 					itemModel1.setTableName(((ReferenceItemModelEntity) entity).getParentItem().getColumnModel().getDataModel().getTableName());
 					itemModel1.setColumnName(((ReferenceItemModelEntity) entity).getParentItem().getColumnModel().getColumnName());
-
-					if(entity.getType() == ItemType.ReferenceLabel){
-						itemModel.setItemTableName(((ReferenceItemModelEntity) entity).getParentItem().getColumnModel().getDataModel().getTableName());
-						itemModel.setItemColunmName(((ReferenceItemModelEntity) entity).getParentItem().getColumnModel().getColumnName());
-					}
 				}
 				itemModel.setParentItem(itemModel1);
 			}
