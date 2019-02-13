@@ -99,8 +99,9 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 	// 新增列表的时候，自动创建新增、导出、导入、删除、二维码，为系统自带功能
 	private DefaultFunctionType[] functionDefaultActions = {DefaultFunctionType.Add, DefaultFunctionType.BatchDelete, DefaultFunctionType.Export,
 															DefaultFunctionType.Import, DefaultFunctionType.QrCode};
-	private List<String> functionDefaultLabels  = Arrays.asList(new String[]{"新增", "批量删除", "导出", "导入", "二维码"});
-	private List<String> functionDefaultMethods = Arrays.asList(new String[]{"POST", "DELETE", "GET", "POST", "GET"});
+	private String[] functionDefaultMethods = new String[]{"POST", "DELETE", "GET", "POST", "GET"};
+	private boolean[] functionVisibles = new boolean[]{true, true, false, false, false};
+
 	@Override
 	public IdEntity createListModel(@RequestBody ListModel ListModel) {
 		if (StringUtils.hasText(ListModel.getId())) {
@@ -116,9 +117,9 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			for (int i = 0; i < functionDefaultActions.length; i++) {
 				ListFunction function = new ListFunction();
 				function.setAction(functionDefaultActions[i].getValue());
-				function.setLabel(functionDefaultLabels.get(i));
-				function.setMethod(functionDefaultMethods.get(i));
-                function.setVisible(true);
+				function.setLabel(functionDefaultActions[i].getDesc());
+				function.setMethod(functionDefaultMethods[i]);
+                function.setVisible(functionVisibles[i]);
 				function.setOrderNo(i+1);
 				function.setListModel(entity);
 				functions.add(function);
@@ -166,7 +167,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		// 校验默认的功能按钮是否被删除
 		for (int i = 0; i < functionDefaultActions.length; i++) {
 			String action = functionDefaultActions[i].getValue();
-			String label = functionDefaultLabels.get(i);
+			String label = functionDefaultActions[i].getDesc();
 			Optional<FunctionModel> optional = functions.stream().filter(item->!StringUtils.isEmpty(item.getId()) &&
 																				action.equals(item.getAction()) &&
 																				label.equals(item.getLabel())).findFirst();
