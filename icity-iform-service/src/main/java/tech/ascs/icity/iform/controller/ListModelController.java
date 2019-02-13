@@ -99,8 +99,9 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 	// 新增列表的时候，自动创建新增、导出、导入、删除、二维码，为系统自带功能
 	private DefaultFunctionType[] functionDefaultActions = {DefaultFunctionType.Add, DefaultFunctionType.BatchDelete, DefaultFunctionType.Export,
 															DefaultFunctionType.Import, DefaultFunctionType.QrCode};
-	private List<String> functionDefaultLabels  = Arrays.asList(new String[]{"新增", "批量删除", "导出", "导入", "二维码"});
-	private List<String> functionDefaultMethods = Arrays.asList(new String[]{"POST", "DELETE", "GET", "POST", "GET"});
+	private String[] functionDefaultMethods = new String[]{"POST", "DELETE", "GET", "POST", "GET"};
+	private boolean[] functionVisibles = new boolean[]{true, true, false, false, false};
+
 	@Override
 	public IdEntity createListModel(@RequestBody ListModel ListModel) {
 		if (StringUtils.hasText(ListModel.getId())) {
@@ -116,9 +117,9 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			for (int i = 0; i < functionDefaultActions.length; i++) {
 				ListFunction function = new ListFunction();
 				function.setAction(functionDefaultActions[i].getValue());
-				function.setLabel(functionDefaultLabels.get(i));
-				function.setMethod(functionDefaultMethods.get(i));
-                function.setVisible(true);
+				function.setLabel(functionDefaultActions[i].getDesc());
+				function.setMethod(functionDefaultMethods[i]);
+                function.setVisible(functionVisibles[i]);
 				function.setOrderNo(i+1);
 				function.setListModel(entity);
 				functions.add(function);
@@ -166,7 +167,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		// 校验默认的功能按钮是否被删除
 		for (int i = 0; i < functionDefaultActions.length; i++) {
 			String action = functionDefaultActions[i].getValue();
-			String label = functionDefaultLabels.get(i);
+			String label = functionDefaultActions[i].getDesc();
 			Optional<FunctionModel> optional = functions.stream().filter(item->!StringUtils.isEmpty(item.getId()) &&
 																				action.equals(item.getAction()) &&
 																				label.equals(item.getLabel())).findFirst();
@@ -178,7 +179,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 
 	@Override
 	public void removeListModel(@PathVariable(name="id") String id) {
-		listModelService.checkListModelCanDelete(id);
+		listModelService.setItemReferenceListModelNull(id);
 		listModelService.deleteById(id);
 	}
 
@@ -464,12 +465,12 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			listModel.setMasterForm(masterForm);
 		}
 
-		Set<String> masterFormCommonItemId = getMasterFormCommonItemId(entity.getMasterForm());
+		Set<String> masterFormItemIds = getMasterFormItemIds(entity.getMasterForm());
 
 		if(entity.getDisplayItems() != null){
 			List<ItemModel> list = new ArrayList<>();
 			for(ItemModelEntity itemModelEntity : entity.getDisplayItems()) {
-				if (masterFormCommonItemId.contains(itemModelEntity.getId())) {
+				if (masterFormItemIds.contains(itemModelEntity.getId())) {
 					ItemModel itemModel = new ItemModel();
 					BeanUtils.copyProperties(itemModelEntity, itemModel, new String[]{"formModel", "columnModel", "activities", "options", "searchItems", "sortItems", "permissions", "referenceList", "items", "parentItem"});
 					list.add(itemModel);
@@ -516,7 +517,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			List<SortItem> sortItems = new ArrayList<SortItem>();
 			for (ListSortItem sortItemEntity: entity.getSortItems()) {
 				if(sortItemEntity.getItemModel() != null) {
-					if (masterFormCommonItemId.contains(sortItemEntity.getItemModel().getId())==false) {
+					if (masterFormItemIds.contains(sortItemEntity.getItemModel().getId())==false) {
 						continue;
 					}
 					SortItem sortItem = new SortItem();
@@ -534,7 +535,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			List<SearchItem> searchItems = new ArrayList<SearchItem>();
 			for (ListSearchItem searchItemEntity : entity.getSearchItems()) {
 				if (searchItemEntity.getItemModel() != null) {
-					if (masterFormCommonItemId.contains(searchItemEntity.getItemModel().getId())==false) {
+					if (masterFormItemIds.contains(searchItemEntity.getItemModel().getId())==false) {
 						continue;
 					}
 					SearchItem searchItem = new SearchItem();
@@ -622,7 +623,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		    List<QuickSearchItem> quickSearches = new ArrayList<>();
 		    for (QuickSearchEntity quickSearchEntity:entity.getQuickSearchItems()) {
 //				if (quickSearchEntity.getItemModel() != null) {
-					if (quickSearchEntity.getItemModel() != null && masterFormCommonItemId.contains(quickSearchEntity.getItemModel().getId())==false) {
+					if (quickSearchEntity.getItemModel() != null && masterFormItemIds.contains(quickSearchEntity.getItemModel().getId())==false) {
 						continue;
 					}
 					QuickSearchItem quickSearch = new QuickSearchItem();
@@ -662,16 +663,18 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 	 * @param masterForm
 	 * @return
 	 */
-	public Set<String> getMasterFormCommonItemId(FormModelEntity masterForm) {
+	public Set<String> getMasterFormItemIds(FormModelEntity masterForm) {
 		Set<String> ids = new HashSet<>();
 		if (masterForm!=null && masterForm.getItems()!=null) {
 			for (ItemModelEntity item:masterForm.getItems()) {
-				if (item.getType()!=null && item.getType()!=ItemType.Row &&
-						item.getType()!=ItemType.SubForm && item.getType()!=ItemType.RowItem &&
-						item.getType()!=ItemType.ReferenceList && item.getType()!=ItemType.ReferenceLabel &&
-						item.getType()!=ItemType.Row && item.getType()!=ItemType.Tabs && item.getType()!=ItemType.TabPane) {
+				if (item.getType()!=null) {
 					ids.addAll(getItemSubItemIds(item));
 				}
+//				if (item.getType()!=null && item.getType()!=ItemType.Row &&
+//						item.getType()!=ItemType.SubForm && item.getType()!=ItemType.RowItem &&
+//						item.getType()!=ItemType.ReferenceList) {
+//					ids.addAll(getItemSubItemIds(item));
+//				}
 			}
 		}
 		return ids;

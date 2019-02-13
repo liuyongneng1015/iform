@@ -49,6 +49,7 @@ public class FormFunctionsServiceImpl extends DefaultJPAService<ListFunction> im
 	public void createDefaultFormFunctions(FormModelEntity formModelEntity) {
 		// 表单创建时，默认创建的权限码：编辑，删除，二维码，暂存
 		DefaultFunctionType[] list = {DefaultFunctionType.Edit, DefaultFunctionType.Delete, DefaultFunctionType.QrCode, DefaultFunctionType.TempStore};
+		boolean[] functionVisibles = new boolean[]{true, true, false, false};
 		for(int i = 0; i < formModelEntity.getFunctions().size() ; i++){
 			ListFunction listFunction = formModelEntity.getFunctions().get(i);
 			formModelEntity.getFunctions().remove(listFunction);
@@ -56,12 +57,14 @@ public class FormFunctionsServiceImpl extends DefaultJPAService<ListFunction> im
 			i--;
 		}
 		List<ListFunction> listFunctions = new ArrayList<>();
-		for(DefaultFunctionType functionType : list){
+		for (int i = 0; i < list.length; i++) {
+			DefaultFunctionType functionType =  list[i];
 			ListFunction listFunction = new ListFunction();
 			listFunction.setFormModel(formModelEntity);
 			listFunction.setAction(functionType.getValue());
 			listFunction.setLabel(functionType.getDesc());
-			listFunction.setVisible(true);
+			listFunction.setVisible(functionVisibles[i]);
+			listFunction.setOrderNo(++i);
 			listFunctions.add(listFunction);
 		}
 		formModelEntity.setFunctions(listFunctions);

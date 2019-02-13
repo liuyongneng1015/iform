@@ -49,7 +49,8 @@ public interface ListModelService extends JPAService<ListModelEntity> {
     List<ListModel> findListModelsByItemModelIds(List<String> itemModelIds);
 
     // 因为ListModelEntity在ReferenceItemModelEntity和SelectItemModelEntity用的是单向关联，因此删除列表的时候要判断是否被引用了
-    void checkListModelCanDelete(String id);
+    // 把关联了该列表模型的控件的列表置空
+    void setItemReferenceListModelNull(String id);
 
     // 获取列表的按钮权限
     List<BtnPermission> findListBtnPermission(ListModelEntity entity);

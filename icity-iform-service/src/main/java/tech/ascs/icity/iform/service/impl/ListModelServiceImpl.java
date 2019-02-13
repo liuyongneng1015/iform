@@ -405,13 +405,17 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 	}
 
 	@Override
-	public void checkListModelCanDelete(String id) {
+	public void setItemReferenceListModelNull(String id) {
 		List<ReferenceItemModelEntity> list = referenceItemModelEntityManager.query().filterEqual("referenceList.id", id).list();
 		for (ReferenceItemModelEntity item:list) {
-			FormModelEntity formModelEntity = item.getFormModel();
-			if (formModelEntity!=null) {
-				throw new IFormException("该列表被"+formModelEntity.getName()+"表单绑定了，请先解绑对应关系");
-			}
+			item.setReferenceList(null);
+//			FormModelEntity formModelEntity = item.getFormModel();
+//			if (formModelEntity!=null) {
+//				throw new IFormException("该列表被"+formModelEntity.getName()+"表单绑定了，请先解绑对应关系");
+//			}
+		}
+		if (list.size()>0) {
+			referenceItemModelEntityManager.save(list.toArray(new ReferenceItemModelEntity[]{}));
 		}
 	}
 
@@ -467,14 +471,17 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 
 	@Override
 	public void submitFormBtnPermission(FormModelEntity entity) {
-		List<BtnPermission> listPermissions = assemblyBtnPermissions(null, entity);
-		if (listPermissions !=null) {
-			ListFormBtnPermission listFormBtnPermission = new ListFormBtnPermission();
-			listFormBtnPermission.setFormId(entity.getId());
-			listFormBtnPermission.setFormPermissions(listPermissions);
-			tech.ascs.icity.admin.api.model.ListFormBtnPermission adminListFormBtnPermission = new tech.ascs.icity.admin.api.model.ListFormBtnPermission();
-			BeanUtils.copyProperties(listFormBtnPermission, adminListFormBtnPermission);
-			resourceService.editListFormPermissions(adminListFormBtnPermission);
+		if (entity!=null && StringUtils.isEmpty(entity.getId())) {
+			List<BtnPermission> listPermissions = assemblyBtnPermissions(null, entity);
+			if (listPermissions != null) {
+				ListFormBtnPermission listFormBtnPermission = new ListFormBtnPermission();
+				listFormBtnPermission.setFormId(entity.getId());
+				listFormBtnPermission.setFormPermissions(listPermissions);
+				tech.ascs.icity.admin.api.model.ListFormBtnPermission adminListFormBtnPermission = new tech.ascs.icity.admin.api.model.ListFormBtnPermission();
+//				query().filterEqual("masterForm", entity.getId());
+				BeanUtils.copyProperties(listFormBtnPermission, adminListFormBtnPermission);
+				resourceService.editListFormPermissions(adminListFormBtnPermission);
+			}
 		}
 	}
 
