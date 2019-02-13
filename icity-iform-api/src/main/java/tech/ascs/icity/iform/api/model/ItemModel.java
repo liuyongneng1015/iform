@@ -160,6 +160,9 @@ public class ItemModel extends NameEntity {
 	@ApiModelProperty(value = "千分位分隔符", position = 44)
 	private Boolean thousandSeparator;
 
+	@ApiModelProperty(value = "后缀单位", position = 45)
+	private String suffixUnit;
+
 	public ItemType getType() {
 		return type;
 	}
@@ -582,6 +585,14 @@ public class ItemModel extends NameEntity {
 
 	public void setThousandSeparator(Boolean thousandSeparator) {
 		this.thousandSeparator = thousandSeparator;
+	}
+
+	public String getSuffixUnit() {
+		return suffixUnit;
+	}
+
+	public void setSuffixUnit(String suffixUnit) {
+		this.suffixUnit = suffixUnit;
 	}
 
 	@Override
