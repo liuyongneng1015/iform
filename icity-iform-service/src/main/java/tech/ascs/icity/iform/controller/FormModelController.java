@@ -477,6 +477,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			}
 		}
 
+		if(masterDataModel == null || masterDataModel.getId() == null){
+			throw new IFormException("未找到列表对应的数据建模");
+		}
 
 		//主表的数据建模
 		DataModelEntity masterDataModelEntity = dataModelService.find(masterDataModel.getId());
@@ -540,10 +543,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		List<DataModelEntity> dataModelEntities = new ArrayList<>();
 		dataModelEntities.add(masterDataModelEntity);
 
-		for(String key : oldMasterDataModelMap.keySet()){
-			dataModelService.deleteById(key);
-		}
-
 		entity.setDataModels(dataModelEntities);
 
 		List<ItemModelEntity> items = new ArrayList<ItemModelEntity>();
@@ -553,6 +552,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			itemModelEntity.setFormModel(entity);
 			items.add(itemModelEntity);
 		}
+
 		entity.setItems(items);
 
 		//设置控件权限
@@ -578,6 +578,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			wrapFormModelSubmitCheck(entity, formModel);
 		}
 
+		for(String key : oldMasterDataModelMap.keySet()){
+			dataModelService.deleteById(key);
+		}
 		//保存数据模型
 		dataModelService.save(masterDataModelEntity);
 
@@ -760,7 +763,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 					m--;
 					columnModelService.deleteColumnReferenceEntity(referenceEntity);
 				}
-				columnModelService.save(columnModelEntity);
+				//columnModelService.save(columnModelEntity);
 
 				if("id".equals(columnModelEntity.getColumnName()) || (needMasterId && "master_id".equals(columnModelEntity.getColumnName()))){
 					continue;

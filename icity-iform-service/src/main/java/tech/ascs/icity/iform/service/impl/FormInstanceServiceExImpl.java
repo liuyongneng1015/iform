@@ -150,7 +150,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 
     public List<Map> listByTableName(String tableName, String key, String value) {
-        StringBuilder sql = new StringBuilder("SELECT * FROM if_").append(tableName).append(" and ").append(key).append("='"+value+"'");
+        StringBuilder sql = new StringBuilder("SELECT * FROM if_").append(tableName).append(" where ").append("f"+key).append("='"+value+"'");
         List<Map> list = jdbcTemplate.queryForList(sql.toString(),Map.class);
         return list;
     }
