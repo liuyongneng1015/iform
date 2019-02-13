@@ -1,13 +1,11 @@
 package tech.ascs.icity.iform.controller;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.googlecode.genericdao.search.Sort;
-import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,8 +25,6 @@ import tech.ascs.icity.jpa.dao.Query;
 import tech.ascs.icity.model.IdEntity;
 import tech.ascs.icity.model.Page;
 import tech.ascs.icity.utils.BeanUtils;
-
-import javax.websocket.server.PathParam;
 
 @Api(tags = "表单模型服务", description = "包含表单模型的增删改查等功能")
 @RestController
@@ -153,12 +149,10 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	}
 
 	@Override
-	public void removeFormModel(@PathVariable(name="id") String id) {
-		FormModelEntity formModelEntity = formModelService.get(id);
-		if(formModelEntity != null) {
-			formModelService.deleteFormModelEntity(formModelEntity);
+	public void removeFormModel(@PathVariable(name="id", required = true) String id) {
+        formModelService.deleteFormModelEntityById(id);
 //			listModelService.deleteFormBtnPermission(id);
-		}
+
 	}
 
 	@Override
@@ -437,11 +431,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				oldItemIds.removeAll(newItemIds);
 				if(oldItemIds == null || oldItemIds.size() < 1){
 					return;
-				}
-				//校验表单建模是否关联列表建模
-				List<ListModel> list = listModelService.findListModelsByItemModelIds(oldItemIds);
-				if(list != null && list.size() > 0){
-					throw new IFormException("存在控件关联列表模型，请先删除关联的列表建模");
 				}
 			}
 		}

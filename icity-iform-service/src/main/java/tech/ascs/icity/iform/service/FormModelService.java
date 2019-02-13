@@ -19,7 +19,7 @@ public interface FormModelService extends JPAService<FormModelEntity> {
 
      ItemModelEntity getItemModelEntity(ItemType itemType);
 
-     void deleteFormModelEntity(FormModelEntity formModel);
+     void deleteFormModelEntityById(String id);
 
      List<ItemModelEntity> findAllItems(FormModelEntity entity);
 
