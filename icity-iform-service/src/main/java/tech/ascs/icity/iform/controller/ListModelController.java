@@ -666,11 +666,14 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		Set<String> ids = new HashSet<>();
 		if (masterForm!=null && masterForm.getItems()!=null) {
 			for (ItemModelEntity item:masterForm.getItems()) {
-				if (item.getType()!=null && item.getType()!=ItemType.Row &&
-						item.getType()!=ItemType.SubForm && item.getType()!=ItemType.RowItem &&
-						item.getType()!=ItemType.ReferenceList) {
+				if (item.getType()!=null) {
 					ids.addAll(getItemSubItemIds(item));
 				}
+//				if (item.getType()!=null && item.getType()!=ItemType.Row &&
+//						item.getType()!=ItemType.SubForm && item.getType()!=ItemType.RowItem &&
+//						item.getType()!=ItemType.ReferenceList) {
+//					ids.addAll(getItemSubItemIds(item));
+//				}
 			}
 		}
 		return ids;
