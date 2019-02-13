@@ -116,9 +116,11 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			}
 
 			BeanUtils.copyProperties(entity, old, new String[] {"dataModels", "items", "permissions", "submitChecks","functions"});
-			List<ItemModelEntity> oldItems = old.getItems();
 
+			//删除活动
 			deleteOldItems(old);
+
+			List<ItemModelEntity> oldItems = old.getItems();
 
 			Map<String, ItemModelEntity> oldMapItmes = new HashMap<>();
 			for(ItemModelEntity itemModelEntity : oldItems){
@@ -154,7 +156,6 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 					}
 				}
 			}
-
 
 			//删除item
 			deleteItems(new ArrayList<>(oldMapItmes.values()));
@@ -497,8 +498,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		if (deleteItems == null || deleteItems.size() < 1) {
 			return;
 		}
-		for(int i = 0 ; i < deleteItems.size() ; i++){
-			ItemModelEntity itemModelEntity = deleteItems.get(i);
+		List<ItemModelEntity> itemModelEntityList = deleteItems;
+		for(int i = 0 ; i < itemModelEntityList.size() ; i++){
+			ItemModelEntity itemModelEntity = itemModelEntityList.get(i);
 			if(itemModelEntity.getColumnModel() != null) {
 				itemModelEntity.setColumnModel(null);
 			}
@@ -529,21 +531,19 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 					n--;
 				}
 			}
-			deleteItem(deleteItems, itemModelEntity);
+			deleteItem(itemModelEntityList, itemModelEntity);
 			i--;
 		}
 	}
 
 	private void deleteItem(List<ItemModelEntity> list,  ItemModelEntity itemModelEntity){
-		list.remove(itemModelEntity);
-		for(int i = 0 ; i < itemModelEntity.getPermissions().size() ; i++){
-			ItemPermissionInfo info = itemPermissionManager.get(itemModelEntity.getPermissions().get(i).getId());
-			info.setItemModel(null);
-			itemPermissionManager.delete(info);
-		}
-		itemModelEntity.setPermissions(new ArrayList<>());
 		deleteItemOtherReferenceEntity(itemModelEntity);
-		itemManager.save(itemModelEntity);
+		if(itemModelEntity instanceof SelectItemModelEntity){
+			((SelectItemModelEntity) itemModelEntity).setParentItem(null);
+			((SelectItemModelEntity) itemModelEntity).setItems(null);
+			itemManager.save(itemModelEntity);
+		}
+		list.remove(itemModelEntity);
 		itemManager.delete(itemModelEntity);
 	}
 
@@ -736,20 +736,24 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		for (ItemModelEntity itemModelEntity : old.getItems()) {
 			if(itemModelEntity instanceof RowItemModelEntity){
 				deleteItemActivityOption(itemModelEntity);
-				for(ItemModelEntity childrenItem : ((RowItemModelEntity) itemModelEntity).getItems()){
+				for(int i = 0; i < ((RowItemModelEntity) itemModelEntity).getItems().size(); i++){
+					ItemModelEntity childrenItem = ((RowItemModelEntity) itemModelEntity).getItems().get(i);
 					deleteItemActivityOption(childrenItem);
 				}
 			}else if(itemModelEntity instanceof SubFormItemModelEntity){
 				deleteItemActivityOption(itemModelEntity);
-				for(SubFormRowItemModelEntity item : ((SubFormItemModelEntity) itemModelEntity).getItems()) {
+				for(int i = 0; i < ((SubFormItemModelEntity) itemModelEntity).getItems().size() ; i++) {
+					SubFormRowItemModelEntity item = ((SubFormItemModelEntity) itemModelEntity).getItems().get(i);
 					deleteItemActivityOption(item);
-					for(ItemModelEntity childrenItem : item.getItems()) {
+					for(int j = 0; j < item.getItems().size() ; j++) {
+						ItemModelEntity childrenItem = item.getItems().get(j);
 						deleteItemActivityOption(childrenItem);
 					}
 				}
 			}else if(itemModelEntity instanceof TabsItemModelEntity){
 				deleteItemActivityOption(itemModelEntity);
-				for(TabPaneItemModelEntity item : ((TabsItemModelEntity) itemModelEntity).getItems()) {
+				for(int i = 0;i < ((TabsItemModelEntity) itemModelEntity).getItems().size();i++) {
+					TabPaneItemModelEntity item = ((TabsItemModelEntity) itemModelEntity).getItems().get(i);
 					deleteItemActivityOption(item);
 					for(ItemModelEntity childrenItem : item.getItems()) {
 						deleteItemActivityOption(childrenItem);

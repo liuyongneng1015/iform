@@ -557,7 +557,15 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 		//设置控件权限
 		if(formModel.getPermissions() != null && formModel.getPermissions().size() > 0) {
-			for(ItemPermissionModel itemPermissionModel : formModel.getPermissions()) {
+			List<ItemPermissionModel> itemPermissionModels = formModel.getPermissions();
+			for(int i = 0 ;i < itemPermissionModels.size() ; i++) {
+				ItemPermissionModel itemPermissionModel = itemPermissionModels.get(i);
+				ItemModelEntity itemModelEntity = map.get(itemPermissionModel.getItemModel().getTableName()+"_"+itemPermissionModel.getItemModel().getColumnName());
+				if(itemModelEntity == null && itemPermissionModel.getItemModel() != null && StringUtils.hasText(itemPermissionModel.getItemModel().getId())){
+					itemPermissionModels.remove(itemPermissionModel);
+					i--;
+					continue;
+				}
 				setItemPermissions(itemPermissionModel, map);
 			}
 		}
@@ -1449,6 +1457,15 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			if(((ReferenceItemModelEntity) entity).getParentItem() != null){
 				ItemModel itemModel1 = new ItemModel();
 				BeanUtils.copyProperties(((ReferenceItemModelEntity) entity).getParentItem(), itemModel1, new String[]{"formModel", "columnModel", "activities", "options","searchItems","sortItems", "permissions","items","parentItem","referenceList"});
+				if(((ReferenceItemModelEntity) entity).getParentItem() != null && ((ReferenceItemModelEntity) entity).getParentItem().getColumnModel().getDataModel() != null) {
+					itemModel1.setTableName(((ReferenceItemModelEntity) entity).getParentItem().getColumnModel().getDataModel().getTableName());
+					itemModel1.setColumnName(((ReferenceItemModelEntity) entity).getParentItem().getColumnModel().getColumnName());
+
+					if(entity.getType() == ItemType.ReferenceLabel){
+						itemModel.setItemTableName(((ReferenceItemModelEntity) entity).getParentItem().getColumnModel().getDataModel().getTableName());
+						itemModel.setItemColunmName(((ReferenceItemModelEntity) entity).getParentItem().getColumnModel().getColumnName());
+					}
+				}
 				itemModel.setParentItem(itemModel1);
 			}
 

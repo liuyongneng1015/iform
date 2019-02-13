@@ -37,13 +37,13 @@ public class ReferenceItemModelEntity extends ItemModelEntity  {
 	private ControlType controlType;
 
 	@JoinColumn(name="list_model_id") // 关联显示列表模型
-	@ManyToOne(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH })
+	@ManyToOne(cascade = {CascadeType.MERGE})
 	private ListModelEntity referenceList;
 
 	@Column(name="item_model_ids", length = 4048) // 关联数据标识：控件id集合
 	private String itemModelIds;
 
-	@ManyToOne(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH })
+	@ManyToOne(cascade = {CascadeType.MERGE})
 	@JoinColumn(name="parent_reference_id")// 父类控件
 	private ReferenceItemModelEntity parentItem;
 
