@@ -105,7 +105,7 @@ public interface FormModelService {
 	@ApiOperation(value = "删除表单模型", position = 6)
     @ApiImplicitParam(paramType = "path", name = "id", value = "表单模型ID", required = true, dataType = "String")
 	@DeleteMapping("/{id}")
-	void removeFormModel(@PathVariable(name="id") String id);
+	void removeFormModel(@PathVariable(name="id", required = true) String id);
 
 
 	/**

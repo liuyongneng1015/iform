@@ -15,11 +15,11 @@ public class NumberItemModelEntity extends ItemModelEntity  {
 	@JoinColumn(name="decimal_digits")//数字位数
 	private Integer decimalDigits;
 
-	@JoinColumn(name="prefix")//千分位分隔符
+	@JoinColumn(name="thousand_separator")//千分位分隔符
 	private Boolean thousandSeparator;
 
-	@JoinColumn(name="suffix")//后缀单位
-	private Integer suffix;
+	@JoinColumn(name="suffix_unit")//后缀单位
+	private String suffixUnit;
 
 	@Column(name="calculation_formula") // 计算公式
 	private String calculationFormula;
@@ -40,12 +40,12 @@ public class NumberItemModelEntity extends ItemModelEntity  {
 		this.thousandSeparator = thousandSeparator;
 	}
 
-	public Integer getSuffix() {
-		return suffix;
+	public String getSuffixUnit() {
+		return suffixUnit;
 	}
 
-	public void setSuffix(Integer suffix) {
-		this.suffix = suffix;
+	public void setSuffixUnit(String suffixUnit) {
+		this.suffixUnit = suffixUnit;
 	}
 
 	public String getCalculationFormula() {

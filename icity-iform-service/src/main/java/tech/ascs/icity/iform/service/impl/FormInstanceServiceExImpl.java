@@ -1507,7 +1507,7 @@ private DataModelInstance setDataModelInstance(FormModelEntity toModelEntity, Re
 					try {
 						NumberItemModelEntity numberItemModelEntity = (NumberItemModelEntity)itemModel;
 						DecimalFormat df = new DecimalFormat(getNumberFormat(numberItemModelEntity));
-						itemInstance.setDisplayValue(df.format(value));
+						itemInstance.setDisplayValue(df.format(value) + (numberItemModelEntity.getSuffixUnit() == null ? "" : numberItemModelEntity.getSuffixUnit()));
 					} catch (Exception e) {
 						e.printStackTrace();
 						itemInstance.setDisplayValue(valueStr);

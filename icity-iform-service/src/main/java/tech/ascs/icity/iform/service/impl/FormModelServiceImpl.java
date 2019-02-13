@@ -570,7 +570,8 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		List<String> ids = new ArrayList<>();
 		ids.add(itemModelEntity.getId());
 		List<ListModelEntity> listModelEntities = listModelService.findListModelsByItemModelId(itemModelEntity.getId());
-		for(ListModelEntity listModelEntity : listModelEntities){
+		for(int j = 0; j <  listModelEntities.size(); j++){
+			ListModelEntity listModelEntity = listModelEntities.get(j);
 			List<ItemModelEntity> itemModelEntities = listModelEntity.getDisplayItems();
 			for(int i = 0; i < itemModelEntities.size(); i++){
 				ItemModelEntity itemModelEntity1 = itemModelEntities.get(i);
@@ -907,13 +908,25 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 	}
 
 	@Override
-	public void deleteFormModelEntity(FormModelEntity formModelEntity) {
+	public void deleteFormModelEntityById(String id) {
+		FormModelEntity formModelEntity = get(id);
+		if(formModelEntity == null){
+			throw new IFormException("未找到【"+id+"】对应的表单建模");
+		}
 		List<ItemModelEntity> itemModelEntities = formModelEntity.getItems();
 		if(itemModelEntities != null && itemModelEntities.size() > 0){
-			for(ItemModelEntity itemModelEntity : itemModelEntities) {
+			for(int i = 0 ; i < itemModelEntities.size(); i++) {
+				ItemModelEntity itemModelEntity = itemModelEntities.get(i);
 				deleteItemOtherReferenceEntity(itemModelEntity);
 				itemManager.save(itemModelEntity);
 			}
+		}
+		List<ListModelEntity> listModelEntities = listModelManager.query().filterEqual("masterForm.id", id).list();
+		for(int i = 0 ; i < listModelEntities.size() ; i ++){
+			ListModelEntity listModelEntity = listModelEntities.get(i);
+			listModelEntity.setMasterForm(null);
+			listModelEntity.setSlaverForms(null);
+			listModelManager.save(listModelEntity);
 		}
 		formModelManager.delete(formModelEntity);
 	}
