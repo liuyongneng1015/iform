@@ -29,6 +29,8 @@ public interface FormModelService extends JPAService<FormModelEntity> {
      //根据数据模型查询表单
      List<FormModelEntity> listByDataModel(DataModelEntity dataModelEntity);
 
+     List<FormModelEntity> listByDataModelIds(List<String> dataModelIds);
+
      //获取关联数据标识控件
      List<ItemModelEntity> getReferenceItemModelList(ReferenceItemModelEntity itemModelEntity);
 

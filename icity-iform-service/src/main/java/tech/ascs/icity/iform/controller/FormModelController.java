@@ -310,11 +310,15 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			throw new IFormException("未找到对应【" + formModelId+"】的关联控件");
 		}
 		Set<FormModelEntity>  formModelEntitySet = new HashSet<>();
+
+		List<String> dataModelIds = new ArrayList<>();
 		for(ReferenceItemModelEntity referenceItemModelEntity : itemModelEntities) {
-			if(referenceItemModelEntity.getFormModel() != null) {
-				formModelEntitySet.add(referenceItemModelEntity.getFormModel());
+			if(referenceItemModelEntity.getColumnModel() != null && referenceItemModelEntity.getColumnModel().getDataModel() != null) {
+				dataModelIds.add(referenceItemModelEntity.getColumnModel().getDataModel().getId());
 			}
 		}
+		List<FormModelEntity> list = formModelService.listByDataModelIds(dataModelIds);
+		formModelEntitySet.addAll(list);
 		return new ArrayList<>(formModelEntitySet);
 	}
 
@@ -714,9 +718,12 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 		veryTableName(oldDataModelEntity);
 
+		List<String> newColumns = newDataModel.getColumns().parallelStream().map(ColumnModel::getColumnName).collect(Collectors.toList());
+
+
 		//待更新的行
 		List<String> newColumnIds = new ArrayList<>();
-		ColumnModel idColumnModel= null;
+		ColumnModel idColumnModel = null;
 		ColumnModel masterIdColumnModel= null;
 		for(int i = 0 ; i < newDataModel.getColumns().size() ; i++){
 			ColumnModel newColumnModel = newDataModel.getColumns().get(i);
@@ -729,6 +736,10 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			if(newColumnModel.getColumnName().equals("master_id")){
 				masterIdColumnModel = newColumnModel;
 			}
+		}
+
+		if(idColumnModel != null){
+			deleteReferenceModel( oldDataModelEntity,  newColumns,  idColumnModel);
 		}
 
 		//待保存的行
@@ -818,6 +829,36 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 
 		oldDataModelEntity.setColumns(saveModelEntities);
+	}
+
+	//删除主表id关联
+	private void deleteReferenceModel(DataModelEntity oldDataModelEntity, List<String> newColumns, ColumnModel idColumnModel){
+		List<ColumnReferenceEntity> list = columnModelService.saveColumnModelEntity(oldDataModelEntity,"id").getColumnReferences();
+		List<String> deleteIds = new ArrayList<>();
+		List<String> stringList = new ArrayList<>();
+		for(int j = 0 ; j < list.size() ; j++){
+			ColumnReferenceEntity columnReferenceEntity = list.get(j);
+			if(!newColumns.contains(columnReferenceEntity.getFromColumn()) && columnReferenceEntity.getFromColumn().getDataModel().getId().equals(oldDataModelEntity.getId())){
+				//删除自己字段
+				deleteIds.add(columnReferenceEntity.getId());
+				stringList.add(columnReferenceEntity.getToColumn().getId()+"_"+columnReferenceEntity.getFromColumn().getId());
+			}
+		}
+		for(int j = 0 ; j < list.size() ; j++){
+			ColumnReferenceEntity columnReferenceEntity = list.get(j);
+			if(stringList.contains(columnReferenceEntity.getFromColumn().getId()+"_"+columnReferenceEntity.getToColumn().getId())){
+				//删除自己字段
+				deleteIds.add(columnReferenceEntity.getId());
+			}
+		}
+
+		for(int j = 0 ; j < idColumnModel.getReferenceTables().size() ; j++){
+			ReferenceModel referenceModel = idColumnModel.getReferenceTables().get(j);
+			if(deleteIds.contains(referenceModel.getId())){
+				idColumnModel.getReferenceTables().remove(j);
+				j--;
+			}
+		}
 	}
 
 	private ColumnModelEntity setColumn(ColumnModel columnModel){

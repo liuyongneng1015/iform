@@ -160,4 +160,9 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
 		}
 		return list;
 	}
+
+	@Override
+	public ColumnReferenceEntity getColumnReferenceById(String id) {
+		return columnReferenceManager.get(id);
+	}
 }

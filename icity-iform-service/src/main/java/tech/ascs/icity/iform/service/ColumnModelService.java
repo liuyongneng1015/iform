@@ -25,4 +25,7 @@ public interface ColumnModelService extends JPAService<ColumnModelEntity> {
 
     //获取关联关系
      List<ReferenceModel> getReferenceModel(ColumnModelEntity entity);
+
+    //获取关联关系
+    ColumnReferenceEntity getColumnReferenceById(String id);
 }

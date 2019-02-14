@@ -1010,6 +1010,25 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		return formModelEntities;
 	}
 
+	@Override
+	public List<FormModelEntity> listByDataModelIds(List<String> dataModelIds) {
+		if(dataModelIds == null || dataModelIds.size() < 1){
+			return new ArrayList<>();
+		}
+		StringBuffer stringBuffer = new StringBuffer("('null'");
+		for(String str : dataModelIds){
+			stringBuffer.append(",'"+str+"'");
+		}
+		stringBuffer.append(")");
+		List<String> idlist = jdbcTemplate.query("select fd.form_model from ifm_form_data_bind fd where fd.data_model in "+stringBuffer,
+				(rs, rowNum) -> rs.getString("form_model"));
+		if(idlist == null || idlist.size() < 1){
+			return new ArrayList<>();
+		}
+		List<FormModelEntity> formModelEntities = query().filterIn("id",idlist).list();
+		return formModelEntities;
+	}
+
 	//设置表单功能
 	private void saveFormModelFunctions(FormModelEntity formModelEntity, FormModelEntity paramerEntity) {
 
