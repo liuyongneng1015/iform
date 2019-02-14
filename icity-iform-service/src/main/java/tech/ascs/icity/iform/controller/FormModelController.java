@@ -368,8 +368,11 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 													  @RequestParam(name="referenceFormModelId", required = true) String referenceFormModelId) {
 		List<ReferenceItemModelEntity> itemModelEntities = itemModelService.findRefenceItemByFormModelId(formModelId);
 		List<ItemModel> list = new ArrayList<>();
+		FormModelEntity formModelEntity = formModelService.get(referenceFormModelId);
+
 		for(ReferenceItemModelEntity entity : itemModelEntities){
-			if(!entity.getFormModel().getId().equals(referenceFormModelId)) {
+			if(entity.getColumnModel() == null || formModelEntity == null|| formModelEntity.getDataModels() == null
+					|| formModelEntity.getDataModels().get(0).getId().equals(entity.getColumnModel().getDataModel().getId())){
 				continue;
 			}
 			ItemModel itemModel = new ItemModel();
