@@ -1258,7 +1258,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		if(fromItem.getParentItem() == null || fromItem.getParentItem().getColumnModel() == null){
 			return;
 		}
-		String key = fromItem.getParentItem().getColumnModel().getColumnName();
+		String key = fromItem.getParentItem().getColumnModel().getColumnName()+"_list";
 		if(fromItem.getReferenceType() == ReferenceType.ManyToOne){
 			List<Map<String, Object>> listMap = (List<Map<String, Object>>)entity.get(key);
 			if( listMap == null || listMap.size() == 0) {
