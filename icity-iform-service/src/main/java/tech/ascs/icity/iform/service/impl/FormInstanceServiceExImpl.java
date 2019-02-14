@@ -633,7 +633,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
                 idValue = String.valueOf(itemInstance.getValue());
             }
             //唯一校验
-            if(itemModel.getUniquene() != null && itemModel.getUniquene()){
+            if(itemModel.getUniquene() != null && itemModel.getUniquene() &&itemModel.getColumnModel() != null){
                List<Map> list = listByTableName(itemModel.getColumnModel().getDataModel().getTableName(), itemModel.getColumnModel().getColumnName(), String.valueOf(itemInstance.getValue()));
 
                for(Map map : list){
