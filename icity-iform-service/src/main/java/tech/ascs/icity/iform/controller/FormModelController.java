@@ -1452,13 +1452,13 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			}else if(((ReferenceItemModelEntity) entity).getReferenceType() == ReferenceType.OneToOne){
 				itemModel.setMultiple(false);
 			}else if(((ReferenceItemModelEntity) entity).getReferenceType() == ReferenceType.ManyToOne){
-				if(((ReferenceItemModelEntity) entity).getSelectMode() != SelectMode.Inverse){
-					itemModel.setMultiple(false);
-				}else{
+				if(((ReferenceItemModelEntity) entity).getType() == ItemType.ReferenceLabel){
 					itemModel.setMultiple(true);
+				}else{
+					itemModel.setMultiple(false);
 				}
 			}else if(((ReferenceItemModelEntity) entity).getReferenceType() == ReferenceType.OneToMany){
-				if(((ReferenceItemModelEntity) entity).getSelectMode() != SelectMode.Inverse){
+				if(((ReferenceItemModelEntity) entity).getType() != ItemType.ReferenceLabel){
 					itemModel.setMultiple(true);
 				}else{
 					itemModel.setMultiple(false);
