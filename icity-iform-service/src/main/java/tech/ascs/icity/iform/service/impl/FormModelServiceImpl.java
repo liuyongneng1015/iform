@@ -627,6 +627,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			for(int i = 0; i < rowItemModelEntity.getItems().size() ; i++) {
 				ItemModelEntity rowItem = rowItemModelEntity.getItems().get(i);
 				ItemModelEntity newRowItem = getNewItemModel(oldMapItmes, modelEntityMap, rowItem);
+				newRowItem.setFormModel(null);
 				if(newRowItem instanceof ReferenceItemModelEntity) {
 					verifyReference((ReferenceItemModelEntity)rowItem);
 				}
@@ -641,10 +642,12 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			for (int i = 0; i < subFormItemModel.getItems().size() ; i++) {
 				SubFormRowItemModelEntity subFormRowItemModelEntity = subFormItemModel.getItems().get(i);
 				SubFormRowItemModelEntity subFormRowItemModel  = (SubFormRowItemModelEntity)getNewSubFormRowItemModel(oldMapItmes, subFormRowItemModelEntity);
+				subFormRowItemModel.setFormModel(null);
 				List<ItemModelEntity> rowItems = new ArrayList<>();
 				for (int j = 0; j < subFormRowItemModelEntity.getItems().size() ; j ++) {
 					ItemModelEntity childRenItem = subFormRowItemModelEntity.getItems().get(j);
 					ItemModelEntity newRowItem = getNewItemModel(oldMapItmes, modelEntityMap, childRenItem);
+					newRowItem.setFormModel(null);
 					if(newRowItem instanceof ReferenceItemModelEntity) {
 						verifyReference((ReferenceItemModelEntity)newRowItem);
 					}

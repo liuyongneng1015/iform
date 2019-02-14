@@ -1255,8 +1255,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	private void setReferenceAttribute(ReferenceItemModelEntity fromItem,FormModelEntity toModelEntity, ColumnModelEntity columnModelEntity,
 									   Map<String, Object> entity, List<DataModelInstance> referenceDataModelList){
+		if(fromItem.getParentItem() == null || fromItem.getParentItem().getColumnModel() == null){
+			return;
+		}
+		String key = fromItem.getParentItem().getColumnModel().getColumnName();
 		if(fromItem.getReferenceType() == ReferenceType.ManyToOne){
-			String key = toModelEntity.getDataModels().get(0).getTableName()+"_list";
 			List<Map<String, Object>> listMap = (List<Map<String, Object>>)entity.get(key);
 			if( listMap == null || listMap.size() == 0) {
 				return;
@@ -1265,7 +1268,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			dataModelInstance.setReferenceType(fromItem.getReferenceType());
 			referenceDataModelList.add(dataModelInstance);
 		}else{
-			String key = toModelEntity.getDataModels().get(0).getTableName()+"_list";
 			Map<String, Object> mapData = (Map<String, Object>)entity.get(key);
 			if( mapData == null || mapData.size() == 0) {
 				return;
