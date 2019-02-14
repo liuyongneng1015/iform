@@ -2,6 +2,7 @@ package tech.ascs.icity.iform.support;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -94,11 +95,8 @@ public class IFormSessionFactoryBuilder {
 
 	private void setReferenceDataModel(DataModelEntity dataModel){
 		//行
-		if(dataModel.getReferencesDataModel() == null || dataModel.getReferencesDataModel().size() < 1){
-			return;
-		}
-		List<DataModelEntity> referencesDataModel = dataModel.getReferencesDataModel();
-		List<ColumnModelEntity> columnModelEntities = dataModel.getColumns();
+		List<DataModelEntity> referencesDataModel = dataModel.getReferencesDataModel() == null ? new ArrayList<>() : dataModel.getReferencesDataModel();
+		List<ColumnModelEntity> columnModelEntities = dataModel.getColumns() == null ? new ArrayList<>() : dataModel.getColumns() ;
 		for(ColumnModelEntity columnModelEntity : columnModelEntities) {
 			for (ColumnReferenceEntity entity : columnModelEntity.getColumnReferences()){
 				DataModelEntity dataModelEntity = entity.getToColumn().getDataModel();
