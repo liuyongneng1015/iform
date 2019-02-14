@@ -700,16 +700,17 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		if(formModelEntity == null){
 			throw new IFormException(404, "表单【" + rowItem.getReferenceFormId() +"】， 未找到");
 		}
-		List<ItemModelEntity> itemModels = getAllColumnItems(formModelEntity.getItems());
 
-		//关联表行
+		//关联表单字段
 		ColumnModelEntity addToEntity = null;
-		ItemModelEntity itemModelEntity = itemManager.find(rowItem.getReferenceItemId());
-		if(itemModelEntity != null){
-			addToEntity = itemModelEntity.getColumnModel();
+		if(StringUtils.isNotEmpty(rowItem.getReferenceItemId())) {
+			ItemModelEntity itemModelEntity = itemManager.find(rowItem.getReferenceItemId());
+			if (itemModelEntity != null) {
+				addToEntity = itemModelEntity.getColumnModel();
+			}
 		}
 
-		if(addToEntity == null){
+		if(StringUtils.isNotEmpty(rowItem.getReferenceItemId()) && addToEntity == null){
 			throw new IFormException(404, "表单【" + rowItem.getReferenceFormId() +"】， 未找到对应的【"+ rowItem.getReferenceItemId() +"】控件");
 		}
 
@@ -717,7 +718,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		/*ColumnModelEntity addToEntity =
 				columnModelManager.query().filterEqual("columnName",  rowItem.getReferenceValueColumn()).filterEqual("dataModel.tableName", rowItem.getReferenceTable()).unique();
 		*/
-		if(addToEntity.getColumnReferences() != null){
+		if(addToEntity != null && addToEntity.getColumnReferences() != null){
 			List<String> dataModelIds= new ArrayList<String>();
 			List<String> items = new ArrayList<String>();
 			for(ColumnReferenceEntity columnReferenceEntity : addToEntity.getColumnReferences()){
