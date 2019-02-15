@@ -25,7 +25,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import tech.ascs.icity.admin.api.model.TreeSelectData;
 import tech.ascs.icity.admin.api.model.User;
+import tech.ascs.icity.admin.client.GroupService;
 import tech.ascs.icity.admin.client.UserService;
 import tech.ascs.icity.iflow.api.model.ProcessInstance;
 import tech.ascs.icity.iflow.client.ProcessInstanceService;
@@ -84,6 +86,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	@Autowired
 	ColumnModelService columnModelService;
+
+    @Autowired
+    GroupService groupService;
 
 	public
 	FormInstanceServiceExImpl() {
@@ -663,7 +668,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		} else if (itemModel.getType() == ItemType.Select || itemModel.getType() == ItemType.RadioGroup || itemModel.getType() == ItemType.CheckboxGroup) {
+		} else if (itemModel.getType() == ItemType.Select || itemModel.getType() == ItemType.RadioGroup
+				|| itemModel.getType() == ItemType.CheckboxGroup || itemModel.getType() == ItemType.Treeselect ) {
             Object o = itemInstance.getValue();
             if(o != null && o instanceof List){
                 value = String.join(",", (List)o );
@@ -1500,6 +1506,31 @@ private DataModelInstance setDataModelInstance(FormModelEntity toModelEntity, Re
 				break;
 			case CheckboxGroup:
 				setSelectItemValue(itemModel, itemInstance, value);
+				break;
+			case Treeselect:
+
+				String valueStrs = value == null || StringUtils.isEmpty(value) ?  null : String.valueOf(value);
+				String[] strings = valueStrs == null ? new String[]{} : valueStrs.split(",");
+				List<String> ids  = Arrays.asList(strings);
+				if(((TreeSelectItemModelEntity)itemModel).getMultiple() != null && ((TreeSelectItemModelEntity)itemModel).getMultiple()){
+					itemInstance.setValue(ids);
+				}else {
+					itemInstance.setValue(valueStrs);
+				}
+
+                if(valueStrs.length() > 0) {
+                    List<TreeSelectData> list = groupService.getTreeSelectDataSourceByIds(((TreeSelectItemModelEntity) itemModel).getDataSource().getValue(), valueStrs.split(","));
+                    if(list != null && list.size() > 0){
+                        if(((TreeSelectItemModelEntity)itemModel).getMultiple() != null && ((TreeSelectItemModelEntity)itemModel).getMultiple()){
+                            itemInstance.setDisplayValue(list.parallelStream().map(TreeSelectData::getName).collect(Collectors.toList()));
+                        }else{
+                            itemInstance.setDisplayValue(list.get(0).getName());
+                        }
+                    }
+
+                }
+
+
 				break;
 			case Media:
 				setFileItemInstance(value, itemInstance);
