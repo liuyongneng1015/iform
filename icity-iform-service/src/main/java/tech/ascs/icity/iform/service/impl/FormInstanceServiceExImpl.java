@@ -563,6 +563,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}
 			//新的数据
 			List<Map<String, Object>> saveListMap = getNewMapData(key, session, o, dataModelEntity,  oldListMap,  idList,  newListMap);
+			if(saveListMap.size() > 0 && formInstance.getFormId().equals(referenceItemModelEntity.getReferenceFormId())){
+				for(Map<String, Object> map : saveListMap){
+					map.remove(key);
+				}
+			}
 			if (flag && saveListMap.size() > 0) {
 				data.put(key, new ArrayList<>(saveListMap).get(0));
 			}else{
@@ -632,6 +637,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
             if(displayTimingType == DisplayTimingType.Update && itemModel.getName().equals("id")){
                 idValue = String.valueOf(itemInstance.getValue());
             }
+            if(itemModel instanceof ReferenceItemModelEntity){
+            	continue;
+			}
             //唯一校验
             if(itemModel.getUniquene() != null && itemModel.getUniquene() &&itemModel.getColumnModel() != null){
                List<Map> list = listByTableName(itemModel.getColumnModel().getDataModel().getTableName(), itemModel.getColumnModel().getColumnName(), String.valueOf(itemInstance.getValue()));
