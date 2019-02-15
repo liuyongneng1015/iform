@@ -514,12 +514,17 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			FormModelEntity formModelEntity = formModelService.get(referenceItemModelEntity.getReferenceFormId());
 			DataModelEntity dataModelEntity = formModelEntity.getDataModels().get(0);
 
-			String key = dataModelEntity.getTableName() + "_list";
+			String key = "";
+
 			boolean flag = false;
 			if (referenceItemModelEntity.getSelectMode() == SelectMode.Single && (referenceItemModelEntity.getReferenceType() == ReferenceType.ManyToOne
 					|| referenceItemModelEntity.getReferenceType() == ReferenceType.OneToOne)) {
 				key = referenceItemModelEntity.getColumnModel().getColumnName();
 				flag = true;
+			}else if (referenceItemModelEntity.getSelectMode() == SelectMode.Inverse && (referenceItemModelEntity.getReferenceType() == ReferenceType.ManyToOne
+					|| referenceItemModelEntity.getReferenceType() == ReferenceType.OneToOne)) {
+				ReferenceItemModelEntity referenceItemModelEntity1 = (ReferenceItemModelEntity)itemModelManager.get(referenceItemModelEntity.getReferenceItemId());
+				key = referenceItemModelEntity1.getColumnModel().getColumnName()+"_list";
 			}else if(referenceItemModelEntity.getSelectMode() == SelectMode.Multiple){
 				List<ColumnReferenceEntity> referenceEntityList = columnModelService.saveColumnModelEntity(dataModelEntity, "id").getColumnReferences();
 				for(ColumnReferenceEntity columnReferenceEntity : referenceEntityList){
