@@ -1033,6 +1033,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			if(tabsItemModels != null) {
 				for (ItemModel itemModel1 : tabsItemModels){
 					TabPaneItemModelEntity tabPaneItemModelEntity = new TabPaneItemModelEntity();
+					BeanUtils.copyProperties(itemModel1, tabPaneItemModelEntity, new String[] {"searchItems","sortItems","items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});
 					List<ItemModelEntity> rowItemList = new ArrayList<>();
 					if(itemModel1.getItems() != null) {
 						for (ItemModel childrenItem : itemModel1.getItems()) {
@@ -1611,6 +1612,24 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				subFormRowItem.setTableName(((SubFormItemModelEntity) entity).getTableName());
 				subFormRowItem.setItems(rows);
 				subFormRows.add(subFormRowItem);
+			}
+			itemModel.setItems(subFormRows);
+		}else if(entity instanceof TabsItemModelEntity){
+			List<ItemModel> subFormRows = new ArrayList<>();
+			List<TabPaneItemModelEntity> tabPaneItemModelEntities = ((TabsItemModelEntity) entity).getItems();
+
+			List<TabPaneItemModelEntity> tabPaneItemModelEntityList = tabPaneItemModelEntities == null || tabPaneItemModelEntities.size() < 2 ? tabPaneItemModelEntities : tabPaneItemModelEntities.parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
+			for(TabPaneItemModelEntity tabPaneItemModelEntity : tabPaneItemModelEntityList) {
+				ItemModel itemModel1 = new ItemModel();
+				BeanUtils.copyProperties(tabPaneItemModelEntity, itemModel1, new String[]{"formModel", "columnModel", "activities", "options","searchItems","sortItems", "permissions","items","parentItem","referenceList"});
+				List<ItemModel> children = new ArrayList<>();
+				List<ItemModelEntity> itemModelEntities = tabPaneItemModelEntity.getItems() == null || tabPaneItemModelEntity.getItems().size() < 2 ? tabPaneItemModelEntity.getItems() : tabPaneItemModelEntity.getItems().parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
+				for(ItemModelEntity childrenItem : itemModelEntities) {
+					ItemModel childItem = toDTO(childrenItem, isPCItem);
+					children.add(childItem);
+				}
+				itemModel1.setItems(children);
+				subFormRows.add(itemModel1);
 			}
 			itemModel.setItems(subFormRows);
 		}

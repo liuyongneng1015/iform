@@ -683,6 +683,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				newRowItem.setItems(list);
 				tabPaneItemModelEntities.add(newRowItem);
 			}
+			((TabsItemModelEntity)newModelEntity).setItems(tabPaneItemModelEntities);
 		}
 		return newModelEntity;
 	}
