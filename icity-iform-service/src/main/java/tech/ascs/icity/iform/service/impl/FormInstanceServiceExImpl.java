@@ -535,6 +535,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				}
 			}
 
+			if(!StringUtils.hasText(key)){
+				continue;
+			}
 
 
 			List<Map<String, Object>> oldListMap = new ArrayList<>();
