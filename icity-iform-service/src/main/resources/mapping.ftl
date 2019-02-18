@@ -30,7 +30,7 @@
                 <#elseif reference.referenceType.value = "ManyToOne">
                         <many-to-one name="${column.columnName!''}" entity-name="${reference.toColumn.dataModel.tableName!''}" column="${column.columnName!''}" cascade="save-update" fetch="select" />
                 <#elseif reference.referenceType.value = "OneToMany">
-                    <bag name="${reference.toColumn.columnName!''}_list" inverse="true"  cascade="all"  lazy="false">
+                    <bag name="${reference.toColumn.columnName!''}_list"  cascade="all"  lazy="false">
                         <key column="${reference.toColumn.columnName!''}" />
                         <one-to-many entity-name="${reference.toColumn.dataModel.tableName!''}" />
                     </bag>
@@ -102,7 +102,7 @@
                     <#elseif reference.referenceType.value = "ManyToOne">
                         <many-to-one name="${column.columnName!''}" entity-name="${reference.toColumn.dataModel.tableName!''}" column="${column.columnName!''}" cascade="save-update" fetch="select"  />
                     <#elseif reference.referenceType.value = "OneToMany">
-                        <bag name="${reference.toColumn.columnName!''}_list" inverse="true" cascade="all" lazy="false" >
+                        <bag name="${reference.toColumn.columnName!''}_list" cascade="all" lazy="false" >
                             <key column="${reference.toColumn.columnName!''}" />
                             <one-to-many entity-name="${reference.toColumn.dataModel.tableName!''}" />
                         </bag>

@@ -577,6 +577,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}
 			//新的数据
 			List<Map<String, Object>> saveListMap = getNewMapData(key, session, o, dataModelEntity,  oldListMap,  idList,  newListMap);
+
+
 			if(saveListMap.size() > 0 && formInstance.getFormId().equals(referenceItemModelEntity.getReferenceFormId())){
 				for(Map<String, Object> map : saveListMap){
 					map.remove(key);
