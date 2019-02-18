@@ -36,4 +36,6 @@ public interface FormModelService extends JPAService<FormModelEntity> {
 
      void deleteItemOtherReferenceEntity(ItemModelEntity itemModelEntity);
 
+     List<ItemModelEntity> getChildRenItemModelEntity(ItemModelEntity itemModelEntity);
+
 }

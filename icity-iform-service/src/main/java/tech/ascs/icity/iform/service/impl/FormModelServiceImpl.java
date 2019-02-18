@@ -698,7 +698,8 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 	}
 
 	//获取item子item
-	private List<ItemModelEntity> getChildRenItemModelEntity(ItemModelEntity itemModelEntity){
+	@Override
+	public List<ItemModelEntity> getChildRenItemModelEntity(ItemModelEntity itemModelEntity){
 		List<ItemModelEntity> list = new ArrayList<>();
 		if(itemModelEntity instanceof RowItemModelEntity){
 			list.addAll(((RowItemModelEntity) itemModelEntity).getItems());
@@ -711,6 +712,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			list.addAll(((TabsItemModelEntity) itemModelEntity).getItems());
 			for (TabPaneItemModelEntity tabPaneItemModelEntity :  ((TabsItemModelEntity)itemModelEntity).getItems()) {
 				list.addAll(tabPaneItemModelEntity.getItems());
+				for(ItemModelEntity itemModelEntity1 : tabPaneItemModelEntity.getItems()){
+					list.addAll(getChildRenItemModelEntity(itemModelEntity1));
+				}
 			}
 		}
 		return list;

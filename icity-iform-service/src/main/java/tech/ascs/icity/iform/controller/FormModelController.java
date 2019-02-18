@@ -498,6 +498,32 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 
 
+		List<ItemModelEntity> items = new ArrayList<ItemModelEntity>();
+		Map<String, ItemModelEntity> map = new HashMap<>();
+		List<ItemModelEntity> itemModelEntityList = new ArrayList<>();
+		Map<String, List<ItemModelEntity>> formMap = new HashMap<>();
+		for (ItemModel itemModel : formModel.getItems()) {
+			ItemModelEntity itemModelEntity = wrap(itemModel, map);
+			itemModelEntity.setFormModel(entity);
+			items.add(itemModelEntity);
+			itemModelEntityList.add(itemModelEntity);
+			if(!(itemModelEntity instanceof SubFormItemModelEntity) ){
+				itemModelEntityList.addAll(formModelService.getChildRenItemModelEntity(itemModelEntity));
+			}else{
+				formMap.put(((SubFormItemModelEntity) itemModelEntity).getTableName(), formModelService.getChildRenItemModelEntity(itemModelEntity));
+			}
+		}
+		formMap.put(masterDataModel.getTableName(), itemModelEntityList);
+
+		Map<String, DataModel> dataModelMap = new HashMap<>();
+		for(DataModel dataModel : dataModels){
+			dataModelMap.put(dataModel.getTableName(), dataModel);
+		}
+
+		for(String key : formMap.keySet()){
+			setManyToManyReference(dataModelMap.get(key), formMap.get(key));
+		}
+
 
 		//是否需要关联字段
 		boolean needMasterId = false;
@@ -552,13 +578,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 		entity.setDataModels(dataModelEntities);
 
-		List<ItemModelEntity> items = new ArrayList<ItemModelEntity>();
-		Map<String, ItemModelEntity> map = new HashMap<>();
-		for (ItemModel itemModel : formModel.getItems()) {
-			ItemModelEntity itemModelEntity = wrap(itemModel, map);
-			itemModelEntity.setFormModel(entity);
-			items.add(itemModelEntity);
-		}
 
 		entity.setItems(items);
 
@@ -608,6 +627,35 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			return true;
 		}
 		return false;
+	}
+
+	private void setManyToManyReference(DataModel dataModel,List<ItemModelEntity> itemModelEntityList){
+		for(ItemModelEntity itemModelEntity : itemModelEntityList){
+			if(itemModelEntity instanceof ReferenceItemModelEntity
+					&& ((ReferenceItemModelEntity) itemModelEntity).getSelectMode() == SelectMode.Multiple){
+				ColumnModel idColumnModel = null;
+				if(dataModel.isNew()){
+					ColumnModel columnModel = new ColumnModel();
+					BeanUtils.copyProperties(columnModelService.saveColumnModelEntity(new DataModelEntity(),"id"), columnModel, new String[]{"dataModel","columnReferences"});
+					dataModel.getColumns().add(columnModel);
+				}
+				for(ColumnModel columnModel : dataModel.getColumns()){
+					if(idColumnModel.getColumnName().equals("id")){
+						idColumnModel = columnModel;
+					}
+				}
+				FormModelEntity formModelEntity = formModelService.get(((ReferenceItemModelEntity) itemModelEntity).getReferenceFormId());
+				if(idColumnModel != null){
+					List<String> refenceTables = idColumnModel.getReferenceTables().parallelStream().map(ReferenceModel::getReferenceTable).collect(Collectors.toList());
+					if(!refenceTables.contains(formModelEntity.getDataModels().get(0).getTableName())){
+						ReferenceModel referenceModel = new ReferenceModel();
+						referenceModel.setReferenceType(ReferenceType.ManyToMany);
+						referenceModel.setReferenceTable(formModelEntity.getDataModels().get(0).getTableName());
+						idColumnModel.getReferenceTables().add(referenceModel);
+					}
+				}
+			}
+		}
 	}
 
 	//提交表单提交校验

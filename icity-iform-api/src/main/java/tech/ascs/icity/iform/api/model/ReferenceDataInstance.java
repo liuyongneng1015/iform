@@ -13,7 +13,10 @@ public class ReferenceDataInstance extends IdEntity {
 	@ApiModelProperty(value = "控件的数据", position = 3)
 	private Object value;
 
-	@ApiModelProperty(value = " 关联表单模型", position = 6)
+	@ApiModelProperty(value = "显示数据", position = 4)
+	private String displayValue;
+
+	@ApiModelProperty(value = " 关联表单模型", position = 5)
 	private String referenceTable;
 
 	public Object getValue() {
@@ -22,6 +25,14 @@ public class ReferenceDataInstance extends IdEntity {
 
 	public void setValue(Object value) {
 		this.value = value;
+	}
+
+	public String getDisplayValue() {
+		return displayValue;
+	}
+
+	public void setDisplayValue(String displayValue) {
+		this.displayValue = displayValue;
 	}
 
 	public String getReferenceTable() {
