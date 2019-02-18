@@ -473,35 +473,37 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	//设置关联数据
 	private void setReferenceData(Session session, String tableName, FormDataSaveInstance formInstance, Map<String, Object> data,DisplayTimingType displayTimingType){
 		//TODO 子表数据
-		for(SubFormItemInstance subFormItemInstance : formInstance.getSubFormData()){
-			String key = subFormItemInstance.getTableName()+"_list";
-			DataModelEntity dataModelEntity = dataModelManager.findUniqueByProperty("tableName", subFormItemInstance.getTableName());
+		if(formInstance.getSubFormData() != null &&formInstance.getSubFormData().size() > 0) {
+			for (SubFormItemInstance subFormItemInstance : formInstance.getSubFormData()) {
+				String key = subFormItemInstance.getTableName() + "_list";
+				DataModelEntity dataModelEntity = dataModelManager.findUniqueByProperty("tableName", subFormItemInstance.getTableName());
 
-			//新的数据
-			List<Map<String, Object>> newListMap = new ArrayList<>();
-			for(SubFormDataItemInstance subFormDataItemInstance : subFormItemInstance.getItemInstances()){
-				for(SubFormRowItemInstance instance : subFormDataItemInstance.getItems()){
-					Map<String, Object> map = new HashMap<>();
-					for(ItemInstance itemModelService : instance.getItems()){
-                        ItemModelEntity itemModel = itemModelManager.get(itemModelService.getId());
-						setItemInstance(itemModel, itemModelService, map, displayTimingType);
+				//新的数据
+				List<Map<String, Object>> newListMap = new ArrayList<>();
+				for (SubFormDataItemInstance subFormDataItemInstance : subFormItemInstance.getItemInstances()) {
+					for (SubFormRowItemInstance instance : subFormDataItemInstance.getItems()) {
+						Map<String, Object> map = new HashMap<>();
+						for (ItemInstance itemModelService : instance.getItems()) {
+							ItemModelEntity itemModel = itemModelManager.get(itemModelService.getId());
+							setItemInstance(itemModel, itemModelService, map, displayTimingType);
+						}
+						newListMap.add(map);
 					}
-					newListMap.add(map);
 				}
-			}
-			List<String> idList = new ArrayList<>();
-			for(Map<String, Object> newMap : newListMap){
-				String id = newMap.get("id") == null ? null : String.valueOf(newMap.get("id"));
-				if(StringUtils.hasText(id)) {
-					idList.add(id);
+				List<String> idList = new ArrayList<>();
+				for (Map<String, Object> newMap : newListMap) {
+					String id = newMap.get("id") == null ? null : String.valueOf(newMap.get("id"));
+					if (StringUtils.hasText(id)) {
+						idList.add(id);
+					}
 				}
+
+				//旧的数据
+				List<Map<String, Object>> oldListMap = (List<Map<String, Object>>) data.get(key);
+				List<Map<String, Object>> saveListMap = getNewMapData("master_id", session, data, dataModelEntity, oldListMap, idList, newListMap);
+
+				data.put(key, saveListMap);
 			}
-
-			//旧的数据
-			List<Map<String, Object>> oldListMap = (List<Map<String, Object>>)data.get(key);
-			List<Map<String, Object>> saveListMap = getNewMapData("master_id",session, data, dataModelEntity,  oldListMap,  idList,  newListMap);
-
-			data.put(key, saveListMap);
 		}
 
 		//TODO 关联表数据
@@ -1577,7 +1579,7 @@ private DataModelInstance setDataModelInstance(FormModelEntity toModelEntity, Re
 	private String getNumberFormat(NumberItemModelEntity numberItemModelEntity){
 		StringBuffer stringBuffer = new StringBuffer();
 		if(numberItemModelEntity.getThousandSeparator() != null && numberItemModelEntity.getThousandSeparator()) {
-			if(numberItemModelEntity.getDecimalDigits() != null){
+			if(numberItemModelEntity.getDecimalDigits() != null && numberItemModelEntity.getDecimalDigits() > 0){
 				stringBuffer.append(",###,##0.	");
 				for(int i = 0 ; i < numberItemModelEntity.getDecimalDigits(); i++){
 					stringBuffer.append("0");
@@ -1586,7 +1588,7 @@ private DataModelInstance setDataModelInstance(FormModelEntity toModelEntity, Re
 				stringBuffer.append(",###,##0");
 			}
 		}else {
-			if (numberItemModelEntity.getDecimalDigits() != null) {
+			if (numberItemModelEntity.getDecimalDigits() != null && numberItemModelEntity.getDecimalDigits() > 0) {
 				stringBuffer.append("#.	");
 				for (int i = 0; i < numberItemModelEntity.getDecimalDigits(); i++) {
 					stringBuffer.append("0");
