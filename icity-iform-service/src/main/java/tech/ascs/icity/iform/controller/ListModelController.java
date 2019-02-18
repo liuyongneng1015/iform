@@ -465,7 +465,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			listModel.setMasterForm(masterForm);
 		}
 
-		Set<String> masterFormItemIds = getMasterFormItemIds(entity.getMasterForm());
+		Set<String> masterFormItemIds = getMasterFormItems(entity.getMasterForm()).stream().map(item->item.getId()).collect(Collectors.toSet());
 
 		if(entity.getDisplayItems() != null){
 			List<ItemModel> list = new ArrayList<>();
@@ -659,31 +659,65 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 //	}
 
 	/**
+	 *
+	 */
+	/**
+	 *
+	 * 过滤 子表，关联表单(单选)，关联表单(多选)，关联表单(反向)，一行两列(里面的控件不过滤)，一行三列(里面的控件不过滤)，
+	 *
 	 * 获取主表单包含的普通控件item的id集合
 	 * @param masterForm
 	 * @return
 	 */
-	public Set<String> getMasterFormItemIds(FormModelEntity masterForm) {
-		Set<String> ids = new HashSet<>();
+	public Set<ItemModelEntity> getMasterFormItems(FormModelEntity masterForm) {
+		Set<ItemModelEntity> items = new HashSet<>();
 		if (masterForm!=null && masterForm.getItems()!=null) {
 			for (ItemModelEntity item:masterForm.getItems()) {
 				if (item.getType()!=null) {
-					ids.addAll(getItemSubItemIds(item));
+					if (item.getType()!=ItemType.SubForm && item.getType()!=ItemType.ReferenceList) {
+						// 过滤标签页这个外层的控件，遍历进去获取里面的控件
+						if (item instanceof TabPaneItemModelEntity) {
+							TabsItemModelEntity tabsItemModelEntity = (TabsItemModelEntity) item;
+							items.addAll(getTabsInsideItems(tabsItemModelEntity));
+						} else {
+							items.add(item);
+						}
+					}
+//					ids.addAll(getItemSubItems(item));
 				}
 //				if (item.getType()!=null && item.getType()!=ItemType.Row &&
 //						item.getType()!=ItemType.SubForm && item.getType()!=ItemType.RowItem &&
 //						item.getType()!=ItemType.ReferenceList) {
-//					ids.addAll(getItemSubItemIds(item));
+//					ids.addAll(getItemSubItems(item));
 //				}
 			}
 		}
-		return ids;
+		return items;
 	}
 
-	public Set<String> getItemSubItemIds(ItemModelEntity itemModelEntity) {
-		Set<String> ids = new HashSet<>();
+	/**
+	 * 获取标签页里面嵌套保存的子Item
+	 * @param tabsItemModelEntity
+	 * @return
+	 */
+	public List<ItemModelEntity> getTabsInsideItems(TabsItemModelEntity tabsItemModelEntity) {
+		List<ItemModelEntity> items = new ArrayList<>();
+		if (tabsItemModelEntity.getItems()!=null && tabsItemModelEntity.getItems().size()>0) {
+			List<TabPaneItemModelEntity> tabPaneItems = tabsItemModelEntity.getItems();
+			for (TabPaneItemModelEntity tabPaneItem:tabPaneItems) {
+				List<ItemModelEntity> tabPaneReferenceItems = tabPaneItem.getItems();
+				if (tabPaneReferenceItems!=null && tabPaneReferenceItems.size()>0) {
+					items.addAll(tabPaneReferenceItems);
+				}
+			}
+		}
+		return items;
+	}
+
+	public List<ItemModelEntity> getItemSubItems(ItemModelEntity itemModelEntity) {
+		List<ItemModelEntity> list = new ArrayList<>();
 		if (itemModelEntity!=null) {
-			ids.add(itemModelEntity.getId());
+			list.add(itemModelEntity);
 			Class clazz = itemModelEntity.getClass();  //得到类对象
 			Field[] fs = clazz.getDeclaredFields();    //得到属性集合
 			for (Field f:fs) {                         //遍历属性
@@ -694,7 +728,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 						if (itemValues!=null && itemValues instanceof List) {
 							List<ItemModelEntity> items = (List<ItemModelEntity>)itemValues;
 							for (ItemModelEntity subItem:items) {
-								ids.addAll(getItemSubItemIds(subItem));
+								list.addAll(getItemSubItems(subItem));
 							}
 						}
 					} catch (IllegalAccessException e) {
@@ -703,6 +737,6 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				}
 			}
 		}
-		return ids;
+		return list;
 	}
 }
