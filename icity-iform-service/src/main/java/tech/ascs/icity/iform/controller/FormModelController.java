@@ -642,6 +642,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				for(ColumnModel columnModel : dataModel.getColumns()){
 					if(columnModel.getColumnName().equals("id")){
 						idColumnModel = columnModel;
+						break;
 					}
 				}
 				FormModelEntity formModelEntity = formModelService.get(((ReferenceItemModelEntity) itemModelEntity).getReferenceFormId());
