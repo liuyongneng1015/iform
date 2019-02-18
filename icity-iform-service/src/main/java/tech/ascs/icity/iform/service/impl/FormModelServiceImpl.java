@@ -473,6 +473,15 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		return newItemModelEntity;
 	}
 
+	private TabPaneItemModelEntity  getNewTabPaneItemModel(Map<String, ItemModelEntity> oldMapItmes, TabPaneItemModelEntity oldItemModelEntity){
+		TabPaneItemModelEntity newItemModelEntity = new TabPaneItemModelEntity();
+		if(!oldItemModelEntity.isNew()){
+			newItemModelEntity = (TabPaneItemModelEntity)oldMapItmes.get(oldItemModelEntity.getId());
+		}
+		BeanUtils.copyProperties(oldItemModelEntity, newItemModelEntity, new String[]{"permissions","searchItems", "sortItems", "parentItem","referenceList","items","formModel","columnModel","activities","options"});
+		return newItemModelEntity;
+	}
+
 	private ItemModelEntity  getNewSubFormItemModel(SubFormItemModelEntity oldItemModelEntity){
 		ItemModelEntity newItemModelEntity = new SubFormItemModelEntity();
 		if(!oldItemModelEntity.isNew()){
@@ -664,7 +673,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			List<TabPaneItemModelEntity> tabPaneItemModelEntities = new ArrayList<>();
 			for (int j = 0; j < tabPaneItemModelEntity.getItems().size() ; j ++) {
 				TabPaneItemModelEntity childRenItem = tabPaneItemModelEntity.getItems().get(j);
-				TabPaneItemModelEntity newRowItem = (TabPaneItemModelEntity)getNewItemModel(oldMapItmes, modelEntityMap, childRenItem);
+				TabPaneItemModelEntity newRowItem = getNewTabPaneItemModel(oldMapItmes, childRenItem);
 				List<ItemModelEntity> list = new ArrayList<>();
 				for(ItemModelEntity itemModelEntity : childRenItem.getItems()){
 					list.add(getNewItemModel(oldMapItmes, modelEntityMap, itemModelEntity));
