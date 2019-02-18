@@ -640,7 +640,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 					dataModel.getColumns().add(columnModel);
 				}
 				for(ColumnModel columnModel : dataModel.getColumns()){
-					if(idColumnModel.getColumnName().equals("id")){
+					if(columnModel.getColumnName().equals("id")){
 						idColumnModel = columnModel;
 					}
 				}
