@@ -406,6 +406,15 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 		if(paramerItemModelEntity.getColumnModel() != null && paramerItemModelEntity.getColumnModel().getDataModel() != null){
 			ColumnModelEntity columnModelEntity = modelEntityMap.get(paramerItemModelEntity.getColumnModel().getDataModel().getTableName()+"_"+paramerItemModelEntity.getColumnModel().getColumnName());
+			if(columnModelEntity != null && saveItemModelEntity instanceof NumberItemModelEntity){
+				if(((NumberItemModelEntity) saveItemModelEntity).getDecimalDigits() != null && ((NumberItemModelEntity) saveItemModelEntity).getDecimalDigits() > 0
+						&& columnModelEntity.getDataType() != ColumnType.Double){
+					columnModelEntity.setDataType(ColumnType.Double);
+				}else if((((NumberItemModelEntity) saveItemModelEntity).getDecimalDigits() == null || ((NumberItemModelEntity) saveItemModelEntity).getDecimalDigits() < 1)
+						&& columnModelEntity.getDataType() != ColumnType.Integer){
+					columnModelEntity.setDataType(ColumnType.Integer);
+				}
+			}
 			saveItemModelEntity.setColumnModel(columnModelEntity);
 		}else if(!"id".equals(saveItemModelEntity.getName())){
 			saveItemModelEntity.setColumnModel(null);
