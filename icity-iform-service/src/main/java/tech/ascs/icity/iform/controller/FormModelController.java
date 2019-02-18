@@ -372,7 +372,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 		for(ReferenceItemModelEntity entity : itemModelEntities){
 			if(entity.getColumnModel() == null || formModelEntity == null|| formModelEntity.getDataModels() == null
-					|| formModelEntity.getDataModels().get(0).getId().equals(entity.getColumnModel().getDataModel().getId())){
+					|| !formModelEntity.getDataModels().get(0).getId().equals(entity.getColumnModel().getDataModel().getId())){
 				continue;
 			}
 			ItemModel itemModel = new ItemModel();
