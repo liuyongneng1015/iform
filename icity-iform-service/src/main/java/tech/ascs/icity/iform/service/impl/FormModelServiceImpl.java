@@ -118,7 +118,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			BeanUtils.copyProperties(entity, old, new String[] {"dataModels", "items", "permissions", "submitChecks","functions"});
 
 			//删除活动
-			deleteOldItems(old);
+			//deleteOldItems(old);
 
 			List<ItemModelEntity> oldItems = old.getItems();
 
@@ -603,27 +603,47 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 	}
 
 	//得到最新的item
-	private ItemModelEntity setAcitityOption(ItemModelEntity newEntity, ItemModelEntity oldEntity){
+	private ItemModelEntity setAcitityOption(ItemModelEntity newEntity, ItemModelEntity paramerItemModelEntity){
 		List<ItemActivityInfo> activities = new ArrayList<ItemActivityInfo>();
 
-		for (ItemActivityInfo activity : oldEntity.getActivities()) {
-            ItemActivityInfo newItemActivity = new ItemActivityInfo();
+		//旧数据
+		List<ItemSelectOption> itemSelectOptions = newEntity.getOptions();
+		List<ItemActivityInfo> itemActivityInfos = newEntity.getActivities();
+		Map<String, ItemSelectOption> itemSelectOptionMap = new HashMap<>();
+		Map<String, ItemActivityInfo> itemActivityInfoMap = new HashMap<>();
+		for(ItemSelectOption option : itemSelectOptions){
+			itemSelectOptionMap.put(option.getId(), option);
+		}
+		for(ItemActivityInfo activityInfo : itemActivityInfos){
+			itemActivityInfoMap.put(activityInfo.getId(), activityInfo);
+		}
+
+
+		for (ItemActivityInfo activity : paramerItemModelEntity.getActivities()) {
+            ItemActivityInfo newItemActivity = activity.isNew() ?  new ItemActivityInfo() : itemActivityInfoMap.remove(activity.getId());
             BeanUtils.copyProperties(activity, newItemActivity, new String[]{"itemModel"});
-			newItemActivity.setId(null);
             newItemActivity.setItemModel(newEntity);
 			activities.add(newItemActivity);
 		}
 
+
 		List<ItemSelectOption> options = new ArrayList<ItemSelectOption>();
-		for (ItemSelectOption option : oldEntity.getOptions()) {
-            ItemSelectOption newOption = new ItemSelectOption();
+		for (ItemSelectOption option : paramerItemModelEntity.getOptions()) {
+            ItemSelectOption newOption = option.isNew() ?  new ItemSelectOption() : itemSelectOptionMap.remove(option.getId());
             BeanUtils.copyProperties(option, newOption, new String[]{"itemModel"});
-			newOption.setId(null);
             newOption.setItemModel(newEntity);
 			options.add(newOption);
 		}
+
 		newEntity.setOptions(options);
 		newEntity.setActivities(activities);
+
+		for(String key : itemActivityInfoMap.keySet()){
+			itemActivityManager.deleteById(key);
+		}
+		for(String key : itemSelectOptionMap.keySet()){
+			itemSelectOptionManager.deleteById(key);
+		}
 
 		return newEntity;
 	}
@@ -1088,12 +1108,12 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			itemActivityManager.delete(itemActivity);
 			i--;
 		}
-		for (int i = 0 ; i < itemModelEntity.getOptions().size() ; i++) {
+		/*for (int i = 0 ; i < itemModelEntity.getOptions().size() ; i++) {
 			ItemSelectOption itemSelectOption = itemModelEntity.getOptions().get(i);
 			itemModelEntity.getOptions().remove(itemSelectOption);
 			itemSelectOptionManager.delete(itemSelectOption);
 			i--;
-		}
+		}*/
 	}
 
 
