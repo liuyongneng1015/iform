@@ -487,14 +487,14 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				//新的数据
 				List<Map<String, Object>> newListMap = new ArrayList<>();
 				for (SubFormDataItemInstance subFormDataItemInstance : subFormItemInstance.getItemInstances()) {
+					Map<String, Object> map = new HashMap<>();
 					for (SubFormRowItemInstance instance : subFormDataItemInstance.getItems()) {
-						Map<String, Object> map = new HashMap<>();
 						for (ItemInstance itemModelService : instance.getItems()) {
 							ItemModelEntity itemModel = itemModelManager.get(itemModelService.getId());
 							setItemInstance(itemModel, itemModelService, map, displayTimingType);
 						}
-						newListMap.add(map);
 					}
+					newListMap.add(map);
 				}
 				List<String> idList = new ArrayList<>();
 				for (Map<String, Object> newMap : newListMap) {
