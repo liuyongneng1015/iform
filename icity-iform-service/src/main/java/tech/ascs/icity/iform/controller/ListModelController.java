@@ -465,7 +465,11 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			listModel.setMasterForm(masterForm);
 		}
 
-		Set<String> masterFormItemIds = getMasterFormItems(entity.getMasterForm()).stream().map(item->item.getId()).collect(Collectors.toSet());
+		Set<String> masterFormItemIds = new HashSet<>();
+		if (entity.getMasterForm()!=null && entity.getMasterForm().getItems()!=null && entity.getMasterForm().getItems().size()>0) {
+			masterFormItemIds = entity.getMasterForm().getItems().stream().map(item->item.getId()).collect(Collectors.toSet());
+		}
+//		Set<String> masterFormItemIds = getMasterFormItems(entity.getMasterForm()).stream().map(item->item.getId()).collect(Collectors.toSet());
 
 		if(entity.getDisplayItems() != null){
 			List<ItemModel> list = new ArrayList<>();
