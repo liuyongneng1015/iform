@@ -305,7 +305,7 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 	public Page<ListModel> findListModelSimplePageInfo(String name, String applicationId, int page, int pagesize) {
 		String dataSql = " SELECT l.id, l.name, l.application_id, f.id form_id, f.name form_name ";
 		String countSql = " SELECT COUNT(1) ";
-		String querySql = " FROM ifm_list_model l LEFT JOIN ifm_form_model f ON l.master_form=f.id WHERE 1=1 ";
+		String querySql = " FROM ifm_list_model l LEFT JOIN ifm_form_model f ON l.master_form=f.id WHERE f.id IS NOT NULL ";
 		if (!StringUtils.isEmpty(applicationId)) {
 			querySql += " AND l.application_id='"+applicationId+"' ";
 		}
