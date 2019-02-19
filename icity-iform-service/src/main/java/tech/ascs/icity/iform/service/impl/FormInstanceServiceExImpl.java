@@ -1117,7 +1117,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			if(copyDisplayIds.contains(referenceDataInstance.getId())){
 				ItemInstance itemInstance = new ItemInstance();
 				itemInstance.setId(referenceDataInstance.getId());
-				itemInstance.setValue(referenceDataInstance.getDisplayValue());
+				itemInstance.setValue(referenceDataInstance.getValue());
+				itemInstance.setDisplayValue(referenceDataInstance.getDisplayValue());
 				items.add(itemInstance);
 			}
 		}
