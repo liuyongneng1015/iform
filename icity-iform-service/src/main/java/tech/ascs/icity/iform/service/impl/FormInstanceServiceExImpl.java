@@ -478,7 +478,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			for (SubFormItemInstance subFormItemInstance : formInstance.getSubFormData()) {
 				String key = subFormItemInstance.getTableName() + "_list";
 				DataModelEntity dataModelEntity = dataModelManager.findUniqueByProperty("tableName", subFormItemInstance.getTableName());
-
+				if(dataModelEntity == null){
+					continue;
+				}
 				//新的数据
 				List<Map<String, Object>> newListMap = new ArrayList<>();
 				for (SubFormDataItemInstance subFormDataItemInstance : subFormItemInstance.getItemInstances()) {
