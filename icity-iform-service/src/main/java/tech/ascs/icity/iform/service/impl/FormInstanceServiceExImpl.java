@@ -1103,13 +1103,13 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 		copyDisplayIds.removeAll(copyItemIds);
 
-		for(int i = 0; i < items.size(); i++ ){
+		/*for(int i = 0; i < items.size(); i++ ){
 			ItemInstance itemInstance = items.get(i);
 			if(itemIds.contains(itemInstance.getId()) && itemInstance.getSystemItemType() != SystemItemType.ID){
 				items.remove(itemInstance);
 				i--;
 			}
-		}
+		}*/
 		for (ReferenceDataInstance referenceDataInstance : referenceDataModelList) {
 			if(copyDisplayIds.contains(referenceDataInstance.getId())){
 				ItemInstance itemInstance = new ItemInstance();
