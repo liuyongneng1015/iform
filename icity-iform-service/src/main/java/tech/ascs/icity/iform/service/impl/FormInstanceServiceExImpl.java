@@ -1105,7 +1105,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 		for(int i = 0; i < items.size(); i++ ){
 			ItemInstance itemInstance = items.get(i);
-			if(itemIds.contains(itemInstance.getId())){
+			if(itemIds.contains(itemInstance.getId()) && itemInstance.getSystemItemType() != SystemItemType.ID){
 				items.remove(itemInstance);
 				i--;
 			}
