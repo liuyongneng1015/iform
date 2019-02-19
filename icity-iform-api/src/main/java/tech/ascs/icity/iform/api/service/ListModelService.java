@@ -69,7 +69,7 @@ public interface ListModelService {
 
 
 	/**
-	  * 新建列表模型
+	 * 新建列表模型
 	 * 
 	 * @param listModel 列表模型
 	 */
