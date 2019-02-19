@@ -473,6 +473,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	//设置关联数据
 	private void setReferenceData(Session session, String tableName, FormDataSaveInstance formInstance, Map<String, Object> data,DisplayTimingType displayTimingType){
+		//主表
+		FormModelEntity masterFormModelEntity = formModelService.get(formInstance.getFormId());
+
 		//TODO 子表数据
 		if(formInstance.getSubFormData() != null &&formInstance.getSubFormData().size() > 0) {
 			for (SubFormItemInstance subFormItemInstance : formInstance.getSubFormData()) {
@@ -531,13 +534,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				ReferenceItemModelEntity referenceItemModelEntity1 = (ReferenceItemModelEntity)itemModelManager.get(referenceItemModelEntity.getReferenceItemId());
 				key = referenceItemModelEntity1.getColumnModel().getColumnName()+"_list";
 			}else if(referenceItemModelEntity.getSelectMode() == SelectMode.Multiple){
-				List<ColumnReferenceEntity> referenceEntityList = columnModelService.saveColumnModelEntity(dataModelEntity, "id").getColumnReferences();
-				for(ColumnReferenceEntity columnReferenceEntity : referenceEntityList){
-					if(columnReferenceEntity.getToColumn().getDataModel().getId().equals(dataModelEntity.getId())){
-						key = columnReferenceEntity.getReferenceMiddleTableName();
-						break;
-					}
-				}
+				key = dataModelEntity.getTableName()+"_list";
 			}
 
 			if(!StringUtils.hasText(key)){

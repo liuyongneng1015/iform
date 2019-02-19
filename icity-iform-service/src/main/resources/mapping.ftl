@@ -35,7 +35,7 @@
                         <one-to-many entity-name="${reference.toColumn.dataModel.tableName!''}" />
                     </bag>
                 <#else>
-                    <bag name="${reference.toColumn.dataModel.tableName!''}_list" <#if reference.referenceMiddleTableName?? && reference.referenceMiddleTableName!=""> table="if_${reference.referenceMiddleTableName}_list" <#else > table="if_${reference.fromColumn.dataModel.tableName}_${reference.toColumn.dataModel.tableName!''}_list" </#if> <#if reference.inverse??>inverse="${reference.inverse}" </#if> <#if reference.inverse?? && reference.inverse="true">cascade="all"<#else >cascade="save-update" </#if>  lazy="false" fetch="select">
+                    <bag name="${reference.toColumn.dataModel.tableName!''}_list" <#if reference.referenceMiddleTableName?? && reference.referenceMiddleTableName!=""> table="if_${reference.referenceMiddleTableName}_list" <#else > table="if_${reference.fromColumn.dataModel.tableName}_${reference.toColumn.dataModel.tableName!''}_list" </#if> inverse="false" <#if reference.inverse?? && reference.inverse="true">cascade="all"<#else >cascade="save-update" </#if>  lazy="false" fetch="select">
                         <key column="${reference.fromColumn.dataModel.tableName}_id"></key>
                         <many-to-many entity-name="${reference.toColumn.dataModel.tableName!''}" column="${reference.toColumn.dataModel.tableName!''}_id"></many-to-many>
                     </bag>
@@ -108,7 +108,7 @@
                         </bag>
                     <#else>
                         <#if dataModel.tableName = reference.toColumn.dataModel.tableName>
-                            <bag name="${reference.toColumn.dataModel.tableName!''}_list" <#if reference.referenceMiddleTableName?? && reference.referenceMiddleTableName!=""> table="if_${reference.referenceMiddleTableName}_list" <#else > table="if_${reference.toColumn.dataModel.tableName!''}_${reference.fromColumn.dataModel.tableName}_list" </#if> <#if reference.inverse?? >inverse="${reference.inverse}" </#if>  <#if reference.inverse?? && reference.inverse="true">cascade="all" <#else>cascade="save-update" </#if> lazy="false" fetch="select">
+                            <bag name="${reference.toColumn.dataModel.tableName!''}_list" <#if reference.referenceMiddleTableName?? && reference.referenceMiddleTableName!=""> table="if_${reference.referenceMiddleTableName}_list" <#else > table="if_${reference.toColumn.dataModel.tableName!''}_${reference.fromColumn.dataModel.tableName}_list" </#if> inverse="true"  <#if reference.inverse?? && reference.inverse="true">cascade="all" <#else>cascade="save-update" </#if> lazy="false" fetch="select">
                                 <key column="${reference.fromColumn.dataModel.tableName}_id"></key>
                                 <many-to-many entity-name="${reference.toColumn.dataModel.tableName!''}" column="${reference.toColumn.dataModel.tableName!''}_id"></many-to-many>
                             </bag>
