@@ -646,7 +646,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				ItemModelEntity rowItem = rowItemModelEntity.getItems().get(i);
 				ItemModelEntity newRowItem = getNewItemModel(oldMapItmes, modelEntityMap, rowItem);
 				newRowItem.setFormModel(null);
-				if(newRowItem instanceof ReferenceItemModelEntity) {
+				if((newRowItem instanceof ReferenceItemModelEntity) && newRowItem.getType() != ItemType.ReferenceLabel) {
 					verifyReference((ReferenceItemModelEntity)rowItem);
 				}
 				newRowItem.setOrderNo(i);
@@ -666,7 +666,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 					ItemModelEntity childRenItem = subFormRowItemModelEntity.getItems().get(j);
 					ItemModelEntity newRowItem = getNewItemModel(oldMapItmes, modelEntityMap, childRenItem);
 					newRowItem.setFormModel(null);
-					if(newRowItem instanceof ReferenceItemModelEntity) {
+					if((newRowItem instanceof ReferenceItemModelEntity) && newRowItem.getType() != ItemType.ReferenceLabel) {
 						verifyReference((ReferenceItemModelEntity)newRowItem);
 					}
 					newRowItem.setOrderNo(j);
