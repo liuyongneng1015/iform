@@ -465,11 +465,11 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			listModel.setMasterForm(masterForm);
 		}
 
-		Set<String> masterFormItemIds = new HashSet<>();
-		if (entity.getMasterForm()!=null && entity.getMasterForm().getItems()!=null && entity.getMasterForm().getItems().size()>0) {
-			masterFormItemIds = entity.getMasterForm().getItems().stream().map(item->item.getId()).collect(Collectors.toSet());
-		}
-//		Set<String> masterFormItemIds = getMasterFormItems(entity.getMasterForm()).stream().map(item->item.getId()).collect(Collectors.toSet());
+//		Set<String> masterFormItemIds = new HashSet<>();
+//		if (entity.getMasterForm()!=null && entity.getMasterForm().getItems()!=null && entity.getMasterForm().getItems().size()>0) {
+//			masterFormItemIds = entity.getMasterForm().getItems().stream().map(item->item.getId()).collect(Collectors.toSet());
+//		}
+		Set<String> masterFormItemIds = getMasterFormItems(entity.getMasterForm()).stream().map(item->item.getId()).collect(Collectors.toSet());
 
 		if(entity.getDisplayItems() != null){
 			List<ItemModel> list = new ArrayList<>();
@@ -678,15 +678,17 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		if (masterForm!=null && masterForm.getItems()!=null) {
 			for (ItemModelEntity item:masterForm.getItems()) {
 				if (item.getType()!=null) {
-					if (item.getType()!=ItemType.SubForm && item.getType()!=ItemType.ReferenceList) {
-						// 过滤标签页这个外层的控件，遍历进去获取里面的控件
-						if (item instanceof TabPaneItemModelEntity) {
-							TabsItemModelEntity tabsItemModelEntity = (TabsItemModelEntity) item;
-							items.addAll(getTabsInsideItems(tabsItemModelEntity));
-						} else {
-							items.add(item);
-						}
-					}
+					items.add(item);
+					items.addAll(getItemSubItems(item));
+//					if (item.getType()!=ItemType.SubForm && item.getType()!=ItemType.ReferenceList) {
+//						// 过滤标签页这个外层的控件，遍历进去获取里面的控件
+//						if (item instanceof TabPaneItemModelEntity) {
+//							TabsItemModelEntity tabsItemModelEntity = (TabsItemModelEntity) item;
+//							items.addAll(getTabsInsideItems(tabsItemModelEntity));
+//						} else {
+//							items.add(item);
+//						}
+//					}
 //					ids.addAll(getItemSubItems(item));
 				}
 //				if (item.getType()!=null && item.getType()!=ItemType.Row &&
