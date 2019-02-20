@@ -521,7 +521,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 
 		for(String key : formMap.keySet()){
-			setManyToManyReference(dataModelMap.get(key), formMap.get(key));
+			setReference(dataModelMap.get(key), formMap.get(key));
 		}
 
 
@@ -629,10 +629,10 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		return false;
 	}
 
-	private void setManyToManyReference(DataModel dataModel,List<ItemModelEntity> itemModelEntityList){
+	private void setReference(DataModel dataModel, List<ItemModelEntity> itemModelEntityList){
 		for(ItemModelEntity itemModelEntity : itemModelEntityList){
 			if(itemModelEntity instanceof ReferenceItemModelEntity
-					&& ((ReferenceItemModelEntity) itemModelEntity).getSelectMode() == SelectMode.Multiple){
+					&& ((ReferenceItemModelEntity) itemModelEntity).getSelectMode() != SelectMode.Attribute){
 				ColumnModel idColumnModel = null;
 				if(dataModel.isNew()){
 					ColumnModel columnModel = new ColumnModel();
@@ -650,7 +650,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 					List<String> refenceTables = idColumnModel.getReferenceTables().parallelStream().map(ReferenceModel::getReferenceTable).collect(Collectors.toList());
 					if(!refenceTables.contains(formModelEntity.getDataModels().get(0).getTableName())){
 						ReferenceModel referenceModel = new ReferenceModel();
-						referenceModel.setReferenceType(ReferenceType.ManyToMany);
+						referenceModel.setReferenceType(((ReferenceItemModelEntity) itemModelEntity).getReferenceType());
 						referenceModel.setReferenceTable(formModelEntity.getDataModels().get(0).getTableName());
 						idColumnModel.getReferenceTables().add(referenceModel);
 					}
