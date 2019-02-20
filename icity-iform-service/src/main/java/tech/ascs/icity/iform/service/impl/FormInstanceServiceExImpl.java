@@ -551,17 +551,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				oldListMap = (List<Map<String, Object>>) oldData;
 			}
 
-			if(referenceItemModelEntity.getReferenceType() == ReferenceType.OneToOne && referenceItemModelEntity.getColumnModel() != null){
-				String idValue = String.valueOf(((Map)oldData).get("id"));
-				List<String> list = listByTableName(masterFormModelEntity.getDataModels().get(0).getTableName(), referenceItemModelEntity.getColumnModel().getColumnName(), idValue);
-
-				for(String str : list){
-					if(!org.apache.commons.lang3.StringUtils.equals(str,idValue)){
-						throw new IFormException(referenceItemModelEntity.getName()+"必须唯一");
-					}
-				}
-			}
-
 			List<Map<String, Object>> newListMap = new ArrayList<>();
 			if(dataModelInstance.getValue() != null && dataModelInstance.getValue() instanceof List) {
 				for (String instances : (List<String>)dataModelInstance.getValue()) {
@@ -593,6 +582,16 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			//新的数据
 			List<Map<String, Object>> saveListMap = getNewMapData(key, session, o, dataModelEntity,  oldListMap,  idList,  newListMap);
 
+			if(referenceItemModelEntity.getReferenceType() == ReferenceType.OneToOne && referenceItemModelEntity.getColumnModel() != null && saveListMap != null && saveListMap.size() > 0){
+				String idValue = String.valueOf(saveListMap.get(0).get("id"));
+				List<String> list = listByTableName(masterFormModelEntity.getDataModels().get(0).getTableName(), referenceItemModelEntity.getColumnModel().getColumnName(), idValue);
+
+				for(String str : list){
+					if(!org.apache.commons.lang3.StringUtils.equals(str,idValue)){
+						throw new IFormException(referenceItemModelEntity.getName()+"必须唯一");
+					}
+				}
+			}
 
 			if(saveListMap.size() > 0 && formInstance.getFormId().equals(referenceItemModelEntity.getReferenceFormId())){
 				for(Map<String, Object> map : saveListMap){
