@@ -563,6 +563,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 						searchReferenceList.setDescription(searchReferenceListEntity.getDescription());
 						searchReferenceList.setApplicationId(searchReferenceListEntity.getApplicationId());
 						searchItem.setReferenceList(searchReferenceList);
+						searchItem.setReferenceListId(searchReferenceListEntity.getId());
 					}
 
 					if (itemModelEntity instanceof SelectItemModelEntity) {
