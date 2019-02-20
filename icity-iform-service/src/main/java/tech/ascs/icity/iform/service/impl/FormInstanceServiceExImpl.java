@@ -156,7 +156,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 
     private List<String> listByTableName(String tableName, String key, String value) {
-        StringBuilder sql = new StringBuilder("SELECT id FROM if_").append(tableName).append(" where ").append("f"+key).append("='"+value+"'");
+        StringBuilder sql = new StringBuilder("SELECT id FROM if_").append(tableName).append(" where ").append(key).append("='"+value+"'");
         List<String> list = jdbcTemplate.queryForList(sql.toString(),String.class);
         return list;
     }
@@ -672,7 +672,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}
             //唯一校验
             if(itemModel.getUniquene() != null && itemModel.getUniquene() &&itemModel.getColumnModel() != null){
-               List<String> list = listByTableName(itemModel.getColumnModel().getDataModel().getTableName(), itemModel.getColumnModel().getColumnName(), String.valueOf(itemInstance.getValue()));
+               List<String> list = listByTableName(itemModel.getColumnModel().getDataModel().getTableName(), "f"+itemModel.getColumnModel().getColumnName(), String.valueOf(itemInstance.getValue()));
 
                for(String str : list){
                    if(!org.apache.commons.lang3.StringUtils.equals(str,idValue)){
