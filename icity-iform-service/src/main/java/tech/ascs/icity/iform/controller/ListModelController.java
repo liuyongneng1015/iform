@@ -379,9 +379,6 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		if (listModel.getQuickSearchItems() !=null) {
 			// 检测快速筛选的个数
 			Long count = listModel.getQuickSearchItems().stream().filter(item->item.getDefaultActive()!=null && item.getDefaultActive()==true).count();
-//			if (count==0) {
-//				throw new IFormException("启动了快速筛选，必须勾选默认的快速刷选条件");
-//			}
 			if (count>1) {
 				throw new IFormException("快速筛选的默认勾选个数不能超过1个");
 			}
@@ -396,9 +393,6 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		    	if (itemModel==null || StringUtils.isEmpty(itemModel.getId())) {
 					allQuickSearchCount++;
 				}
-//				if(itemModel == null || StringUtils.isEmpty(itemModel.getId())) {
-//					throw new IFormException("快速筛选必须勾选要刷选控件");
-//				}
 				if ((itemModel!=null && !StringUtils.isEmpty(itemModel.getId()) && (searchItem.getSearchValues()==null || searchItem.getSearchValues().size()==0))) {
 					throw new IFormException("快速筛选勾选了筛选控件后必须勾选筛选值");
 				}
@@ -427,7 +421,10 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		if(StringUtils.isEmpty(listModel.getName()) || StringUtils.isEmpty(listModel.getApplicationId())){
 			throw new IFormException("名称或关联应用为空");
 		}
-		List<ListModelEntity> list = listModelService.query().filterEqual("name", listModel.getName()).filterEqual("applicationId", listModel.getApplicationId()).list();
+		List<ListModelEntity> list = listModelService.query().filterEqual("name", listModel.getName())
+													 .filterEqual("applicationId", listModel.getApplicationId())
+													 .filterNotNull("masterForm")
+													 .list();
 		if(list == null || list.size() < 1){
 			return;
 		}
@@ -626,22 +623,20 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		if (entity.getQuickSearchItems().size() > 0) {
 		    List<QuickSearchItem> quickSearches = new ArrayList<>();
 		    for (QuickSearchEntity quickSearchEntity:entity.getQuickSearchItems()) {
-//				if (quickSearchEntity.getItemModel() != null) {
-					if (quickSearchEntity.getItemModel() != null && masterFormItemIds.contains(quickSearchEntity.getItemModel().getId())==false) {
-						continue;
-					}
-					QuickSearchItem quickSearch = new QuickSearchItem();
-					BeanUtils.copyProperties(quickSearchEntity, quickSearch, new String[]{"listModel", "itemModel", "searchValues"});
-					if (!StringUtils.isEmpty(quickSearchEntity.getSearchValues())) {
-						quickSearch.setSearchValues(Arrays.asList(quickSearchEntity.getSearchValues().split(",")));
-					}
-					if (quickSearchEntity.getItemModel() != null) {
-						ItemModel itemModel = new ItemModel();
-						BeanUtils.copyProperties(quickSearchEntity.getItemModel(), itemModel, new String[]{"formModel", "columnModel", "activities", "options", "searchItems", "sortItems", "permissions", "items", "parentItem", "referenceList"});
-						quickSearch.setItemModel(itemModel);
-					}
-                	quickSearches.add(quickSearch);
-//				}
+				if (quickSearchEntity.getItemModel() != null && masterFormItemIds.contains(quickSearchEntity.getItemModel().getId())==false) {
+					continue;
+				}
+				QuickSearchItem quickSearch = new QuickSearchItem();
+				BeanUtils.copyProperties(quickSearchEntity, quickSearch, new String[]{"listModel", "itemModel", "searchValues"});
+				if (!StringUtils.isEmpty(quickSearchEntity.getSearchValues())) {
+					quickSearch.setSearchValues(Arrays.asList(quickSearchEntity.getSearchValues().split(",")));
+				}
+				if (quickSearchEntity.getItemModel() != null) {
+					ItemModel itemModel = new ItemModel();
+					BeanUtils.copyProperties(quickSearchEntity.getItemModel(), itemModel, new String[]{"formModel", "columnModel", "activities", "options", "searchItems", "sortItems", "permissions", "items", "parentItem", "referenceList"});
+					quickSearch.setItemModel(itemModel);
+				}
+				quickSearches.add(quickSearch);
             }
             Collections.sort(quickSearches);
             listModel.setQuickSearchItems(quickSearches);
@@ -649,25 +644,8 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		return listModel;
 	}
 
-//	public boolean isMasterFormItemModel(ItemModelEntity itemModelEntity, FormModelEntity masterForm) {
-//		if (itemModelEntity==null || masterForm==null) {
-//			return false;
-//		}
-//		List<ItemModelEntity> list = masterForm.getItems();
-//		for (ItemModelEntity item:list) {
-//			if (item.getId().equals(itemModelEntity.getId())) {
-//				return true;
-//			}
-//		}
-//		return false;
-//	}
-
 	/**
-	 *
-	 */
-	/**
-	 *
-	 * 过滤 子表，关联表单(单选)，关联表单(多选)，关联表单(反向)，一行两列(里面的控件不过滤)，一行三列(里面的控件不过滤)，
+	 * 过滤 子表
 	 *
 	 * 获取主表单包含的普通控件item的id集合
 	 * @param masterForm
@@ -677,7 +655,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		Set<ItemModelEntity> items = new HashSet<>();
 		if (masterForm!=null && masterForm.getItems()!=null) {
 			for (ItemModelEntity item:masterForm.getItems()) {
-				if (item.getType()!=null) {
+				if (item.getType()!=null && item.getType()!=ItemType.SubForm) {
 					items.add(item);
 					items.addAll(getItemSubItems(item));
 //					if (item.getType()!=ItemType.SubForm && item.getType()!=ItemType.ReferenceList) {
