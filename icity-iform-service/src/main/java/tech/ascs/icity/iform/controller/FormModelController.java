@@ -1535,7 +1535,16 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 					itemModel.setTableName(formModelEntity.getDataModels().get(0).getTableName());
 				}
 			}
+			if(isPCItem) {
+				if(((ReferenceItemModelEntity) entity).getReferenceList() != null) {
+					itemModel.setReferenceListId(((ReferenceItemModelEntity) entity).getReferenceList().getId());
+				}
+				if(entity.getType() == ItemType.ReferenceLabel) {
+					ReferenceItemModelEntity referenceItemModelEntity = (ReferenceItemModelEntity)itemModelService.get(((ReferenceItemModelEntity) entity).getReferenceItemId());
+					itemModel.setReferenceListId(referenceItemModelEntity == null || referenceItemModelEntity.getReferenceList() == null ? null : referenceItemModelEntity.getReferenceList().getId());
+				}
 
+			}
 			if(entity.getType() == ItemType.ReferenceLabel && ((ReferenceItemModelEntity) entity).getReferenceItemId() != null){
 				ItemModelEntity itemModelEntity = itemModelService.get(((ReferenceItemModelEntity) entity).getReferenceItemId());
 				if(itemModelEntity != null && itemModelEntity.getColumnModel() != null) {

@@ -79,6 +79,10 @@ public class ItemModel extends NameEntity {
 	private ControlType controlType;
 	@ApiModelProperty(value = "关联显示列表模型",position = 17)
 	private ListModel referenceList;
+
+	@ApiModelProperty(value = "关联列表模型Id",position = 17)
+	private String referenceListId;
+
 	@ApiModelProperty(value = "选项配置", position = 18)
 	private List<Option> options = new ArrayList<Option>();
 
@@ -393,6 +397,14 @@ public class ItemModel extends NameEntity {
 
 	public void setReferenceList(ListModel referenceList) {
 		this.referenceList = referenceList;
+	}
+
+	public String getReferenceListId() {
+		return referenceListId;
+	}
+
+	public void setReferenceListId(String referenceListId) {
+		this.referenceListId = referenceListId;
 	}
 
 	public List<Option> getOptions() {
