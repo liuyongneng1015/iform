@@ -30,6 +30,9 @@ public class ItemInstance extends IdEntity {
 	@ApiModelProperty(value = "前端格式", position = 6)
 	private String props;
 
+	@ApiModelProperty(value = "控件名称", position = 6)
+	private String itemName;
+
 	public ItemType getType() {
 		return type;
 	}
@@ -92,6 +95,14 @@ public class ItemInstance extends IdEntity {
 
 	public void setProps(String props) {
 		this.props = props;
+	}
+
+	public String getItemName() {
+		return itemName;
+	}
+
+	public void setItemName(String itemName) {
+		this.itemName = itemName;
 	}
 
 	@ApiModelProperty(value = "字段模型ID（uuid）", position = 0)

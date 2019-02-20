@@ -155,9 +155,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	}
 
 
-    public List<Map> listByTableName(String tableName, String key, String value) {
-        StringBuilder sql = new StringBuilder("SELECT * FROM if_").append(tableName).append(" where ").append("f"+key).append("='"+value+"'");
-        List<Map> list = jdbcTemplate.queryForList(sql.toString(),Map.class);
+    public List<String> listByTableName(String tableName, String key, String value) {
+        StringBuilder sql = new StringBuilder("SELECT id FROM if_").append(tableName).append(" where ").append("f"+key).append("='"+value+"'");
+        List<String> list = jdbcTemplate.queryForList(sql.toString(),String.class);
         return list;
     }
 
@@ -663,10 +663,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}
             //唯一校验
             if(itemModel.getUniquene() != null && itemModel.getUniquene() &&itemModel.getColumnModel() != null){
-               List<Map> list = listByTableName(itemModel.getColumnModel().getDataModel().getTableName(), itemModel.getColumnModel().getColumnName(), String.valueOf(itemInstance.getValue()));
+               List<String> list = listByTableName(itemModel.getColumnModel().getDataModel().getTableName(), itemModel.getColumnModel().getColumnName(), String.valueOf(itemInstance.getValue()));
 
-               for(Map map : list){
-                   if(!org.apache.commons.lang3.StringUtils.equals(String.valueOf(map.get(itemModel.getColumnModel().getColumnName())),idValue)){
+               for(String str : list){
+                   if(!org.apache.commons.lang3.StringUtils.equals(str,idValue)){
                         throw new IFormException(itemModel.getColumnModel().getColumnName()+"必须唯一");
                    }
                }
@@ -1585,6 +1585,7 @@ private DataModelInstance setDataModelInstance(FormModelEntity toModelEntity, Re
 		itemInstance.setType(itemModel.getType());
 		itemInstance.setSystemItemType(itemModel.getSystemItemType());
 		itemInstance.setProps(itemModel.getProps());
+		itemInstance.setItemName(itemModel.getName());
 		updateValue(itemModel, itemInstance, value);
 		if (visiblekey) {
 			itemInstance.setVisible(false);
