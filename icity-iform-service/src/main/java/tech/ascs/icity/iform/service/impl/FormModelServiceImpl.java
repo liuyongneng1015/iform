@@ -894,6 +894,10 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 						itemModels.add(itemModel);
 					}
 				}
+			}else if(itemModelEntity instanceof TabsItemModelEntity){
+				for(TabPaneItemModelEntity tabPaneItemModelEntity : ((TabsItemModelEntity) itemModelEntity).getItems()) {
+					itemModels.addAll(getAllColumnItems(tabPaneItemModelEntity.getItems()));
+				}
 			}
 		}
 		return new ArrayList<>(itemModels);

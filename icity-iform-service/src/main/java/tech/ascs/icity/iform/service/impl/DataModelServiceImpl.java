@@ -1,6 +1,7 @@
 package tech.ascs.icity.iform.service.impl;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,8 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 	@Autowired
 	private ColumnModelService columnModelService;
 
+	@Autowired
+	private FormModelService formModelService;
 
 	public DataModelServiceImpl() {
 		super(DataModelEntity.class);
@@ -344,6 +347,8 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		BeanUtils.copyProperties(modelEntity, dataModel, new String[] {"columns","slaverModels","masterModel","parentsModel","childrenModels","indexes"});
 		List<ColumnModelEntity> columnModelEntities = modelEntity.getColumns();
 		List<ColumnModelInfo> columnModels = new ArrayList<>();
+		FormModelEntity formModelEntity = formManager.get(formId);
+		List<String> list = formModelService.getAllColumnItems(formModelEntity.getItems()).parallelStream().map(ItemModelEntity::getId).collect(Collectors.toList());
 		for(ColumnModelEntity columnModelEntity : columnModelEntities){
 			//主表全显示
 			if(displayColuns != null && displayColuns.size() > 0 && !displayColuns.contains(columnModelEntity.getColumnName())){
@@ -356,11 +361,9 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 			columnModel.setReferenceItem(itemModelEntities == null || itemModelEntities.size() < 1 ? false : true) ;
 			columnModel.setTableName(modelEntity.getTableName());
 			for(ItemModelEntity item : itemModelEntities) {
-				if (item.getFormModel()!=null) {
-					if (item.getFormModel().getId().equals(formId)) {
-						columnModel.setItemId(item.getId());
-						columnModel.setItemName(item.getName());
-					}
+				if (list.contains(item.getId())) {
+					columnModel.setItemId(item.getId());
+					columnModel.setItemName(item.getName());
 				}
 			}
 			columnModels.add(columnModel);
