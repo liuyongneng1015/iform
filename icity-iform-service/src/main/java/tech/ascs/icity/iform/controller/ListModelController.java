@@ -535,12 +535,13 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		if (entity.getSearchItems().size() > 0) {
 			List<SearchItem> searchItems = new ArrayList<SearchItem>();
 			for (ListSearchItem searchItemEntity : entity.getSearchItems()) {
-				if (searchItemEntity.getItemModel() != null) {
-					if (masterFormItemIds.contains(searchItemEntity.getItemModel().getId())==false) {
+				ItemModelEntity itemModelEntity = searchItemEntity.getItemModel();
+				if (itemModelEntity != null) {
+					if (masterFormItemIds.contains(itemModelEntity.getId())==false) {
 						continue;
 					}
 					SearchItem searchItem = new SearchItem();
-					ItemModelEntity itemModelEntity = searchItemEntity.getItemModel();
+
 					searchItem.setOrderNo(searchItemEntity.getOrderNo());
 					BeanUtils.copyProperties(itemModelEntity, searchItem, new String[]{"formModel", "columnModel", "activities", "options","searchItems","sortItems", "permissions","items","parentItem","referenceList"});
 					List<ItemSelectOption> options = itemModelEntity.getOptions();
@@ -552,6 +553,18 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 							e.printStackTrace();
 						}
 					}
+
+					if(itemModelEntity instanceof ReferenceItemModelEntity && ((ReferenceItemModelEntity) itemModelEntity).getReferenceList() != null) {
+						ListModel searchReferenceList = new ListModel();
+						ListModelEntity searchReferenceListEntity = ((ReferenceItemModelEntity) itemModelEntity).getReferenceList();
+						searchReferenceList.setId(searchReferenceListEntity.getId());
+						searchReferenceList.setName(searchReferenceListEntity.getName());
+						searchReferenceList.setMultiSelect(searchReferenceListEntity.isMultiSelect());
+						searchReferenceList.setDescription(searchReferenceListEntity.getDescription());
+						searchReferenceList.setApplicationId(searchReferenceListEntity.getApplicationId());
+						searchItem.setReferenceList(searchReferenceList);
+					}
+
 					if (itemModelEntity instanceof SelectItemModelEntity) {
 						SelectItemModelEntity selectItemModelEntity = (SelectItemModelEntity)itemModelEntity;
 						// 联动的下拉选择框，若存在parentItem，返回parentItem信息
