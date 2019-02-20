@@ -99,28 +99,32 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
 	public void saveColumnReferenceEntity(ColumnModelEntity fromColumnEntity, ColumnModelEntity toColumnEntity, ReferenceType referenceType, String referenceMiddleTableName) {
 		//关联关系
 		List<ColumnReferenceEntity> columnReferenceEntityList = toColumnEntity.getColumnReferences();
-		List<String> referenceColumnName = columnReferenceEntityList.parallelStream().map(ColumnReferenceEntity::getFromColumn).map(ColumnModelEntity::getColumnName).collect(Collectors.toList());
-		if(!referenceColumnName.contains(fromColumnEntity.getColumnName())){
-			//正向关联
-			ColumnReferenceEntity columnReferenceEntity = new ColumnReferenceEntity();
-			columnReferenceEntity.setFromColumn(fromColumnEntity);
-			columnReferenceEntity.setToColumn(toColumnEntity);
-			columnReferenceEntity.setReferenceType(referenceType);
-			if(StringUtils.isNotEmpty(referenceMiddleTableName)){
-                columnReferenceEntity.setReferenceMiddleTableName(referenceMiddleTableName);
-            }
-			fromColumnEntity.getColumnReferences().add(columnReferenceEntity);
-
-			//反向关联
-			ColumnReferenceEntity reverseColumnReferenceEntity = new ColumnReferenceEntity();
-			reverseColumnReferenceEntity.setFromColumn(toColumnEntity);
-			reverseColumnReferenceEntity.setToColumn(fromColumnEntity);
-			reverseColumnReferenceEntity.setReferenceType(ReferenceType.getReverseReferenceType(referenceType));
-            if(StringUtils.isNotEmpty(referenceMiddleTableName)){
-                reverseColumnReferenceEntity.setReferenceMiddleTableName(referenceMiddleTableName);
-            }
-			columnReferenceEntityList.add(reverseColumnReferenceEntity);
+		for(ColumnReferenceEntity referenceEntity : columnReferenceEntityList){
+			if(referenceEntity.getToColumn().getId().equals(fromColumnEntity.getId()) && referenceType == ReferenceType.getReverseReferenceType(referenceType) ){
+				return;
+			}
 		}
+
+		//正向关联
+		ColumnReferenceEntity columnReferenceEntity = new ColumnReferenceEntity();
+		columnReferenceEntity.setFromColumn(fromColumnEntity);
+		columnReferenceEntity.setToColumn(toColumnEntity);
+		columnReferenceEntity.setReferenceType(referenceType);
+		if(StringUtils.isNotEmpty(referenceMiddleTableName)){
+			columnReferenceEntity.setReferenceMiddleTableName(referenceMiddleTableName);
+		}
+		fromColumnEntity.getColumnReferences().add(columnReferenceEntity);
+
+		//反向关联
+		ColumnReferenceEntity reverseColumnReferenceEntity = new ColumnReferenceEntity();
+		reverseColumnReferenceEntity.setFromColumn(toColumnEntity);
+		reverseColumnReferenceEntity.setToColumn(fromColumnEntity);
+		reverseColumnReferenceEntity.setReferenceType(ReferenceType.getReverseReferenceType(referenceType));
+		if(StringUtils.isNotEmpty(referenceMiddleTableName)){
+			reverseColumnReferenceEntity.setReferenceMiddleTableName(referenceMiddleTableName);
+		}
+		columnReferenceEntityList.add(reverseColumnReferenceEntity);
+
 	}
 
 	@Override
