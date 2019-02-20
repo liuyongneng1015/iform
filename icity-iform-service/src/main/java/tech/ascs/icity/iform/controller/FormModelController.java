@@ -631,8 +631,8 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 	private void setReference(DataModel dataModel, List<ItemModelEntity> itemModelEntityList){
 		for(ItemModelEntity itemModelEntity : itemModelEntityList){
-			String key = "id";
 			if(itemModelEntity instanceof ReferenceItemModelEntity &&	itemModelEntity.getType() != ItemType.ReferenceLabel){
+				String key = "id";
 				if(((ReferenceItemModelEntity) itemModelEntity).getSelectMode() != SelectMode.Multiple){
 					key = itemModelEntity.getColumnModel().getColumnName();
 				}

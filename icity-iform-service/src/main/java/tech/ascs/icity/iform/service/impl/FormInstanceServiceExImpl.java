@@ -338,7 +338,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		session.beginTransaction();
 		Map<String, Object> data = new HashMap<String, Object>();
 		//主表数据
-		setMasterFormItemInstances(formInstance.getItems(), data, DisplayTimingType.Add);
+		setMasterFormItemInstances(formInstance, data, DisplayTimingType.Add);
 		//设置关联数据
 		setReferenceData(session, dataModel.getTableName(), formInstance, data, DisplayTimingType.Add);
 
@@ -446,7 +446,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			Map<String, Object> data = (Map<String, Object>) session.load(dataModel.getTableName(), instanceId);
 
 			//主表数据
-			setMasterFormItemInstances(formInstance.getItems(),data, DisplayTimingType.Update);
+			setMasterFormItemInstances(formInstance,data, DisplayTimingType.Update);
 
 			setReferenceData(session, dataModel.getTableName(), formInstance, data, DisplayTimingType.Update);
 
@@ -660,13 +660,13 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		return saveListMap;
 	}
 
-	private void setMasterFormItemInstances(List<ItemInstance> itemInstances, Map<String, Object> data, DisplayTimingType displayTimingType){
-	    String idValue = null;
-		for (ItemInstance itemInstance : itemInstances) {
+	private void setMasterFormItemInstances( FormDataSaveInstance formInstance, Map<String, Object> data, DisplayTimingType displayTimingType){
+		ItemInstance idItemInstance = null;
+		for (ItemInstance itemInstance : formInstance.getItems()) {
             ItemModelEntity itemModel = itemModelManager.get(itemInstance.getId());
-            if(displayTimingType == DisplayTimingType.Update && itemModel.getName().equals("id")){
-                idValue = String.valueOf(itemInstance.getValue());
-            }
+            if(itemModel.getName().equals("id")){
+				idItemInstance = itemInstance;
+			}
             if(itemModel instanceof ReferenceItemModelEntity){
             	continue;
 			}
@@ -675,7 +675,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
                List<String> list = listByTableName(itemModel.getColumnModel().getDataModel().getTableName(), "f"+itemModel.getColumnModel().getColumnName(), String.valueOf(itemInstance.getValue()));
 
                for(String str : list){
-				   if(StringUtils.hasText(str) && !str.equals(itemInstance.getValue())){
+				   if(StringUtils.hasText(str) && (idItemInstance == null ||  !str.equals(idItemInstance.getValue()))){
                         throw new IFormException(itemModel.getName()+"必须唯一");
                    }
                }
