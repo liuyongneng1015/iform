@@ -1540,8 +1540,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 					itemModel.setReferenceListId(((ReferenceItemModelEntity) entity).getReferenceList().getId());
 				}
 				if(entity.getType() == ItemType.ReferenceLabel) {
-					ReferenceItemModelEntity referenceItemModelEntity = (ReferenceItemModelEntity)itemModelService.get(((ReferenceItemModelEntity) entity).getReferenceItemId());
-					itemModel.setReferenceListId(referenceItemModelEntity == null || referenceItemModelEntity.getReferenceList() == null ? null : referenceItemModelEntity.getReferenceList().getId());
+					itemModel.setReferenceListId(((ReferenceItemModelEntity) entity).getParentItem() == null ? null : ((ReferenceItemModelEntity) entity).getParentItem().getReferenceList().getId());
 				}
 
 			}

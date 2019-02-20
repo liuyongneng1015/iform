@@ -1113,6 +1113,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	private FormDataSaveInstance setFormDataInstanceModel(FormDataSaveInstance formInstance, ListModelEntity listModelEntity, Map<String, Object> entity, boolean referenceFlag){
 		List<ItemInstance> items = new ArrayList<>();
+		if(formInstance.getId().equals("2c928085690a299401690a34fbe20020")){
+			System.out.println("zzz");
+		}
 		List<ItemModelEntity> list = listModelEntity.getMasterForm().getItems();
 		List<ReferenceDataInstance> referenceDataModelList = formInstance.getReferenceData();
 		List<SubFormItemInstance> subFormItems = formInstance.getSubFormData();
@@ -1141,6 +1144,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				i--;
 			}
 		}*/
+		if(referenceDataModelList != null && referenceDataModelList.size() > 1){
+			System.out.println("size="+referenceDataModelList.size());
+		}
 		for (ReferenceDataInstance referenceDataInstance : referenceDataModelList) {
 			if(copyDisplayIds.contains(referenceDataInstance.getId())){
 				ItemInstance itemInstance = new ItemInstance();
@@ -1306,10 +1312,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			return;
 		}
 
-		ListModelEntity listModelEntity = ((ReferenceItemModelEntity) itemModel).getReferenceList();
-		if(listModelEntity == null || listModelEntity.getDisplayItems() == null || listModelEntity.getDisplayItems().size() < 1){
-			return;
-		}
+
 		List<String> stringList = Arrays.asList(((ReferenceItemModelEntity) itemModel).getItemModelIds().split(","));
 		//关联字段
 		String referenceColumnName = fromItem.getColumnModel() == null ? null : fromItem.getColumnModel().getColumnName();
@@ -1325,7 +1328,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				dataModelInstance.setReferenceTable(formModelEntity == null ? null :formModelEntity.getDataModels().get(0).getTableName());
 			}
 			dataModelInstance.setId(itemModel.getId());
-			FormInstance getFormInstance = getFormInstance(listModelEntity.getMasterForm(), String.valueOf(listMap.get("id")));
+			FormInstance getFormInstance = getFormInstance(toModelEntity, String.valueOf(listMap.get("id")));
 			Map<String, String> stringMap = new HashMap<>();
 			for(ItemInstance itemInstance : getFormInstance.getItems()){
 				String value = getValue(stringList, itemInstance);
@@ -1364,7 +1367,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 			for(Map<String, Object> map  : listMap) {
 				idValues.add(map.get("id"));
-				FormInstance getFormInstance = getFormInstance(listModelEntity.getMasterForm(), String.valueOf(map.get("id")));
+				FormInstance getFormInstance = getFormInstance(toModelEntity, String.valueOf(map.get("id")));
 				List<String> arrayList = new ArrayList<>();
 				Map<String, String> stringMap = new HashMap<>();
 				for(ItemInstance itemInstance : getFormInstance.getItems()){
