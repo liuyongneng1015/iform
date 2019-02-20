@@ -521,7 +521,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 
 		for(String key : formMap.keySet()){
-			setManyToManyReference(dataModelMap.get(key), formMap.get(key));
+			setReference(dataModelMap.get(key), formMap.get(key));
 		}
 
 
@@ -629,30 +629,33 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		return false;
 	}
 
-	private void setManyToManyReference(DataModel dataModel,List<ItemModelEntity> itemModelEntityList){
+	private void setReference(DataModel dataModel, List<ItemModelEntity> itemModelEntityList){
 		for(ItemModelEntity itemModelEntity : itemModelEntityList){
-			if(itemModelEntity instanceof ReferenceItemModelEntity
-					&& ((ReferenceItemModelEntity) itemModelEntity).getSelectMode() == SelectMode.Multiple){
-				ColumnModel idColumnModel = null;
+			String key = "id";
+			if(itemModelEntity instanceof ReferenceItemModelEntity &&	itemModelEntity.getType() != ItemType.ReferenceLabel){
+				if(((ReferenceItemModelEntity) itemModelEntity).getSelectMode() != SelectMode.Multiple){
+					key = itemModelEntity.getColumnModel().getColumnName();
+				}
+				ColumnModel referenceColumnModel = null;
 				if(dataModel.isNew()){
 					ColumnModel columnModel = new ColumnModel();
-					BeanUtils.copyProperties(columnModelService.saveColumnModelEntity(new DataModelEntity(),"id"), columnModel, new String[]{"dataModel","columnReferences"});
+					BeanUtils.copyProperties(columnModelService.saveColumnModelEntity(new DataModelEntity(), "id"), columnModel, new String[]{"dataModel","columnReferences"});
 					dataModel.getColumns().add(columnModel);
 				}
 				for(ColumnModel columnModel : dataModel.getColumns()){
-					if(columnModel.getColumnName().equals("id")){
-						idColumnModel = columnModel;
+					if(columnModel.getColumnName().equals(key)){
+						referenceColumnModel = columnModel;
 						break;
 					}
 				}
 				FormModelEntity formModelEntity = formModelService.get(((ReferenceItemModelEntity) itemModelEntity).getReferenceFormId());
-				if(idColumnModel != null){
-					List<String> refenceTables = idColumnModel.getReferenceTables().parallelStream().map(ReferenceModel::getReferenceTable).collect(Collectors.toList());
+				if(referenceColumnModel != null){
+					List<String> refenceTables = referenceColumnModel.getReferenceTables().parallelStream().map(ReferenceModel::getReferenceTable).collect(Collectors.toList());
 					if(!refenceTables.contains(formModelEntity.getDataModels().get(0).getTableName())){
 						ReferenceModel referenceModel = new ReferenceModel();
-						referenceModel.setReferenceType(ReferenceType.ManyToMany);
+						referenceModel.setReferenceType(((ReferenceItemModelEntity) itemModelEntity).getReferenceType());
 						referenceModel.setReferenceTable(formModelEntity.getDataModels().get(0).getTableName());
-						idColumnModel.getReferenceTables().add(referenceModel);
+						referenceColumnModel.getReferenceTables().add(referenceModel);
 					}
 				}
 			}
