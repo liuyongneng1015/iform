@@ -488,14 +488,36 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				List<Map<String, Object>> newListMap = new ArrayList<>();
 				for (SubFormDataItemInstance subFormDataItemInstance : subFormItemInstance.getItemInstances()) {
 					Map<String, Object> map = new HashMap<>();
+					List<String> idList = new ArrayList<>();
+					Map<String, List<String>> stringListMap = new HashMap<>();
 					for (SubFormRowItemInstance instance : subFormDataItemInstance.getItems()) {
 						for (ItemInstance itemModelService : instance.getItems()) {
 							ItemModelEntity itemModel = itemModelManager.get(itemModelService.getId());
+							if(itemModel.getUniquene() != null && itemModel.getUniquene()){
+								List<String> list = listByTableName(dataModelEntity.getTableName(), "f" + itemModel.getColumnModel().getColumnName(), String.valueOf(itemModelService.getValue()));
+								if(list != null && list.size() > 0) {
+									stringListMap.put(itemModelService.getId()+"_"+itemModelService.getItemName(), list);
+								}
+							}
 							setItemInstance(itemModel, itemModelService, map, displayTimingType);
+						}
+					}
+					for(String str : stringListMap.keySet()){
+						for(String string : stringListMap.get(str)){
+							if(StringUtils.hasText(str) && (map.get("id") == null ||  !str.equals(map.get("id")))){
+								String[] strings = string.split("_");
+								throw new IFormException(strings[strings.length-1]+"必须唯一");
+							}
 						}
 					}
 					newListMap.add(map);
 				}
+
+
+
+
+
+
 				List<String> idList = new ArrayList<>();
 				for (Map<String, Object> newMap : newListMap) {
 					String id = newMap.get("id") == null ? null : String.valueOf(newMap.get("id"));
@@ -588,7 +610,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 				for(String str : list){
 					if(StringUtils.hasText(str) && str.equals(idValue)){
-						throw new IFormException(referenceItemModelEntity.getName()+"必须唯一");
+						throw new IFormException(referenceItemModelEntity.getName()+"重复关联同一数据");
 					}
 				}
 			}
@@ -1288,7 +1310,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		if(listModelEntity == null || listModelEntity.getDisplayItems() == null || listModelEntity.getDisplayItems().size() < 1){
 			return;
 		}
-		List<String> stringList = Arrays.asList(listModelEntity.getDisplayItemsSort().split(","));
+		List<String> stringList = Arrays.asList(((ReferenceItemModelEntity) itemModel).getItemModelIds().split(","));
 		//关联字段
 		String referenceColumnName = fromItem.getColumnModel() == null ? null : fromItem.getColumnModel().getColumnName();
 		if(fromItem.getReferenceType() == ReferenceType.ManyToOne || fromItem.getReferenceType() == ReferenceType.OneToOne){
@@ -1304,11 +1326,17 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}
 			dataModelInstance.setId(itemModel.getId());
 			FormInstance getFormInstance = getFormInstance(listModelEntity.getMasterForm(), String.valueOf(listMap.get("id")));
-			List<String> arrayList = new ArrayList<>();
+			Map<String, String> stringMap = new HashMap<>();
 			for(ItemInstance itemInstance : getFormInstance.getItems()){
 				String value = getValue(stringList, itemInstance);
 				if(StringUtils.hasText(value)){
-					arrayList.add(value);
+					stringMap.put(itemInstance.getId(), value);
+				}
+			}
+			List<String> arrayList = new ArrayList<>();
+			for(String string : stringList){
+				if(StringUtils.hasText(stringMap.get(string))){
+					arrayList.add(stringMap.get(string));
 				}
 			}
 
@@ -1338,13 +1366,18 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				idValues.add(map.get("id"));
 				FormInstance getFormInstance = getFormInstance(listModelEntity.getMasterForm(), String.valueOf(map.get("id")));
 				List<String> arrayList = new ArrayList<>();
+				Map<String, String> stringMap = new HashMap<>();
 				for(ItemInstance itemInstance : getFormInstance.getItems()){
 					String value = getValue(stringList, itemInstance);
 					if(StringUtils.hasText(value)){
-						arrayList.add(value);
+						stringMap.put(itemInstance.getId(), value);
 					}
 				}
-
+				for(String string : stringList){
+					if(StringUtils.hasText(stringMap.get(string))){
+						arrayList.add(stringMap.get(string));
+					}
+				}
 				values.add(String.join(",", arrayList));
 			}
 			dataModelInstance.setValue(idValues);
