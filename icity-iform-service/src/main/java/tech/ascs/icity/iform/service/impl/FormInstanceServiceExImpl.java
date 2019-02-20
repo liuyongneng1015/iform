@@ -587,7 +587,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				List<String> list = listByTableName(masterFormModelEntity.getDataModels().get(0).getTableName(), referenceItemModelEntity.getColumnModel().getColumnName(), idValue);
 
 				for(String str : list){
-					System.out.println(str+"____"+idValue);
 					if(StringUtils.hasText(str) && str.equals(idValue)){
 						throw new IFormException(referenceItemModelEntity.getName()+"必须唯一");
 					}
@@ -676,8 +675,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
                List<String> list = listByTableName(itemModel.getColumnModel().getDataModel().getTableName(), "f"+itemModel.getColumnModel().getColumnName(), String.valueOf(itemInstance.getValue()));
 
                for(String str : list){
-				   System.out.println(str+"____"+idValue);
-				   if(StringUtils.hasText(str) && !str.equals(idValue)){
+				   if(StringUtils.hasText(str) && !str.equals(itemInstance.getValue())){
                         throw new IFormException(itemModel.getName()+"必须唯一");
                    }
                }
