@@ -35,11 +35,20 @@ public class SearchItem extends ItemModel implements Comparable<SearchItem> {
 		}
 	}
 
+	private String referenceListId;
 	@ApiModelProperty(value = "查询定义，用于列表中的查询条件", position = 6)
 	private Search search;
 
 	@ApiModelProperty("搜索框排序号")//排序号
 	private Integer orderNo = 0;
+
+	public String getReferenceListId() {
+		return referenceListId;
+	}
+
+	public void setReferenceListId(String referenceListId) {
+		this.referenceListId = referenceListId;
+	}
 
 	public Search getSearch() {
 		return search;
