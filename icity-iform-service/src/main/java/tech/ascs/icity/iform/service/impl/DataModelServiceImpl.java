@@ -359,7 +359,7 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 				if (item.getFormModel()!=null) {
 					if (item.getFormModel().getId().equals(formId)) {
 						columnModel.setItemId(item.getId());
-						columnModel.setTableName(item.getName());
+						columnModel.setItemName(item.getName());
 					}
 				}
 			}

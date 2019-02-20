@@ -37,8 +37,7 @@ public class PCDataModel extends NameEntity {
 
 	@ApiModelProperty(value = "应用id", position = 9)
 	private String applicationId;
-
-
+	
 	@ApiModelProperty(value = "中文名", position = 1)
 	@Override
 	public String getName() {

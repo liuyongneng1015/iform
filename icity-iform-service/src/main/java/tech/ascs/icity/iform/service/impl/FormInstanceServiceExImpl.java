@@ -155,7 +155,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	}
 
 
-    public List<String> listByTableName(String tableName, String key, String value) {
+    private List<String> listByTableName(String tableName, String key, String value) {
         StringBuilder sql = new StringBuilder("SELECT id FROM if_").append(tableName).append(" where ").append("f"+key).append("='"+value+"'");
         List<String> list = jdbcTemplate.queryForList(sql.toString(),String.class);
         return list;
@@ -551,6 +551,16 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				oldListMap = (List<Map<String, Object>>) oldData;
 			}
 
+			if(referenceItemModelEntity.getReferenceType() == ReferenceType.OneToOne && referenceItemModelEntity.getColumnModel() != null){
+				String idValue = String.valueOf(((Map)oldData).get("id"));
+				List<String> list = listByTableName(masterFormModelEntity.getDataModels().get(0).getTableName(), referenceItemModelEntity.getColumnModel().getColumnName(), idValue);
+
+				for(String str : list){
+					if(!org.apache.commons.lang3.StringUtils.equals(str,idValue)){
+						throw new IFormException(referenceItemModelEntity.getName()+"必须唯一");
+					}
+				}
+			}
 
 			List<Map<String, Object>> newListMap = new ArrayList<>();
 			if(dataModelInstance.getValue() != null && dataModelInstance.getValue() instanceof List) {
@@ -667,7 +677,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
                for(String str : list){
                    if(!org.apache.commons.lang3.StringUtils.equals(str,idValue)){
-                        throw new IFormException(itemModel.getColumnModel().getColumnName()+"必须唯一");
+                        throw new IFormException(itemModel.getName()+"必须唯一");
                    }
                }
             }
