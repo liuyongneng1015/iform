@@ -1414,7 +1414,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		    String[] strings = entity.getItemModelIds().split(",");
 			List<String> resultList = new ArrayList<>();
 			for(String str : strings){
-                resultList.add(str);
+			    if(!resultList.contains(str)) {
+                    resultList.add(str);
+                }
             }
 			formModel.setItemModelList(getItemModelList(resultList));
 		}
@@ -1854,7 +1856,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		if(idResultList == null || idResultList.size() < 1){
 			return null;
 		}
-		Set<ItemModelEntity> itemModelEntities = new HashSet<>();
+		List<ItemModelEntity> itemModelEntities = new ArrayList<>();
 		for(String itemId : idResultList) {
 			itemModelEntities.add(itemModelService.get(itemId));
 		}
