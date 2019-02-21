@@ -50,9 +50,11 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
 		columnModelEntity.setDataType(ColumnType.String);
 		columnModelEntity.setLength(32);
 		columnModelEntity.setPrecision(32);
+		columnModelEntity.setNotNull(false);
 		if("id".equals(columnName)) {
 			columnModelEntity.setDescription("主键（自动生成无法删改）");
 			columnModelEntity.setName("主键id");
+			columnModelEntity.setNotNull(true);
 		}else if("master_id".equals(columnName)){
 			columnModelEntity.setDescription("关联字段");
 			columnModelEntity.setName("关联字段id");
@@ -76,7 +78,6 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
 			columnModelEntity.setName("更新人");
 		}
 		columnModelEntity.setScale(null);
-		columnModelEntity.setNotNull(true);
 		columnModelEntity.setKey(true);
 		columnModelEntity.setDefaultValue(null);
 		dataModel.getColumns().add(columnModelEntity);

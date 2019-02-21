@@ -40,7 +40,7 @@ public class ReferenceItemModelEntity extends ItemModelEntity  {
 	@ManyToOne(cascade = {CascadeType.MERGE})
 	private ListModelEntity referenceList;
 
-	@Column(name="item_model_ids", length = 4048) // 关联数据标识：控件id集合
+	@Column(name="item_model_ids", length = 2048) // 关联数据标识：控件id集合
 	private String itemModelIds;
 
 	@ManyToOne(cascade = {CascadeType.MERGE})
@@ -51,7 +51,7 @@ public class ReferenceItemModelEntity extends ItemModelEntity  {
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "parentItem")
 	private List<ReferenceItemModelEntity> items = new ArrayList<ReferenceItemModelEntity>();
 
-	@Column(name="item_table_colunm_name", length = 4048) // 关联数据标识：控件对应的表名和字段名
+	@Column(name="item_table_colunm_name", length = 2048) // 关联数据标识：控件对应的表名和字段名
 	private String itemTableColunmName;
 
 	public ReferenceType getReferenceType() {

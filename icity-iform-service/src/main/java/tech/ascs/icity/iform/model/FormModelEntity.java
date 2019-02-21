@@ -42,10 +42,10 @@ public class FormModelEntity extends BaseEntity implements Serializable {
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "formModel")
 	private List<ListFunction> functions = new ArrayList<>();
 
-	@Column(name="item_model_ids", length = 4048) // 关联数据标识：控件id集合
+	@Column(name="item_model_ids", length = 2048) // 关联数据标识：控件id集合
 	private String itemModelIds;
 
-	@Column(name="item_table_colunm_name", length = 4048) // 关联数据标识：控件对应的表名和字段名
+	@Column(name="item_table_colunm_name", length = 2048) // 关联数据标识：控件对应的表名和字段名
 	private String itemTableColunmName;
 
 	public String getDescription() {

@@ -1310,11 +1310,11 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			//设置控件权限
 			List<ItemPermissionModel> itemPermissionModels = getItemPermissions(entity.getItems());
 			formModel.setPermissions(itemPermissionModels.size() > 0 ? itemPermissionModels : null);
-
+			String tableName = entity.getDataModels() == null || entity.getDataModels().size() < 1 ? null :  entity.getDataModels().get(0).getTableName();
 			for (ItemModelEntity itemModelEntity : itemModelEntities) {
-				ItemModel itemModel = toDTO(itemModelEntity, false);
+				ItemModel itemModel = toDTO(itemModelEntity, false, tableName);
 				if(itemModel.getSelectMode() == SelectMode.Attribute){
-					itemModel.setTableName(entity.getDataModels().get(0).getTableName());
+					itemModel.setTableName(tableName);
 				}
 				items.add(itemModel);
 			}
@@ -1492,12 +1492,12 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 		formModel.setDataModels(dataModelList);
 
-
+		String tableName = entity.getDataModels() == null || entity.getDataModels().size() < 1 ? null :  entity.getDataModels().get(0).getTableName();
 		if (entity.getItems().size() > 0) {
 			List<ItemModel> items = new ArrayList<ItemModel>();
 			List<ItemModelEntity> itemModelEntityList = entity.getItems() == null || entity.getItems().size() < 2 ? entity.getItems() : entity.getItems().parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
 			for (ItemModelEntity itemModelEntity : itemModelEntityList) {
-				items.add(toDTO(itemModelEntity, true));
+				items.add(toDTO(itemModelEntity, true, tableName));
 			}
 			formModel.setItems(items);
 		}
@@ -1520,13 +1520,14 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		PCFormModel formModel = BeanUtils.copy(entity, PCFormModel.class, new String[] {"dataModels"});
 		List<ReferenceItemModel> pcReferenceItem = new ArrayList<>();
 		List<ItemModelEntity> itemListModelEntities = new ArrayList<>();
+		String tableName = entity.getDataModels() == null || entity.getDataModels().size() < 1 ? null :  entity.getDataModels().get(0).getTableName();
 		if (entity.getItems().size() > 0) {
 			List<ItemModel> items = new ArrayList<ItemModel>();
 			for (ItemModelEntity itemModelEntity : entity.getItems()) {
 				boolean flag = itemModelEntity instanceof ReferenceItemModelEntity || itemModelEntity instanceof SubFormItemModelEntity
 						|| itemModelEntity instanceof SubFormRowItemModelEntity;
 				if(!flag) {
-					items.add(toDTO(itemModelEntity, true));
+					items.add(toDTO(itemModelEntity, true, tableName));
 				}else if(((ReferenceItemModelEntity)itemModelEntity).getReferenceList() != null){
 					itemListModelEntities.add(itemModelEntity);
 				}
@@ -1557,7 +1558,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		return formModel;
 	}
 
-	private ItemModel toDTO(ItemModelEntity entity, boolean isPCItem)  {
+	private ItemModel toDTO(ItemModelEntity entity, boolean isPCItem, String tableName)  {
 		//TODO 根据模型找到对应的参数
 		ItemModel itemModel = new ItemModel();
 		BeanUtils.copyProperties(entity, itemModel, new String[]{"formModel", "columnModel", "activities", "options","searchItems","sortItems", "permissions","items","parentItem","referenceList"});
@@ -1695,7 +1696,11 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			List<ItemModelEntity> rowList = ((RowItemModelEntity) entity).getItems();
 			List<ItemModelEntity> itemModelEntities = rowList == null || rowList.size() < 2 ? rowList : rowList.parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
 			for(ItemModelEntity itemModelEntity : itemModelEntities) {
-				rows.add(toDTO(itemModelEntity, isPCItem));
+				ItemModel itemModel1 = toDTO(itemModelEntity, isPCItem, tableName);
+				if(itemModel1.getType() == ItemType.ReferenceLabel){
+					itemModel1.setTableName(tableName);
+				}
+				rows.add(itemModel1);
 			}
 			itemModel.setItems(rows);
 		}else if(entity instanceof SubFormItemModelEntity){
@@ -1710,7 +1715,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				List<ItemModel> rows = new ArrayList<>();
 				List<ItemModelEntity> itemModelEntities = rowItemModelEntity.getItems() == null || rowItemModelEntity.getItems().size() < 2 ? rowItemModelEntity.getItems() : rowItemModelEntity.getItems().parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
 				for(ItemModelEntity childrenItem : itemModelEntities) {
-					ItemModel childItem = toDTO(childrenItem, isPCItem);
+					ItemModel childItem = toDTO(childrenItem, isPCItem, ((SubFormItemModelEntity) entity).getTableName());
 					childItem.setTableName(((SubFormItemModelEntity) entity).getTableName());
 					rows.add(childItem);
 				}
@@ -1730,7 +1735,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				List<ItemModel> children = new ArrayList<>();
 				List<ItemModelEntity> itemModelEntities = tabPaneItemModelEntity.getItems() == null || tabPaneItemModelEntity.getItems().size() < 2 ? tabPaneItemModelEntity.getItems() : tabPaneItemModelEntity.getItems().parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
 				for(ItemModelEntity childrenItem : itemModelEntities) {
-					ItemModel childItem = toDTO(childrenItem, isPCItem);
+					ItemModel childItem = toDTO(childrenItem, isPCItem, tableName);
 					children.add(childItem);
 				}
 				itemModel1.setItems(children);

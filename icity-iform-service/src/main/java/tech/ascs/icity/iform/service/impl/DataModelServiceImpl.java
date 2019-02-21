@@ -116,7 +116,7 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		columnModelEntities.add(columnModelService.saveColumnModelEntity(old, "create_at"));
 		columnModelEntities.add(columnModelService.saveColumnModelEntity(old, "update_at"));
 		columnModelEntities.add(columnModelService.saveColumnModelEntity(old, "create_by"));
-		columnModelEntities.add(columnModelService.saveColumnModelEntity(old, "create_by"));
+		columnModelEntities.add(columnModelService.saveColumnModelEntity(old, "update_by"));
 
 		old.setColumns(columnModelEntities);
 
