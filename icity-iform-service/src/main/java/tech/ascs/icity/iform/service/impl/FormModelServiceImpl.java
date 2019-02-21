@@ -175,45 +175,81 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			//setReferenceItems(deletedItemIds, idColumnModelEntity, allItems);
 			FormModelEntity formModelEntity = doSave(old, dataModelUpdateNeeded);
 
-			List<ItemModelEntity> allColumns = new ArrayList<>();
-			allColumns.addAll(formModelEntity.getItems());
+			List<ItemModelEntity> itemModelEntityList = new ArrayList<>();
+			itemModelEntityList.addAll(formModelEntity.getItems());
 			for(ItemModelEntity itemModelEntity : formModelEntity.getItems()) {
-				allColumns.addAll(getChildRenItemModelEntity(itemModelEntity));
+				itemModelEntityList.addAll(getChildRenItemModelEntity(itemModelEntity));
 			}
-			for(int i = 0 ;i <  allColumns.size() ; i++){
-				ItemModelEntity itemModelEntity = allColumns.get(i);
+
+			setFormItemModelIds(formModelEntity);
+
+			for(int i = 0 ;i <  itemModelEntityList.size() ; i++){
+				ItemModelEntity itemModelEntity = itemModelEntityList.get(i);
 				if(itemModelEntity instanceof ReferenceItemModelEntity){
-					if(((ReferenceItemModelEntity) itemModelEntity).getItemTableColunmName() != null && ((ReferenceItemModelEntity) itemModelEntity).getType() == ItemType.ReferenceList ){
-						((ReferenceItemModelEntity) itemModelEntity).setItemModelIds(String.join(",",
-								getReferenceItemModelList((ReferenceItemModelEntity)itemModelEntity).parallelStream().map(ItemModelEntity::getId).collect(Collectors.toList())));
-					}else{
-						((ReferenceItemModelEntity) itemModelEntity).setItemModelIds(null);
-					}
-					if(((ReferenceItemModelEntity) itemModelEntity).getSelectMode() == SelectMode.Attribute ){
+					setItemModelIds(itemModelEntity);
+				}
+			}
+			formModelManager.save(formModelEntity);
+			return formModelEntity;
+		}
+		FormModelEntity formModelEntity = doSave(entity, dataModelUpdateNeeded);
+		setFormItemModelIds(formModelEntity);
+		formModelManager.save(formModelEntity);
+		return formModelEntity;
 
-						if(((ReferenceItemModelEntity) itemModelEntity).getReferenceUuid() != null && ((ReferenceItemModelEntity) itemModelEntity).getParentItem() == null){
-							ItemModelEntity referenceItemModelEntity = itemManager.query().filterEqual("uuid", ((ReferenceItemModelEntity) itemModelEntity).getReferenceUuid()).first();
-							((ReferenceItemModelEntity) itemModelEntity).setParentItem((ReferenceItemModelEntity)referenceItemModelEntity);
-						}
+	}
+	private void setFormItemModelIds(FormModelEntity formModelEntity){
+		if(StringUtils.isBlank(formModelEntity.getItemTableColunmName())){
+			formModelEntity.setItemModelIds(null);
+			return;
+		}
+		List<ItemModelEntity> itemModelEntityList = new ArrayList<>();
+		itemModelEntityList.addAll(formModelEntity.getItems());
+		for(ItemModelEntity itemModelEntity : formModelEntity.getItems()) {
+			itemModelEntityList.addAll(getChildRenItemModelEntity(itemModelEntity));
+		}
+		Map<String, ItemModelEntity> itemModelEntityMap = new HashMap<>();
+		for(ItemModelEntity itemModelEntity : itemModelEntityList){
+			if(itemModelEntity.getColumnModel() != null){
+				itemModelEntityMap.put(itemModelEntity.getColumnModel().getDataModel().getTableName()+"_"+itemModelEntity.getColumnModel().getColumnName(), itemModelEntity);
+			}
+		}
+		String[] strings = formModelEntity.getItemTableColunmName().split(",");
+		List<String> list = new ArrayList<>();
+		for(String str : strings){
+			ItemModelEntity itemModelEntity = itemModelEntityMap.get(str);
+			if(itemModelEntity != null){
+				list.add(itemModelEntity.getId());
+			}
+		}
+		formModelEntity.setItemModelIds(String.join(",", list));
 
-						if(((ReferenceItemModelEntity) itemModelEntity).getParentItem() != null) {
-							FormModelEntity formModelEntity1 = formModelManager.find(((ReferenceItemModelEntity) itemModelEntity).getParentItem().getReferenceFormId());
-							if(formModelEntity1 != null) {
-								ItemModelEntity itemModelEntity1 = getItemModelByTableAndColumn(formModelEntity1, ((ReferenceItemModelEntity) itemModelEntity).getItemTableColunmName());
-								((ReferenceItemModelEntity) itemModelEntity).setReferenceItemId(itemModelEntity1 == null ? null : itemModelEntity1.getId());
-							}
-						}
+	}
+	private void setItemModelIds(ItemModelEntity itemModelEntity){
+		if(((ReferenceItemModelEntity) itemModelEntity).getItemTableColunmName() != null && ((ReferenceItemModelEntity) itemModelEntity).getType() == ItemType.ReferenceList ){
+			((ReferenceItemModelEntity) itemModelEntity).setItemModelIds(String.join(",",
+					getReferenceItemModelList((ReferenceItemModelEntity)itemModelEntity).parallelStream().map(ItemModelEntity::getId).collect(Collectors.toList())));
+		}else{
+			((ReferenceItemModelEntity) itemModelEntity).setItemModelIds(null);
+		}
+		if(((ReferenceItemModelEntity) itemModelEntity).getSelectMode() == SelectMode.Attribute ){
 
-					}
+			if(((ReferenceItemModelEntity) itemModelEntity).getReferenceUuid() != null && ((ReferenceItemModelEntity) itemModelEntity).getParentItem() == null){
+				ItemModelEntity referenceItemModelEntity = itemManager.query().filterEqual("uuid", ((ReferenceItemModelEntity) itemModelEntity).getReferenceUuid()).first();
+				((ReferenceItemModelEntity) itemModelEntity).setParentItem((ReferenceItemModelEntity)referenceItemModelEntity);
+			}
 
-					itemManager.save(itemModelEntity);
+			if(((ReferenceItemModelEntity) itemModelEntity).getParentItem() != null) {
+				FormModelEntity formModelEntity1 = formModelManager.find(((ReferenceItemModelEntity) itemModelEntity).getParentItem().getReferenceFormId());
+				if(formModelEntity1 != null) {
+					ItemModelEntity itemModelEntity1 = getItemModelByTableAndColumn(formModelEntity1, ((ReferenceItemModelEntity) itemModelEntity).getItemTableColunmName());
+					((ReferenceItemModelEntity) itemModelEntity).setReferenceItemId(itemModelEntity1 == null ? null : itemModelEntity1.getId());
 				}
 			}
 
-			return formModelEntity;
 		}
-		return doSave(entity, dataModelUpdateNeeded);
 
+		itemManager.save(itemModelEntity);
 	}
 
 	@Override
@@ -871,7 +907,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		}
 		return formModelEntity;
 	}
-	//获取关联行的控件
+	//获取关联字段的控件
 	@Override
 	public  List<ItemModelEntity> getAllColumnItems(List<ItemModelEntity> itemModelEntities){
 		Set<ItemModelEntity> itemModels = new HashSet<>();

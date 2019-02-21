@@ -42,6 +42,11 @@ public class FormModelEntity extends BaseEntity implements Serializable {
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "formModel")
 	private List<ListFunction> functions = new ArrayList<>();
 
+	@Column(name="item_model_ids", length = 4048) // 关联数据标识：控件id集合
+	private String itemModelIds;
+
+	@Column(name="item_table_colunm_name", length = 4048) // 关联数据标识：控件对应的表名和字段名
+	private String itemTableColunmName;
 
 	public String getDescription() {
 		return description;
@@ -97,5 +102,21 @@ public class FormModelEntity extends BaseEntity implements Serializable {
 
 	public void setFunctions(List<ListFunction> functions) {
 		this.functions = functions;
+	}
+
+	public String getItemModelIds() {
+		return itemModelIds;
+	}
+
+	public void setItemModelIds(String itemModelIds) {
+		this.itemModelIds = itemModelIds;
+	}
+
+	public String getItemTableColunmName() {
+		return itemTableColunmName;
+	}
+
+	public void setItemTableColunmName(String itemTableColunmName) {
+		this.itemTableColunmName = itemTableColunmName;
 	}
 }
