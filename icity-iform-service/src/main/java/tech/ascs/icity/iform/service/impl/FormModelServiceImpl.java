@@ -190,11 +190,13 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				}
 			}
 			formModelManager.save(formModelEntity);
+			dataModelService.sync(formModelEntity.getDataModels().get(0));
 			return formModelEntity;
 		}
 		FormModelEntity formModelEntity = doSave(entity, dataModelUpdateNeeded);
 		setFormItemModelIds(formModelEntity);
 		formModelManager.save(formModelEntity);
+		dataModelService.sync(formModelEntity.getDataModels().get(0));
 		return formModelEntity;
 
 	}
