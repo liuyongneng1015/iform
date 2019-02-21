@@ -1312,8 +1312,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			return;
 		}
 
-
-		List<String> stringList = Arrays.asList(((ReferenceItemModelEntity) itemModel).getItemModelIds().split(","));
+		String itemModelIds = ((ReferenceItemModelEntity) itemModel).getItemModelIds();
+		List<String> stringList = itemModelIds!=null ? Arrays.asList(itemModelIds.split(",")) : new ArrayList<>();
 		//关联字段
 		String referenceColumnName = fromItem.getColumnModel() == null ? null : fromItem.getColumnModel().getColumnName();
 		if(fromItem.getReferenceType() == ReferenceType.ManyToOne || fromItem.getReferenceType() == ReferenceType.OneToOne){
