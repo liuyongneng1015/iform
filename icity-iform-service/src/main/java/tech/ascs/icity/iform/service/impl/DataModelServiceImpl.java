@@ -113,6 +113,11 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		if(idColumn == null){
 			columnModelEntities.add(columnModelService.saveColumnModelEntity(old, "id"));
 		}
+		columnModelEntities.add(columnModelService.saveColumnModelEntity(old, "create_at"));
+		columnModelEntities.add(columnModelService.saveColumnModelEntity(old, "update_at"));
+		columnModelEntities.add(columnModelService.saveColumnModelEntity(old, "create_by"));
+		columnModelEntities.add(columnModelService.saveColumnModelEntity(old, "create_by"));
+
 		old.setColumns(columnModelEntities);
 
 		List<IndexModelEntity> indexes = new ArrayList<IndexModelEntity>();

@@ -53,8 +53,11 @@ public class FormModel extends NameEntity {
     @ApiModelProperty(value = "表单提交校验", position = 8)
     private List<FormSubmitCheckModel> submitChecks = new ArrayList<FormSubmitCheckModel>();
 
-	@ApiModelProperty(value = "表单功能按钮", position = 8)
+	@ApiModelProperty(value = "表单功能按钮", position = 9)
 	private List<FunctionModel> functions = new ArrayList<FunctionModel>();
+
+	@ApiModelProperty(value="数据标识:控件集合",position = 10)
+	private List<ItemModel> itemModelList = new ArrayList<ItemModel>();
 
 	public String getDescription() {
 		return description;
@@ -118,6 +121,14 @@ public class FormModel extends NameEntity {
 
 	public void setFunctions(List<FunctionModel> functions) {
 		this.functions = functions;
+	}
+
+	public List<ItemModel> getItemModelList() {
+		return itemModelList;
+	}
+
+	public void setItemModelList(List<ItemModel> itemModelList) {
+		this.itemModelList = itemModelList;
 	}
 
 	@Override

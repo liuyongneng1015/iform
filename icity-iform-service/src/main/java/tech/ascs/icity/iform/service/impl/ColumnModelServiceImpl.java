@@ -47,16 +47,34 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
 		ColumnModelEntity columnModelEntity = new ColumnModelEntity();
 		columnModelEntity.setDataModel(dataModel);
 		columnModelEntity.setColumnName(columnName);
-		if("id".equals(columnName)) {
-			columnModelEntity.setDescription("主键（自动生成无法删改）");
-			columnModelEntity.setName("主键id");
-		}else{
-			columnModelEntity.setDescription("关联字段");
-			columnModelEntity.setName("关联字段id");
-		}
 		columnModelEntity.setDataType(ColumnType.String);
 		columnModelEntity.setLength(32);
 		columnModelEntity.setPrecision(32);
+		if("id".equals(columnName)) {
+			columnModelEntity.setDescription("主键（自动生成无法删改）");
+			columnModelEntity.setName("主键id");
+		}else if("master_id".equals(columnName)){
+			columnModelEntity.setDescription("关联字段");
+			columnModelEntity.setName("关联字段id");
+		}else if("create_at".equals(columnName)){
+			columnModelEntity.setDescription("创建时间");
+			columnModelEntity.setName("创建时间");
+			columnModelEntity.setDataType(ColumnType.Timestamp);
+			columnModelEntity.setLength(0);
+			columnModelEntity.setPrecision(0);
+		}else if("update_at".equals(columnName)){
+			columnModelEntity.setDescription("更新时间");
+			columnModelEntity.setName("更新时间");
+			columnModelEntity.setDataType(ColumnType.Timestamp);
+			columnModelEntity.setLength(0);
+			columnModelEntity.setPrecision(0);
+		}else if("create_by".equals(columnName)){
+			columnModelEntity.setDescription("创建人id");
+			columnModelEntity.setName("创建人");
+		}else if("update_by".equals(columnName)){
+			columnModelEntity.setDescription("更新人id");
+			columnModelEntity.setName("更新人");
+		}
 		columnModelEntity.setScale(null);
 		columnModelEntity.setNotNull(true);
 		columnModelEntity.setKey(true);

@@ -537,6 +537,10 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 		//创建获取主键未持久化到数据库
 		ColumnModelEntity masterIdColumnEntity = columnModelService.saveColumnModelEntity(masterDataModelEntity, "id");
+		columnModelService.saveColumnModelEntity(masterDataModelEntity, "create_at");
+		columnModelService.saveColumnModelEntity(masterDataModelEntity, "update_at");
+		columnModelService.saveColumnModelEntity(masterDataModelEntity, "create_by");
+		columnModelService.saveColumnModelEntity(masterDataModelEntity, "update_by");
 
 		//创建获取关联字段未持久化到数据库
 		setMasterIdColumnEntity(masterDataModelEntity);
@@ -564,7 +568,10 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 			//获取主键未持久化到数据库
 			columnModelService.saveColumnModelEntity(slaverDataModelEntity, "id");
-
+			columnModelService.saveColumnModelEntity(slaverDataModelEntity, "create_at");
+			columnModelService.saveColumnModelEntity(slaverDataModelEntity, "update_at");
+			columnModelService.saveColumnModelEntity(slaverDataModelEntity, "create_by");
+			columnModelService.saveColumnModelEntity(slaverDataModelEntity, "update_by");
 			//子表不需要关联
 			setMasterIdColunm(slaverDataModelEntity, masterIdColumnEntity);
 
@@ -606,6 +613,17 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 		for(String key : oldMasterDataModelMap.keySet()){
 			dataModelService.deleteById(key);
+		}
+
+		//数据标识对应的字段
+		if(formModel.getItemModelList() != null && formModel.getItemModelList().size() > 0) {
+			List<String> list = new ArrayList<>();
+			for(ItemModel itemModel1 : formModel.getItemModelList()) {
+				list.add(itemModel1.getTableName()+"_"+itemModel1.getColumnName());
+			}
+			entity.setItemTableColunmName(String.join(",", list));
+		}else{
+			entity.setItemTableColunmName(null);
 		}
 		//保存数据模型
 		dataModelService.save(masterDataModelEntity);
@@ -832,6 +850,11 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				//columnModelService.save(columnModelEntity);
 
 				if("id".equals(columnModelEntity.getColumnName()) || (needMasterId && "master_id".equals(columnModelEntity.getColumnName()))){
+					continue;
+				}
+
+				if("create_at".equals(columnModelEntity.getColumnName()) ||"update_at".equals(columnModelEntity.getColumnName())
+						|| "create_by".equals(columnModelEntity.getColumnName())  || "update_by".equals(columnModelEntity.getColumnName()) ){
 					continue;
 				}
 
@@ -1182,17 +1205,33 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	private void setColumnModel(ItemModelEntity entity, ItemModel itemModel){
 		if(itemModel.getColumnModel() == null){
 			entity.setColumnModel(null);
+			if(itemModel.getSystemItemType() == SystemItemType.CreateDate){
+				if(itemModel.getCreateType() == SystemCreateType.Create){
+					createTableColumn( entity, "create_at", null, itemModel.getTableName());
+				}else{
+					createTableColumn( entity, "update_at", null, itemModel.getTableName());
+				}
+			}
+			if(itemModel.getSystemItemType() == SystemItemType.Creator){
+				if(itemModel.getCreateType() == SystemCreateType.Create){
+					createTableColumn( entity, "create_by", null, itemModel.getTableName());
+				}else{
+					createTableColumn( entity, "update_by", null, itemModel.getTableName());
+				}
+			}
 		}else{
-			//List<ColumnModelEntity> columnModelEntityList = columnModelService.query().filterEqual("columnName", itemModel.getColumnModel().getColumnName()).filterEqual("dataModel.tableName", itemModel.getColumnModel().getTableName()).list();
-
-			ColumnModelEntity columnModelEntity = new ColumnModelEntity();
-			columnModelEntity.setColumnName(itemModel.getColumnModel().getColumnName());
-			columnModelEntity.setId(itemModel.getColumnModel().getId());
-			DataModelEntity dataModelEntity = new DataModelEntity();
-			dataModelEntity.setTableName(itemModel.getColumnModel().getTableName());
-			columnModelEntity.setDataModel(dataModelEntity);
-			entity.setColumnModel(columnModelEntity);
+			createTableColumn( entity,itemModel.getColumnModel().getColumnName(), itemModel.getColumnModel().getId(), itemModel.getColumnModel().getTableName());
 		}
+	}
+
+	private void createTableColumn(ItemModelEntity entity, String columnName, String columnId, String tableName){
+		ColumnModelEntity columnModelEntity = new ColumnModelEntity();
+		columnModelEntity.setColumnName(columnName);
+		columnModelEntity.setId(columnId);
+		DataModelEntity dataModelEntity = new DataModelEntity();
+		dataModelEntity.setTableName(tableName);
+		columnModelEntity.setDataModel(dataModelEntity);
+		entity.setColumnModel(columnModelEntity);
 	}
 
 
@@ -1320,6 +1359,12 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			}
 			formModel.setDataModels(dataModelList);
 		}
+
+		if(StringUtils.hasText(entity.getItemModelIds())) {
+			List<String> resultList = new ArrayList<>(Arrays.asList(entity.getItemModelIds().split(",")));
+			formModel.setItemModelList(getItemModelList(resultList));
+		}
+
 		return formModel;
 	}
 
