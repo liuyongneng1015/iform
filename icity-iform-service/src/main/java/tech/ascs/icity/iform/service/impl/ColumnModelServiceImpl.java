@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity> implements ColumnModelService {
 
@@ -197,24 +196,7 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
 
 	@Override
 	public void deleteTableColumn(String tableName, String columnName) {
-		String indexSql = "show index from if_"+tableName;
-		List<Map<String, Object>> indexList = listBySql(indexSql);
-		for(Map<String, Object> map : indexList){
-			if(columnName.equals(map.get("Column_name"))){
-				try {
-					String deleteForeignIndexSql = "alter table if_"+tableName +" drop foreign key  "+map.get("Key_name") ;
-					jdbcTemplate.execute(deleteForeignIndexSql);
-				} catch (DataAccessException e) {
-					e.printStackTrace();
-				}
-				try {
-					String deleteIndexSql = "alter table  if_"+tableName +" drop index "+map.get("Key_name");
-					jdbcTemplate.execute(deleteIndexSql);
-				} catch (DataAccessException e) {
-					e.printStackTrace();
-				}
-			}
-		}
+		deleteTableColumnIndex(tableName, columnName);
 		String columnSql ="select COLUMN_NAME from information_schema.COLUMNS where table_name = 'if_"+tableName+"'";
 		List<String> colummList = jdbcTemplate.queryForList(columnSql, String.class);
 		if(colummList.contains(columnName)){
@@ -242,6 +224,28 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
 			jdbcTemplate.execute(deleteTableSql);
 		} catch (DataAccessException e) {
 			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public void deleteTableColumnIndex(String tableName, String columnName) {
+		String indexSql = "show index from if_"+tableName;
+		List<Map<String, Object>> indexList = listBySql(indexSql);
+		for(Map<String, Object> map : indexList){
+			if(columnName.equals(map.get("Column_name"))){
+				try {
+					String deleteForeignIndexSql = "alter table if_"+tableName +" drop foreign key  "+map.get("Key_name") ;
+					jdbcTemplate.execute(deleteForeignIndexSql);
+				} catch (DataAccessException e) {
+					e.printStackTrace();
+				}
+				try {
+					String deleteIndexSql = "alter table  if_"+tableName +" drop index "+map.get("Key_name");
+					jdbcTemplate.execute(deleteIndexSql);
+				} catch (DataAccessException e) {
+					e.printStackTrace();
+				}
+			}
 		}
 	}
 

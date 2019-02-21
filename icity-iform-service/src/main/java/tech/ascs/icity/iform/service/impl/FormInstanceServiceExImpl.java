@@ -337,10 +337,12 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		Session session = getSession(dataModel);
 		session.beginTransaction();
 		Map<String, Object> data = new HashMap<String, Object>();
+		data.put("create_at", new Date());
+		data.put("create_by",  user != null ? user.getId() : "-1");
 		//主表数据
 		setMasterFormItemInstances(formInstance, data, DisplayTimingType.Add);
 		//设置关联数据
-		setReferenceData(session, dataModel.getTableName(), formInstance, data, DisplayTimingType.Add);
+		setReferenceData(session, user, formInstance, data, DisplayTimingType.Add);
 
 		String newId = (String) session.save(dataModel.getTableName(), data);
 
@@ -444,11 +446,12 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			session.beginTransaction();
 
 			Map<String, Object> data = (Map<String, Object>) session.load(dataModel.getTableName(), instanceId);
-
+			data.put("update_at", new Date());
+			data.put("update_by",  user != null ? user.getId() : "-1");
 			//主表数据
 			setMasterFormItemInstances(formInstance,data, DisplayTimingType.Update);
 
-			setReferenceData(session, dataModel.getTableName(), formInstance, data, DisplayTimingType.Update);
+			setReferenceData(session, user, formInstance, data, DisplayTimingType.Update);
 
 			// 流程操作
 			if (formInstance.getActivityInstanceId() != null) {
@@ -472,7 +475,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	}
 
 	//设置关联数据
-	private void setReferenceData(Session session, String tableName, FormDataSaveInstance formInstance, Map<String, Object> data,DisplayTimingType displayTimingType){
+	private void setReferenceData(Session session, UserInfo user, FormDataSaveInstance formInstance, Map<String, Object> data,DisplayTimingType displayTimingType){
 		//主表
 		FormModelEntity masterFormModelEntity = formModelService.get(formInstance.getFormId());
 
@@ -488,6 +491,13 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				List<Map<String, Object>> newListMap = new ArrayList<>();
 				for (SubFormDataItemInstance subFormDataItemInstance : subFormItemInstance.getItemInstances()) {
 					Map<String, Object> map = new HashMap<>();
+					if(displayTimingType == DisplayTimingType.Add){
+						map.put("create_at", new Date());
+						map.put("create_by", user != null ? user.getId() : "-1" );
+					}else{
+						map.put("update_at", new Date());
+						map.put("update_by", user != null ? user.getId() : "-1");
+					}
 					List<String> idList = new ArrayList<>();
 					Map<String, List<String>> stringListMap = new HashMap<>();
 					for (SubFormRowItemInstance instance : subFormDataItemInstance.getItems()) {
@@ -512,11 +522,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					}
 					newListMap.add(map);
 				}
-
-
-
-
-
 
 				List<String> idList = new ArrayList<>();
 				for (Map<String, Object> newMap : newListMap) {
