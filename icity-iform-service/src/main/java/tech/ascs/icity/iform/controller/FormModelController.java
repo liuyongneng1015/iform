@@ -1,6 +1,7 @@
 package tech.ascs.icity.iform.controller;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -29,6 +30,8 @@ import tech.ascs.icity.utils.BeanUtils;
 @Api(tags = "表单模型服务", description = "包含表单模型的增删改查等功能")
 @RestController
 public class FormModelController implements tech.ascs.icity.iform.api.service.FormModelService {
+
+    private static Map<String, Object> concurrentmap = new ConcurrentHashMap<String, Object>();
 
 	@Autowired
 	private FormModelService formModelService;
@@ -105,17 +108,34 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 	@Override
 	public IdEntity saveFormDataModel(@RequestBody FormModel formModel) {
-		//校验表名
-		if(formModel != null && formModel.getDataModels() != null && formModel.getDataModels().size() > 0) {
-			DataModel dataModel = formModel.getDataModels().get(0);
-			DataModelEntity dataModelEntity = new DataModelEntity();
-			dataModelEntity.setId(dataModel.isNew()? null : dataModel.getId());
-			dataModelEntity.setTableName(dataModel.getTableName());
-			veryTableName(dataModelEntity);
-		}
-		verifyFormModelName(formModel);
- 		FormModelEntity oldEntity = formModelService.saveFormModel(formModel);
-		return new IdEntity(oldEntity.getId());
+        String key = formModel.getId()+"_"+formModel.getName();
+        FormModelEntity oldEntity = null;
+        try {
+            if(concurrentmap.get(key) != null){
+                throw  new IFormException("请不要重复提交");
+            }
+            concurrentmap.put(key, System.currentTimeMillis());
+            //校验表名
+            if(formModel != null && formModel.getDataModels() != null && formModel.getDataModels().size() > 0) {
+                DataModel dataModel = formModel.getDataModels().get(0);
+                DataModelEntity dataModelEntity = new DataModelEntity();
+                dataModelEntity.setId(dataModel.isNew()? null : dataModel.getId());
+                dataModelEntity.setTableName(dataModel.getTableName());
+                veryTableName(dataModelEntity);
+            }
+            verifyFormModelName(formModel);
+            oldEntity = formModelService.saveFormModel(formModel);
+        } catch (Exception e) {
+            if(e instanceof IFormException){
+                throw e;
+            }
+            throw new IFormException(e.getMessage());
+        }finally {
+            if(concurrentmap.containsKey(key)){
+                concurrentmap.remove(key);
+            }
+        }
+        return new IdEntity(oldEntity.getId());
 	}
 
 
@@ -125,13 +145,22 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		if (StringUtils.hasText(formModel.getId())) {
 			throw new IFormException("表单模型ID不为空，请使用更新操作");
 		}
-		try {
+        String key = formModel.getId()+"_"+formModel.getName();
+        try {
+            if(concurrentmap.get(key) != null){
+                throw  new IFormException("请不要重复提交");
+            }
+            concurrentmap.put(key, System.currentTimeMillis());
 			FormModelEntity entity = wrap(formModel);
 			entity = formModelService.save(entity);
 			return new IdEntity(entity.getId());
 		} catch (Exception e) {
 			throw new IFormException("保存表单模型列表失败：" + e.getMessage(), e);
-		}
+		}finally {
+            if(concurrentmap.containsKey(key)){
+                concurrentmap.remove(key);
+            }
+        }
 	}
 
 	@Override
@@ -139,20 +168,39 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		if (!StringUtils.hasText(formModel.getId()) || !id.equals(formModel.getId())) {
 			throw new IFormException("表单模型ID不一致");
 		}
-		try {
+        String key = formModel.getId()+"_"+formModel.getName();
+        try {
+            if(concurrentmap.get(key) != null){
+                throw  new IFormException("请不要重复提交");
+            }
+            concurrentmap.put(key, System.currentTimeMillis());
 			FormModelEntity entity = wrap(formModel);
 			formModelService.save(entity);
 //			listModelService.submitFormBtnPermission(entity);
 		} catch (Exception e) {
 			throw new IFormException("保存表单模型列表失败：" + e.getMessage(), e);
-		}
+		}finally {
+            if(concurrentmap.containsKey(key)){
+                concurrentmap.remove(key);
+            }
+        }
 	}
 
 	@Override
 	public void removeFormModel(@PathVariable(name="id", required = true) String id) {
-        formModelService.deleteFormModelEntityById(id);
-//			listModelService.deleteFormBtnPermission(id);
-
+        String key = id;
+        try {
+            if (concurrentmap.get(key) != null) {
+                throw new IFormException("请不要重复提交");
+            }
+            concurrentmap.put(key, System.currentTimeMillis());
+            formModelService.deleteFormModelEntityById(id);
+            //			listModelService.deleteFormBtnPermission(id);
+        }finally {
+            if(concurrentmap.containsKey(key)){
+                concurrentmap.remove(key);
+            }
+        }
 	}
 
 	@Override
@@ -867,6 +915,8 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 						itemModelService.save(itemModel);
 					}
 				}
+				//删除数据库字段
+				columnModelService.deleteTableColumn(newDataModel.getTableName(), columnModelEntity.getColumnName());
 				columnModelService.delete(columnModelEntity);
 			}
 		}
@@ -1361,7 +1411,11 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 
 		if(StringUtils.hasText(entity.getItemModelIds())) {
-			List<String> resultList = new ArrayList<>(Arrays.asList(entity.getItemModelIds().split(",")));
+		    String[] strings = entity.getItemModelIds().split(",");
+			List<String> resultList = new ArrayList<>();
+			for(String str : strings){
+                resultList.add(str);
+            }
 			formModel.setItemModelList(getItemModelList(resultList));
 		}
 

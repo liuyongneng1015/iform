@@ -1,6 +1,7 @@
 package tech.ascs.icity.iform.controller;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -33,6 +34,7 @@ import tech.ascs.icity.utils.BeanUtils;
 @RestController
 public class DataModelController implements tech.ascs.icity.iform.api.service.DataModelService {
 	private final Logger log = LoggerFactory.getLogger(DataModelController.class);
+	private static Map<String, Object> concurrentmap = new ConcurrentHashMap<String, Object>();
 
 	@Autowired
 	private DataModelService dataModelService;
@@ -249,11 +251,20 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 				throw new IFormException("字段名称必须以字母开头，只能包含数字，字母，下划线，不能包含中文，横杆等特殊字符");
 			}
 		}
+		String key = dataModel.getId()+"_"+dataModel.getTableName();
 		try {
+			if(concurrentmap.get(key) != null){
+				throw  new IFormException("请不要重复提交");
+			}
+			concurrentmap.put(key, System.currentTimeMillis());
 			DataModelEntity entity = dataModelService.save(dataModel);
 			return new IdEntity(entity.getId());
 		} catch (Exception e) {
 			throw new IFormException("保存数据模型失败：" + e.getMessage(), e);
+		}finally {
+			if(concurrentmap.containsKey(key)){
+				concurrentmap.remove(key);
+			}
 		}
 	}
 
@@ -276,24 +287,49 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 				throw new IFormException("字段名称必须以字母开头，只能包含数字，字母，下划线，不能包含中文，横杆等特殊字符");
 			}
 		}
+		String key = dataModel.getId()+"_"+dataModel.getTableName();
 		try {
+			if(concurrentmap.get(key) != null){
+				throw  new IFormException("请不要重复提交");
+			}
+			concurrentmap.put(key, System.currentTimeMillis());
 			dataModelService.save(dataModel);
 		} catch (Exception e) {
 			throw new IFormException("保存数据模型失败：" + e.getMessage(), e);
+		}finally {
+			if(concurrentmap.containsKey(key)){
+				concurrentmap.remove(key);
+			}
 		}
 	}
 
 	@Override
 	public void removeDataModel(@PathVariable(name="id") String id) {
-		DataModelEntity dataModelEntity = dataModelService.get(id);
-		if(dataModelEntity != null){
-			dataModelService.deleteDataModel(dataModelEntity);
+		String key = id;
+		try {
+			if (concurrentmap.get(key) != null) {
+				throw new IFormException("请不要重复提交");
+			}
+			concurrentmap.put(key, System.currentTimeMillis());
+			DataModelEntity dataModelEntity = dataModelService.get(id);
+			if (dataModelEntity != null) {
+				dataModelService.deleteDataModel(dataModelEntity);
+			}
+		}finally {
+			if(concurrentmap.containsKey(key)){
+				concurrentmap.remove(key);
+			}
 		}
 	}
 
 	@Override
 	public List<DataModel> findDataModelByFormId(@PathVariable(name="formId") String formId) {
 		return dataModelService.findDataModelByFormId(formId);
+	}
+
+	@Override
+	public void deletetableColumn(@RequestParam(name = "tableName", required = true) String tableName, @RequestParam(name = "columnName", required = true) String columnName) {
+		columnModelService.deleteTableColumn(tableName, columnName);
 	}
 
 	@Override
@@ -305,7 +341,6 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 		if (entity.getModelType() == DataModelType.Slaver) {
 			throw new IFormException("不能直接同步从表，请同步所属主表【" + entity.getMasterModel().getName() + "】");
 		}
-
 		dataModelService.sync(entity);
 	}
 

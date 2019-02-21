@@ -599,6 +599,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			((SelectItemModelEntity) itemModelEntity).setItems(null);
 			itemManager.save(itemModelEntity);
 		}
+		if(itemModelEntity instanceof ReferenceItemModelEntity && ((ReferenceItemModelEntity) itemModelEntity).getSelectMode() == SelectMode.Multiple){
+			columnModelService.deleteTable("if_"+((ReferenceItemModelEntity) itemModelEntity).getItemTableColunmName()+"_list");
+		}
 		list.remove(itemModelEntity);
 		itemManager.delete(itemModelEntity);
 	}

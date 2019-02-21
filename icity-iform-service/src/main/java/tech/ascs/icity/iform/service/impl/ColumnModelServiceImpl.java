@@ -1,6 +1,10 @@
 package tech.ascs.icity.iform.service.impl;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import tech.ascs.icity.iform.api.model.ColumnType;
 import tech.ascs.icity.iform.api.model.ReferenceModel;
 import tech.ascs.icity.iform.api.model.ReferenceType;
@@ -9,8 +13,12 @@ import tech.ascs.icity.iform.service.ColumnModelService;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity> implements ColumnModelService {
@@ -22,6 +30,9 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
 	public ColumnModelServiceImpl() {
 		super(ColumnModelEntity.class);
 	}
+
+	@Autowired
+	JdbcTemplate jdbcTemplate;
 
 	@Override
 	protected void initManager() {
@@ -185,7 +196,71 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
 	}
 
 	@Override
-	public ColumnReferenceEntity getColumnReferenceById(String id) {
-		return columnReferenceManager.get(id);
+	public void deleteTableColumn(String tableName, String columnName) {
+		String indexSql = "show index from if_"+tableName;
+		List<Map<String, Object>> indexList = listBySql(indexSql);
+		for(Map<String, Object> map : indexList){
+			if(columnName.equals(map.get("Column_name"))){
+				try {
+					String deleteForeignIndexSql = "alter table if_"+tableName +" drop foreign key  "+map.get("Key_name") ;
+					jdbcTemplate.execute(deleteForeignIndexSql);
+				} catch (DataAccessException e) {
+					e.printStackTrace();
+				}
+				try {
+					String deleteIndexSql = "alter table  if_"+tableName +" drop index "+map.get("Key_name");
+					jdbcTemplate.execute(deleteIndexSql);
+				} catch (DataAccessException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		String columnSql ="select COLUMN_NAME from information_schema.COLUMNS where table_name = 'if_"+tableName+"'";
+		List<String> colummList = jdbcTemplate.queryForList(columnSql, String.class);
+		if(colummList.contains(columnName)){
+			try {
+				String deleteColumnSql ="ALTER TABLE if_"+tableName+" DROP "+columnName;
+				jdbcTemplate.execute(deleteColumnSql);
+			} catch (DataAccessException e) {
+				e.printStackTrace();
+			}
+		}
+		if(colummList.contains("f"+columnName)){
+			try {
+				String deleteColumnSql ="ALTER TABLE if_"+tableName+" DROP "+columnName;
+				jdbcTemplate.execute(deleteColumnSql);
+			} catch (DataAccessException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	@Override
+	public void deleteTable(String tableName) {
+		try {
+			String deleteTableSql ="DROP TABLE IF exists "+tableName;
+			jdbcTemplate.execute(deleteTableSql);
+		} catch (DataAccessException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private List<Map<String, Object>> listBySql(String sql) {
+		List<Map<String, Object>> list = jdbcTemplate.query(sql, new DataRowMapper());
+		return list;
+	}
+
+	class DataRowMapper implements RowMapper{
+
+		@Override
+		//实现mapRow方法
+		public Map<String, Object> mapRow(ResultSet rs, int num) throws SQLException {
+			//对类进行封装
+			Map<String, Object> map = new HashMap<>();
+			map.put("Column_name",rs.getString("Column_name"));
+			map.put("Key_name", rs.getString("Key_name"));
+			map.put("COLUMN_NAME", rs.getString("COLUMN_NAME"));
+			return map;
+		}
 	}
 }

@@ -26,6 +26,9 @@ public interface ColumnModelService extends JPAService<ColumnModelEntity> {
     //获取关联关系
      List<ReferenceModel> getReferenceModel(ColumnModelEntity entity);
 
-    //获取关联关系
-    ColumnReferenceEntity getColumnReferenceById(String id);
+    //删除数据库字段
+    void deleteTableColumn(String tableName, String columnName);
+
+    //删除数据库
+    void deleteTable(String tableName);
 }

@@ -177,4 +177,17 @@ public interface DataModelService {
 	@ApiImplicitParam(paramType = "path", name = "formId", value = "表单模型ID", required = true, dataType = "String")
 	@GetMapping("/column/{formId}")
 	List<DataModel> findDataModelByFormId(@PathVariable(name="formId") String formId);
+
+	/**
+	 * 查询字段流程
+	 *
+	 * @param tableName 数据模型ID
+	 */
+	@ApiOperation(value = "查询字段", position = 6)
+	@ApiImplicitParams({
+			@ApiImplicitParam(paramType = "query", name = "tableName", value = "tableName", required = true),
+			@ApiImplicitParam(paramType = "query", name = "columnName", value = "columnName", required = true),
+	})
+	@GetMapping("/delete/tableColumn")
+	void deletetableColumn(@RequestParam(name = "tableName", required = true) String tableName, @RequestParam(name = "columnName", required = true) String columnName);
 }
