@@ -556,7 +556,8 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 
 					if(itemModelEntity instanceof ReferenceItemModelEntity && ((ReferenceItemModelEntity) itemModelEntity).getReferenceList() != null) {
 						ListModel searchReferenceList = new ListModel();
-						ListModelEntity searchReferenceListEntity = ((ReferenceItemModelEntity) itemModelEntity).getReferenceList();
+						ReferenceItemModelEntity referenceItemModelEntity = (ReferenceItemModelEntity) itemModelEntity;
+						ListModelEntity searchReferenceListEntity = referenceItemModelEntity.getReferenceList();
 						searchReferenceList.setId(searchReferenceListEntity.getId());
 						searchReferenceList.setName(searchReferenceListEntity.getName());
 						searchReferenceList.setMultiSelect(searchReferenceListEntity.isMultiSelect());
@@ -564,6 +565,10 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 						searchReferenceList.setApplicationId(searchReferenceListEntity.getApplicationId());
 						searchItem.setReferenceList(searchReferenceList);
 						searchItem.setReferenceListId(searchReferenceListEntity.getId());
+						if(referenceItemModelEntity.getItemModelIds() != null) {
+							List<String> resultList = new ArrayList<>(Arrays.asList(referenceItemModelEntity.getItemModelIds().split(",")));
+							searchItem.setItemModelList(getItemModelList(resultList));
+						}
 					}
 
 					if (itemModelEntity instanceof SelectItemModelEntity) {
@@ -656,6 +661,33 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
             listModel.setQuickSearchItems(quickSearches);
         }
 		return listModel;
+	}
+
+	private List<ItemModel> getItemModelList(List<String> idResultList){
+		if(idResultList == null || idResultList.size() < 1){
+			return null;
+		}
+
+		Set<ItemModelEntity> itemModelEntities = new HashSet<>();
+		for(String itemId : idResultList) {
+			ItemModelEntity itemModelEntity = itemModelService.find(itemId);
+			if (itemModelEntity!=null) {
+				itemModelEntities.add(itemModelService.find(itemId));
+			}
+		}
+
+		List<ItemModel> list = new ArrayList<>();
+		for(ItemModelEntity itemModelEntity : itemModelEntities){
+			ItemModel itemModel = new ItemModel();
+			itemModel.setId(itemModelEntity.getId());
+			itemModel.setName(itemModelEntity.getName());
+			if(itemModelEntity.getColumnModel() != null) {
+				itemModel.setTableName(itemModelEntity.getColumnModel().getDataModel().getTableName());
+				itemModel.setColumnName(itemModelEntity.getColumnModel().getColumnName());
+			}
+			list.add(itemModel);
+		}
+		return list;
 	}
 
 	/**
