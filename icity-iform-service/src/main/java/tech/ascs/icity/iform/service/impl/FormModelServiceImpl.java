@@ -882,6 +882,10 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
                 dataModelEntity.setId(null);
             }
             columnModelService.saveColumnModelEntity(dataModelEntity, "id");
+			columnModelService.saveColumnModelEntity(dataModelEntity, "create_at");
+			columnModelService.saveColumnModelEntity(dataModelEntity, "update_at");
+			columnModelService.saveColumnModelEntity(dataModelEntity, "create_by");
+			columnModelService.saveColumnModelEntity(dataModelEntity, "update_by");
             dataModelService.save(dataModelEntity);
             newDataModelIds.add(dataModelEntity.getId());
             newAddDataModel.add(dataModelEntity);
