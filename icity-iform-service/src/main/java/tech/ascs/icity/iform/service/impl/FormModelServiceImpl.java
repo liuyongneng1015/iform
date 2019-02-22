@@ -413,6 +413,8 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			saveItemModelEntity = new SerialNumberItemModelEntity();
 		}else if(paramerItemModelEntity.getSystemItemType() == SystemItemType.Creator){
 			saveItemModelEntity = new CreatorItemModelEntity();
+		}else if(paramerItemModelEntity.getSystemItemType() == SystemItemType.CreateDate){
+			saveItemModelEntity = new TimeItemModelEntity();
 		}
 		if(!paramerItemModelEntity.isNew()){
 			saveItemModelEntity = oldMapItmes.get(paramerItemModelEntity.getId());
@@ -990,9 +992,6 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				break;
 			case  CheckboxGroup:
 				entity = new SelectItemModelEntity();
-				break;
-			case  DatePicker:
-				entity = new TimeItemModelEntity();
 				break;
 			case  SubForm:
 				entity = new SubFormItemModelEntity();

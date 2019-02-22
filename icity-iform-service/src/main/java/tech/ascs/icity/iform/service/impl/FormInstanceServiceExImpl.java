@@ -715,7 +715,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	private void setItemInstance(ItemModelEntity itemModel, ItemInstance itemInstance, Map<String, Object> data ,DisplayTimingType displayTimingType){
 		Object value = null;
 		verifyValue(itemModel, itemInstance.getValue(), displayTimingType);
-		if (itemModel.getType() == ItemType.DatePicker) {
+		if (itemModel.getSystemItemType() == SystemItemType.CreateDate) {
 			try {
 				value = itemInstance.getValue() == null ? null : new Date(Long.parseLong(String.valueOf(itemInstance.getValue())));
 			} catch (Exception e) {
@@ -814,7 +814,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				continue;
 			}*/
 			Object value;
-			if (itemModel.getType() == ItemType.DatePicker) {
+			if (itemModel.getSystemItemType() == SystemItemType.CreateDate) {
 				value = new Date((Long) itemInstance.getValue());
 			} else {
 				value = itemInstance.getValue();
@@ -906,7 +906,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 			for (int i = 0; i < values.length; i++) {
 				value = values[i];
-				if (itemModel.getType() == ItemType.DatePicker) {
+				if (itemModel.getSystemItemType() == SystemItemType.CreateDate) {
 					equalsFlag = true;
 					if (!(value instanceof Date)) {
 						String strValue = String.valueOf(value);
@@ -935,7 +935,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 			ListSearchItem searchItem = searchItemMap.get(itemModel.getId());
 			if (equalsFlag) {
-				if(itemModel.getType() == ItemType.DatePicker) {
+				if(itemModel.getSystemItemType() == SystemItemType.CreateDate) {
 					Date dateParams = timestampNumberToDate(value);
 					if (Objects.nonNull(value)) {  // Timestamp
 						criteria.add(Restrictions.ge(propertyName, dateParams));
@@ -1680,11 +1680,6 @@ private DataModelInstance setDataModelInstance(FormModelEntity toModelEntity, Re
 			return;
 		}
 		switch(itemModel.getType()) {
-			case DatePicker:
-				Date date = (Date) value;
-				itemInstance.setValue(date);
-				itemInstance.setDisplayValue(DateFormatUtils.format(date,((TimeItemModelEntity)itemModel).getTimeFormat() == null ? "yyyy-MM-dd HH:mm:ss" : ((TimeItemModelEntity)itemModel).getTimeFormat()));
-				break;
 			case Select:
 				setSelectItemValue(itemModel, itemInstance, value);
 				break;
@@ -1740,9 +1735,14 @@ private DataModelInstance setDataModelInstance(FormModelEntity toModelEntity, Re
 						e.printStackTrace();
 						itemInstance.setDisplayValue(valueStr);
 					}
+				}else if(itemModel.getSystemItemType() == SystemItemType.CreateDate){
+					Date date = (Date) value;
+					itemInstance.setValue(date);
+					itemInstance.setDisplayValue(DateFormatUtils.format(date,((TimeItemModelEntity)itemModel).getTimeFormat() == null ? "yyyy-MM-dd HH:mm:ss" : ((TimeItemModelEntity)itemModel).getTimeFormat()));
 				}else {
 					itemInstance.setDisplayValue(valueStr);
 				}
+
 				break;
 		}
 	}

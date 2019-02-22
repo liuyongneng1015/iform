@@ -241,7 +241,7 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 			fields.append(", f").append(itemModel.getColumnModel().getColumnName());
 			values.append(", ?");
 			Object value;
-			if (itemModel.getType() == ItemType.DatePicker) {
+			if (itemModel.getSystemItemType() == SystemItemType.CreateDate) {
 				value = new Date((Long) itemInstance.getValue());
 			} else {
 				value = itemInstance.getValue();
@@ -279,7 +279,7 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 			fields.append("f").append(itemModel.getColumnModel().getColumnName()).append("=?");
 
 			Object value;
-			if (itemModel.getType() == ItemType.DatePicker) {
+			if (itemModel.getSystemItemType() == SystemItemType.CreateDate) {
 				value = new Date((Long) itemInstance.getValue());
 			} else {
 				value = itemInstance.getValue();
