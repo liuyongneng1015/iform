@@ -10,7 +10,7 @@ import tech.ascs.icity.jpa.service.JPAService;
 import java.io.InputStream;
 import java.util.List;
 
-public interface UploadService  extends JPAService<ColumnModelEntity> {
+public interface UploadService  extends JPAService<FileUploadEntity> {
 
     /**
      * 上传图片并返回url，用当前时间的day作为前置

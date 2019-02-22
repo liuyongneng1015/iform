@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-public class UploadServiceImpl extends DefaultJPAService<ColumnModelEntity> implements UploadService {
+public class UploadServiceImpl extends DefaultJPAService<FileUploadEntity> implements UploadService {
 
 	@Autowired
 	private MinioClient minioClient;
@@ -40,9 +40,14 @@ public class UploadServiceImpl extends DefaultJPAService<ColumnModelEntity> impl
 
 	private JPAManager<FileUploadEntity> fileUploadEntityManager;
 
-	public UploadServiceImpl() {
-		super(ColumnModelEntity.class);
+	@Override
+	protected void initManager() {
+		super.initManager();
 		fileUploadEntityManager = getJPAManagerFactory().getJPAManager(FileUploadEntity.class);
+	}
+
+	public UploadServiceImpl() {
+		super(FileUploadEntity.class);
 	}
 
 	/**
