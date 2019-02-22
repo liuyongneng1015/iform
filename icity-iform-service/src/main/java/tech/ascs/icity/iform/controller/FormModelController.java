@@ -1434,7 +1434,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				}
 			}
 			for (DataModelEntity dataModelEntity : dataModelEntities) {
-				dataModelList.add(getDataModel(dataModelEntity));
+				dataModelList.add(formModelService.getDataModel(dataModelEntity));
 			}
 			formModel.setDataModels(dataModelList);
 		}
@@ -1509,42 +1509,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		return itemModels;
 	}
 
-	private DataModel getDataModel(DataModelEntity dataModelEntity){
-		DataModel  dataModel = new DataModel();
-		BeanUtils.copyProperties(dataModelEntity, dataModel, new String[] {"masterModel","slaverModels","columns","indexes","referencesDataModel"});
-		if(dataModelEntity.getMasterModel() != null) {
-			DataModelInfo masterModel = new DataModelInfo();
-			BeanUtils.copyProperties(dataModelEntity.getMasterModel(), masterModel, new String[] {"masterModel","slaverModels","columns","indexes","referencesDataModel"});
-			dataModel.setMasterModel(masterModel);
-		}
-		if(dataModelEntity.getColumns() != null && dataModelEntity.getColumns().size() > 0){
-			List<ColumnModel> columnModels = new ArrayList<>();
-			for(ColumnModelEntity columnModelEntity : dataModelEntity.getColumns()) {
-				ColumnModel columnModel = new ColumnModel();
-				BeanUtils.copyProperties(columnModelEntity, columnModel, new String[] {"dataModel","columnReferences"});
-				if(columnModelEntity.getColumnReferences() != null && columnModelEntity.getColumnReferences().size() > 0){
-					List<ReferenceModel> referenceModelList = new ArrayList<>();
-					for(ColumnReferenceEntity referenceEntity : columnModelEntity.getColumnReferences()){
-						if(referenceEntity.getToColumn() == null || referenceEntity.getToColumn().getDataModel() == null){
-							continue;
-						}
-						ReferenceModel referenceModel = new ReferenceModel();
-						referenceModel.setReferenceType(referenceEntity.getReferenceType());
-						referenceModel.setReferenceTable(referenceEntity.getToColumn().getDataModel().getTableName());
-						referenceModel.setReferenceValueColumn(referenceEntity.getToColumn().getColumnName());
-						referenceModel.setId(referenceEntity.getId());
-						referenceModel.setName(referenceEntity.getName());
-						referenceModel.setReferenceMiddleTableName(referenceEntity.getReferenceMiddleTableName());
-						referenceModelList.add(referenceModel);
-					}
-					columnModel.setReferenceTables(referenceModelList);
-				}
-				columnModels.add(columnModel);
-			}
-			dataModel.setColumns(columnModels);
-		}
-		return dataModel;
-	}
+
 
 	private PCFormModel toPCDTO(FormModelEntity entity) {
 		PCFormModel formModel = new PCFormModel();
