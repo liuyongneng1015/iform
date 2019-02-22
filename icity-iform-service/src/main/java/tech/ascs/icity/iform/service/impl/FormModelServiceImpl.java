@@ -413,6 +413,8 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			saveItemModelEntity = new SerialNumberItemModelEntity();
 		}else if(paramerItemModelEntity.getSystemItemType() == SystemItemType.Creator){
 			saveItemModelEntity = new CreatorItemModelEntity();
+		}else if(paramerItemModelEntity.getSystemItemType() == SystemItemType.CreateDate){
+			saveItemModelEntity = new TimeItemModelEntity();
 		}
 		if(!paramerItemModelEntity.isNew()){
 			saveItemModelEntity = oldMapItmes.get(paramerItemModelEntity.getId());
@@ -436,7 +438,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			//删除字段删除索引
 			if(oldColumnName != null && !oldColumnName.equals(newColunmName)) {
 				columnModelService.deleteTableColumn(saveItemModelEntity.getColumnModel().getDataModel().getTableName(), saveItemModelEntity.getColumnModel().getColumnName());
-			}else if(oldColumnName != null){
+			}else if(oldColumnName != null && oldColumnName.equals(newColunmName)){
 				columnModelService.deleteTableColumnIndex(saveItemModelEntity.getColumnModel().getDataModel().getTableName(), saveItemModelEntity.getColumnModel().getColumnName());
 			}
 		}
@@ -982,6 +984,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			case  Attachment:
 				entity = new FileItemModelEntity();
 				break;
+			case  DatePicker:
+				entity = new TimeItemModelEntity();
+				break;
 			case  Select:
 				entity = new SelectItemModelEntity();
 				break;
@@ -990,9 +995,6 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				break;
 			case  CheckboxGroup:
 				entity = new SelectItemModelEntity();
-				break;
-			case  DatePicker:
-				entity = new TimeItemModelEntity();
 				break;
 			case  SubForm:
 				entity = new SubFormItemModelEntity();

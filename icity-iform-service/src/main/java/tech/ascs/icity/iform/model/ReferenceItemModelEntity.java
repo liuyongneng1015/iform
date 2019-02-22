@@ -54,6 +54,9 @@ public class ReferenceItemModelEntity extends ItemModelEntity  {
 	@Column(name="item_table_colunm_name", length = 2048) // 关联数据标识：控件对应的表名和字段名
 	private String itemTableColunmName;
 
+	@Column(name="source_form_model_id") // 属于哪个表单控件
+	private String sourceFormModelId;
+
 	public ReferenceType getReferenceType() {
 		return referenceType;
 	}
@@ -134,4 +137,11 @@ public class ReferenceItemModelEntity extends ItemModelEntity  {
 		this.itemTableColunmName = itemTableColunmName;
 	}
 
+	public String getSourceFormModelId() {
+		return sourceFormModelId;
+	}
+
+	public void setSourceFormModelId(String sourceFormModelId) {
+		this.sourceFormModelId = sourceFormModelId;
+	}
 }

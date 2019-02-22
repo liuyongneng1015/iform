@@ -632,7 +632,8 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 						if(StringUtils.hasText(defaultValue)) {
 							ItemType itemType = searchItem.getType();
 							// ItemType.InputNumber和ItemType.DatePicker返回的是数字，不是字符串数组格式
-							if (ItemType.DatePicker.equals(itemType) || ItemType.InputNumber.equals(itemType)) {
+							if (searchItem.getSystemItemType() == SystemItemType.CreateDate ||
+									(ItemType.InputNumber == itemType && (searchItem.getDecimalDigits() == null ||searchItem.getDecimalDigits() == 0 ))) {
 								try {
 									search.setDefaultValue(Long.valueOf(defaultValue));
 								} catch (Exception e) {

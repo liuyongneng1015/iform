@@ -2,8 +2,7 @@ package tech.ascs.icity.iform.utils;
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.net.URL;
 
 import javax.imageio.ImageIO;
@@ -16,18 +15,19 @@ import javax.imageio.ImageIO;
 public class MergedQrCodeImages {
 
 
-        public static void mergeImage(String bigPath, String smallPath, String x, String y) throws IOException {
+        public static InputStream mergeImage(InputStream backFile, InputStream qrCodeFile, String x, String y) throws IOException {
 
+            if(backFile == null){
+                return qrCodeFile;
+            }
+
+            File file = null;
             try {
-                BufferedImage small;
-                BufferedImage big = ImageIO.read(new File(bigPath));
-                if (smallPath.contains("http")) {
+                file = new File("back.png");
+                writeToLocal(file.getPath(), backFile);
 
-                    URL url = new URL(smallPath);
-                    small = ImageIO.read(url);
-                } else {
-                    small = ImageIO.read(new File(smallPath));
-                }
+                BufferedImage small =ImageIO.read(qrCodeFile);;
+                BufferedImage big = ImageIO.read(file);
 
                 Graphics2D g = big.createGraphics();
 
@@ -37,18 +37,54 @@ public class MergedQrCodeImages {
                 int y_i = (int) fy;
                 g.drawImage(small, x_i, y_i, small.getWidth(), small.getHeight(), null);
                 g.dispose();
-                ImageIO.write(big, "png", new File(bigPath));
-
+                ImageIO.write(big, "png", file);
+                return cloneInputStream(new FileInputStream(file));
             } catch (Exception e) {
                 e.printStackTrace();
+            }finally {
+                if(file != null && file.exists()){
+                    file.delete();
+                }
             }
-
+            return null;
         }
     public static void test(String[] args) throws Exception {
         try {
-            MergedQrCodeImages.mergeImage("E:/lyn/qrcode/1.jpg", "E:/lyn/qrcode/testQrCode.png", "63", "163");
+            MergedQrCodeImages.mergeImage(new FileInputStream(new File("E:/lyn/qrcode/1.jpg")) ,new FileInputStream(new File("E:/lyn/qrcode/testQrCode.png")), "63", "163");
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    //写在本地
+    public static void writeToLocal(String path, InputStream input)
+            throws IOException {
+        int index;
+        byte[] bytes = new byte[2048];
+        FileOutputStream downloadFile = new FileOutputStream(path);
+        while ((index = input.read(bytes)) != -1) {
+            downloadFile.write(bytes, 0, index);
+            downloadFile.flush();
+        }
+        input.close();
+        downloadFile.close();
+    }
+
+    //克隆文件流
+    private  static InputStream cloneInputStream(InputStream input) {
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            byte[] buffer = new byte[1024];
+            int len;
+            while ((len = input.read(buffer)) > -1) {
+                baos.write(buffer, 0, len);
+            }
+            baos.flush();
+            InputStream inputStream = new ByteArrayInputStream(baos.toByteArray());
+            return inputStream;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
         }
     }
 

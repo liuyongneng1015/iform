@@ -3,17 +3,21 @@ package tech.ascs.icity.iform.service.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.minio.MinioClient;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.FileUploadModel;
 import tech.ascs.icity.iform.model.ColumnModelEntity;
+import tech.ascs.icity.iform.model.FileUploadEntity;
+import tech.ascs.icity.iform.model.FormSubmitCheckInfo;
 import tech.ascs.icity.iform.service.ItemModelService;
 import tech.ascs.icity.iform.service.UploadService;
 import tech.ascs.icity.iform.utils.CommonUtils;
 import tech.ascs.icity.iform.utils.ImagesUtils;
 import tech.ascs.icity.iform.utils.MinioConfig;
+import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 
 import java.io.InputStream;
@@ -23,7 +27,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-public class UploadServiceImpl extends DefaultJPAService<ColumnModelEntity> implements UploadService {
+public class UploadServiceImpl extends DefaultJPAService<FileUploadEntity> implements UploadService {
 
 	@Autowired
 	private MinioClient minioClient;
@@ -34,8 +38,16 @@ public class UploadServiceImpl extends DefaultJPAService<ColumnModelEntity> impl
 	@Autowired
 	public ObjectMapper mapper;
 
+	private JPAManager<FileUploadEntity> fileUploadEntityManager;
+
+	@Override
+	protected void initManager() {
+		super.initManager();
+		fileUploadEntityManager = getJPAManagerFactory().getJPAManager(FileUploadEntity.class);
+	}
+
 	public UploadServiceImpl() {
-		super(ColumnModelEntity.class);
+		super(FileUploadEntity.class);
 	}
 
 	/**
@@ -65,6 +77,13 @@ public class UploadServiceImpl extends DefaultJPAService<ColumnModelEntity> impl
 	@Override
 	public String getFileUrl(String key) {
 		return minioConfig.getUrl()+"/"+minioConfig.getBucket()+"/"+key ;
+	}
+
+	@Override
+	public FileUploadEntity saveFileUploadEntity(FileUploadModel fileUploadModel) {
+		FileUploadEntity fileUploadEntity = fileUploadModel.isNew() ? new FileUploadEntity() : fileUploadEntityManager.get(fileUploadModel.getId());
+		BeanUtils.copyProperties(fileUploadModel, fileUploadEntity);
+		return fileUploadEntityManager.save(fileUploadEntity);
 	}
 
 	/**

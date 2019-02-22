@@ -26,6 +26,9 @@ public class MinioConfig {
     @Value("${minio.logoUrl}")
     private String logoUrl;
 
+    @Value("${minio.backUrl}")
+    private String backUrl;
+
     public String getBucket() {
         return bucket;
     }
@@ -72,6 +75,14 @@ public class MinioConfig {
 
     public void setLogoUrl(String logoUrl) {
         this.logoUrl = logoUrl;
+    }
+
+    public String getBackUrl() {
+        return backUrl;
+    }
+
+    public void setBackUrl(String backUrl) {
+        this.backUrl = backUrl;
     }
 
     @Bean

@@ -22,6 +22,7 @@ import tech.ascs.icity.iform.model.ItemModelEntity;
 import tech.ascs.icity.iform.model.ListModelEntity;
 import tech.ascs.icity.iform.model.ReferenceItemModelEntity;
 import tech.ascs.icity.iform.service.*;
+import tech.ascs.icity.iform.utils.MergedQrCodeImages;
 import tech.ascs.icity.iform.utils.MinioConfig;
 import tech.ascs.icity.iform.utils.ZXingCodeUtils;
 import tech.ascs.icity.model.IdEntity;
@@ -160,7 +161,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			throw new IFormException(404, "表单模型【" + formId + "】不存在");
 		}
 		String id = formInstanceService.createFormInstance(formModel, formInstance);
-		//TODO上传数据二维码
+		//TODO 上传数据二维码
 		//uploadDataQrCode( formModel, id);
 		return new IdEntity(id);
 	}
@@ -168,8 +169,19 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	private void uploadDataQrCode(FormModelEntity formModel, String id){
 		try {
 			URL logoUrl = new URL(minioConfig.getLogoUrl());
-			InputStream is = ZXingCodeUtils.createLogoQRCode(logoUrl, "航天智慧");
-			FileUploadModel fileUploadModel = uploadService.uploadOneFileByInputstream(formModel.getName()+"_"+id,is,"png");
+			URL backUrl = new URL(minioConfig.getBackUrl());
+
+			InputStream is = ZXingCodeUtils.createLogoQRCode(logoUrl, "www.baidu.com","航天智慧城市");
+			InputStream inputStream = null;
+			if(backUrl != null && backUrl.getFile() != null) {
+				inputStream = MergedQrCodeImages.mergeImage(backUrl.openStream(), is, "63", "163");
+			}else{
+				inputStream = is;
+			}
+			FileUploadModel fileUploadModel = uploadService.uploadOneFileByInputstream(formModel.getName()+"_"+id ,inputStream,"png");
+			fileUploadModel.setUploadType(FileUploadType.FormModel);
+			fileUploadModel.setFromSource(id);
+			uploadService.saveFileUploadEntity(fileUploadModel);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

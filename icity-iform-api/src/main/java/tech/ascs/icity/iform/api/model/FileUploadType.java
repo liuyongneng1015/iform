@@ -8,6 +8,9 @@ package tech.ascs.icity.iform.api.model;
  */
 public enum FileUploadType {
 
+	/** 表单 */
+	FormModel("FormModel"),
+
 	/** 表单控件 */
 	ItemModel("ItemModel"),
 

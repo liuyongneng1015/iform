@@ -31,13 +31,13 @@ public class FormDataSaveInstance extends IdEntity {
 	@ApiModelProperty(value = "表单控件实例列表", position = 6)
 	private List<ItemInstance> items = new ArrayList<ItemInstance>();
 
-	@ApiModelProperty(value = "关联表单数据", hidden = true)
+	@ApiModelProperty(value = "关联表单数据", position = 7)
 	private List<ReferenceDataInstance> referenceData = new ArrayList<ReferenceDataInstance>();
 
-	@ApiModelProperty(value = "子表单数据", hidden = true)
+	@ApiModelProperty(value = "子表单数据", position = 8)
 	private List<SubFormItemInstance> subFormData = new ArrayList<SubFormItemInstance>();
 
-	@ApiModelProperty(value = "表单实例ID", hidden = true)
+	@ApiModelProperty(value = "表单实例ID", position = 9)
 	private Map<String, Object> data = new HashMap<String, Object>();
 
 	public String getFormId() {

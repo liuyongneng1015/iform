@@ -3,13 +3,14 @@ package tech.ascs.icity.iform.service;
 import org.springframework.web.multipart.MultipartFile;
 import tech.ascs.icity.iform.api.model.FileUploadModel;
 import tech.ascs.icity.iform.model.ColumnModelEntity;
+import tech.ascs.icity.iform.model.FileUploadEntity;
 import tech.ascs.icity.iform.model.ItemModelEntity;
 import tech.ascs.icity.jpa.service.JPAService;
 
 import java.io.InputStream;
 import java.util.List;
 
-public interface UploadService  extends JPAService<ColumnModelEntity> {
+public interface UploadService  extends JPAService<FileUploadEntity> {
 
     /**
      * 上传图片并返回url，用当前时间的day作为前置
@@ -61,4 +62,12 @@ public interface UploadService  extends JPAService<ColumnModelEntity> {
      */
     String getFileUrl(String key) ;
 
+
+    /**
+     * 上传文件，并显示是否重命名
+     * @param fileUploadModel 文件上传
+     * @return
+     * @throws Exception
+     */
+    FileUploadEntity saveFileUploadEntity(FileUploadModel fileUploadModel) ;
 }

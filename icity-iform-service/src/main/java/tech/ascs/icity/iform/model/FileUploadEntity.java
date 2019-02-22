@@ -25,6 +25,7 @@ public class FileUploadEntity extends BaseEntity implements Serializable {
 	private String url;
 
 	//来源对象id
+	@Column(name = "from_source", length = 512)
 	private String fromSource;
 
 

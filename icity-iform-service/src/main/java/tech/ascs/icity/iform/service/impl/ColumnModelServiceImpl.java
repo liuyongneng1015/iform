@@ -209,7 +209,7 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
             }
             if (colummList.contains("f" + columnName)) {
                 try {
-                    String deleteColumnSql = "ALTER TABLE if_" + tableName + " DROP " + columnName;
+                    String deleteColumnSql = "ALTER TABLE if_" + tableName + " DROP f" + columnName;
                     jdbcTemplate.execute(deleteColumnSql);
                 } catch (DataAccessException e) {
                     e.printStackTrace();
