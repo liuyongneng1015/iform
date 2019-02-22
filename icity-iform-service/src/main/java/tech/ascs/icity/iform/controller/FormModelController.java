@@ -425,10 +425,15 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		List<ReferenceItemModelEntity> itemModelEntities = itemModelService.findRefenceItemByFormModelId(formModelId);
 		List<ItemModel> list = new ArrayList<>();
 		FormModelEntity formModelEntity = formModelService.get(referenceFormModelId);
-
+		if(formModelEntity == null){
+			throw new IFormException("未找到【"+formModelId+"】对应的表单建模");
+		}
 		for(ReferenceItemModelEntity entity : itemModelEntities){
-			if(entity.getColumnModel() == null || formModelEntity == null|| formModelEntity.getDataModels() == null
-					|| !formModelEntity.getDataModels().get(0).getId().equals(entity.getColumnModel().getDataModel().getId())){
+			if(entity.getFormModel() != null && !entity.getFormModel().getId().equals(referenceFormModelId)){
+				continue;
+			}else if(StringUtils.hasText(entity.getSourceFormModelId()) && !referenceFormModelId.equals(entity.getSourceFormModelId())){
+				continue;
+			}else if(entity.getColumnModel() != null && !formModelEntity.getDataModels().get(0).getId().equals(entity.getColumnModel().getDataModel().getId())){
 				continue;
 			}
 			ItemModel itemModel = new ItemModel();
