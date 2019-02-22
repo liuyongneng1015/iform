@@ -984,6 +984,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			case  Attachment:
 				entity = new FileItemModelEntity();
 				break;
+			case  DatePicker:
+				entity = new TimeItemModelEntity();
+				break;
 			case  Select:
 				entity = new SelectItemModelEntity();
 				break;

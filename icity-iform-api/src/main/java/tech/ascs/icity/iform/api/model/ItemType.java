@@ -19,6 +19,9 @@ public enum ItemType {
 	/** 附件 */
 	Attachment("Attachment"),
 
+	/** 日期控件 */
+	DatePicker("DatePicker"),
+
 	/** 下拉选择 */
 	Select("Select"),
 	/** 单选 */
