@@ -9,6 +9,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import freemarker.template.utility.StringUtil;
 import net.minidev.json.JSONObject;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.commons.lang.time.DateUtils;
@@ -1100,7 +1101,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			formInstance.setActivityId((String) entity.get("ACTIVITY_ID"));
 			formInstance.setActivityInstanceId((String) entity.get("ACTIVITY_INSTANCE"));
 		}
-		return setFormDataInstanceModel(formInstance, listModel, entity, referenceFlag);
+		return setFormDataInstanceModel(formInstance, formModel,  listModel, entity, referenceFlag);
 	}
 
 	private FormInstance setFormInstanceModel(FormInstance formInstance, FormModelEntity fromFormModel, Map<String, Object> entity, boolean referenceFlag){
@@ -1116,16 +1117,13 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		return formInstance;
 	}
 
-	private FormDataSaveInstance setFormDataInstanceModel(FormDataSaveInstance formInstance, ListModelEntity listModelEntity, Map<String, Object> entity, boolean referenceFlag){
+	private FormDataSaveInstance setFormDataInstanceModel(FormDataSaveInstance formInstance, FormModelEntity formModel,  ListModelEntity listModelEntity, Map<String, Object> entity, boolean referenceFlag){
 		List<ItemInstance> items = new ArrayList<>();
-		if(formInstance.getId().equals("2c928085690a299401690a34fbe20020")){
-			System.out.println("zzz");
-		}
 		List<ItemModelEntity> list = listModelEntity.getMasterForm().getItems();
 		List<ReferenceDataInstance> referenceDataModelList = formInstance.getReferenceData();
 		List<SubFormItemInstance> subFormItems = formInstance.getSubFormData();
 		for (ItemModelEntity itemModel : list) {
-			setFormDataItemInstance(itemModel, referenceFlag, entity, referenceDataModelList,
+			setFormDataItemInstance(formModel, itemModel, referenceFlag, entity, referenceDataModelList,
 					subFormItems, items, formInstance);
 		}
 		List<String> displayIds = listModelEntity.getDisplayItems().parallelStream().map(ItemModelEntity::getId).collect(Collectors.toList());
@@ -1149,9 +1147,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				i--;
 			}
 		}*/
-		if(referenceDataModelList != null && referenceDataModelList.size() > 1){
-			System.out.println("size="+referenceDataModelList.size());
-		}
 		for (ReferenceDataInstance referenceDataInstance : referenceDataModelList) {
 			if(copyDisplayIds.contains(referenceDataInstance.getId())){
 				ItemInstance itemInstance = new ItemInstance();
@@ -1201,7 +1196,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	}
 
 
-	private void setFormDataItemInstance(ItemModelEntity itemModel, boolean referenceFlag, Map<String, Object> entity, List<ReferenceDataInstance> referenceDataModelList,
+	private void setFormDataItemInstance(FormModelEntity formModel, ItemModelEntity itemModel, boolean referenceFlag, Map<String, Object> entity, List<ReferenceDataInstance> referenceDataModelList,
 								 List<SubFormItemInstance> subFormItems, List<ItemInstance> items, FormDataSaveInstance formInstance){
 		System.out.println(itemModel.getId()+"____begin");
 		ColumnModelEntity column = itemModel.getColumnModel();
@@ -1216,7 +1211,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			if(!referenceFlag){
 				return;
 			}
-			setFormDataReferenceItemInstance(itemModel,  entity,  referenceDataModelList);
+			setFormDataReferenceItemInstance(formModel, itemModel,  entity,  referenceDataModelList);
 		}else if(itemModel instanceof SubFormItemModelEntity) {
 			if(!referenceFlag){
 				return;
@@ -1224,7 +1219,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			setSubFormItemInstance( itemModel,  entity,  subFormItems, formInstance.getActivityId());
 		}else if(itemModel instanceof RowItemModelEntity){
 			for(ItemModelEntity itemModelEntity : ((RowItemModelEntity) itemModel).getItems()) {
-				setFormDataItemInstance(itemModelEntity, referenceFlag, entity, referenceDataModelList,
+				setFormDataItemInstance(formModel, itemModelEntity, referenceFlag, entity, referenceDataModelList,
 						subFormItems,  items, formInstance);
 			}
 		}else{
@@ -1290,7 +1285,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	}
 
 
-	private void setFormDataReferenceItemInstance(ItemModelEntity itemModel, Map<String, Object> entity, List<ReferenceDataInstance> referenceDataModelList){
+	private void setFormDataReferenceItemInstance(FormModelEntity formModel, ItemModelEntity itemModel, Map<String, Object> entity, List<ReferenceDataInstance> referenceDataModelList){
 		//主表字段
 		ReferenceItemModelEntity fromItem = (ReferenceItemModelEntity)itemModel;
 
@@ -1317,8 +1312,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			return;
 		}
 
-		String itemModelIds = ((ReferenceItemModelEntity) itemModel).getItemModelIds();
-		List<String> stringList = itemModelIds!=null ? Arrays.asList(itemModelIds.split(",")) : new ArrayList<>();
+		String itemModelIds = formModel.getItemModelIds();
+		List<String> stringList = StringUtils.hasText(itemModelIds) ? Arrays.asList(itemModelIds.split(",")) : new ArrayList<>();
 		//关联字段
 		String referenceColumnName = fromItem.getColumnModel() == null ? null : fromItem.getColumnModel().getColumnName();
 		if(fromItem.getReferenceType() == ReferenceType.ManyToOne || fromItem.getReferenceType() == ReferenceType.OneToOne){
