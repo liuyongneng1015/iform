@@ -698,7 +698,10 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	//设置关联关系
 	private void setReference(DataModel dataModel, List<ItemModelEntity> itemModelEntityList){
 		for(ItemModelEntity itemModelEntity : itemModelEntityList){
-			if(itemModelEntity instanceof ReferenceItemModelEntity &&	itemModelEntity.getType() != ItemType.ReferenceLabel){
+			if(itemModelEntity instanceof ReferenceItemModelEntity ){
+				if(itemModelEntity.getType() == ItemType.ReferenceLabel || ((ReferenceItemModelEntity) itemModelEntity).getSelectMode() == SelectMode.Inverse){
+					continue;
+				}
 				String key = "id";
 				if(((ReferenceItemModelEntity) itemModelEntity).getSelectMode() != SelectMode.Multiple){
 					key = itemModelEntity.getColumnModel().getColumnName();
