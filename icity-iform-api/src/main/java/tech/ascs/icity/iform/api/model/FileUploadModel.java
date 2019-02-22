@@ -11,11 +11,14 @@ import java.util.List;
 @ApiModel("文件上传")
 public class FileUploadModel extends NameEntity {
 
-	@ApiModelProperty(value = "文件上传的key", position = 6)
+	@ApiModelProperty(value = "文件上传的key", position = 3)
 	private String fileKey;
 
-	@ApiModelProperty(value = "文件上传的地址", position = 6)
+	@ApiModelProperty(value = "文件上传的地址", position = 4)
 	private String url;
+
+	@ApiModelProperty(value = "来源数据id", position = 5)
+	private String fromSource;
 
 	@ApiModelProperty(value = "文件上传类型", position = 6)
 	private FileUploadType uploadType = FileUploadType.ItemModel;
@@ -34,6 +37,14 @@ public class FileUploadModel extends NameEntity {
 
 	public void setUrl(String url) {
 		this.url = url;
+	}
+
+	public String getFromSource() {
+		return fromSource;
+	}
+
+	public void setFromSource(String fromSource) {
+		this.fromSource = fromSource;
 	}
 
 	public FileUploadType getUploadType() {

@@ -8,6 +8,7 @@ import java.io.*;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 import javax.imageio.ImageIO;
 
@@ -32,6 +33,7 @@ public class ZXingCodeUtils {
 
     private static final int WIDTH = 400; // 二维码宽
     private static final int HEIGHT = 400; // 二维码高
+    private static Random random = new Random(); // 随机数
 
     // 用于设置QR二维码参数
     private static Map<EncodeHintType, Object> hints = new HashMap<EncodeHintType, Object>() {
@@ -43,132 +45,108 @@ public class ZXingCodeUtils {
         }
     };
 
-    public static void test(String[] args) throws WriterException {
-        File logoFile = new File("E:/lyn/qrcode/back.jpg");
-        File QrCodeFile = new File("E:/lyn/qrcode/testQrCode.png");
-        String url = "http://www.cityworks.cn/pages/newsInfo.html";
-        String note = "访问连接";
-        ZXingCodeUtils zXingCode = new ZXingCodeUtils();
-        zXingCode.drawLogoQRCode(logoFile, QrCodeFile, url, note);
-    }
-
-    // 生成带logo的二维码图片
-    public  BufferedImage drawLogoQRCode(File logoFile, File codeFile, String qrUrl, String note) {
-        BufferedImage image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
-        try {
-            MultiFormatWriter multiFormatWriter = new MultiFormatWriter();
-            // 参数顺序分别为：编码内容，编码类型，生成图片宽度，生成图片高度，设置参数
-            BitMatrix bm = multiFormatWriter.encode(qrUrl, BarcodeFormat.QR_CODE, WIDTH, HEIGHT, hints);
-
-            // 开始利用二维码数据创建Bitmap图片，分别设为黑（0xFFFFFFFF）白（0xFF000000）两色
-            for (int x = 0; x < WIDTH; x++) {
-                for (int y = 0; y < HEIGHT; y++) {
-                    image.setRGB(x, y, bm.get(x, y) ? QRCOLOR : BGWHITE);
-                }
-            }
-
-            int width = image.getWidth();
-            int height = image.getHeight();
-            if ( logoFile.exists()) {
-                // 构建绘图对象
-                Graphics2D g = image.createGraphics();
-                // 读取Logo图片
-                BufferedImage logo = ImageIO.read(logoFile);
-                // 开始绘制logo图片
-                g.drawImage(logo, width * 2 / 5, height * 2 / 5, width * 2 / 10, height * 2 / 10, null);
-                g.dispose();
-                logo.flush();
-            }
-
-            // 自定义文本描述
-            if (StringUtils.isNotEmpty(note)) {
-                createNoteImage( image,  note,  height);
-            }
-
-            image.flush();
-
-            ImageIO.write(image, "png", codeFile); // TODO
-        } catch (Exception e) {
-            e.printStackTrace();
+        public static void main(String[] args) throws Exception {
+            File logoFile = new File("E:/lyn/qrcode/back.jpg");
+            File QrCodeFile = new File("E:/lyn/qrcode/11111zzz1zzzz.jpg");
+            String url = "http://www.baidu.com";
+            String note = "访问百度连接123ssz";
+            ZXingCodeUtils zXingCode=new ZXingCodeUtils();
+            zXingCode.drawLogoQRCode(new FileInputStream(logoFile), QrCodeFile, url, note);
         }
-        return image;
-    }
+
+        // 生成带logo的二维码图片
+        public static BufferedImage drawLogoQRCode(InputStream inputStream, File codeFile, String qrUrl, String note) {
+            BufferedImage image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
+            try {
+                MultiFormatWriter multiFormatWriter = new MultiFormatWriter();
+                // 参数顺序分别为：编码内容，编码类型，生成图片宽度，生成图片高度，设置参数
+                BitMatrix bm = multiFormatWriter.encode(qrUrl, BarcodeFormat.QR_CODE, WIDTH, HEIGHT, hints);
+
+                // 开始利用二维码数据创建Bitmap图片，分别设为黑（0xFFFFFFFF）白（0xFF000000）两色
+                for (int x = 0; x < WIDTH; x++) {
+                    for (int y = 0; y < HEIGHT; y++) {
+                        image.setRGB(x, y, bm.get(x, y) ? QRCOLOR : BGWHITE);
+                    }
+                }
+
+                int width = image.getWidth();
+                int height = image.getHeight();
+                if (inputStream != null) {
+                    // 构建绘图对象
+                    Graphics2D g = image.createGraphics();
+                    // 读取Logo图片
+                    BufferedImage logo = ImageIO.read(inputStream);
+                    // 开始绘制logo图片
+                    g.drawImage(logo, width * 2 / 5, height * 2 / 5, width * 2 / 10, height * 2 / 10, null);
+                    g.dispose();
+                    logo.flush();
+                }
+
+                // 自定义文本描述
+                if (StringUtils.isNotEmpty(note)) {
+                    // 新的图片，把带logo的二维码下面加上文字
+                    BufferedImage outImage = new BufferedImage(400, 445, BufferedImage.TYPE_4BYTE_ABGR);
+                    Graphics2D outg = outImage.createGraphics();
+                    // 画二维码到新的面板
+                    outg.drawImage(image, 0, 0, image.getWidth(), image.getHeight(), null);
+                    // 画文字到新的面板
+                    outg.setColor(Color.BLACK);
+                    outg.setFont(new Font("楷体", Font.BOLD, 30)); // 字体、字型、字号
+                    int strWidth = outg.getFontMetrics().stringWidth(note);
+                    if (strWidth > 399) {
+                        // //长度过长就截取前面部分
+                        // 长度过长就换行
+                        String note1 = note.substring(0, note.length() / 2);
+                        String note2 = note.substring(note.length() / 2, note.length());
+                        int strWidth1 = outg.getFontMetrics().stringWidth(note1);
+                        int strWidth2 = outg.getFontMetrics().stringWidth(note2);
+                        outg.drawString(note1, 200 - strWidth1 / 2, height + (outImage.getHeight() - height) / 2 + 12);
+                        BufferedImage outImage2 = new BufferedImage(400, 485, BufferedImage.TYPE_4BYTE_ABGR);
+                        Graphics2D outg2 = outImage2.createGraphics();
+                        outg2.drawImage(outImage, 0, 0, outImage.getWidth(), outImage.getHeight(), null);
+                        outg2.setColor(Color.BLACK);
+                        outg2.setFont(new Font("宋体", Font.BOLD, 30)); // 字体、字型、字号
+                        outg2.drawString(note2, 200 - strWidth2 / 2,outImage.getHeight() + (outImage2.getHeight() - outImage.getHeight()) / 2 + 5);
+                        outg2.dispose();
+                        outImage2.flush();
+                        outImage = outImage2;
+                    } else {
+                        outg.drawString(note, 200 - strWidth / 2, height + (outImage.getHeight() - height) / 2 + 12); // 画文字
+                    }
+                    outg.dispose();
+                    outImage.flush();
+                    image = outImage;
+                }
+
+                image.flush();
+
+                ImageIO.write(image, "png", codeFile); // TODO
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return image;
+        }
+
 
     // 创建带logo的二维码图片
-    public static InputStream createLogoQRCode(URL logoFile, String note) {
-        BufferedImage image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
+    public static InputStream createLogoQRCode(URL logoFile, String url, String note) {
+        File file = new File(System.currentTimeMillis()+"_"+((Math.random()*9+1)*100000)+"qrCode.png");
         try {
-            //MultiFormatWriter multiFormatWriter = new MultiFormatWriter();
-            // 参数顺序分别为：编码内容，编码类型，生成图片宽度，生成图片高度，设置参数
-           // BitMatrix bm = multiFormatWriter.encode(qrUrl, BarcodeFormat.QR_CODE, WIDTH, HEIGHT, hints);
-
-            // 开始利用二维码数据创建Bitmap图片，分别设为黑（0xFFFFFFFF）白（0xFF000000）两色
-            for (int x = 0; x < WIDTH; x++) {
-                for (int y = 0; y < HEIGHT; y++) {
-                    image.setRGB(x, y, BGWHITE);
-                }
+            if(logoFile == null || logoFile.getFile() == null){
+                QRCodeGenerator.generateQRCodeImage( url, 400, 400, file.getPath());
+                return new FileInputStream(file);
+            }else {
+                BufferedImage image = drawLogoQRCode(logoFile.openStream(), file, url, note);
+                return getInputStream(image);
             }
-
-            int width = image.getWidth();
-            int height = image.getHeight();
-            if (logoFile != null) {
-                // 构建绘图对象
-                Graphics2D g = image.createGraphics();
-                // 读取Logo图片
-                BufferedImage logo = ImageIO.read(logoFile);
-                // 开始绘制logo图片
-                g.drawImage(logo, width * 2 / 5, height * 2 / 5, width * 2 / 10, height * 2 / 10, null);
-                g.dispose();
-                logo.flush();
-            }
-
-            // 自定义文本描述
-            if (StringUtils.isNotEmpty(note)) {
-                createNoteImage( image,  note,  height);
-            }
-
-            image.flush();
-
         } catch (Exception e) {
             e.printStackTrace();
+        }finally {
+            if(file != null && file.exists()){
+                file.delete();
+            }
         }
-        return getInputStream(image);
-    }
-
-
-    private static void createNoteImage(BufferedImage image, String note, int height){
-        // 新的图片，把带logo的二维码下面加上文字
-        BufferedImage outImage = new BufferedImage(400, 445, BufferedImage.TYPE_4BYTE_ABGR);
-        Graphics2D outg = outImage.createGraphics();
-        // 画二维码到新的面板
-        outg.drawImage(image, 0, 0, image.getWidth(), image.getHeight(), null);
-        // 画文字到新的面板
-        outg.setColor(Color.BLACK);
-        outg.setFont(new Font("楷体", Font.BOLD, 30)); // 字体、字型、字号
-        int strWidth = outg.getFontMetrics().stringWidth(note);
-        if (strWidth > 399) {
-            // //长度过长就截取前面部分
-            // 长度过长就换行
-            String note1 = note.substring(0, note.length() / 2);
-            String note2 = note.substring(note.length() / 2, note.length());
-            int strWidth1 = outg.getFontMetrics().stringWidth(note1);
-            int strWidth2 = outg.getFontMetrics().stringWidth(note2);
-            outg.drawString(note1, 200 - strWidth1 / 2, height + (outImage.getHeight() - height) / 2 + 12);
-            BufferedImage outImage2 = new BufferedImage(400, 485, BufferedImage.TYPE_4BYTE_ABGR);
-            Graphics2D outg2 = outImage2.createGraphics();
-            outg2.drawImage(outImage, 0, 0, outImage.getWidth(), outImage.getHeight(), null);
-            outg2.setColor(Color.BLACK);
-            outg2.setFont(new Font("宋体", Font.BOLD, 30)); // 字体、字型、字号
-            outg2.drawString(note2, 200 - strWidth2 / 2,outImage.getHeight() + (outImage2.getHeight() - outImage.getHeight()) / 2 + 5);
-            outg2.dispose();
-            outImage2.flush();
-            outImage = outImage2;
-        } else {
-            outg.drawString(note, 200 - strWidth / 2, height + (outImage.getHeight() - height) / 2 + 12); // 画文字
-        }
-        outg.dispose();
-        outImage.flush();
-        image = outImage;
+        return null;
     }
 
     private static InputStream getInputStream(BufferedImage image){

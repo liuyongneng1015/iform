@@ -436,7 +436,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			//删除字段删除索引
 			if(oldColumnName != null && !oldColumnName.equals(newColunmName)) {
 				columnModelService.deleteTableColumn(saveItemModelEntity.getColumnModel().getDataModel().getTableName(), saveItemModelEntity.getColumnModel().getColumnName());
-			}else if(oldColumnName != null){
+			}else if(oldColumnName != null && oldColumnName.equals(newColunmName)){
 				columnModelService.deleteTableColumnIndex(saveItemModelEntity.getColumnModel().getDataModel().getTableName(), saveItemModelEntity.getColumnModel().getColumnName());
 			}
 		}
