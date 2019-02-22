@@ -282,7 +282,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		verfyListName(listModel);
 
 		ListModelEntity entity =  new ListModelEntity() ;
-		BeanUtils.copyProperties(listModel, entity, new String[] {"masterForm","slaverForms","sortItems", "searchItems","functions","displayItems", "quickSearchItems"});
+		BeanUtils.copyProperties(listModel, entity, new String[] {"dataModels", "masterForm","slaverForms","sortItems", "searchItems","functions","displayItems", "quickSearchItems"});
 
 		if(listModel.getMasterForm() != null && !listModel.getMasterForm().isNew()) {
 			FormModelEntity formModelEntity = new FormModelEntity();
@@ -457,9 +457,25 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		BeanUtils.copyProperties(entity, listModel, new String[] {"masterForm", "slaverForms", "sortItems", "searchItems", "functions", "displayItems", "quickSearchItems"});
 
 		if(entity.getMasterForm() != null){
+			FormModelEntity formModelEntity = entity.getMasterForm();
 			FormModel masterForm = new FormModel();
-			BeanUtils.copyProperties(entity.getMasterForm(), masterForm, new String[] {"items","dataModels","permissions","submitChecks","functions"});
+			BeanUtils.copyProperties(formModelEntity, masterForm, new String[] {"items","dataModels","permissions","submitChecks","functions"});
 			listModel.setMasterForm(masterForm);
+
+			if(formModelEntity.getDataModels() != null && formModelEntity.getDataModels().size() > 0){
+				List<DataModel> dataModelList = new ArrayList<>();
+				List<DataModelEntity> dataModelEntities = new ArrayList<>();
+				for (DataModelEntity dataModelEntity : formModelEntity.getDataModels()) {
+					dataModelEntities.add(dataModelEntity);
+					if(dataModelEntity.getSlaverModels() != null && dataModelEntity.getSlaverModels().size() > 0) {
+						dataModelEntities.addAll(dataModelEntity.getSlaverModels());
+					}
+				}
+				for (DataModelEntity dataModelEntity : dataModelEntities) {
+					dataModelList.add(formModelService.getDataModel(dataModelEntity));
+				}
+				listModel.setDataModels(dataModelList);
+			}
 		}
 
 //		Set<String> masterFormItemIds = new HashSet<>();

@@ -62,7 +62,10 @@ public class ListModel extends NameEntity {
 	@ApiModelProperty(value = "快速筛选", position = 10)
 	private List<QuickSearchItem> quickSearchItems = new ArrayList<QuickSearchItem>();
 
-	@ApiModelProperty(value = "应用id", position = 11)
+	@ApiModelProperty(value = "表单绑定的数据模型列表", position = 11)
+	private List<DataModel> dataModels = new ArrayList<DataModel>();
+
+	@ApiModelProperty(value = "应用id", position = 12)
 	private String applicationId;
 
 	public String getDescription() {
@@ -143,6 +146,14 @@ public class ListModel extends NameEntity {
 
 	public void setApplicationId(String applicationId) {
 		this.applicationId = applicationId;
+	}
+
+	public List<DataModel> getDataModels() {
+		return dataModels;
+	}
+
+	public void setDataModels(List<DataModel> dataModels) {
+		this.dataModels = dataModels;
 	}
 
 	@Override

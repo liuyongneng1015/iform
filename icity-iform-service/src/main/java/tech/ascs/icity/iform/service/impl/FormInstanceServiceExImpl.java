@@ -1655,7 +1655,7 @@ private DataModelInstance setDataModelInstance(FormModelEntity toModelEntity, Re
 		itemInstance.setColumnModelId(itemModel.getColumnModel().getId());
 		itemInstance.setType(itemModel.getType());
 		itemInstance.setSystemItemType(itemModel.getSystemItemType());
-		itemInstance.setProps(itemModel.getProps());
+//		itemInstance.setProps(itemModel.getProps());
 		itemInstance.setItemName(itemModel.getName());
 		updateValue(itemModel, itemInstance, value);
 		if (visiblekey) {
