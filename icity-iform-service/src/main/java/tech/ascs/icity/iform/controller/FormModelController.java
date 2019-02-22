@@ -695,6 +695,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		return false;
 	}
 
+	//设置关联关系
 	private void setReference(DataModel dataModel, List<ItemModelEntity> itemModelEntityList){
 		for(ItemModelEntity itemModelEntity : itemModelEntityList){
 			if(itemModelEntity instanceof ReferenceItemModelEntity &&	itemModelEntity.getType() != ItemType.ReferenceLabel){
@@ -878,6 +879,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		for(int i = 0 ; i <  oldDataModelEntity.getColumns().size() ; i++ ){
 			ColumnModelEntity columnModelEntity = oldDataModelEntity.getColumns().get(i);
 			if(!newColumnIds.contains(columnModelEntity.getId())){
+				if("id".equals(columnModelEntity.getColumnName())){
+					continue;
+				}
 				List<ColumnReferenceEntity> referenceEntityList = columnModelEntity.getColumnReferences();
 				for(int m = 0 ; m < referenceEntityList.size(); m++ ){
 					ColumnReferenceEntity referenceEntity = referenceEntityList.get(m);
@@ -897,7 +901,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				}
 				//columnModelService.save(columnModelEntity);
 
-				if("id".equals(columnModelEntity.getColumnName()) || (needMasterId && "master_id".equals(columnModelEntity.getColumnName()))){
+				if(needMasterId && "master_id".equals(columnModelEntity.getColumnName())){
 					continue;
 				}
 
