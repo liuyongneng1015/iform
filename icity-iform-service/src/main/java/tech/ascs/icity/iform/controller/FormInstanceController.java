@@ -1,5 +1,8 @@
 package tech.ascs.icity.iform.controller;
 
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -18,10 +21,9 @@ import tech.ascs.icity.iform.model.FormModelEntity;
 import tech.ascs.icity.iform.model.ItemModelEntity;
 import tech.ascs.icity.iform.model.ListModelEntity;
 import tech.ascs.icity.iform.model.ReferenceItemModelEntity;
-import tech.ascs.icity.iform.service.FormInstanceServiceEx;
-import tech.ascs.icity.iform.service.FormModelService;
-import tech.ascs.icity.iform.service.ItemModelService;
-import tech.ascs.icity.iform.service.ListModelService;
+import tech.ascs.icity.iform.service.*;
+import tech.ascs.icity.iform.utils.MinioConfig;
+import tech.ascs.icity.iform.utils.ZXingCodeUtils;
 import tech.ascs.icity.model.IdEntity;
 import tech.ascs.icity.model.Page;
 
@@ -42,6 +44,12 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 
 	@Autowired
 	private FormInstanceServiceEx formInstanceService;
+
+	@Autowired
+	private MinioConfig minioConfig;
+
+	@Autowired
+	private UploadService uploadService;
 
 	@Override
 	public List<FormInstance> list(@PathVariable(name="listId") String listId, @RequestParam Map<String, Object> parameters) {
@@ -151,8 +159,20 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		if (formModel == null) {
 			throw new IFormException(404, "表单模型【" + formId + "】不存在");
 		}
+		String id = formInstanceService.createFormInstance(formModel, formInstance);
+		//TODO上传数据二维码
+		//uploadDataQrCode( formModel, id);
+		return new IdEntity(id);
+	}
 
-		return new IdEntity(formInstanceService.createFormInstance(formModel, formInstance));
+	private void uploadDataQrCode(FormModelEntity formModel, String id){
+		try {
+			URL logoUrl = new URL(minioConfig.getLogoUrl());
+			InputStream is = ZXingCodeUtils.createLogoQRCode(logoUrl, "航天智慧");
+			FileUploadModel fileUploadModel = uploadService.uploadOneFileByInputstream(formModel.getName()+"_"+id,is,"png");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override

@@ -103,6 +103,27 @@ public class UploadServiceImpl extends DefaultJPAService<ColumnModelEntity> impl
 		return fileUploadModel;
 	}
 
+	@Override
+	public FileUploadModel uploadOneFileByInputstream(String fileName, InputStream inputStream, String contentType) throws Exception {
+		FileUploadModel fileUploadModel = null;
+		try {
+
+			String day = CommonUtils.date2Str(new Date(), "yyyy-MM-dd");
+			String filePath = renameFile(day, true, fileName);
+			minioClient.putObject(minioConfig.getBucket(), filePath, inputStream, contentType);
+			fileUploadModel = new FileUploadModel();
+			fileUploadModel.setFileKey(filePath);
+			fileUploadModel.setUrl(getFileUrl(filePath));
+			fileUploadModel.setName(fileName);
+		} catch (Exception e) {
+			throw  e;
+		} finally {
+			if(inputStream != null){
+				inputStream.close();
+			}
+		}
+		return fileUploadModel;
+	}
 
 
 	/**
