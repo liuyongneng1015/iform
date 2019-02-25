@@ -338,8 +338,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		Session session = getSession(dataModel);
 		session.beginTransaction();
 		Map<String, Object> data = new HashMap<String, Object>();
-		data.put("fcreate_at", new Date());
-		data.put("fcreate_by",  user != null ? user.getId() : "-1");
+		data.put("create_at", new Date());
+		data.put("create_by",  user != null ? user.getId() : "-1");
 		//主表数据
 		setMasterFormItemInstances(formInstance, data, DisplayTimingType.Add);
 		//设置关联数据
@@ -447,8 +447,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			session.beginTransaction();
 
 			Map<String, Object> data = (Map<String, Object>) session.load(dataModel.getTableName(), instanceId);
-			data.put("fupdate_at", new Date());
-			data.put("fupdate_by",  user != null ? user.getId() : "-1");
+			data.put("update_at", new Date());
+			data.put("update_by",  user != null ? user.getId() : "-1");
 			//主表数据
 			setMasterFormItemInstances(formInstance,data, DisplayTimingType.Update);
 
@@ -493,11 +493,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				for (SubFormDataItemInstance subFormDataItemInstance : subFormItemInstance.getItemInstances()) {
 					Map<String, Object> map = new HashMap<>();
 					if(displayTimingType == DisplayTimingType.Add){
-						map.put("fcreate_at", new Date());
-						map.put("fcreate_by", user != null ? user.getId() : "-1" );
+						map.put("create_at", new Date());
+						map.put("create_by", user != null ? user.getId() : "-1" );
 					}else{
-						map.put("fupdate_at", new Date());
-						map.put("fupdate_by", user != null ? user.getId() : "-1");
+						map.put("update_at", new Date());
+						map.put("update_by", user != null ? user.getId() : "-1");
 					}
 					List<String> idList = new ArrayList<>();
 					Map<String, List<String>> stringListMap = new HashMap<>();
@@ -715,7 +715,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	private void setItemInstance(ItemModelEntity itemModel, ItemInstance itemInstance, Map<String, Object> data ,DisplayTimingType displayTimingType){
 		Object value = null;
 		verifyValue(itemModel, itemInstance.getValue(), displayTimingType);
-		if (itemModel.getSystemItemType() == SystemItemType.CreateDate) {
+		if (itemModel.getType() == ItemType.DatePicker || itemModel.getSystemItemType() == SystemItemType.CreateDate) {
 			try {
 				value = itemInstance.getValue() == null ? null : new Date(Long.parseLong(String.valueOf(itemInstance.getValue())));
 			} catch (Exception e) {
