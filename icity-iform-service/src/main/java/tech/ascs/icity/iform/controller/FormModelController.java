@@ -686,6 +686,17 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}else{
 			entity.setItemTableColunmName(null);
 		}
+
+		//二维码数据标识对应的字段
+		if(formModel.getQrCodeItemModelList() != null && formModel.getQrCodeItemModelList().size() > 0) {
+			List<String> list = new ArrayList<>();
+			for(ItemModel itemModel1 : formModel.getQrCodeItemModelList()) {
+				list.add(itemModel1.getTableName()+"_"+itemModel1.getColumnName());
+			}
+			entity.setQrCodeItemTableColunmName(String.join(",", list));
+		}else{
+			entity.setQrCodeItemTableColunmName(null);
+		}
 		//保存数据模型
 		dataModelService.save(masterDataModelEntity);
 
@@ -1434,6 +1445,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			formModel.setDataModels(dataModelList);
 		}
 
+		//数据标识
 		if(StringUtils.hasText(entity.getItemModelIds())) {
 		    String[] strings = entity.getItemModelIds().split(",");
 			List<String> resultList = new ArrayList<>();
@@ -1443,6 +1455,18 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
                 }
             }
 			formModel.setItemModelList(getItemModelList(resultList));
+		}
+
+		//二维码
+		if(StringUtils.hasText(entity.getQrCodeItemModelIds())) {
+			String[] strings = entity.getQrCodeItemModelIds().split(",");
+			List<String> resultList = new ArrayList<>();
+			for(String str : strings){
+				if(!resultList.contains(str)) {
+					resultList.add(str);
+				}
+			}
+			formModel.setQrCodeItemModelList(getItemModelList(resultList));
 		}
 
 		return formModel;

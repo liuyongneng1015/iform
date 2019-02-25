@@ -1,6 +1,5 @@
 package tech.ascs.icity.iform.model;
 
-import tech.ascs.icity.iform.api.model.SystemCreateType;
 import tech.ascs.icity.iform.api.model.TreeSelectDataSource;
 
 import javax.persistence.*;
@@ -22,6 +21,21 @@ public class TreeSelectItemModelEntity extends ItemModelEntity  {
 	@Enumerated(EnumType.STRING)
 	private TreeSelectDataSource dataSource;
 
+	@Column(name="data_range")// 数据范围
+	private String dataRange;
+
+	@Column(name="data_range_name")// 数据范围名称
+	private String dataRangeName;
+
+	@Column(name="default_value")// 默认值
+	private String defaultValue;
+
+	@Column(name="default_value_name")// 默认值名称
+	private String defaultValueName;
+
+	@Column(name="data_depth")// 数据深度
+	private Integer datadDepth;
+
 	public Boolean getMultiple() {
 		return multiple;
 	}
@@ -36,5 +50,45 @@ public class TreeSelectItemModelEntity extends ItemModelEntity  {
 
 	public void setDataSource(TreeSelectDataSource dataSource) {
 		this.dataSource = dataSource;
+	}
+
+	public String getDataRange() {
+		return dataRange;
+	}
+
+	public void setDataRange(String dataRange) {
+		this.dataRange = dataRange;
+	}
+
+	public Integer getDatadDepth() {
+		return datadDepth;
+	}
+
+	public void setDatadDepth(Integer datadDepth) {
+		this.datadDepth = datadDepth;
+	}
+
+	public String getDataRangeName() {
+		return dataRangeName;
+	}
+
+	public void setDataRangeName(String dataRangeName) {
+		this.dataRangeName = dataRangeName;
+	}
+
+	public String getDefaultValue() {
+		return defaultValue;
+	}
+
+	public void setDefaultValue(String defaultValue) {
+		this.defaultValue = defaultValue;
+	}
+
+	public String getDefaultValueName() {
+		return defaultValueName;
+	}
+
+	public void setDefaultValueName(String defaultValueName) {
+		this.defaultValueName = defaultValueName;
 	}
 }

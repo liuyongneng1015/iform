@@ -42,11 +42,17 @@ public class FormModelEntity extends BaseEntity implements Serializable {
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "formModel")
 	private List<ListFunction> functions = new ArrayList<>();
 
-	@Column(name="item_model_ids", length = 2048) // 关联数据标识：控件id集合
+	@Column(name="item_model_ids", length = 2048) // 数据标识：控件id集合
 	private String itemModelIds;
 
-	@Column(name="item_table_colunm_name", length = 2048) // 关联数据标识：控件对应的表名和字段名
+	@Column(name="item_table_colunm_name", length = 2048) // 数据标识：控件对应的表名和字段名
 	private String itemTableColunmName;
+
+	@Column(name="qrcode_item_model_ids", length = 2048) // 二维码数据标识：控件id集合
+	private String qrCodeItemModelIds;
+
+	@Column(name="qrcode_item_table_colunm_name", length = 2048) // 二维码数据标识：控件对应的表名和字段名
+	private String qrCodeItemTableColunmName;
 
 	public String getDescription() {
 		return description;
@@ -118,5 +124,21 @@ public class FormModelEntity extends BaseEntity implements Serializable {
 
 	public void setItemTableColunmName(String itemTableColunmName) {
 		this.itemTableColunmName = itemTableColunmName;
+	}
+
+	public String getQrCodeItemModelIds() {
+		return qrCodeItemModelIds;
+	}
+
+	public void setQrCodeItemModelIds(String qrCodeItemModelIds) {
+		this.qrCodeItemModelIds = qrCodeItemModelIds;
+	}
+
+	public String getQrCodeItemTableColunmName() {
+		return qrCodeItemTableColunmName;
+	}
+
+	public void setQrCodeItemTableColunmName(String qrCodeItemTableColunmName) {
+		this.qrCodeItemTableColunmName = qrCodeItemTableColunmName;
 	}
 }

@@ -64,6 +64,8 @@ public class ItemModel extends NameEntity {
 	private String referenceValueColumn;
 	@ApiModelProperty(value = "默认值(数据字典的默认值)", position = 15)
 	private Object defaultValue;
+	@ApiModelProperty(value = "默认值名称(数据字典的默认值)", position = 15)
+	private String defaultValueName;
 
 	@ApiModelProperty(value = "关联表单模型id", position = 15)
 	private String referenceFormId;
@@ -166,6 +168,15 @@ public class ItemModel extends NameEntity {
 
 	@ApiModelProperty(value = "后缀单位", position = 45)
 	private String suffixUnit;
+
+	@ApiModelProperty(value = "数据范围", position = 46)
+	private String dataRange;
+
+	@ApiModelProperty(value = "数据深度", position = 47)
+	private Integer datadDepth;
+
+	@ApiModelProperty(value = "数据范围名称", position = 48)
+	private String dataRangeName;
 
 	public ItemType getType() {
 		return type;
@@ -341,6 +352,14 @@ public class ItemModel extends NameEntity {
 
 	public void setDefaultValue(Object defaultValue) {
 		this.defaultValue = defaultValue;
+	}
+
+	public String getDefaultValueName() {
+		return defaultValueName;
+	}
+
+	public void setDefaultValueName(String defaultValueName) {
+		this.defaultValueName = defaultValueName;
 	}
 
 	public String getReferenceFormId() {
@@ -605,6 +624,30 @@ public class ItemModel extends NameEntity {
 
 	public void setSuffixUnit(String suffixUnit) {
 		this.suffixUnit = suffixUnit;
+	}
+
+	public String getDataRange() {
+		return dataRange;
+	}
+
+	public void setDataRange(String dataRange) {
+		this.dataRange = dataRange;
+	}
+
+	public Integer getDatadDepth() {
+		return datadDepth;
+	}
+
+	public void setDatadDepth(Integer datadDepth) {
+		this.datadDepth = datadDepth;
+	}
+
+	public String getDataRangeName() {
+		return dataRangeName;
+	}
+
+	public void setDataRangeName(String dataRangeName) {
+		this.dataRangeName = dataRangeName;
 	}
 
 	@Override
