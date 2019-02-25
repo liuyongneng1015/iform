@@ -5,9 +5,6 @@ import io.swagger.annotations.ApiModelProperty;
 import org.apache.commons.lang3.StringUtils;
 import tech.ascs.icity.model.NameEntity;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @ApiModel("文件上传")
 public class FileUploadModel extends NameEntity {
 
@@ -20,11 +17,16 @@ public class FileUploadModel extends NameEntity {
 	@ApiModelProperty(value = "来源控件或者表单id", position = 5)
 	private String fromSource;
 
-	@ApiModelProperty(value = "来源数据id", position = 5)
+	@ApiModelProperty(value = "来源数据id", position = 6)
 	private String fromSourceDataId;
 
+	@ApiModelProperty(value = "缩略图", position = 7)
+	private String thumbnail;
 
-	@ApiModelProperty(value = "文件上传类型", position = 6)
+	@ApiModelProperty(value = "缩略图地址", position = 8)
+	private String thumbnailUrl;
+
+	@ApiModelProperty(value = "文件上传类型", position = 9)
 	private FileUploadType uploadType = FileUploadType.ItemModel;
 
 	public String getFileKey() {
@@ -57,6 +59,22 @@ public class FileUploadModel extends NameEntity {
 
 	public void setFromSourceDataId(String fromSourceDataId) {
 		this.fromSourceDataId = fromSourceDataId;
+	}
+
+	public String getThumbnail() {
+		return thumbnail;
+	}
+
+	public void setThumbnail(String thumbnail) {
+		this.thumbnail = thumbnail;
+	}
+
+	public String getThumbnailUrl() {
+		return thumbnailUrl;
+	}
+
+	public void setThumbnailUrl(String thumbnailUrl) {
+		this.thumbnailUrl = thumbnailUrl;
 	}
 
 	public FileUploadType getUploadType() {

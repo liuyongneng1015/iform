@@ -3,6 +3,8 @@ package tech.ascs.icity.iform.service.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.minio.MinioClient;
 import org.apache.commons.lang.StringUtils;
+import org.bytedeco.javacv.Java2DFrameConverter;
+import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,15 +16,29 @@ import tech.ascs.icity.iform.model.FileUploadEntity;
 import tech.ascs.icity.iform.service.UploadService;
 import tech.ascs.icity.iform.utils.CommonUtils;
 import tech.ascs.icity.iform.utils.ImagesUtils;
+import tech.ascs.icity.iform.utils.MergedQrCodeImages;
 import tech.ascs.icity.iform.utils.MinioConfig;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 
-import java.io.InputStream;
+import java.awt.image.DataBufferByte;
+import java.awt.image.WritableRaster;
+import java.io.*;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.File;
+
+import javax.imageio.ImageIO;
+
+import org.bytedeco.javacpp.opencv_core.IplImage;
+import org.bytedeco.javacv.FFmpegFrameGrabber;
+import org.bytedeco.javacv.Frame;
+
 
 @Service
 public class UploadServiceImpl extends DefaultJPAService<FileUploadEntity> implements UploadService {
@@ -106,6 +122,7 @@ public class UploadServiceImpl extends DefaultJPAService<FileUploadEntity> imple
 	public FileUploadModel uploadOneFileReturnUrl(Integer fileSize, MultipartFile file) throws Exception {
 		FileUploadModel fileUploadModel = null;
 		InputStream inputStream = file.getInputStream();
+		File thumbnailFile = new File("thumbnail.png");
 		try {
 
 			String filename = file.getOriginalFilename();
@@ -116,16 +133,30 @@ public class UploadServiceImpl extends DefaultJPAService<FileUploadEntity> imple
 					throw new IFormException("文件超过【"+fileSize+"kb】了");
 				}
 			}
-			minioClient.putObject(minioConfig.getBucket(), filePath, inputStream, file.getContentType());
+			ByteArrayOutputStream baos = MergedQrCodeImages.cloneInputStream(inputStream);
+
+			// 打开两个新的输入流
+			InputStream stream1 = new ByteArrayInputStream(baos.toByteArray());
+			minioClient.putObject(minioConfig.getBucket(), filePath, stream1, file.getContentType());
 			fileUploadModel = new FileUploadModel();
 			fileUploadModel.setFileKey(filePath);
 			fileUploadModel.setUrl(getFileUrl(filePath));
 			fileUploadModel.setName(filename);
+			if(file.getContentType().contains("video")) {//视频
+				InputStream stream2 = new ByteArrayInputStream(baos.toByteArray());
+				fetchFrame(stream2, thumbnailFile.getPath());
+				minioClient.putObject(minioConfig.getBucket(), filePath+"thumbnail.png", new FileInputStream(thumbnailFile), "image/png");
+				fileUploadModel.setThumbnail(filePath+"_thumbnail.png");
+				fileUploadModel.setThumbnailUrl(getFileUrl(filePath+"_thumbnail.png"));
+			}
 		} catch (Exception e) {
 			throw  e;
 		} finally {
 			if(inputStream != null){
 				inputStream.close();
+			}
+			if(thumbnailFile != null && thumbnailFile.exists()){
+				thumbnailFile.delete();
 			}
 		}
 		return fileUploadModel;
@@ -223,4 +254,42 @@ public class UploadServiceImpl extends DefaultJPAService<FileUploadEntity> imple
 		}
 		return filePath;
 	}
+
+	/**
+	 * 获取指定视频的帧并保存为图片至指定目录
+	 * @param inputStream  源视频文件
+	 * @param framefile  截取帧的图片存放路径
+	 * @throws Exception
+	 */
+	public static void fetchFrame(InputStream inputStream, String framefile)
+			throws Exception {
+		FFmpegFrameGrabber ff = new FFmpegFrameGrabber(inputStream);//videofile视频路径，我用的是网络路径
+		ff.start();
+		int lenght = ff.getLengthInFrames();
+		int i = 0;
+		Frame f = null;
+		while (i < lenght) {
+			// 过滤前5帧，避免出现全黑的图片
+			f = ff.grabFrame();
+			if ((i > 5) && (f.image != null)) {
+				break;
+			}
+			i++;
+		}
+		int owidth = f.imageWidth ;
+		int oheight = f.imageHeight ;
+		// 对截取的帧进行等比例缩放
+		int width = 800;
+		int height = (int) (((double) width / owidth) * oheight);
+		Java2DFrameConverter converter = new Java2DFrameConverter();
+		BufferedImage fecthedImage =converter.getBufferedImage(f);
+		BufferedImage bi = new BufferedImage(width, height, BufferedImage.TYPE_3BYTE_BGR);
+		bi.getGraphics().drawImage(fecthedImage.getScaledInstance(width, height, Image.SCALE_SMOOTH),
+				0, 0, null);
+		File targetFile = new File(framefile);
+		ImageIO.write(bi, "png", targetFile);
+		ff.flush();
+		ff.stop();
+	}
+
 }

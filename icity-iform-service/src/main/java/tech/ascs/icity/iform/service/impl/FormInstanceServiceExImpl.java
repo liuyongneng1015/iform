@@ -338,8 +338,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		Session session = getSession(dataModel);
 		session.beginTransaction();
 		Map<String, Object> data = new HashMap<String, Object>();
-		data.put("create_at", new Date());
-		data.put("create_by",  user != null ? user.getId() : "-1");
+		data.put("fcreate_at", new Date());
+		data.put("fcreate_by",  user != null ? user.getId() : "-1");
 		//主表数据
 		setMasterFormItemInstances(formInstance, data, DisplayTimingType.Add);
 		//设置关联数据
@@ -447,8 +447,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			session.beginTransaction();
 
 			Map<String, Object> data = (Map<String, Object>) session.load(dataModel.getTableName(), instanceId);
-			data.put("update_at", new Date());
-			data.put("update_by",  user != null ? user.getId() : "-1");
+			data.put("fupdate_at", new Date());
+			data.put("fupdate_by",  user != null ? user.getId() : "-1");
 			//主表数据
 			setMasterFormItemInstances(formInstance,data, DisplayTimingType.Update);
 
@@ -493,11 +493,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				for (SubFormDataItemInstance subFormDataItemInstance : subFormItemInstance.getItemInstances()) {
 					Map<String, Object> map = new HashMap<>();
 					if(displayTimingType == DisplayTimingType.Add){
-						map.put("create_at", new Date());
-						map.put("create_by", user != null ? user.getId() : "-1" );
+						map.put("fcreate_at", new Date());
+						map.put("fcreate_by", user != null ? user.getId() : "-1" );
 					}else{
-						map.put("update_at", new Date());
-						map.put("update_by", user != null ? user.getId() : "-1");
+						map.put("fupdate_at", new Date());
+						map.put("fupdate_by", user != null ? user.getId() : "-1");
 					}
 					List<String> idList = new ArrayList<>();
 					Map<String, List<String>> stringListMap = new HashMap<>();

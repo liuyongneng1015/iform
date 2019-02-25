@@ -1,5 +1,6 @@
 package tech.ascs.icity.iform.model;
 
+import io.swagger.annotations.ApiModelProperty;
 import tech.ascs.icity.iform.api.model.FileUploadType;
 import tech.ascs.icity.jpa.dao.model.BaseEntity;
 
@@ -31,6 +32,13 @@ public class FileUploadEntity extends BaseEntity implements Serializable {
 	//来源对象数据id
 	@Column(name = "from_source_data_id", length = 64)
 	private String fromSourceDataId;
+
+	//缩略图
+	@Column(name = "thumbnail", length = 256)
+	private String thumbnail;
+
+	@Column(name = "缩略图地址", length = 512)
+	private String thumbnailUrl;
 
 	//来源对象类型
 	@JoinColumn(name="upload_type")
@@ -75,5 +83,21 @@ public class FileUploadEntity extends BaseEntity implements Serializable {
 
 	public void setUploadType(FileUploadType uploadType) {
 		this.uploadType = uploadType;
+	}
+
+	public String getThumbnail() {
+		return thumbnail;
+	}
+
+	public void setThumbnail(String thumbnail) {
+		this.thumbnail = thumbnail;
+	}
+
+	public String getThumbnailUrl() {
+		return thumbnailUrl;
+	}
+
+	public void setThumbnailUrl(String thumbnailUrl) {
+		this.thumbnailUrl = thumbnailUrl;
 	}
 }

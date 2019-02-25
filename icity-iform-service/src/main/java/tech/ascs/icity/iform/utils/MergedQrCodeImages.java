@@ -38,7 +38,7 @@ public class MergedQrCodeImages {
                 g.drawImage(small, x_i, y_i, small.getWidth(), small.getHeight(), null);
                 g.dispose();
                 ImageIO.write(big, "png", file);
-                return cloneInputStream(new FileInputStream(file));
+                return new ByteArrayInputStream(cloneInputStream(new FileInputStream(file)).toByteArray());
             } catch (Exception e) {
                 e.printStackTrace();
             }finally {
@@ -71,8 +71,7 @@ public class MergedQrCodeImages {
     }
 
     //克隆文件流
-    private  static InputStream cloneInputStream(InputStream input) {
-        try {
+    public static ByteArrayOutputStream cloneInputStream(InputStream input) throws  Exception {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             byte[] buffer = new byte[1024];
             int len;
@@ -80,12 +79,7 @@ public class MergedQrCodeImages {
                 baos.write(buffer, 0, len);
             }
             baos.flush();
-            InputStream inputStream = new ByteArrayInputStream(baos.toByteArray());
-            return inputStream;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
+            return baos;
     }
 
 }
