@@ -17,10 +17,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
-import tech.ascs.icity.iform.model.FormModelEntity;
-import tech.ascs.icity.iform.model.ItemModelEntity;
-import tech.ascs.icity.iform.model.ListModelEntity;
-import tech.ascs.icity.iform.model.ReferenceItemModelEntity;
+import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.*;
 import tech.ascs.icity.iform.utils.MergedQrCodeImages;
 import tech.ascs.icity.iform.utils.MinioConfig;
@@ -168,23 +165,29 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 
 	private void createDataQrCode(FormModelEntity formModel, String id){
 		try {
-			URL logoUrl = new URL(minioConfig.getLogoUrl());
-			URL backUrl = new URL(minioConfig.getBackUrl());
-
-			InputStream is = ZXingCodeUtils.createLogoQRCode(logoUrl, "www.baidu.com","航天智慧城市");
-			InputStream inputStream = null;
-			if(backUrl != null && StringUtils.hasText(backUrl.getFile())) {
-				inputStream = MergedQrCodeImages.mergeImage(backUrl.openStream(), is, "63", "163");
-			}else{
-				inputStream = is;
-			}
-			FileUploadModel fileUploadModel = uploadService.uploadOneFileByInputstream(formModel.getName()+"_"+id ,inputStream,"png");
+			InputStream inputStream = getInputStream("www.baidu.com", "航天智慧");
+			FileUploadModel fileUploadModel = uploadService.uploadOneFileByInputstream(formModel.getName()+"_"+id ,inputStream,"image/png");
 			fileUploadModel.setUploadType(FileUploadType.FormModel);
-			fileUploadModel.setFromSource(id);
+			fileUploadModel.setFromSource(formModel.getId());
+			fileUploadModel.setFromSourceDataId(id);
 			uploadService.saveFileUploadEntity(fileUploadModel);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	private InputStream getInputStream(String skipUrl, String note) throws  Exception{
+		URL logoUrl = new URL(minioConfig.getLogoUrl());
+		URL backUrl = new URL(minioConfig.getBackUrl());
+
+		InputStream is = ZXingCodeUtils.createLogoQRCode(logoUrl, skipUrl, note);
+		InputStream inputStream = null;
+		if(backUrl != null && StringUtils.hasText(backUrl.getFile())) {
+			inputStream = MergedQrCodeImages.mergeImage(backUrl.openStream(), is, "63", "163");
+		}else{
+			inputStream = is;
+		}
+		return inputStream;
 	}
 
 	@Override
@@ -217,6 +220,17 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			for (String id:ids) {
 				formInstanceService.deleteFormInstance(formModel, id);
 			}
+		}
+	}
+
+	@Override
+	public void resetQrCode(@PathVariable(name="formId", required = true) String formId, @PathVariable(name="id", required = true) String id) {
+		FileUploadEntity fileUploadEntity = uploadService.getFileUploadEntity(FileUploadType.FormModel, formId, id);
+		try {
+			InputStream inputStream = getInputStream("www.baidu.com", "航天智慧");
+			uploadService.resetUploadOneFileByInputstream(fileUploadEntity.getFileKey() ,inputStream,"image/png");
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 }

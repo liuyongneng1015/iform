@@ -9,10 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.FileUploadModel;
-import tech.ascs.icity.iform.model.ColumnModelEntity;
+import tech.ascs.icity.iform.api.model.FileUploadType;
 import tech.ascs.icity.iform.model.FileUploadEntity;
-import tech.ascs.icity.iform.model.FormSubmitCheckInfo;
-import tech.ascs.icity.iform.service.ItemModelService;
 import tech.ascs.icity.iform.service.UploadService;
 import tech.ascs.icity.iform.utils.CommonUtils;
 import tech.ascs.icity.iform.utils.ImagesUtils;
@@ -86,6 +84,17 @@ public class UploadServiceImpl extends DefaultJPAService<FileUploadEntity> imple
 		return fileUploadEntityManager.save(fileUploadEntity);
 	}
 
+	@Override
+	public FileUploadEntity getFileUploadEntity(FileUploadType fileUploadtype, String fromSource, String fromSourceDataId) {
+		FileUploadEntity fileUploadEntity = null;
+		if(fileUploadtype == FileUploadType.ItemModel) {
+			fileUploadEntity = fileUploadEntityManager.query().filterEqual("uploadType", fileUploadtype).filterEqual("fromSource", fromSource).first();
+		}else{
+			fileUploadEntity = fileUploadEntityManager.query().filterEqual("uploadType", fileUploadtype).filterEqual("fromSource", fromSource).filterEqual("fromSourceDataId", fromSourceDataId).first();
+		}
+		return fileUploadEntity;
+	}
+
 	/**
 	 * 上传文件，并显示是否重命名
 	 *
@@ -144,6 +153,20 @@ public class UploadServiceImpl extends DefaultJPAService<FileUploadEntity> imple
 		return fileUploadModel;
 	}
 
+
+	@Override
+	public void resetUploadOneFileByInputstream(String filePath, InputStream inputStream, String contentType) throws Exception {
+		FileUploadModel fileUploadModel = null;
+		try {
+			minioClient.putObject(minioConfig.getBucket(), filePath, inputStream, contentType);
+		} catch (Exception e) {
+			throw  e;
+		} finally {
+			if(inputStream != null){
+				inputStream.close();
+			}
+		}
+	}
 
 	/**
 	 * 图片的base64字符串集合转成图片，并上传到minio，然后返回url

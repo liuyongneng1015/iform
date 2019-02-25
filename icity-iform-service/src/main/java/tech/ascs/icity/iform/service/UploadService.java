@@ -2,6 +2,7 @@ package tech.ascs.icity.iform.service;
 
 import org.springframework.web.multipart.MultipartFile;
 import tech.ascs.icity.iform.api.model.FileUploadModel;
+import tech.ascs.icity.iform.api.model.FileUploadType;
 import tech.ascs.icity.iform.model.ColumnModelEntity;
 import tech.ascs.icity.iform.model.FileUploadEntity;
 import tech.ascs.icity.iform.model.ItemModelEntity;
@@ -47,6 +48,14 @@ public interface UploadService  extends JPAService<FileUploadEntity> {
     FileUploadModel uploadOneFileByInputstream(String fileName, InputStream inputStream, String contentType) throws Exception ;
 
     /**
+     * 重新上传文件，并显示是否重命名
+     * @param inputStream 文件输入流
+     * @return
+     * @throws Exception
+     */
+    void resetUploadOneFileByInputstream(String filePath, InputStream inputStream, String contentType) throws Exception;
+
+    /**
      * 图片的base64字符串集合转成图片，并上传到minio，然后返回url
      * @param base64List
      * @return
@@ -70,4 +79,12 @@ public interface UploadService  extends JPAService<FileUploadEntity> {
      * @throws Exception
      */
     FileUploadEntity saveFileUploadEntity(FileUploadModel fileUploadModel) ;
+
+    /**
+     * 上传文件实体
+     * @param fileUploadtype 文件上传类型
+     * @return
+     * @throws Exception
+     */
+    FileUploadEntity getFileUploadEntity(FileUploadType fileUploadtype, String fromSource, String fromSourceDataId) ;
 }

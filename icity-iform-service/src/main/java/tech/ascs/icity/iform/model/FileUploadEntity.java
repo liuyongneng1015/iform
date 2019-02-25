@@ -24,10 +24,13 @@ public class FileUploadEntity extends BaseEntity implements Serializable {
 	@Column(name = "file_url", length = 512)
 	private String url;
 
-	//来源对象id
-	@Column(name = "from_source", length = 512)
+	//来源控件或者表单id
+	@Column(name = "from_source", length = 64)
 	private String fromSource;
 
+	//来源对象数据id
+	@Column(name = "from_source_data_id", length = 64)
+	private String fromSourceDataId;
 
 	//来源对象类型
 	@JoinColumn(name="upload_type")
@@ -56,6 +59,14 @@ public class FileUploadEntity extends BaseEntity implements Serializable {
 
 	public void setFromSource(String fromSource) {
 		this.fromSource = fromSource;
+	}
+
+	public String getFromSourceDataId() {
+		return fromSourceDataId;
+	}
+
+	public void setFromSourceDataId(String fromSourceDataId) {
+		this.fromSourceDataId = fromSourceDataId;
 	}
 
 	public FileUploadType getUploadType() {

@@ -532,8 +532,8 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			if(!StringUtils.hasText(dataModel.getTableName())){
 				throw new IFormException("表名不允许为空");
 			}
-			if(isContainChinese(dataModel.getTableName())){
-				throw new IFormException("表名不允许包含中文字符");
+			if(!isLetterDigit(dataModel.getTableName())){
+				throw new IFormException("表名只允许包含字母、数字和下划线连接符");
 			}
 			List<String> columnModelEntities = dataModel.getColumns().parallelStream().map(ColumnModel::getColumnName).collect(Collectors.toList());
 			Map<String, Object> map = new HashMap<String, Object>();
@@ -693,20 +693,15 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	}
 
 	/**
-	 * 判断字符串中是否包含中文
+	 * 判断字符串中是否字母、数字和连接符
 	 * @param str
 	 * 待校验字符串
-	 * @return 是否为中文
-	 * @warn 不能校验是否为中文标点符号
+	 * @warn 能校验是否为中文标点符号
 	 */
-	private boolean isContainChinese(String str) {
-		Pattern p = Pattern.compile("[\u4e00-\u9fa5]");
-		Matcher m = p.matcher(str);
-		if (m.find()) {
-			return true;
-		}
-		return false;
-	}
+    public static boolean isLetterDigit(String str) {
+        String regex = "^[a-z0-9A-Z\\-\\_]+$";
+        return str.matches(regex);
+    }
 
 	//设置关联关系
 	private void setReference(DataModel dataModel, List<ItemModelEntity> itemModelEntityList){

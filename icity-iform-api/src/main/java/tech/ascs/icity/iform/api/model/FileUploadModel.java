@@ -17,8 +17,12 @@ public class FileUploadModel extends NameEntity {
 	@ApiModelProperty(value = "文件上传的地址", position = 4)
 	private String url;
 
-	@ApiModelProperty(value = "来源数据id", position = 5)
+	@ApiModelProperty(value = "来源控件或者表单id", position = 5)
 	private String fromSource;
+
+	@ApiModelProperty(value = "来源数据id", position = 5)
+	private String fromSourceDataId;
+
 
 	@ApiModelProperty(value = "文件上传类型", position = 6)
 	private FileUploadType uploadType = FileUploadType.ItemModel;
@@ -45,6 +49,14 @@ public class FileUploadModel extends NameEntity {
 
 	public void setFromSource(String fromSource) {
 		this.fromSource = fromSource;
+	}
+
+	public String getFromSourceDataId() {
+		return fromSourceDataId;
+	}
+
+	public void setFromSourceDataId(String fromSourceDataId) {
+		this.fromSourceDataId = fromSourceDataId;
 	}
 
 	public FileUploadType getUploadType() {
