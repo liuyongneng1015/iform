@@ -182,6 +182,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			}
 
 			setFormItemModelIds(formModelEntity);
+			setFormQrCodeItemModelIds(formModelEntity);
 
 			for(int i = 0 ;i <  itemModelEntityList.size() ; i++){
 				ItemModelEntity itemModelEntity = itemModelEntityList.get(i);
@@ -195,27 +196,20 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		}
 		FormModelEntity formModelEntity = doSave(entity, dataModelUpdateNeeded);
 		setFormItemModelIds(formModelEntity);
+		setFormQrCodeItemModelIds(formModelEntity);
 		formModelManager.save(formModelEntity);
 		dataModelService.sync(formModelEntity.getDataModels().get(0));
 		return formModelEntity;
 
 	}
+
+	//设置对应数据标识
 	private void setFormItemModelIds(FormModelEntity formModelEntity){
 		if(StringUtils.isBlank(formModelEntity.getItemTableColunmName())){
 			formModelEntity.setItemModelIds(null);
 			return;
 		}
-		List<ItemModelEntity> itemModelEntityList = new ArrayList<>();
-		itemModelEntityList.addAll(formModelEntity.getItems());
-		for(ItemModelEntity itemModelEntity : formModelEntity.getItems()) {
-			itemModelEntityList.addAll(getChildRenItemModelEntity(itemModelEntity));
-		}
-		Map<String, ItemModelEntity> itemModelEntityMap = new HashMap<>();
-		for(ItemModelEntity itemModelEntity : itemModelEntityList){
-			if(itemModelEntity.getColumnModel() != null){
-				itemModelEntityMap.put(itemModelEntity.getColumnModel().getDataModel().getTableName()+"_"+itemModelEntity.getColumnModel().getColumnName(), itemModelEntity);
-			}
-		}
+		Map<String, ItemModelEntity> itemModelEntityMap = getItemModelEntityMap(formModelEntity);
 		String[] strings = formModelEntity.getItemTableColunmName().split(",");
 		List<String> list = new ArrayList<>();
 		for(String str : strings){
@@ -227,6 +221,41 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		formModelEntity.setItemModelIds(String.join(",", list));
 
 	}
+
+	//查找对应字段控件
+	private Map<String, ItemModelEntity> getItemModelEntityMap(FormModelEntity formModelEntity){
+		List<ItemModelEntity> itemModelEntityList = new ArrayList<>();
+		itemModelEntityList.addAll(formModelEntity.getItems());
+		for(ItemModelEntity itemModelEntity : formModelEntity.getItems()) {
+			itemModelEntityList.addAll(getChildRenItemModelEntity(itemModelEntity));
+		}
+		Map<String, ItemModelEntity> itemModelEntityMap = new HashMap<>();
+		for(ItemModelEntity itemModelEntity : itemModelEntityList){
+			if(itemModelEntity.getColumnModel() != null){
+				itemModelEntityMap.put(itemModelEntity.getColumnModel().getDataModel().getTableName()+"_"+itemModelEntity.getColumnModel().getColumnName(), itemModelEntity);
+			}
+		}
+		return itemModelEntityMap;
+	}
+
+	//设置二维码对应数据标识
+	private void setFormQrCodeItemModelIds(FormModelEntity formModelEntity){
+		if(StringUtils.isBlank(formModelEntity.getQrCodeItemTableColunmName())){
+			formModelEntity.setQrCodeItemModelIds(null);
+			return;
+		}
+		Map<String, ItemModelEntity> itemModelEntityMap = getItemModelEntityMap(formModelEntity);
+		String[] strings = formModelEntity.getQrCodeItemTableColunmName().split(",");
+		List<String> list = new ArrayList<>();
+		for(String str : strings){
+			ItemModelEntity itemModelEntity = itemModelEntityMap.get(str);
+			if(itemModelEntity != null){
+				list.add(itemModelEntity.getId());
+			}
+		}
+		formModelEntity.setQrCodeItemModelIds(String.join(",", list));
+	}
+
 	private void setItemModelIds(ItemModelEntity itemModelEntity){
 		if(((ReferenceItemModelEntity) itemModelEntity).getItemTableColunmName() != null && ((ReferenceItemModelEntity) itemModelEntity).getType() == ItemType.ReferenceList ){
 			((ReferenceItemModelEntity) itemModelEntity).setItemModelIds(String.join(",",
