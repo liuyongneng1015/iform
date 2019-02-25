@@ -1211,7 +1211,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			if(!referenceFlag){
 				return;
 			}
-			setFormDataReferenceItemInstance(formModel, itemModel,  entity,  referenceDataModelList);
+			setFormDataReferenceItemInstance(itemModel,  entity,  referenceDataModelList);
 		}else if(itemModel instanceof SubFormItemModelEntity) {
 			if(!referenceFlag){
 				return;
@@ -1285,7 +1285,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	}
 
 
-	private void setFormDataReferenceItemInstance(FormModelEntity formModel, ItemModelEntity itemModel, Map<String, Object> entity, List<ReferenceDataInstance> referenceDataModelList){
+	private void setFormDataReferenceItemInstance( ItemModelEntity itemModel, Map<String, Object> entity, List<ReferenceDataInstance> referenceDataModelList){
 		//主表字段
 		ReferenceItemModelEntity fromItem = (ReferenceItemModelEntity)itemModel;
 
@@ -1312,7 +1312,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			return;
 		}
 
-		String itemModelIds = formModel.getItemModelIds();
+		String itemModelIds = toModelEntity.getItemModelIds();
 		List<String> stringList = StringUtils.hasText(itemModelIds) ? Arrays.asList(itemModelIds.split(",")) : new ArrayList<>();
 		//关联字段
 		String referenceColumnName = fromItem.getColumnModel() == null ? null : fromItem.getColumnModel().getColumnName();

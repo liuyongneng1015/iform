@@ -421,6 +421,14 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		}
 		String oldColumnName = saveItemModelEntity.getColumnModel() == null ? null : saveItemModelEntity.getColumnModel().getColumnName();
 		String newColunmName = paramerItemModelEntity.getColumnModel() == null ? null : paramerItemModelEntity.getColumnModel().getColumnName();
+		ReferenceType oldReferenceType = null;
+		 if(saveItemModelEntity  instanceof ReferenceItemModelEntity){
+			 oldReferenceType = ((ReferenceItemModelEntity)saveItemModelEntity).getReferenceType();
+		};
+		ReferenceType newReferenceType = null;
+		if(paramerItemModelEntity  instanceof ReferenceItemModelEntity){
+			newReferenceType = ((ReferenceItemModelEntity)paramerItemModelEntity).getReferenceType();
+		};
 
 		BeanUtils.copyProperties(paramerItemModelEntity, saveItemModelEntity, new String[]{"referencesItemModels","parentItem", "searchItems","sortItems","permissions", "referenceList","items","formModel","columnModel","activities","options"});
 
@@ -438,7 +446,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			//删除字段删除索引
 			if(oldColumnName != null && !oldColumnName.equals(newColunmName)) {
 				columnModelService.deleteTableColumn(saveItemModelEntity.getColumnModel().getDataModel().getTableName(), saveItemModelEntity.getColumnModel().getColumnName());
-			}else if(oldColumnName != null && oldColumnName.equals(newColunmName)){
+			}else if(oldColumnName != null && oldColumnName.equals(newColunmName) && oldReferenceType != newReferenceType){
 				columnModelService.deleteTableColumnIndex(saveItemModelEntity.getColumnModel().getDataModel().getTableName(), saveItemModelEntity.getColumnModel().getColumnName());
 			}
 		}
