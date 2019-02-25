@@ -176,7 +176,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
             concurrentmap.put(key, System.currentTimeMillis());
 			FormModelEntity entity = wrap(formModel);
 			formModelService.save(entity);
-//			listModelService.submitFormBtnPermission(entity);
+			listModelService.submitFormBtnPermission(entity);
 		} catch (Exception e) {
 			throw new IFormException("保存表单模型列表失败：" + e.getMessage(), e);
 		}finally {
@@ -195,7 +195,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
             }
             concurrentmap.put(key, System.currentTimeMillis());
             formModelService.deleteFormModelEntityById(id);
-            //			listModelService.deleteFormBtnPermission(id);
+			listModelService.deleteFormBtnPermission(id);
         }finally {
             if(concurrentmap.containsKey(key)){
                 concurrentmap.remove(key);
