@@ -166,14 +166,14 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		return new IdEntity(id);
 	}
 
-	private void uploadDataQrCode(FormModelEntity formModel, String id){
+	private void createDataQrCode(FormModelEntity formModel, String id){
 		try {
 			URL logoUrl = new URL(minioConfig.getLogoUrl());
 			URL backUrl = new URL(minioConfig.getBackUrl());
 
 			InputStream is = ZXingCodeUtils.createLogoQRCode(logoUrl, "www.baidu.com","航天智慧城市");
 			InputStream inputStream = null;
-			if(backUrl != null && backUrl.getFile() != null) {
+			if(backUrl != null && StringUtils.hasText(backUrl.getFile())) {
 				inputStream = MergedQrCodeImages.mergeImage(backUrl.openStream(), is, "63", "163");
 			}else{
 				inputStream = is;

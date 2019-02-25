@@ -45,7 +45,7 @@ public class ZXingCodeUtils {
         }
     };
 
-        public static void main(String[] args) throws Exception {
+        public static void test(String[] args) throws Exception {
             File logoFile = new File("E:/lyn/qrcode/back.jpg");
             File QrCodeFile = new File("E:/lyn/qrcode/11111zzz1zzzz.jpg");
             String url = "http://www.baidu.com";
@@ -132,7 +132,7 @@ public class ZXingCodeUtils {
     public static InputStream createLogoQRCode(URL logoFile, String url, String note) {
         File file = new File(System.currentTimeMillis()+"_"+((Math.random()*9+1)*100000)+"qrCode.png");
         try {
-            if(logoFile == null || logoFile.getFile() == null){
+            if(logoFile == null || StringUtils.isBlank(logoFile.getFile())){
                 QRCodeGenerator.generateQRCodeImage( url, 400, 400, file.getPath());
                 return new FileInputStream(file);
             }else {
