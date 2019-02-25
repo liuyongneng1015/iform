@@ -506,6 +506,8 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 					if (treeSelectItemModelEntity.getMultiple()==true && treeSelectItemModelEntity.getColumnModel()!=null) {
 						if (treeSelectItemModelEntity.getColumnModel().getLength()!=null && treeSelectItemModelEntity.getColumnModel().getLength()<=4096) {
 							treeSelectItemModelEntity.getColumnModel().setLength(4096);
+						} else {
+							treeSelectItemModelEntity.getColumnModel().setLength(4096);
 						}
 					}
 				}
