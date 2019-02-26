@@ -130,7 +130,7 @@ public class ZXingCodeUtils {
 
     // 创建带logo的二维码图片
     public static InputStream createLogoQRCode(URL logoFile, String url, String note) {
-        File file = new File(System.currentTimeMillis()+"_"+((Math.random()*9+1)*100000)+"qrCode.png");
+        File file = new File(System.currentTimeMillis()+"_"+ (new Random().nextInt(10000))+"_qrCode.png");
         try {
             boolean logoFlag = logoFile == null || StringUtils.isBlank(logoFile.getFile()) ? true : false ;
             if(logoFlag && StringUtils.isBlank(note)){

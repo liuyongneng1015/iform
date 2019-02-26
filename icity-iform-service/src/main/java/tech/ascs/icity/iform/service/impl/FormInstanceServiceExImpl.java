@@ -157,8 +157,28 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	}
 
 
-    private List<String> listByTableName(String tableName, String key, String value) {
-        StringBuilder sql = new StringBuilder("SELECT id FROM if_").append(tableName).append(" where ").append(key).append("='"+value+"'");
+    private List<String> listByTableName(ItemType itemType, String tableName, String key, Object value) {
+		StringBuffer params = new StringBuffer("'null'");
+		if(value instanceof List){
+			List<String> valueList = new ArrayList<>();
+			if(itemType == ItemType.Media || itemType == ItemType.Attachment){
+				List<Map<String, Object>> maplist = (List<Map<String, Object>>)value;
+				for(Map<String, Object> map : maplist){
+					valueList.add(String.valueOf(map.get("id")));
+				}
+			}else {
+				valueList = (List) value;
+			}
+			for(String str : valueList) {
+				params.append(",'" +str +"'");
+			}
+		}else{
+			params = new StringBuffer("'"+value+"'");
+			if(itemType == ItemType.Media || itemType == ItemType.Attachment){
+				params = new StringBuffer("'"+String.valueOf(((Map<String, Object>)value).get("id"))+"'");
+			}
+		}
+        StringBuilder sql = new StringBuilder("SELECT id FROM if_").append(tableName).append(" where ").append(key).append(" in ("+params.toString()+")");
         List<String> list = jdbcTemplate.queryForList(sql.toString(),String.class);
         return list;
     }
@@ -502,7 +522,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 						for (ItemInstance itemModelService : instance.getItems()) {
 							ItemModelEntity itemModel = itemModelManager.get(itemModelService.getId());
 							if(itemModel.getUniquene() != null && itemModel.getUniquene()){
-								List<String> list = listByTableName(dataModelEntity.getTableName(), "f" + itemModel.getColumnModel().getColumnName(), String.valueOf(itemModelService.getValue()));
+								List<String> list = listByTableName(itemModelService.getType(), dataModelEntity.getTableName(), "f" + itemModel.getColumnModel().getColumnName(), itemModelService.getValue());
 								if(list != null && list.size() > 0) {
 									stringListMap.put(itemModelService.getId()+"_"+itemModelService.getItemName(), list);
 								}
@@ -616,7 +636,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 			if(referenceItemModelEntity.getReferenceType() == ReferenceType.OneToOne && referenceItemModelEntity.getColumnModel() != null && saveListMap != null && saveListMap.size() > 0){
 				String idValue = String.valueOf(saveListMap.get(0).get("id"));
-				List<String> list = listByTableName(masterFormModelEntity.getDataModels().get(0).getTableName(), referenceItemModelEntity.getColumnModel().getColumnName(), idValue);
+				List<String> list = listByTableName(referenceItemModelEntity.getType(), masterFormModelEntity.getDataModels().get(0).getTableName(), referenceItemModelEntity.getColumnModel().getColumnName(), idValue);
 
 				for(String str : list){
 					if(StringUtils.hasText(str) && (str == null || !str.equals(idValue))){
@@ -704,7 +724,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}
             //唯一校验
             if(itemModel.getUniquene() != null && itemModel.getUniquene() &&itemModel.getColumnModel() != null){
-               List<String> list = listByTableName(itemModel.getColumnModel().getDataModel().getTableName(), "f"+itemModel.getColumnModel().getColumnName(), String.valueOf(itemInstance.getValue()));
+               List<String> list = listByTableName(itemModel.getType(), itemModel.getColumnModel().getDataModel().getTableName(), "f"+itemModel.getColumnModel().getColumnName(), itemInstance.getValue());
 
                for(String str : list){
 				   if(StringUtils.hasText(str) && (idItemInstance == null ||  !str.equals(idItemInstance.getValue()))){
