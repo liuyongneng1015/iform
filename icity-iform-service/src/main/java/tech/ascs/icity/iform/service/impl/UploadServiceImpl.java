@@ -122,7 +122,7 @@ public class UploadServiceImpl extends DefaultJPAService<FileUploadEntity> imple
 	public FileUploadModel uploadOneFileReturnUrl(Integer fileSize, MultipartFile file) throws Exception {
 		FileUploadModel fileUploadModel = null;
 		InputStream inputStream = file.getInputStream();
-		File thumbnailFile = new File("thumbnail.png");
+		File thumbnailFile = null;
 		try {
 
 			String filename = file.getOriginalFilename();
@@ -143,9 +143,10 @@ public class UploadServiceImpl extends DefaultJPAService<FileUploadEntity> imple
 			fileUploadModel.setUrl(getFileUrl(filePath));
 			fileUploadModel.setName(filename);
 			if(file.getContentType().contains("video")) {//视频
+				thumbnailFile = new File("thumbnail.png");
 				InputStream stream2 = new ByteArrayInputStream(baos.toByteArray());
 				fetchFrame(stream2, thumbnailFile.getAbsolutePath());
-				minioClient.putObject(minioConfig.getBucket(), filePath+"thumbnail.png", new FileInputStream(thumbnailFile), "image/png");
+				minioClient.putObject(minioConfig.getBucket(), filePath+"_thumbnail.png", new FileInputStream(thumbnailFile), "image/png");
 				fileUploadModel.setThumbnail(filePath+"_thumbnail.png");
 				fileUploadModel.setThumbnailUrl(getFileUrl(filePath+"_thumbnail.png"));
 			}
