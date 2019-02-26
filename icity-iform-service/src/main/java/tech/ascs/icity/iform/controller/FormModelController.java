@@ -927,11 +927,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 					continue;
 				}
 
-				if("create_at".equals(columnModelEntity.getColumnName()) ||"update_at".equals(columnModelEntity.getColumnName())
-						|| "create_by".equals(columnModelEntity.getColumnName())  || "update_by".equals(columnModelEntity.getColumnName()) ){
-					continue;
-				}
-
 				oldDataModelEntity.getColumns().remove(columnModelEntity);
 				i--;
 				List<ItemModelEntity> itemModelEntity = itemModelService.findByProperty("columnModel.id", columnModelEntity.getId());
