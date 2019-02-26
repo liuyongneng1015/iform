@@ -34,7 +34,7 @@ public class TreeSelectItemModelEntity extends ItemModelEntity  {
 	private String defaultValueName;
 
 	@Column(name="data_depth")// 数据深度
-	private Integer datadDepth;
+	private Integer dataDepth;
 
 	public Boolean getMultiple() {
 		return multiple;
@@ -60,12 +60,12 @@ public class TreeSelectItemModelEntity extends ItemModelEntity  {
 		this.dataRange = dataRange;
 	}
 
-	public Integer getDatadDepth() {
-		return datadDepth;
+	public Integer getDataDepth() {
+		return dataDepth;
 	}
 
-	public void setDatadDepth(Integer datadDepth) {
-		this.datadDepth = datadDepth;
+	public void setDataDepth(Integer dataDepth) {
+		this.dataDepth = dataDepth;
 	}
 
 	public String getDataRangeName() {

@@ -173,7 +173,7 @@ public class ItemModel extends NameEntity {
 	private String dataRange;
 
 	@ApiModelProperty(value = "数据深度", position = 47)
-	private Integer datadDepth;
+	private Integer dataDepth;
 
 	@ApiModelProperty(value = "数据范围名称", position = 48)
 	private String dataRangeName;
@@ -634,12 +634,12 @@ public class ItemModel extends NameEntity {
 		this.dataRange = dataRange;
 	}
 
-	public Integer getDatadDepth() {
-		return datadDepth;
+	public Integer getDataDepth() {
+		return dataDepth;
 	}
 
-	public void setDatadDepth(Integer datadDepth) {
-		this.datadDepth = datadDepth;
+	public void setDataDepth(Integer dataDepth) {
+		this.dataDepth = dataDepth;
 	}
 
 	public String getDataRangeName() {
