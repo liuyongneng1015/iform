@@ -158,27 +158,25 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 
     private List<String> listByTableName(ItemType itemType, String tableName, String key, Object value) {
-		StringBuffer params = new StringBuffer("'null'");
+		StringBuffer params = new StringBuffer();
 		if(value instanceof List){
 			List<String> valueList = new ArrayList<>();
 			if(itemType == ItemType.Media || itemType == ItemType.Attachment){
-				List<Map<String, Object>> maplist = (List<Map<String, Object>>)value;
-				for(Map<String, Object> map : maplist){
-					valueList.add(String.valueOf(map.get("id")));
+				List<FileUploadModel> maplist = (List<FileUploadModel>)value;
+				for(FileUploadModel map : maplist){
+					valueList.add(map.getId());
 				}
 			}else {
 				valueList = (List) value;
 			}
-			for(String str : valueList) {
-				params.append(",'" +str +"'");
-			}
+			params.append(String.join(",", valueList));
 		}else{
 			params = new StringBuffer("'"+value+"'");
 			if(itemType == ItemType.Media || itemType == ItemType.Attachment){
-				params = new StringBuffer("'"+String.valueOf(((Map<String, Object>)value).get("id"))+"'");
+				params = new StringBuffer(((FileUploadModel)value).getId());
 			}
 		}
-        StringBuilder sql = new StringBuilder("SELECT id FROM if_").append(tableName).append(" where ").append(key).append(" in ("+params.toString()+")");
+        StringBuilder sql = new StringBuilder("SELECT id FROM if_").append(tableName).append(" where ").append(key).append("='"+params.toString()+"'");
         List<String> list = jdbcTemplate.queryForList(sql.toString(),String.class);
         return list;
     }
@@ -472,7 +470,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			Map<String, Object> data = (Map<String, Object>) session.load(dataModel.getTableName(), instanceId);
 
 			//主表数据
-			setMasterFormItemInstances(formInstance,data, DisplayTimingType.Update);
+			setMasterFormItemInstances(formInstance, data, DisplayTimingType.Update);
 			data.put("update_at", new Date());
 			data.put("update_by",  user != null ? user.getId() : "-1");
 
