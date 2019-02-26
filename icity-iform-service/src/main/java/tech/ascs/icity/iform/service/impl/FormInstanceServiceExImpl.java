@@ -1162,13 +1162,13 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 		copyDisplayIds.removeAll(copyItemIds);
 
-		/*for(int i = 0; i < items.size(); i++ ){
+		Object idVlaue = null;
+		for(int i = 0; i < items.size(); i++ ){
 			ItemInstance itemInstance = items.get(i);
-			if(itemIds.contains(itemInstance.getId()) && itemInstance.getSystemItemType() != SystemItemType.ID){
-				items.remove(itemInstance);
-				i--;
+			if(itemInstance.getSystemItemType() == SystemItemType.ID){
+				idVlaue = itemInstance.getValue();
 			}
-		}*/
+		}
 		for (ReferenceDataInstance referenceDataInstance : referenceDataModelList) {
 			if(copyDisplayIds.contains(referenceDataInstance.getId())){
 				ItemInstance itemInstance = new ItemInstance();
@@ -1182,7 +1182,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		formInstance.getItems().addAll(items);
 
 
-		FileUploadEntity fileUploadEntity = uploadService.getFileUploadEntity(FileUploadType.FormModel, formInstance.getFormId(), String.valueOf(entity.get("id")));
+		FileUploadEntity fileUploadEntity = uploadService.getFileUploadEntity(FileUploadType.FormModel, formInstance.getFormId(), String.valueOf(idVlaue));
 		if(fileUploadEntity != null) {
 			FileUploadModel fileUploadModel = new FileUploadModel();
 			BeanUtils.copyProperties(fileUploadEntity, fileUploadModel);
