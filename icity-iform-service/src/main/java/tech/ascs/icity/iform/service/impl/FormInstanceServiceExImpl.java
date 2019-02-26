@@ -1736,7 +1736,8 @@ private DataModelInstance setDataModelInstance(FormModelEntity toModelEntity, Re
                     List<TreeSelectData> list = groupService.getTreeSelectDataSourceByIds(((TreeSelectItemModelEntity) itemModel).getDataSource().getValue(), valueStrs.split(","));
                     if(list != null && list.size() > 0){
                         if(((TreeSelectItemModelEntity)itemModel).getMultiple() != null && ((TreeSelectItemModelEntity)itemModel).getMultiple()){
-                            itemInstance.setDisplayValue(list.parallelStream().map(TreeSelectData::getName).collect(Collectors.toList()));
+                        	List<String> values = list.parallelStream().map(TreeSelectData::getName).collect(Collectors.toList());
+                            itemInstance.setDisplayValue(String.join(",", values));
                         }else{
                             itemInstance.setDisplayValue(list.get(0).getName());
                         }
