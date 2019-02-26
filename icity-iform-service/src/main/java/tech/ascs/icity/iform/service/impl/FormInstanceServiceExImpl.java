@@ -1,5 +1,6 @@
 package tech.ascs.icity.iform.service.impl;
 
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -338,10 +339,12 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		Session session = getSession(dataModel);
 		session.beginTransaction();
 		Map<String, Object> data = new HashMap<String, Object>();
-		data.put("create_at", new Date());
-		data.put("create_by",  user != null ? user.getId() : "-1");
+
 		//主表数据
 		setMasterFormItemInstances(formInstance, data, DisplayTimingType.Add);
+		data.put("create_at", new Date());
+		data.put("create_by",  user != null ? user.getId() : "-1");
+
 		//设置关联数据
 		setReferenceData(session, user, formInstance, data, DisplayTimingType.Add);
 
@@ -447,10 +450,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			session.beginTransaction();
 
 			Map<String, Object> data = (Map<String, Object>) session.load(dataModel.getTableName(), instanceId);
-			data.put("update_at", new Date());
-			data.put("update_by",  user != null ? user.getId() : "-1");
+
 			//主表数据
 			setMasterFormItemInstances(formInstance,data, DisplayTimingType.Update);
+			data.put("update_at", new Date());
+			data.put("update_by",  user != null ? user.getId() : "-1");
 
 			setReferenceData(session, user, formInstance, data, DisplayTimingType.Update);
 
@@ -492,13 +496,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				List<Map<String, Object>> newListMap = new ArrayList<>();
 				for (SubFormDataItemInstance subFormDataItemInstance : subFormItemInstance.getItemInstances()) {
 					Map<String, Object> map = new HashMap<>();
-					if(displayTimingType == DisplayTimingType.Add){
-						map.put("create_at", new Date());
-						map.put("create_by", user != null ? user.getId() : "-1" );
-					}else{
-						map.put("update_at", new Date());
-						map.put("update_by", user != null ? user.getId() : "-1");
-					}
 					List<String> idList = new ArrayList<>();
 					Map<String, List<String>> stringListMap = new HashMap<>();
 					for (SubFormRowItemInstance instance : subFormDataItemInstance.getItems()) {
@@ -520,6 +517,13 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 								throw new IFormException(strings[strings.length-1]+"必须唯一");
 							}
 						}
+					}
+					if(displayTimingType == DisplayTimingType.Add){
+						map.put("create_at", new Date());
+						map.put("create_by", user != null ? user.getId() : "-1" );
+					}else{
+						map.put("update_at", new Date());
+						map.put("update_by", user != null ? user.getId() : "-1");
 					}
 					newListMap.add(map);
 				}
@@ -1158,6 +1162,14 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 
 		formInstance.getItems().addAll(items);
+
+
+		FileUploadEntity fileUploadEntity = uploadService.getFileUploadEntity(FileUploadType.FormModel, formInstance.getFormId(), String.valueOf(entity.get("id")));
+		if(fileUploadEntity != null) {
+			FileUploadModel fileUploadModel = new FileUploadModel();
+			BeanUtils.copyProperties(fileUploadEntity, fileUploadModel);
+			formInstance.setFileUploadModel(fileUploadModel);
+		}
 		return formInstance;
 	}
 

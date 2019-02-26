@@ -40,6 +40,9 @@ public class FormDataSaveInstance extends IdEntity {
 	@ApiModelProperty(value = "表单实例ID", position = 9)
 	private Map<String, Object> data = new HashMap<String, Object>();
 
+	@ApiModelProperty(value = "二维码图片", position = 10)
+	private FileUploadModel fileUploadModel;
+
 	public String getFormId() {
 		return formId;
 	}
@@ -118,6 +121,14 @@ public class FormDataSaveInstance extends IdEntity {
 
 	public void setSubFormData(List<SubFormItemInstance> subFormData) {
 		this.subFormData = subFormData;
+	}
+
+	public FileUploadModel getFileUploadModel() {
+		return fileUploadModel;
+	}
+
+	public void setFileUploadModel(FileUploadModel fileUploadModel) {
+		this.fileUploadModel = fileUploadModel;
 	}
 
 	@ApiModelProperty(value = "表单实例ID", position = 0)

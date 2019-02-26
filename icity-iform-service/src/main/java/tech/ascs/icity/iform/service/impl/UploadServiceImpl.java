@@ -144,7 +144,7 @@ public class UploadServiceImpl extends DefaultJPAService<FileUploadEntity> imple
 			fileUploadModel.setName(filename);
 			if(file.getContentType().contains("video")) {//视频
 				InputStream stream2 = new ByteArrayInputStream(baos.toByteArray());
-				fetchFrame(stream2, thumbnailFile.getPath());
+				fetchFrame(stream2, thumbnailFile.getAbsolutePath());
 				minioClient.putObject(minioConfig.getBucket(), filePath+"thumbnail.png", new FileInputStream(thumbnailFile), "image/png");
 				fileUploadModel.setThumbnail(filePath+"_thumbnail.png");
 				fileUploadModel.setThumbnailUrl(getFileUrl(filePath+"_thumbnail.png"));
@@ -187,7 +187,6 @@ public class UploadServiceImpl extends DefaultJPAService<FileUploadEntity> imple
 
 	@Override
 	public void resetUploadOneFileByInputstream(String filePath, InputStream inputStream, String contentType) throws Exception {
-		FileUploadModel fileUploadModel = null;
 		try {
 			minioClient.putObject(minioConfig.getBucket(), filePath, inputStream, contentType);
 		} catch (Exception e) {

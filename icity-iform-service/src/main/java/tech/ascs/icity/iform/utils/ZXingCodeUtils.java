@@ -132,12 +132,13 @@ public class ZXingCodeUtils {
     public static InputStream createLogoQRCode(URL logoFile, String url, String note) {
         File file = new File(System.currentTimeMillis()+"_"+((Math.random()*9+1)*100000)+"qrCode.png");
         try {
-            if(logoFile == null || StringUtils.isBlank(logoFile.getFile())){
-                QRCodeGenerator.generateQRCodeImage( url, 400, 400, file.getPath());
-                return new FileInputStream(file);
+            boolean logoFlag = logoFile == null || StringUtils.isBlank(logoFile.getFile()) ? true : false ;
+            if(logoFlag && StringUtils.isBlank(note)){
+                QRCodeGenerator.generateQRCodeImage( url, 400, 400, file.getAbsolutePath());
+                return getInputStream(file);
             }else {
-                BufferedImage image = drawLogoQRCode(logoFile.openStream(), file, url, note);
-                return getInputStream(image);
+                drawLogoQRCode(logoFlag ? null : logoFile.openStream(), file, url, note);
+                return getInputStream(file);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -149,16 +150,11 @@ public class ZXingCodeUtils {
         return null;
     }
 
-    private static InputStream getInputStream(BufferedImage image){
-        InputStream is = null;
-        try {
-            ByteArrayOutputStream os = new ByteArrayOutputStream();
-            ImageIO.write(image, "png", os);
-            is = new ByteArrayInputStream(os.toByteArray());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return  is;
+    private static InputStream getInputStream(File file) throws  Exception{
+        FileInputStream fileInputStream = new FileInputStream(file);
+        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(MergedQrCodeImages.cloneInputStream(fileInputStream).toByteArray());
+        fileInputStream.close();
+        return byteArrayInputStream;
     }
 
 }

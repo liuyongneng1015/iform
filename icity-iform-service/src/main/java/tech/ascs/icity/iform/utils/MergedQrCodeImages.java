@@ -24,7 +24,7 @@ public class MergedQrCodeImages {
             File file = null;
             try {
                 file = new File("back.png");
-                writeToLocal(file.getPath(), backFile);
+                writeToLocal(file.getAbsolutePath(), backFile);
 
                 BufferedImage small =ImageIO.read(qrCodeFile);;
                 BufferedImage big = ImageIO.read(file);

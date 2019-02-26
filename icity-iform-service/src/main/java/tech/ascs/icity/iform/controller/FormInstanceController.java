@@ -8,7 +8,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -163,17 +165,21 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		return new IdEntity(id);
 	}
 
-	private void createDataQrCode(FormModelEntity formModel, String id){
+	private FileUploadModel createDataQrCode(FormModelEntity formModel, String id){
+		FileUploadModel qrCodeFileUploadModel = null;
 		try {
 			InputStream inputStream = getInputStream("www.baidu.com", "航天智慧");
-			FileUploadModel fileUploadModel = uploadService.uploadOneFileByInputstream(formModel.getName()+"_"+id ,inputStream,"image/png");
+			FileUploadModel fileUploadModel = uploadService.uploadOneFileByInputstream(formModel.getName()+"_"+id+".png" ,inputStream,"image/png");
 			fileUploadModel.setUploadType(FileUploadType.FormModel);
 			fileUploadModel.setFromSource(formModel.getId());
 			fileUploadModel.setFromSourceDataId(id);
-			uploadService.saveFileUploadEntity(fileUploadModel);
+			FileUploadEntity fileUploadEntity = uploadService.saveFileUploadEntity(fileUploadModel);
+			qrCodeFileUploadModel = new FileUploadModel();
+			BeanUtils.copyProperties(fileUploadEntity, qrCodeFileUploadModel);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		return qrCodeFileUploadModel;
 	}
 
 	private InputStream getInputStream(String skipUrl, String note) throws  Exception{
@@ -224,13 +230,25 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	}
 
 	@Override
-	public void resetQrCode(@PathVariable(name="formId", required = true) String formId, @PathVariable(name="id", required = true) String id) {
+	public FileUploadModel resetQrCode(@PathVariable(name="formId", required = true) String formId, @PathVariable(name="id", required = true) String id) {
+		FormModelEntity formModel = formModelService.find(formId);
+		if (formModel == null) {
+			throw new IFormException(404, "表单模型【" + formId + "】不存在");
+		}
 		FileUploadEntity fileUploadEntity = uploadService.getFileUploadEntity(FileUploadType.FormModel, formId, id);
 		try {
-			InputStream inputStream = getInputStream("www.baidu.com", "航天智慧");
-			uploadService.resetUploadOneFileByInputstream(fileUploadEntity.getFileKey() ,inputStream,"image/png");
+			if(fileUploadEntity == null){
+				return createDataQrCode(formModel, id);
+			}else {
+				InputStream inputStream = getInputStream("www.baidu.com", "航天智慧");
+				uploadService.resetUploadOneFileByInputstream(fileUploadEntity.getFileKey(), inputStream, "image/png");
+				FileUploadModel fileUploadModel = new FileUploadModel();
+				BeanUtils.copyProperties(fileUploadEntity, fileUploadModel);
+				return fileUploadModel;
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
+			throw new IFormException(404, "表单模型【" + formId + "】,生成【" + id + "】二维码失败");
 		}
 	}
 }

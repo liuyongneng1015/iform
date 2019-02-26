@@ -9,6 +9,7 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import tech.ascs.icity.iform.api.model.DataInstance;
+import tech.ascs.icity.iform.api.model.FileUploadModel;
 import tech.ascs.icity.iform.api.model.FormDataSaveInstance;
 import tech.ascs.icity.iform.api.model.FormInstance;
 import tech.ascs.icity.model.IdEntity;
@@ -189,6 +190,6 @@ public interface FormInstanceService {
 			@ApiImplicitParam(paramType = "path", name = "id", value = "表单实例ID", required = true, dataType = "String")
 	})
 	@PutMapping("/{formId}/{id}/reset_qrcode")
-	void resetQrCode(@PathVariable(name="formId", required = true) String formId, @PathVariable(name="id", required = true) String id);
+	FileUploadModel resetQrCode(@PathVariable(name="formId", required = true) String formId, @PathVariable(name="id", required = true) String id);
 
 }
