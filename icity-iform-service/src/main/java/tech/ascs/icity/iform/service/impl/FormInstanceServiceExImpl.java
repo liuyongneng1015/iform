@@ -637,7 +637,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				List<String> list = listByTableName(referenceItemModelEntity.getType(), masterFormModelEntity.getDataModels().get(0).getTableName(), referenceItemModelEntity.getColumnModel().getColumnName(), idValue);
 
 				for(String str : list){
-					if(StringUtils.hasText(str) && (str == null || !str.equals(idValue))){
+					if(StringUtils.hasText(formInstance.getId()) && (str == null || !str.equals(formInstance.getId()))){
 						throw new IFormException("同一数据不能重复关联"+referenceItemModelEntity.getName());
 					}
 				}
