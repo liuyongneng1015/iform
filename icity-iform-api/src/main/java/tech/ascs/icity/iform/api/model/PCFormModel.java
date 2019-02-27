@@ -7,6 +7,7 @@ import tech.ascs.icity.model.NameEntity;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @ApiModel("PC表单模型FormModel")
 public class PCFormModel extends NameEntity {
@@ -51,6 +52,15 @@ public class PCFormModel extends NameEntity {
 
 	@ApiModelProperty(value = "应用id", position = 6)
 	private String applicationId;
+
+	@ApiModelProperty(value="数据标识:控件集合",position = 10)
+	private List<ItemModel> itemModelList = new ArrayList<ItemModel>();
+
+	@ApiModelProperty(value="二维码数据标识:控件集合",position = 10)
+	private List<ItemModel> qrCodeItemModelList = new ArrayList<ItemModel>();
+
+	@ApiModelProperty(value="关联表单模型集合",position = 11)
+	private List<PCFormModel> referenceFormModel = new ArrayList<PCFormModel>();
 
 	public PCProceeeModel getProcess() {
 		return process;
@@ -108,7 +118,31 @@ public class PCFormModel extends NameEntity {
 		this.applicationId = applicationId;
 	}
 
-    @Override
+	public List<ItemModel> getItemModelList() {
+		return itemModelList;
+	}
+
+	public void setItemModelList(List<ItemModel> itemModelList) {
+		this.itemModelList = itemModelList;
+	}
+
+	public List<ItemModel> getQrCodeItemModelList() {
+		return qrCodeItemModelList;
+	}
+
+	public void setQrCodeItemModelList(List<ItemModel> qrCodeItemModelList) {
+		this.qrCodeItemModelList = qrCodeItemModelList;
+	}
+
+	public List<PCFormModel> getReferenceFormModel() {
+		return referenceFormModel;
+	}
+
+	public void setReferenceFormModel(List<PCFormModel> referenceFormModel) {
+		this.referenceFormModel = referenceFormModel;
+	}
+
+	@Override
     public String getId() {
         String id = super.getId();
         if(StringUtils.isBlank(id)){

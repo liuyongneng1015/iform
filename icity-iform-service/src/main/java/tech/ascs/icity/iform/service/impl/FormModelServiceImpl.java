@@ -820,7 +820,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 	//获取item子item
 	@Override
 	public List<ItemModelEntity> getChildRenItemModelEntity(ItemModelEntity itemModelEntity){
-		List<ItemModelEntity> list = new ArrayList<>();
+		Set<ItemModelEntity> list = new HashSet<>();
 		if(itemModelEntity instanceof RowItemModelEntity){
 			list.addAll(((RowItemModelEntity) itemModelEntity).getItems());
 		}else if(itemModelEntity instanceof SubFormItemModelEntity){
@@ -837,7 +837,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				}
 			}
 		}
-		return list;
+		return new ArrayList<>(list);
 	}
 
 	//校验关联
@@ -1095,22 +1095,11 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		List<ItemModelEntity> itemModels = new ArrayList<>();
 		for(ItemModelEntity itemModelEntity : entity.getItems()){
 			itemModels.add(itemModelEntity);
-			if(itemModelEntity instanceof SubFormItemModelEntity){
-				List<SubFormRowItemModelEntity> subRowItems = ((SubFormItemModelEntity) itemModelEntity).getItems();
-				for(SubFormRowItemModelEntity rowItemModelEntity : subRowItems){
-					itemModels.add(rowItemModelEntity);
-					for(ItemModelEntity itemModel : rowItemModelEntity.getItems()) {
-						itemModels.add(itemModel);
-					}
-				}
-			}else if(itemModelEntity instanceof RowItemModelEntity){
-				for(ItemModelEntity itemModel : ((RowItemModelEntity) itemModelEntity).getItems()) {
-					itemModels.add(itemModel);
-				}
-			}
+			itemModels.addAll(getChildRenItemModelEntity(itemModelEntity));
 		}
 		return itemModels;
 	}
+
 
 	@Override
 	public FormModelEntity saveFormModelSubmitCheck(FormModelEntity entity) {

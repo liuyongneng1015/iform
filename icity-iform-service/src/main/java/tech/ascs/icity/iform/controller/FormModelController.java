@@ -1382,7 +1382,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 	private FormModel toDTODetail(FormModelEntity entity)  {
         FormModel formModel = new FormModel();
-		BeanUtils.copyProperties(entity, formModel, new String[] {"items","dataModels","permissions","submitChecks","functions"});
+
+		entityToDTO( entity,  formModel, false);
+
 		if (entity.getItems().size() > 0) {
 			List<ItemModel> items = new ArrayList<ItemModel>();
 			List<ItemModelEntity> itemModelEntities = entity.getItems() == null || entity.getItems().size() < 2 ? entity.getItems() : entity.getItems().parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
@@ -1415,15 +1417,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
             formModel.setSubmitChecks(formSubmitCheckModels);
         }
 
-		if(entity.getFunctions() != null && entity.getFunctions().size() > 0){
-			List<FunctionModel> functionModels = new ArrayList<>();
-			for(ListFunction function : entity.getFunctions()){
-				FunctionModel functionModel = new FunctionModel();
-				BeanUtils.copyProperties(function, functionModel, new String[] {"formModel","itemModel"});
-				functionModels.add(functionModel);
-			}
-			formModel.setFunctions(functionModels);
-		}
+
 
 		if(entity.getDataModels() != null && entity.getDataModels().size() > 0){
 			List<DataModel> dataModelList = new ArrayList<>();
@@ -1440,29 +1434,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			formModel.setDataModels(dataModelList);
 		}
 
-		//数据标识
-		if(StringUtils.hasText(entity.getItemModelIds())) {
-		    String[] strings = entity.getItemModelIds().split(",");
-			List<String> resultList = new ArrayList<>();
-			for(String str : strings){
-			    if(!resultList.contains(str)) {
-                    resultList.add(str);
-                }
-            }
-			formModel.setItemModelList(getItemModelList(resultList));
-		}
-
-		//二维码
-		if(StringUtils.hasText(entity.getQrCodeItemModelIds())) {
-			String[] strings = entity.getQrCodeItemModelIds().split(",");
-			List<String> resultList = new ArrayList<>();
-			for(String str : strings){
-				if(!resultList.contains(str)) {
-					resultList.add(str);
-				}
-			}
-			formModel.setQrCodeItemModelList(getItemModelList(resultList));
-		}
 
 		return formModel;
 	}
@@ -1527,15 +1498,21 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 	private PCFormModel toPCDTO(FormModelEntity entity) {
 		PCFormModel formModel = new PCFormModel();
-	    BeanUtils.copyProperties(entity, formModel, new String[] {"process","dataModels","items","permissions","submitChecks","functions"});
-
+		entityToDTO( entity,  formModel, true);
 
 		List<PCDataModel> dataModelList = new ArrayList<>();
 		List<ItemModelEntity> itemModelEntities = formModelService.findAllItems(entity);
 		Map<String, DataModelEntity> dataModelEntities = new HashMap<>();
 		Map<String, List<String>> columnsMap = new HashMap<>();
+		//关联表单
+		Set<PCFormModel> referenceFormModelList = new HashSet<>();
 		for(ItemModelEntity itemModelEntity : itemModelEntities){
 			if(itemModelEntity instanceof ReferenceItemModelEntity && ((ReferenceItemModelEntity) itemModelEntity).getReferenceList() != null) {
+
+				PCFormModel referencePCFormModel = new PCFormModel();
+				entityToDTO((((ReferenceItemModelEntity) itemModelEntity).getReferenceList().getMasterForm()), referencePCFormModel, true);
+				referenceFormModelList.add(referencePCFormModel);
+
 				List<String> displayColuns = new ArrayList<>();
 				ListModelEntity listModelEntity = ((ReferenceItemModelEntity) itemModelEntity).getReferenceList();
 				if(listModelEntity == null || listModelEntity.getMasterForm() == null){
@@ -1550,6 +1527,8 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				dataModelEntities.put(listModelEntity.getMasterForm().getId(), listModelEntity.getMasterForm().getDataModels().get(0));
 			}
 		}
+		formModel.setReferenceFormModel(new ArrayList<>(referenceFormModelList));
+
 		for(String formId : dataModelEntities.keySet()){
 			PCDataModel dataModel = dataModelService.transitionToModel(formId, dataModelEntities.get(formId), columnsMap.get(formId));
 			dataModelList.add(dataModel);
@@ -1566,7 +1545,11 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			formModel.setItems(items);
 		}
 
+		return formModel;
+	}
 
+	private void entityToDTO(FormModelEntity entity, Object object, boolean isPCForm){
+		BeanUtils.copyProperties(entity, object, new String[] {"process","dataModels","items","permissions","submitChecks","functions"});
 		if(entity.getFunctions() != null && entity.getFunctions().size() > 0){
 			List<FunctionModel> functionModels = new ArrayList<>();
 			for(ListFunction function : entity.getFunctions()){
@@ -1574,9 +1557,44 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				BeanUtils.copyProperties(function, functionModel, new String[] {"formModel","itemModel"});
 				functionModels.add(functionModel);
 			}
-			formModel.setFunctions(functionModels);
+			if(isPCForm) {
+				((PCFormModel) object).setFunctions(functionModels);
+			}else{
+				((FormModel) object).setFunctions(functionModels);
+			}
 		}
-		return formModel;
+
+		//数据标识
+		if(StringUtils.hasText(entity.getItemModelIds())) {
+			String[] strings = entity.getItemModelIds().split(",");
+			List<String> resultList = new ArrayList<>();
+			for(String str : strings){
+				if(!resultList.contains(str)) {
+					resultList.add(str);
+				}
+			}
+			if(isPCForm) {
+				((PCFormModel) object).setItemModelList(getItemModelList(resultList));
+			}else{
+				((FormModel) object).setItemModelList(getItemModelList(resultList));
+			}
+		}
+
+		//二维码
+		if(StringUtils.hasText(entity.getQrCodeItemModelIds())) {
+			String[] strings = entity.getQrCodeItemModelIds().split(",");
+			List<String> resultList = new ArrayList<>();
+			for(String str : strings){
+				if(!resultList.contains(str)) {
+					resultList.add(str);
+				}
+			}
+			if(isPCForm) {
+				((PCFormModel) object).setQrCodeItemModelList(getItemModelList(resultList));
+			}else{
+				((FormModel) object).setQrCodeItemModelList(getItemModelList(resultList));
+			}
+		}
 	}
 
 	@Deprecated
