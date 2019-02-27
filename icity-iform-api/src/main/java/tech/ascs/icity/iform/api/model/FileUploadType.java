@@ -1,5 +1,7 @@
 package tech.ascs.icity.iform.api.model;
 
+import org.springframework.util.StringUtils;
+
 /**
  * 文件上传类型
  * 
@@ -29,5 +31,14 @@ public enum FileUploadType {
 
 	public void setValue(String value) {
 		this.value = value;
+	}
+
+	public static FileUploadType getFileUploadType(String value) {
+		for(FileUploadType fileUploadType : FileUploadType.values()){
+			if(StringUtils.hasText(value) && fileUploadType.getValue().equals(value)){
+				return fileUploadType;
+			}
+		}
+		return null;
 	}
 }

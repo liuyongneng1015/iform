@@ -163,8 +163,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			List<String> valueList = new ArrayList<>();
 			if(itemType == ItemType.Media || itemType == ItemType.Attachment){
 				List<FileUploadModel> maplist = (List<FileUploadModel>)value;
-				for(FileUploadModel map : maplist){
-					valueList.add(map.getId());
+				for(FileUploadModel fileUploadModel : maplist){
+					valueList.add(fileUploadModel.getId());
 				}
 			}else {
 				valueList = (List) value;
@@ -756,51 +756,54 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			value = new BigDecimal(String.valueOf(itemInstance.getValue())).divide(new BigDecimal(1.0), ((NumberItemModelEntity)itemModel).getDecimalDigits(), BigDecimal.ROUND_DOWN).doubleValue();
 		} else if (itemModel.getType() == ItemType.Media || itemModel.getType() == ItemType.Attachment) {
             Object o = itemInstance.getValue();
+			List<FileUploadEntity> fileUploadList = fileUploadManager.query().filterEqual("fromSource", itemModel.getId()).filterEqual("uploadType", FileUploadType.ItemModel).list();
+			Map<String, FileUploadEntity> fileUploadEntityMap = new HashMap<>();
+			for(FileUploadEntity fileUploadEntity : fileUploadList){
+				fileUploadEntityMap.put(fileUploadEntity.getId(), fileUploadEntity);
+			}
 			if(o != null && o instanceof List){
-				List<FileUploadEntity> oldList = fileUploadManager.query().filterEqual("fromSource", itemModel.getId()).filterEqual("uploadType", FileUploadType.ItemModel).list();
-				Map<String, FileUploadEntity> map = new HashMap<>();
-				for(FileUploadEntity entity : oldList){
-					map.put(entity.getId(), entity);
-				}
-                List<FileUploadModel> list = new ArrayList<>();
-
-				List<Map<String, Object>> maplist = (List<Map<String, Object>>)o;
-                for(Map<String, Object> mapStr : maplist){
-                    FileUploadModel fileUploadModel = new FileUploadModel();
-                    fileUploadModel.setUrl((String)mapStr.get("url"));
-					fileUploadModel.setFileKey((String)mapStr.get("fileKey"));
-                    fileUploadModel.setName((String)mapStr.get("name"));
-                    fileUploadModel.setId((String)mapStr.get("id"));
-                    list.add(fileUploadModel);
-                }
+				List<FileUploadModel> fileList = (List<FileUploadModel>)o;
 				List<FileUploadEntity> newList = new ArrayList<>();
-				for(FileUploadModel fileUploadModel : list){
-					if(!fileUploadModel.isNew()){
-						FileUploadEntity fileUploadEntity = map.remove(fileUploadModel.getId());
-						if(fileUploadEntity != null) {
-							newList.add(fileUploadEntity);
-						}
-					}else {
-						FileUploadEntity fileUploadEntity = new FileUploadEntity();
-						BeanUtils.copyProperties(fileUploadModel, fileUploadEntity);
-						fileUploadEntity.setFromSource(itemModel.getId());
-						newList.add(fileUploadManager.save(fileUploadEntity));
-					}
-				}
-				for(String key : map.keySet()){
-					fileUploadManager.deleteById(key);
+				for(FileUploadModel fileUploadModel : fileList){
+					FileUploadEntity fileUploadEntity = getFileUploadEntity( fileUploadModel, fileUploadEntityMap, itemModel.getId());
+					newList.add(fileUploadEntity);
 				}
 				value = String.join(",", newList.parallelStream().map(FileUploadEntity::getId).collect(Collectors.toList()));
 			}else{
-				value = o == null || StringUtils.isEmpty(o) ? null : o;
+				FileUploadModel fileUploadModel = o == null || StringUtils.isEmpty(o) ? null : (FileUploadModel)o;
+				FileUploadEntity fileUploadEntity = getFileUploadEntity( fileUploadModel, fileUploadEntityMap, itemModel.getId());
+				value = fileUploadEntity.getId();
+			}
+			for(String key : fileUploadEntityMap.keySet()){
+				fileUploadManager.deleteById(key);
 			}
 		} else {
-            value = itemInstance.getValue() == null || StringUtils.isEmpty(itemInstance.getValue()) ? null : itemInstance.getValue();
+			value = itemInstance.getValue() == null || StringUtils.isEmpty(itemInstance.getValue()) ? null : itemInstance.getValue();
         }
 		ColumnModelEntity columnModel = itemModel.getColumnModel();
 		if (Objects.nonNull(columnModel)) {
 			data.put(columnModel.getColumnName(), value);
 		}
+	}
+
+	private FileUploadEntity getFileUploadEntity(FileUploadModel fileUploadModel, Map<String, FileUploadEntity> fileUploadEntityMap, String itemId){
+		FileUploadEntity fileUploadEntity = null;
+		if(!fileUploadModel.isNew()){
+			fileUploadEntity = fileUploadEntityMap.remove(fileUploadModel.getId());
+			if(fileUploadEntity == null) {
+				fileUploadEntity = fileUploadManager.get(fileUploadModel.getId());
+				if(fileUploadEntity == null){
+					throw new IFormException("未找到【"+fileUploadModel.getId()+"】对应的文件");
+				}
+			}
+		}else {
+			fileUploadEntity = new FileUploadEntity();
+			BeanUtils.copyProperties(fileUploadModel, fileUploadEntity);
+		}
+		fileUploadEntity.setUploadType(FileUploadType.ItemModel);
+		fileUploadEntity.setFromSource(itemId);
+		fileUploadManager.save(fileUploadEntity);
+		return fileUploadEntity;
 	}
 
 	//校验字段值
