@@ -171,7 +171,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}
 			params.append(String.join(",", valueList));
 		}else{
-			params = new StringBuffer("'"+value+"'");
+			params = new StringBuffer(String.valueOf(value));
 			if(itemType == ItemType.Media || itemType == ItemType.Attachment){
 				params = new StringBuffer(((FileUploadModel)value).getId());
 			}
