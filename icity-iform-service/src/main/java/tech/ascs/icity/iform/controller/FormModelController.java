@@ -1518,9 +1518,18 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				if(listModelEntity == null || listModelEntity.getMasterForm() == null){
 					continue;
 				}
+				Map<String, ItemModelEntity> itemModelEntityMap = new HashMap<>();
 				for(ItemModelEntity itemModelEntity1 : listModelEntity.getDisplayItems()){
-					if(itemModelEntity1.getColumnModel() != null){
-						displayColuns.add(itemModelEntity1.getColumnModel().getColumnName());
+					itemModelEntityMap.put(itemModelEntity1.getId(), itemModelEntity1);
+
+				}
+				List<String> idList = new ArrayList<>();
+				if(StringUtils.hasText(((ReferenceItemModelEntity) itemModelEntity).getReferenceList().getDisplayItemsSort())) {
+					idList = Arrays.asList(((ReferenceItemModelEntity) itemModelEntity).getReferenceList().getDisplayItemsSort().split(","));
+				}
+				for(String id : idList){
+					if(itemModelEntityMap.get(id) != null && itemModelEntityMap.get(id).getColumnModel() != null){
+						displayColuns.add(itemModelEntityMap.get(id).getColumnModel().getColumnName());
 					}
 				}
 				columnsMap.put(listModelEntity.getMasterForm().getId(), displayColuns);

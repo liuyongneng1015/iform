@@ -354,11 +354,16 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		List<ColumnModelInfo> columnModels = new ArrayList<>();
 		FormModelEntity formModelEntity = formManager.get(formId);
 		List<String> list = formModelService.getAllColumnItems(formModelEntity.getItems()).parallelStream().map(ItemModelEntity::getId).collect(Collectors.toList());
-		for(ColumnModelEntity columnModelEntity : columnModelEntities){
+		Map<String, ColumnModelEntity> columnModelEntityMap = new HashMap<>();
+		for(ColumnModelEntity columnModelEntity : columnModelEntities) {
 			//主表全显示
-			if(displayColuns != null && displayColuns.size() > 0 && !displayColuns.contains(columnModelEntity.getColumnName())){
+			if (displayColuns != null && displayColuns.size() > 0 && !displayColuns.contains(columnModelEntity.getColumnName())) {
 				continue;
 			}
+			columnModelEntityMap.put(columnModelEntity.getColumnName(), columnModelEntity);
+		}
+		for(String columnName : displayColuns){
+			ColumnModelEntity columnModelEntity = columnModelEntityMap.get(columnName);
 			List<ItemModelEntity> itemModelEntities = itemManager.findByProperty("columnModel.id", columnModelEntity.getId());
 			ColumnModelInfo columnModel = new ColumnModelInfo();
 			BeanUtils.copyProperties(columnModelEntity, columnModel, new String[] {"dataModel","columnReferences"});
