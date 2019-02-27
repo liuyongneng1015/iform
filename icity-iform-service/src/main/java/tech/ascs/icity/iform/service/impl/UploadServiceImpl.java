@@ -119,8 +119,8 @@ public class UploadServiceImpl extends DefaultJPAService<FileUploadEntity> imple
 	 * @throws Exception
 	 */
 	@Override
-	public FileUploadModel uploadOneFileReturnUrl(Integer fileSize, MultipartFile file) throws Exception {
-		FileUploadModel fileUploadModel = null;
+	public FileUploadModel uploadOneFileReturnUrl(FileUploadType uploadType, Integer fileSize, MultipartFile file) throws Exception {
+		FileUploadModel fileUploadModel = new FileUploadModel();
 		InputStream inputStream = file.getInputStream();
 		File thumbnailFile = null;
 		try {
@@ -138,18 +138,21 @@ public class UploadServiceImpl extends DefaultJPAService<FileUploadEntity> imple
 			// 打开两个新的输入流
 			InputStream stream1 = new ByteArrayInputStream(baos.toByteArray());
 			minioClient.putObject(minioConfig.getBucket(), filePath, stream1, file.getContentType());
-			fileUploadModel = new FileUploadModel();
-			fileUploadModel.setFileKey(filePath);
-			fileUploadModel.setUrl(getFileUrl(filePath));
-			fileUploadModel.setName(filename);
+			FileUploadEntity fileUploadModelEntity = new FileUploadEntity();
+			fileUploadModelEntity.setFileKey(filePath);
+			fileUploadModelEntity.setUrl(getFileUrl(filePath));
+			fileUploadModelEntity.setName(filename);
+			fileUploadModelEntity.setUploadType(uploadType);
 			if(file.getContentType().contains("video")) {//视频
 				thumbnailFile = new File("thumbnail.png");
 				InputStream stream2 = new ByteArrayInputStream(baos.toByteArray());
 				fetchFrame(stream2, thumbnailFile.getAbsolutePath());
 				minioClient.putObject(minioConfig.getBucket(), filePath+"_thumbnail.png", new FileInputStream(thumbnailFile), "image/png");
-				fileUploadModel.setThumbnail(filePath+"_thumbnail.png");
-				fileUploadModel.setThumbnailUrl(getFileUrl(filePath+"_thumbnail.png"));
+				fileUploadModelEntity.setThumbnail(filePath+"_thumbnail.png");
+				fileUploadModelEntity.setThumbnailUrl(getFileUrl(filePath+"_thumbnail.png"));
 			}
+			fileUploadEntityManager.save(fileUploadModelEntity);
+			BeanUtils.copyProperties(fileUploadModelEntity, fileUploadModel);
 		} catch (Exception e) {
 			throw  e;
 		} finally {

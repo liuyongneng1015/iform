@@ -11,6 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 import sun.net.www.http.HttpCaptureInputStream;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.FileUploadModel;
+import tech.ascs.icity.iform.api.model.FileUploadType;
 import tech.ascs.icity.iform.api.service.FileUploadService;
 import tech.ascs.icity.iform.service.UploadService;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
@@ -37,12 +38,14 @@ public class FileUploadController implements FileUploadService {
 		log.error("fileUpload in ");
 		MultipartFile file = ((MultipartHttpServletRequest)request).getFile("file");
 		String fileSizeLimit = request.getParameter("fileSizeLimit");
+		String uploadTypeStr = request.getParameter("uploadType");
+		FileUploadType uploadType = FileUploadType.getFileUploadType(uploadTypeStr);
 		Integer size = null;
 		if(StringUtils.isNoneBlank(fileSizeLimit)){
 			size = Integer.parseInt(fileSizeLimit);
 		}
 		try {
-			return uploadService.uploadOneFileReturnUrl(size, file);
+			return uploadService.uploadOneFileReturnUrl(uploadType, size, file);
 		} catch (Exception e) {
 			throw new IFormException("上传文件失败" + e.getMessage());
 		}
@@ -51,6 +54,8 @@ public class FileUploadController implements FileUploadService {
 	public List<FileUploadModel> batchFileUpload(HttpServletRequest request) {
 		List<MultipartFile> files =((MultipartHttpServletRequest)request).getFiles("file");
 		String fileSizeLimit = request.getParameter("fileSizeLimit");
+		String uploadTypeStr = request.getParameter("uploadType");
+		FileUploadType uploadType = FileUploadType.getFileUploadType(uploadTypeStr);
 		Integer size = null;
 		if(StringUtils.isNoneBlank(fileSizeLimit)){
 			size = Integer.parseInt(fileSizeLimit);
@@ -59,7 +64,7 @@ public class FileUploadController implements FileUploadService {
 		if(files != null && files.size() > 0) {
 			for (MultipartFile file : files){
 				try {
-					list.add(uploadService.uploadOneFileReturnUrl(size, file));
+					list.add(uploadService.uploadOneFileReturnUrl(uploadType, size, file));
 				} catch (Exception e) {
 					throw new IFormException("上传文件失败" + e.getMessage());
 				}
