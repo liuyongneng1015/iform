@@ -287,7 +287,7 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 
 	@Override
 	public List<ListModel> findListModelSimpleInfo(String name, String applicationId, String formId) {
-		String sql = " SELECT l.id, l.name, l.application_id, f.id form_id, f.name form_name FROM ifm_list_model l LEFT JOIN ifm_form_model f ON l.master_form=f.id WHERE 1=1 ";
+		String sql = " SELECT l.id, l.name, l.application_id, f.id form_id, f.name form_name FROM ifm_list_model l LEFT JOIN ifm_form_model f ON l.master_form=f.id WHERE l.master_form IS NOT NULL ";
 		if (!StringUtils.isEmpty(applicationId)) {
 			sql += " AND l.application_id='"+applicationId+"' ";
 		}
