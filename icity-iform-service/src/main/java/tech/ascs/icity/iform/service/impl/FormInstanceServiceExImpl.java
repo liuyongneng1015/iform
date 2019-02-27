@@ -1159,6 +1159,26 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			copyItemIds.add(string);
 		}
 		itemIds.removeAll(displayIds);
+		List<String> displayItemsSortList = new ArrayList<>();
+		if(StringUtils.hasText(listModelEntity.getDisplayItemsSort())){
+			displayItemsSortList = Arrays.asList(listModelEntity.getDisplayItemsSort().split(","));
+		}
+		Map<String, ItemInstance> map = new HashMap<>();
+		ItemInstance idItemInstance = null;
+		for(ItemInstance itemInstance : items){
+			if(itemInstance.getSystemItemType() == SystemItemType.ID){
+				idItemInstance = itemInstance;
+			}
+			map.put(itemInstance.getId(), itemInstance);
+		}
+		List<ItemInstance> newDisplayItems = new ArrayList<>();
+		newDisplayItems.add(idItemInstance);
+		for(int i = 0; i < displayItemsSortList.size() ; i++){
+			ItemInstance itemInstance = map.get(displayItemsSortList.get(i));
+			if(itemInstance != null) {
+				newDisplayItems.add(itemInstance);
+			}
+		}
 
 		copyDisplayIds.removeAll(copyItemIds);
 
@@ -1175,11 +1195,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				itemInstance.setId(referenceDataInstance.getId());
 				itemInstance.setValue(referenceDataInstance.getValue());
 				itemInstance.setDisplayValue(referenceDataInstance.getDisplayValue());
-				items.add(itemInstance);
+				newDisplayItems.add(itemInstance);
 			}
 		}
 
-		formInstance.getItems().addAll(items);
+		formInstance.getItems().addAll(newDisplayItems);
 
 
 		FileUploadEntity fileUploadEntity = uploadService.getFileUploadEntity(FileUploadType.FormModel, formInstance.getFormId(), String.valueOf(idVlaue));
