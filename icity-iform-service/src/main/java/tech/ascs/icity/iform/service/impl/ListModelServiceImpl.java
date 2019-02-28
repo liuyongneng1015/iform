@@ -345,7 +345,7 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 			ids = ids.stream().filter(item->!StringUtils.isEmpty(item)).collect(Collectors.toList());
 			if (ids!=null && ids.size()>0) {
 				String idArrStr = String.join("','", ids);
-				list = jdbcTemplate.query("select id,name from ifm_list_model where id in ('"+idArrStr+"')",
+				list = jdbcTemplate.query("select id,name from ifm_list_model where master_form IS NOT NULL AND id in ('"+idArrStr+"')",
 					(rs, rowNum) -> {
 						ListModel item = new ListModel();
 						item.setId(rs.getString("id"));
