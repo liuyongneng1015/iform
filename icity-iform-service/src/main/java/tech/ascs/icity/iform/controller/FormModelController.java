@@ -910,6 +910,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 					for(int j = 0 ; j < toReferenceEntityList.size(); j++){
 						ColumnReferenceEntity columnReferenceEntity = toReferenceEntityList.get(j);
 						if(columnReferenceEntity.getToColumn().getId().equals(columnModelEntity.getId())){
+							if(columnReferenceEntity.getReferenceType() == ReferenceType.ManyToMany){
+								columnModelService.deleteTable("if_"+columnReferenceEntity.getReferenceMiddleTableName()+"_list");
+							}
 							toReferenceEntityList.remove(columnReferenceEntity);
 							j--;
 							columnModelService.deleteColumnReferenceEntity(columnReferenceEntity);

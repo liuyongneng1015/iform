@@ -104,6 +104,9 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
         for (int i = 0; i < oldReferenceEntityList.size(); i++) {
             ColumnReferenceEntity referenceEntity = oldReferenceEntityList.get(i);
             if (deleteOldToColumnIds.contains(referenceEntity.getToColumn().getId())) {
+                if(referenceEntity.getReferenceType() == ReferenceType.ManyToMany){
+                    deleteTable("if_"+referenceEntity.getReferenceMiddleTableName()+"_list");
+                }
                 oldReferenceEntityList.remove(referenceEntity);
                 i--;
                 columnReferenceManager.delete(referenceEntity);

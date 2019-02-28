@@ -157,9 +157,6 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				}
 			}
 
-			//删除item
-			deleteItems(oldDataModelEntity, new ArrayList<>(oldMapItmes.values()));
-
 			//下拉数据字典联动控件
 			setParentItem(itemModelEntities);
 
@@ -170,6 +167,10 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 			//设计表单校验
 			setFormSubmitChecks(old, entity);
+
+			//删除item
+			deleteItems(oldDataModelEntity, new ArrayList<>(oldMapItmes.values()));
+
 
 			//设置关联关系
 			//setReferenceItems(deletedItemIds, idColumnModelEntity, allItems);
@@ -684,6 +685,8 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		deleteItemOtherReferenceEntity(itemModelEntity);
 		if(itemModelEntity instanceof ReferenceItemModelEntity && ((ReferenceItemModelEntity) itemModelEntity).getSelectMode() == SelectMode.Multiple){
 			columnModelService.deleteTable("if_"+((ReferenceItemModelEntity) itemModelEntity).getItemTableColunmName()+"_list");
+			((ReferenceItemModelEntity) itemModelEntity).setReferenceItemId(null);
+			((ReferenceItemModelEntity) itemModelEntity).setReferenceFormId(null);
 		}
 		if(itemModelEntity.getColumnModel() != null) {
 			itemModelEntity.setColumnModel(null);
@@ -692,8 +695,8 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		if(itemModelEntity instanceof SelectItemModelEntity){
 			((SelectItemModelEntity) itemModelEntity).setParentItem(null);
 			((SelectItemModelEntity) itemModelEntity).setItems(null);
-			itemManager.save(itemModelEntity);
 		}
+		itemManager.save(itemModelEntity);
 		list.remove(itemModelEntity);
 		itemManager.delete(itemModelEntity);
 	}
