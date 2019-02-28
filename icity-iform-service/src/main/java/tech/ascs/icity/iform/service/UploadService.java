@@ -86,5 +86,5 @@ public interface UploadService  extends JPAService<FileUploadEntity> {
      * @return
      * @throws Exception
      */
-    FileUploadEntity getFileUploadEntity(FileUploadType fileUploadtype, String fromSource, String fromSourceDataId) ;
+    List<FileUploadEntity> getFileUploadEntity(FileUploadType fileUploadtype, String fromSource, String fromSourceDataId) ;
 }
