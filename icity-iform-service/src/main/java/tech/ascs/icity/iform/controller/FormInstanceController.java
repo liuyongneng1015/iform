@@ -52,13 +52,14 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	private UploadService uploadService;
 
 	@Override
-	public List<FormInstance> list(@PathVariable(name="listId") String listId, @RequestParam Map<String, Object> parameters) {
+	public List<FormDataSaveInstance> list(@PathVariable(name="listId") String listId, @RequestParam Map<String, Object> parameters) {
 		ListModelEntity listModel = listModelService.find(listId);
 		if (listModel == null) {
 			throw new IFormException(404, "列表模型【" + listId + "】不存在");
 		}
 
-		return formInstanceService.listFormInstance(listModel, parameters);
+		Page<FormDataSaveInstance> page = formInstanceService.pageFormInstance(listModel,1,Integer.MAX_VALUE, parameters);
+		return page.getResults();
 	}
 
 	@Override

@@ -157,9 +157,6 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				}
 			}
 
-			//删除item
-			deleteItems(new ArrayList<>(oldMapItmes.values()));
-
 			//下拉数据字典联动控件
 			setParentItem(itemModelEntities);
 
@@ -170,6 +167,10 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 			//设计表单校验
 			setFormSubmitChecks(old, entity);
+
+			//删除item
+			deleteItems(oldDataModelEntity, new ArrayList<>(oldMapItmes.values()));
+
 
 			//设置关联关系
 			//setReferenceItems(deletedItemIds, idColumnModelEntity, allItems);
@@ -451,13 +452,19 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		String oldColumnName = saveItemModelEntity.getColumnModel() == null ? null : saveItemModelEntity.getColumnModel().getColumnName();
 		String newColunmName = paramerItemModelEntity.getColumnModel() == null ? null : paramerItemModelEntity.getColumnModel().getColumnName();
 		ReferenceType oldReferenceType = null;
-		 if(saveItemModelEntity  instanceof ReferenceItemModelEntity){
+		String oldReferenceFormId = null;
+		if(saveItemModelEntity  instanceof ReferenceItemModelEntity){
 			 oldReferenceType = ((ReferenceItemModelEntity)saveItemModelEntity).getReferenceType();
-		};
+			oldReferenceFormId = ((ReferenceItemModelEntity) saveItemModelEntity).getReferenceFormId();
+		}
+
+
 		ReferenceType newReferenceType = null;
+		String newReferenceFormId = null;
 		if(paramerItemModelEntity  instanceof ReferenceItemModelEntity){
 			newReferenceType = ((ReferenceItemModelEntity)paramerItemModelEntity).getReferenceType();
-		};
+			newReferenceFormId = ((ReferenceItemModelEntity) paramerItemModelEntity).getReferenceFormId();
+		}
 
 		BeanUtils.copyProperties(paramerItemModelEntity, saveItemModelEntity, new String[]{"referencesItemModels","parentItem", "searchItems","sortItems","permissions", "referenceList","items","formModel","columnModel","activities","options"});
 
@@ -473,10 +480,10 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			((ReferenceItemModelEntity)saveItemModelEntity).setItemTableColunmName(((ReferenceItemModelEntity) paramerItemModelEntity).getItemTableColunmName());
 
 			//删除字段删除索引
-			if(oldColumnName != null && !oldColumnName.equals(newColunmName)) {
-				columnModelService.deleteTableColumn(saveItemModelEntity.getColumnModel().getDataModel().getTableName(), saveItemModelEntity.getColumnModel().getColumnName());
+			if(oldColumnName != null && (!StringUtils.equalsIgnoreCase(oldColumnName, newColunmName) || !StringUtils.equalsIgnoreCase(newReferenceFormId, oldReferenceFormId))) {
+				columnModelService.deleteTableColumn(saveItemModelEntity.getColumnModel().getDataModel().getTableName(), oldColumnName);
 			}else if(oldColumnName != null && oldColumnName.equals(newColunmName) && oldReferenceType != newReferenceType){
-				columnModelService.deleteTableColumnIndex(saveItemModelEntity.getColumnModel().getDataModel().getTableName(), saveItemModelEntity.getColumnModel().getColumnName());
+				columnModelService.deleteTableColumnIndex(saveItemModelEntity.getColumnModel().getDataModel().getTableName(), oldColumnName);
 			}
 		}
 
@@ -609,13 +616,18 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 
 	//删除item
-	private void deleteItems(List<ItemModelEntity> deleteItems){
+	private void deleteItems(DataModelEntity dataModelEntity, List<ItemModelEntity> deleteItems){
 		if (deleteItems == null || deleteItems.size() < 1) {
 			return;
 		}
 		List<ItemModelEntity> itemModelEntityList = deleteItems;
+		List<String> manyTomanyFormIdList = new ArrayList<>();
 		for(int i = 0 ; i < itemModelEntityList.size() ; i++){
 			ItemModelEntity itemModelEntity = itemModelEntityList.get(i);
+			if(itemModelEntity instanceof ReferenceItemModelEntity && ((ReferenceItemModelEntity) itemModelEntity).getReferenceType() == ReferenceType.ManyToMany
+				&& itemModelEntity.getType() == ItemType.ReferenceList){
+				manyTomanyFormIdList.add(((ReferenceItemModelEntity) itemModelEntity).getReferenceFormId());
+			}
 			if(itemModelEntity instanceof RowItemModelEntity){
 				List<ItemModelEntity> list = ((RowItemModelEntity) itemModelEntity).getItems();
 				for(int j = 0 ; j < list.size(); j++ ) {
@@ -645,21 +657,34 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			deleteItem(itemModelEntityList, itemModelEntity);
 			i--;
 		}
+		deleteManyToManyReference(dataModelEntity, manyTomanyFormIdList);
+	}
+
+	//删除多对多关联
+	private void deleteManyToManyReference(DataModelEntity dataModelEntity, List<String> manyTomanyFormIdList){
+		if(manyTomanyFormIdList == null || manyTomanyFormIdList.size() < 1){
+			return;
+		}
+		List<String> deleteReferenceIds = new ArrayList<>();
+		for(String str : manyTomanyFormIdList){
+			FormModelEntity formModelEntity = formModelManager.get(str);
+			if(formModelEntity != null && formModelEntity.getDataModels() != null && formModelEntity.getDataModels().size() > 0){
+				deleteReferenceIds.add(columnModelService.saveColumnModelEntity(formModelEntity.getDataModels().get(0), "id").getId());
+			}
+		}
+		if(deleteReferenceIds == null || deleteReferenceIds.size() < 1){
+			return;
+		}
+		ColumnModelEntity columnModelEntity = columnModelService.saveColumnModelEntity(dataModelEntity, "id");
+		for(int i = 0; i < columnModelEntity.getColumnReferences().size(); i++){
+			columnModelService.deleteOldColumnReferenceEntity(columnModelEntity, deleteReferenceIds, columnModelEntity.getColumnReferences());
+		}
 	}
 
 	private void deleteItem(List<ItemModelEntity> list,  ItemModelEntity itemModelEntity){
 		deleteItemOtherReferenceEntity(itemModelEntity);
 		if(itemModelEntity instanceof ReferenceItemModelEntity && ((ReferenceItemModelEntity) itemModelEntity).getSelectMode() == SelectMode.Multiple){
 			columnModelService.deleteTable("if_"+((ReferenceItemModelEntity) itemModelEntity).getItemTableColunmName()+"_list");
-		}
-		if(itemModelEntity.getColumnModel() != null) {
-			itemModelEntity.setColumnModel(null);
-		}
-		itemModelEntity.setFormModel(null);
-		if(itemModelEntity instanceof SelectItemModelEntity){
-			((SelectItemModelEntity) itemModelEntity).setParentItem(null);
-			((SelectItemModelEntity) itemModelEntity).setItems(null);
-			itemManager.save(itemModelEntity);
 		}
 		list.remove(itemModelEntity);
 		itemManager.delete(itemModelEntity);

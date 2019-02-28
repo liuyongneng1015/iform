@@ -583,6 +583,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					|| referenceItemModelEntity.getReferenceType() == ReferenceType.OneToOne)) {
 				ReferenceItemModelEntity referenceItemModelEntity1 = (ReferenceItemModelEntity)itemModelManager.get(referenceItemModelEntity.getReferenceItemId());
 				key = referenceItemModelEntity1.getColumnModel().getColumnName()+"_list";
+				flag = true;
 			}else if(referenceItemModelEntity.getSelectMode() == SelectMode.Multiple){
 				key = dataModelEntity.getTableName()+"_list";
 			}
@@ -721,7 +722,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
             	continue;
 			}
             //唯一校验
-            if(itemModel.getUniquene() != null && itemModel.getUniquene() &&itemModel.getColumnModel() != null){
+            if(itemModel.getUniquene() != null && itemModel.getUniquene() &&itemModel.getColumnModel() != null && itemModel.getColumnModel().getDataModel() != null){
                List<String> list = listByTableName(itemModel.getType(), itemModel.getColumnModel().getDataModel().getTableName(), "f"+itemModel.getColumnModel().getColumnName(), itemInstance.getValue());
 
                for(String str : list){
@@ -1151,17 +1152,23 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			setFormDataItemInstance(formModel, itemModel, referenceFlag, entity, referenceDataModelList,
 					subFormItems, items, formInstance);
 		}
+
+		//展示字段
 		List<String> displayIds = listModelEntity.getDisplayItems().parallelStream().map(ItemModelEntity::getId).collect(Collectors.toList());
 		List<String> copyDisplayIds = new ArrayList<>();
 		for(String string : displayIds){
 			copyDisplayIds.add(string);
 		}
+		//所以的字段
 		List<String> itemIds = items.parallelStream().map(ItemInstance::getId).collect(Collectors.toList());
 		List<String> copyItemIds = new ArrayList<>();
 		for(String string : itemIds){
 			copyItemIds.add(string);
 		}
+		//不展示的字段
 		itemIds.removeAll(displayIds);
+
+		//排序
 		List<String> displayItemsSortList = new ArrayList<>();
 		if(StringUtils.hasText(listModelEntity.getDisplayItemsSort())){
 			displayItemsSortList = Arrays.asList(listModelEntity.getDisplayItemsSort().split(","));
@@ -1359,7 +1366,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 
 		ColumnModelEntity columnModelEntity = fromItem.getColumnModel();
-		if(fromItem.getReferenceType() != ReferenceType.ManyToMany && columnModelEntity == null){
+		if(fromItem.getReferenceType() != ReferenceType.ManyToMany && columnModelEntity == null && fromItem.getSelectMode() != SelectMode.Inverse){
 			return;
 		}
 
@@ -1372,9 +1379,20 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		String itemModelIds = toModelEntity.getItemModelIds();
 		List<String> stringList = StringUtils.hasText(itemModelIds) ? Arrays.asList(itemModelIds.split(",")) : new ArrayList<>();
 		//关联字段
-		String referenceColumnName = fromItem.getColumnModel() == null ? null : fromItem.getColumnModel().getColumnName();
+		String key = "";
+		if (fromItem.getSelectMode() == SelectMode.Single && (fromItem.getReferenceType() == ReferenceType.ManyToOne
+				|| fromItem.getReferenceType() == ReferenceType.OneToOne)) {
+			key = fromItem.getColumnModel().getColumnName();
+		}else if (fromItem.getSelectMode() == SelectMode.Inverse && (fromItem.getReferenceType() == ReferenceType.ManyToOne
+				|| fromItem.getReferenceType() == ReferenceType.OneToOne)) {
+			ReferenceItemModelEntity referenceItemModelEntity1 = (ReferenceItemModelEntity)itemModelManager.get(fromItem.getReferenceItemId());
+			key = referenceItemModelEntity1.getColumnModel().getColumnName()+"_list";
+		}else if(fromItem.getSelectMode() == SelectMode.Multiple){
+			key = toModelEntity.getDataModels().get(0).getTableName()+"_list";
+		}
+
 		if(fromItem.getReferenceType() == ReferenceType.ManyToOne || fromItem.getReferenceType() == ReferenceType.OneToOne){
-			Map<String, Object> listMap = (Map<String, Object>)entity.get(referenceColumnName);
+			Map<String, Object> listMap = (Map<String, Object>)entity.get(key);
 			if( listMap == null || listMap.size() == 0) {
 				return;
 			}
@@ -1423,7 +1441,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}
 			referenceDataModelList.add(dataModelInstance);
 		}else if(fromItem.getReferenceType() == ReferenceType.ManyToMany || fromItem.getReferenceType() == ReferenceType.OneToMany){
-			String key = toModelEntity.getDataModels().get(0).getTableName()+"_list";
 			if(fromItem.getReferenceType() == ReferenceType.OneToMany){
 				key = getRefenrenceItem(fromItem).getColumnModel().getColumnName();
 			}

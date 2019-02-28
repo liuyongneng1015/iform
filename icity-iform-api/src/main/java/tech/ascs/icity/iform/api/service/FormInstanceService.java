@@ -31,7 +31,7 @@ public interface FormInstanceService {
 		@ApiImplicitParam(paramType = "path", name = "listId", value = "列表模型ID", required = true, dataType = "String"),
 		@ApiImplicitParam(paramType = "query", name = "parameters", value = "查询参数", required = false)
 	})
-	List<FormInstance> list(@PathVariable(name="listId") String listId, @RequestParam Map<String, Object> parameters);
+	List<FormDataSaveInstance> list(@PathVariable(name="listId") String listId, @RequestParam Map<String, Object> parameters);
 
 	/**
 	 * 获取表单实例列表

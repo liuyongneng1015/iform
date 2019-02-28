@@ -722,6 +722,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				}
 				String key = "id";
 				if(((ReferenceItemModelEntity) itemModelEntity).getSelectMode() != SelectMode.Multiple){
+					if(itemModelEntity.getColumnModel() == null){
+						continue;
+					}
 					key = itemModelEntity.getColumnModel().getColumnName();
 				}
 				ColumnModel referenceColumnModel = null;
@@ -900,9 +903,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		for(int i = 0 ; i <  oldDataModelEntity.getColumns().size() ; i++ ){
 			ColumnModelEntity columnModelEntity = oldDataModelEntity.getColumns().get(i);
 			if(!newColumnIds.contains(columnModelEntity.getId())){
-				if("id".equals(columnModelEntity.getColumnName())){
-					continue;
-				}
 				List<ColumnReferenceEntity> referenceEntityList = columnModelEntity.getColumnReferences();
 				for(int m = 0 ; m < referenceEntityList.size(); m++ ){
 					ColumnReferenceEntity referenceEntity = referenceEntityList.get(m);
@@ -910,6 +910,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 					for(int j = 0 ; j < toReferenceEntityList.size(); j++){
 						ColumnReferenceEntity columnReferenceEntity = toReferenceEntityList.get(j);
 						if(columnReferenceEntity.getToColumn().getId().equals(columnModelEntity.getId())){
+							if(columnReferenceEntity.getReferenceType() == ReferenceType.ManyToMany){
+								columnModelService.deleteTable("if_"+columnReferenceEntity.getReferenceMiddleTableName()+"_list");
+							}
 							toReferenceEntityList.remove(columnReferenceEntity);
 							j--;
 							columnModelService.deleteColumnReferenceEntity(columnReferenceEntity);
@@ -922,7 +925,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				}
 				//columnModelService.save(columnModelEntity);
 
-				if(needMasterId && "master_id".equals(columnModelEntity.getColumnName())){
+				if((needMasterId && "master_id".equals(columnModelEntity.getColumnName())) || "id".equals(columnModelEntity.getColumnName())){
 					continue;
 				}
 
@@ -986,7 +989,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		List<String> stringList = new ArrayList<>();
 		for(int j = 0 ; j < list.size() ; j++){
 			ColumnReferenceEntity columnReferenceEntity = list.get(j);
-			if(!newColumns.contains(columnReferenceEntity.getFromColumn()) && columnReferenceEntity.getFromColumn().getDataModel().getId().equals(oldDataModelEntity.getId())){
+			if(!newColumns.contains(columnReferenceEntity.getFromColumn().getColumnName()) && columnReferenceEntity.getFromColumn().getDataModel().getId().equals(oldDataModelEntity.getId())){
 				//删除自己字段
 				deleteIds.add(columnReferenceEntity.getId());
 				stringList.add(columnReferenceEntity.getToColumn().getId()+"_"+columnReferenceEntity.getFromColumn().getId());

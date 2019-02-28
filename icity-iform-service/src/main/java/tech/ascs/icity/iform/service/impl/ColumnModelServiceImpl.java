@@ -104,6 +104,9 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
         for (int i = 0; i < oldReferenceEntityList.size(); i++) {
             ColumnReferenceEntity referenceEntity = oldReferenceEntityList.get(i);
             if (deleteOldToColumnIds.contains(referenceEntity.getToColumn().getId())) {
+                if(referenceEntity.getReferenceType() == ReferenceType.ManyToMany){
+                    deleteTable("if_"+referenceEntity.getReferenceMiddleTableName()+"_list");
+                }
                 oldReferenceEntityList.remove(referenceEntity);
                 i--;
                 columnReferenceManager.delete(referenceEntity);
@@ -195,11 +198,11 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
 
     @Override
     public void deleteTableColumn(String tableName, String columnName) {
-        deleteTableColumnIndex(tableName, columnName);
         String columnSql = "select COLUMN_NAME from information_schema.COLUMNS where table_name = 'if_" + tableName + "'";
         try {
             List<String> colummList = jdbcTemplate.queryForList(columnSql, String.class);
             if (colummList.contains(columnName)) {
+                deleteTableColumnIndex(tableName, columnName);
                 try {
                     String deleteColumnSql = "ALTER TABLE if_" + tableName + " DROP " + columnName;
                     jdbcTemplate.execute(deleteColumnSql);
@@ -208,6 +211,7 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
                 }
             }
             if (colummList.contains("f" + columnName)) {
+                deleteTableColumnIndex(tableName, "f" +columnName);
                 try {
                     String deleteColumnSql = "ALTER TABLE if_" + tableName + " DROP f" + columnName;
                     jdbcTemplate.execute(deleteColumnSql);
