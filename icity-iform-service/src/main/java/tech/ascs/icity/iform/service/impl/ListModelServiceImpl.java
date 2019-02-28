@@ -498,15 +498,12 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 	}
 
 	@Override
-	public void deleteFormBtnPermission(String formId) {
-		if (!StringUtils.isEmpty(formId)) {
-			List<String> listIds = query().filterNotEqual("masterForm.id", formId).list().stream().map(item->item.getId()).collect(Collectors.toList());
-			if (listIds!=null && listIds.size()>0) {
-				ListFormIds listFormIds = new ListFormIds();
-				listFormIds.setListIds(Arrays.asList(formId));
-				listFormIds.setListIds(listIds);
-				resourceService.deleteListFormPermissions(listFormIds);
-			}
+	public void deleteFormBtnPermission(String formId, List<String> listIds) {
+		if (!StringUtils.isEmpty(formId) && listIds!=null && listIds.size()>0) {
+			ListFormIds listFormIds = new ListFormIds();
+			listFormIds.setListIds(Arrays.asList(formId));
+			listFormIds.setListIds(listIds);
+			resourceService.deleteListFormPermissions(listFormIds);
 		}
 	}
 
