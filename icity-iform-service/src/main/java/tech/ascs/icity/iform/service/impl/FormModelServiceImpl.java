@@ -685,18 +685,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		deleteItemOtherReferenceEntity(itemModelEntity);
 		if(itemModelEntity instanceof ReferenceItemModelEntity && ((ReferenceItemModelEntity) itemModelEntity).getSelectMode() == SelectMode.Multiple){
 			columnModelService.deleteTable("if_"+((ReferenceItemModelEntity) itemModelEntity).getItemTableColunmName()+"_list");
-			((ReferenceItemModelEntity) itemModelEntity).setReferenceItemId(null);
-			((ReferenceItemModelEntity) itemModelEntity).setReferenceFormId(null);
 		}
-		if(itemModelEntity.getColumnModel() != null) {
-			itemModelEntity.setColumnModel(null);
-		}
-		itemModelEntity.setFormModel(null);
-		if(itemModelEntity instanceof SelectItemModelEntity){
-			((SelectItemModelEntity) itemModelEntity).setParentItem(null);
-			((SelectItemModelEntity) itemModelEntity).setItems(null);
-		}
-		itemManager.save(itemModelEntity);
 		list.remove(itemModelEntity);
 		itemManager.delete(itemModelEntity);
 	}
