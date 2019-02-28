@@ -230,25 +230,29 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	}
 
 	@Override
-	public FileUploadModel resetQrCode(@PathVariable(name="formId", required = true) String formId, @PathVariable(name="id", required = true) String id) {
+	public List<FileUploadModel> resetQrCode(@PathVariable(name="formId", required = true) String formId, @PathVariable(name="id", required = true) String id) {
 		FormModelEntity formModel = formModelService.find(formId);
 		if (formModel == null) {
 			throw new IFormException(404, "表单模型【" + formId + "】不存在");
 		}
-		FileUploadEntity fileUploadEntity = uploadService.getFileUploadEntity(FileUploadType.FormModel, formId, id);
+		List<FileUploadEntity> fileUploadEntityList = uploadService.getFileUploadEntity(FileUploadType.FormModel, formId, id);
+		List<FileUploadModel> fileUploadModels = new ArrayList<>();
 		try {
-			if(fileUploadEntity == null){
-				return createDataQrCode(formModel, id);
-			}else {
-				InputStream inputStream = getInputStream("www.baidu.com", "航天智慧");
-				uploadService.resetUploadOneFileByInputstream(fileUploadEntity.getFileKey(), inputStream, "image/png");
-				FileUploadModel fileUploadModel = new FileUploadModel();
-				BeanUtils.copyProperties(fileUploadEntity, fileUploadModel);
-				return fileUploadModel;
+			for(FileUploadEntity fileUploadEntity : fileUploadEntityList) {
+				if (fileUploadEntity == null) {
+					fileUploadModels.add(createDataQrCode(formModel, id));
+				} else {
+					InputStream inputStream = getInputStream("www.baidu.com", "航天智慧");
+					uploadService.resetUploadOneFileByInputstream(fileUploadEntity.getFileKey(), inputStream, "image/png");
+					FileUploadModel fileUploadModel = new FileUploadModel();
+					BeanUtils.copyProperties(fileUploadEntity, fileUploadModel);
+					fileUploadModels.add(fileUploadModel);
+				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new IFormException(404, "表单模型【" + formId + "】,生成【" + id + "】二维码失败");
 		}
+		return fileUploadModels;
 	}
 }

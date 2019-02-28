@@ -101,14 +101,14 @@ public class UploadServiceImpl extends DefaultJPAService<FileUploadEntity> imple
 	}
 
 	@Override
-	public FileUploadEntity getFileUploadEntity(FileUploadType fileUploadtype, String fromSource, String fromSourceDataId) {
-		FileUploadEntity fileUploadEntity = null;
+	public List<FileUploadEntity> getFileUploadEntity(FileUploadType fileUploadtype, String fromSource, String fromSourceDataId) {
+		List<FileUploadEntity> fileUploadEntityList = new ArrayList<>();
 		if(fileUploadtype == FileUploadType.ItemModel) {
-			fileUploadEntity = fileUploadEntityManager.query().filterEqual("uploadType", fileUploadtype).filterEqual("fromSource", fromSource).first();
+			fileUploadEntityList = fileUploadEntityManager.query().filterEqual("uploadType", fileUploadtype).filterEqual("fromSource", fromSource).list();
 		}else{
-			fileUploadEntity = fileUploadEntityManager.query().filterEqual("uploadType", fileUploadtype).filterEqual("fromSource", fromSource).filterEqual("fromSourceDataId", fromSourceDataId).first();
+			fileUploadEntityList = fileUploadEntityManager.query().filterEqual("uploadType", fileUploadtype).filterEqual("fromSource", fromSource).filterEqual("fromSourceDataId", fromSourceDataId).list();
 		}
-		return fileUploadEntity;
+		return fileUploadEntityList;
 	}
 
 	/**

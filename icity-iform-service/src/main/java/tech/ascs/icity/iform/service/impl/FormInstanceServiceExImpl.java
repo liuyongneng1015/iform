@@ -1194,7 +1194,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 		for (ReferenceDataInstance referenceDataInstance : referenceDataModelList) {
 			if(copyDisplayIds.contains(referenceDataInstance.getId())){
+				ItemModelEntity itemModelEntity = itemModelManager.get(referenceDataInstance.getId());
 				ItemInstance itemInstance = new ItemInstance();
+				itemInstance.setSystemItemType(itemModelEntity == null ? SystemItemType.ReferenceList : itemModelEntity.getSystemItemType());
+				itemInstance.setType(itemModelEntity == null ? ItemType.ReferenceList : itemModelEntity.getType());
 				itemInstance.setId(referenceDataInstance.getId());
 				itemInstance.setValue(referenceDataInstance.getValue());
 				itemInstance.setDisplayValue(referenceDataInstance.getDisplayValue());
@@ -1205,10 +1208,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		formInstance.getItems().addAll(newDisplayItems);
 
 
-		FileUploadEntity fileUploadEntity = uploadService.getFileUploadEntity(FileUploadType.FormModel, formInstance.getFormId(), String.valueOf(idVlaue));
-		if(fileUploadEntity != null) {
+		//二维码只有一张图
+		List<FileUploadEntity> fileUploadEntityList = uploadService.getFileUploadEntity(FileUploadType.FormModel, formInstance.getFormId(), String.valueOf(idVlaue));
+		if(fileUploadEntityList != null && fileUploadEntityList.size() > 0) {
 			FileUploadModel fileUploadModel = new FileUploadModel();
-			BeanUtils.copyProperties(fileUploadEntity, fileUploadModel);
+			BeanUtils.copyProperties(fileUploadEntityList.get(0), fileUploadModel);
 			formInstance.setFileUploadModel(fileUploadModel);
 		}
 		return formInstance;
