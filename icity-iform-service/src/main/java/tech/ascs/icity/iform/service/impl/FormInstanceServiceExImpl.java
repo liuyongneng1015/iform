@@ -1404,22 +1404,41 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}
 			dataModelInstance.setId(itemModel.getId());
 			FormInstance getFormInstance = getFormInstance(toModelEntity, String.valueOf(listMap.get("id")));
-			Map<String, String> stringMap = new HashMap<>();
-			for(ItemInstance itemInstance : getFormInstance.getItems()){
-				String value = getValue(stringList, itemInstance);
-				if(StringUtils.hasText(value)){
-					stringMap.put(itemInstance.getId(), value);
+			if (stringList.size()==0) { //数据标识为空，此时又是关联表单
+				List<String> valueList = new ArrayList<>();
+				for (ItemInstance itemInstance : getFormInstance.getItems()) {
+					if (itemInstance.getDisplayValue()!=null && !SystemItemType.ID.equals(itemInstance.getSystemItemType())) {
+						if(itemInstance.getType() == ItemType.Media || itemInstance.getType() == ItemType.Attachment){
+							if (itemInstance.getDisplayValue() instanceof List) {
+								List<FileItemModel> fileItemModels = (List<FileItemModel>) itemInstance.getDisplayValue();
+								valueList.addAll(fileItemModels.parallelStream().map(FileItemModel::getName).collect(Collectors.toList()));
+							}
+						} else if (itemInstance.getDisplayValue() instanceof List){
+							valueList.addAll((List<String>)itemInstance.getDisplayValue());
+						} else {
+							valueList.add(itemInstance.getDisplayValue().toString());
+						}
+					}
 				}
-			}
-			List<String> arrayList = new ArrayList<>();
-			for(String string : stringList){
-				if(StringUtils.hasText(stringMap.get(string))){
-					arrayList.add(stringMap.get(string));
+				dataModelInstance.setValue(listMap.get("id"));
+				dataModelInstance.setDisplayValue(String.join(",", valueList));
+			} else {
+				Map<String, String> stringMap = new HashMap<>();
+				for (ItemInstance itemInstance : getFormInstance.getItems()) {
+					String value = getValue(stringList, itemInstance);
+					if (StringUtils.hasText(value)) {
+						stringMap.put(itemInstance.getId(), value);
+					}
 				}
+				List<String> arrayList = new ArrayList<>();
+				for (String string : stringList) {
+					if (StringUtils.hasText(stringMap.get(string))) {
+						arrayList.add(stringMap.get(string));
+					}
+				}
+				dataModelInstance.setValue(listMap.get("id"));
+				dataModelInstance.setDisplayValue(String.join(",", arrayList));
 			}
-
-			dataModelInstance.setValue(listMap.get("id"));
-			dataModelInstance.setDisplayValue(String.join(",", arrayList));
 			referenceDataModelList.add(dataModelInstance);
 		}else if(fromItem.getReferenceType() == ReferenceType.ManyToMany || fromItem.getReferenceType() == ReferenceType.OneToMany){
 			if(fromItem.getReferenceType() == ReferenceType.OneToMany){

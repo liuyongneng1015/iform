@@ -1097,6 +1097,18 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		if(formModelEntity == null){
 			throw new IFormException("未找到【"+id+"】对应的表单建模");
 		}
+
+		List<ListModelEntity> listModelEntities = listModelManager.query().filterEqual("masterForm.id", id).list();
+		if (listModelEntities!=null && listModelEntities.size()>0) {
+			throw new IFormException("该表单被列表模型关联了，不能删除该表单");
+		}
+//		for(int i = 0 ; i < listModelEntities.size() ; i ++){
+//			ListModelEntity listModelEntity = listModelEntities.get(i);
+//			listModelEntity.setMasterForm(null);
+//			listModelEntity.setSlaverForms(null);
+//			listModelManager.save(listModelEntity);
+//		}
+
 		List<ItemModelEntity> itemModelEntities = formModelEntity.getItems();
 		if(itemModelEntities != null && itemModelEntities.size() > 0){
 			for(int i = 0 ; i < itemModelEntities.size(); i++) {
@@ -1104,13 +1116,6 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				deleteItemOtherReferenceEntity(itemModelEntity);
 				itemManager.save(itemModelEntity);
 			}
-		}
-		List<ListModelEntity> listModelEntities = listModelManager.query().filterEqual("masterForm.id", id).list();
-		for(int i = 0 ; i < listModelEntities.size() ; i ++){
-			ListModelEntity listModelEntity = listModelEntities.get(i);
-			listModelEntity.setMasterForm(null);
-			listModelEntity.setSlaverForms(null);
-			listModelManager.save(listModelEntity);
 		}
 		formModelManager.delete(formModelEntity);
 		// 去admin服务清空该表单，以及关联了该表单的所有列表的功能按钮权限
