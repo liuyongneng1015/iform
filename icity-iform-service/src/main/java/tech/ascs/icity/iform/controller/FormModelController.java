@@ -722,6 +722,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				}
 				String key = "id";
 				if(((ReferenceItemModelEntity) itemModelEntity).getSelectMode() != SelectMode.Multiple){
+					if(itemModelEntity.getColumnModel() == null){
+						continue;
+					}
 					key = itemModelEntity.getColumnModel().getColumnName();
 				}
 				ColumnModel referenceColumnModel = null;
