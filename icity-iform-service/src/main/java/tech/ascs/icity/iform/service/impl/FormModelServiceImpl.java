@@ -1088,6 +1088,8 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			listModelManager.save(listModelEntity);
 		}
 		formModelManager.delete(formModelEntity);
+		// 去admin服务清空该表单，以及关联了该表单的所有列表的功能按钮权限
+		listModelService.deleteFormBtnPermission(id, listModelEntities.stream().map(item->item.getId()).collect(Collectors.toList()));
 	}
 
 	@Override

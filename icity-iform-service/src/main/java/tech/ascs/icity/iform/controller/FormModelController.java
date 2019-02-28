@@ -195,7 +195,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
             }
             concurrentmap.put(key, System.currentTimeMillis());
             formModelService.deleteFormModelEntityById(id);
-			listModelService.deleteFormBtnPermission(id);
         }finally {
             if(concurrentmap.containsKey(key)){
                 concurrentmap.remove(key);

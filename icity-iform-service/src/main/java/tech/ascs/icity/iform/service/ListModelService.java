@@ -68,7 +68,7 @@ public interface ListModelService extends JPAService<ListModelEntity> {
     void deleteListBtnPermission(String listId);
 
     // 调用这个方法删除的表单的按钮功能的权限
-    void deleteFormBtnPermission(String formId);
+    void deleteFormBtnPermission(String formId, List<String> listIds);
 
     //通过控件id集合查询列表模型
     List<ListModelEntity> findListModelsByItemModelId(String itemModelId);
