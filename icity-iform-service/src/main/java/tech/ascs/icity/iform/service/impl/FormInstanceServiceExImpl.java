@@ -1208,10 +1208,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		formInstance.getItems().addAll(newDisplayItems);
 
 
-		FileUploadEntity fileUploadEntity = uploadService.getFileUploadEntity(FileUploadType.FormModel, formInstance.getFormId(), String.valueOf(idVlaue));
-		if(fileUploadEntity != null) {
+		//二维码只有一张图
+		List<FileUploadEntity> fileUploadEntityList = uploadService.getFileUploadEntity(FileUploadType.FormModel, formInstance.getFormId(), String.valueOf(idVlaue));
+		if(fileUploadEntityList != null && fileUploadEntityList.size() > 0) {
 			FileUploadModel fileUploadModel = new FileUploadModel();
-			BeanUtils.copyProperties(fileUploadEntity, fileUploadModel);
+			BeanUtils.copyProperties(fileUploadEntityList.get(0), fileUploadModel);
 			formInstance.setFileUploadModel(fileUploadModel);
 		}
 		return formInstance;
