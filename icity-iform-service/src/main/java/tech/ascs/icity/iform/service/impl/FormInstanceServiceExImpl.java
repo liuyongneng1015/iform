@@ -926,26 +926,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				throw  new IFormException(itemModel.getName()+"为必填");
 			}
 		}
-}
-
-	@Deprecated
-	private void ss(FormModelEntity formModel, List<ItemInstance> itemInstances){
-		for (ItemInstance itemInstance : itemInstances) {
-			ItemModelEntity itemModel = getItemModel(formModel, itemInstance.getId());
-			/*if (itemModel.getColumnModel().getColumnName().equalsIgnoreCase("id")) {
-				if (!instanceId.equals(itemInstance.getValue())) {
-					throw new IFormException("表单实例ID不一致");
-				}
-				continue;
-			}*/
-			Object value;
-			if (itemModel.getSystemItemType() == SystemItemType.CreateDate) {
-				value = new Date((Long) itemInstance.getValue());
-			} else {
-				value = itemInstance.getValue();
-			}
-			//data.put(itemModel.getColumnModel().getColumnName(), value);
-		}
 	}
 
 	@SuppressWarnings("unchecked")
