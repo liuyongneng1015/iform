@@ -1386,7 +1386,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}else if (fromItem.getSelectMode() == SelectMode.Inverse && (fromItem.getReferenceType() == ReferenceType.ManyToOne
 				|| fromItem.getReferenceType() == ReferenceType.OneToOne)) {
 			ReferenceItemModelEntity referenceItemModelEntity1 = (ReferenceItemModelEntity)itemModelManager.get(fromItem.getReferenceItemId());
-			key = referenceItemModelEntity1.getColumnModel().getColumnName()+"_list";
+			if (referenceItemModelEntity1.getColumnModel()!=null) {
+				key = referenceItemModelEntity1.getColumnModel().getColumnName() + "_list";
+			}
 		}else if(fromItem.getSelectMode() == SelectMode.Multiple){
 			key = toModelEntity.getDataModels().get(0).getTableName()+"_list";
 		}
