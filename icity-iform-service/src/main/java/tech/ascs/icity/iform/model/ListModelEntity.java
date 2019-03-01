@@ -6,6 +6,7 @@ import java.util.List;
 
 import javax.persistence.*;
 
+import tech.ascs.icity.iform.api.model.DataPermissionsType;
 import tech.ascs.icity.jpa.dao.model.BaseEntity;
 
 /**
@@ -59,6 +60,9 @@ public class ListModelEntity extends BaseEntity implements Serializable {
 	// 展示字段排序
 	@Column(name = "display_item_sort", length = 4096)
 	private String displayItemsSort;
+
+	@Enumerated(EnumType.STRING)
+	private DataPermissionsType dataPermissions;
 
 	public String getDescription() {
 		return description;
@@ -146,5 +150,13 @@ public class ListModelEntity extends BaseEntity implements Serializable {
 
 	public void setDisplayItemsSort(String displayItemsSort) {
 		this.displayItemsSort = displayItemsSort;
+	}
+
+	public DataPermissionsType getDataPermissions() {
+		return dataPermissions;
+	}
+
+	public void setDataPermissions(DataPermissionsType dataPermissions) {
+		this.dataPermissions = dataPermissions;
 	}
 }

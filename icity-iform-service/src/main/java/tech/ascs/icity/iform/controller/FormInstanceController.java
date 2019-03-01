@@ -3,10 +3,7 @@ package tech.ascs.icity.iform.controller;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +18,7 @@ import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.*;
+import tech.ascs.icity.iform.utils.CurrentUserUtils;
 import tech.ascs.icity.iform.utils.MergedQrCodeImages;
 import tech.ascs.icity.iform.utils.MinioConfig;
 import tech.ascs.icity.iform.utils.ZXingCodeUtils;
@@ -123,6 +121,18 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 				}
 			}
 		}
+
+		if (listModel.getDataPermissions()!=null && DataPermissionsType.MySelf.equals(listModel.getDataPermissions())) {
+			FormModelEntity formModelEntity = listModel.getMasterForm();
+			Optional<ItemModelEntity> optional = formModelEntity.getItems().stream().filter(item->SystemItemType.Creator.equals(item.getSystemItemType())).findFirst();
+			if (optional.isPresent()) {
+				String userId = CurrentUserUtils.getCurrentUserId();
+				if (userId!=null) {
+					queryParameters.put(optional.get().getId(), userId);
+				}
+			}
+		}
+
 		return formInstanceService.pageFormInstance(listModel, page, pagesize, queryParameters);
 	}
 
