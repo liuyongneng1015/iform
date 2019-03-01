@@ -1456,9 +1456,13 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 
 		//设置关联属性
-		if(fromItem.getSelectMode() == SelectMode.Attribute){
+		if(fromItem.getSelectMode() == SelectMode.Attribute || fromItem.getType() == ItemType.ReferenceLabel){
 			setFormDataReferenceAttribute(fromItem, toModelEntity,  columnModelEntity, entity, referenceDataModelList);
 			return;
+		}
+
+		if(fromItem.getReferenceList() == null || fromItem.getReferenceList().getMasterForm() == null){
+			throw new IFormException("关联控件【"+fromItem.getName()+"】未找到对应的列表模型");
 		}
 
 		String itemModelIds = toModelEntity.getItemModelIds();
