@@ -237,15 +237,22 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
 	@Override
 	public void deleteTableColumnIndex(String tableName, String columnName) {
 		String indexSql = "show index from if_"+tableName;
-		List<Map<String, Object>> indexList = listBySql(indexSql);
-		for(Map<String, Object> map : indexList){
+		List<Map<String, Object>> indexList = listIndexBySql(indexSql);
+        String foreignIndexSql =" select  CONSTRAINT_NAME, COLUMN_NAME   from INFORMATION_SCHEMA.KEY_COLUMN_USAGE  where TABLE_NAME = 'if_"+tableName+"' AND REFERENCED_TABLE_NAME is not null";
+        List<Map<String, Object>> foreignIndexList = listForeginIndexBySql(foreignIndexSql);
+        for(Map<String, Object> map : foreignIndexList) {
+            if (columnName.equals(map.get("COLUMN_NAME"))) {
+                try {
+                    String deleteForeignIndexSql = "alter table if_" + tableName + " drop foreign key  " + map.get("CONSTRAINT_NAME");
+                    jdbcTemplate.execute(deleteForeignIndexSql);
+                } catch (DataAccessException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        for(Map<String, Object> map : indexList){
 			if(columnName.equals(map.get("Column_name"))){
-				try {
-					String deleteForeignIndexSql = "alter table if_"+tableName +" drop foreign key  "+map.get("Key_name") ;
-					jdbcTemplate.execute(deleteForeignIndexSql);
-				} catch (DataAccessException e) {
-					e.printStackTrace();
-				}
 				try {
 					String deleteIndexSql = "alter table  if_"+tableName +" drop index "+map.get("Key_name");
 					jdbcTemplate.execute(deleteIndexSql);
@@ -256,7 +263,7 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
 		}
 	}
 
-	private List<Map<String, Object>> listBySql(String sql) {
+	private List<Map<String, Object>> listIndexBySql(String sql) {
         List<Map<String, Object>> list = new ArrayList<>();
         try {
             list = jdbcTemplate.query(sql, new DataRowMapper());
@@ -265,6 +272,16 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
         }
         return list;
 	}
+
+    private List<Map<String, Object>> listForeginIndexBySql(String sql) {
+        List<Map<String, Object>> list = new ArrayList<>();
+        try {
+            list = jdbcTemplate.query(sql, new ForeginDataRowMapper());
+        } catch (DataAccessException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
 
 	class DataRowMapper implements RowMapper{
 
@@ -278,4 +295,17 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
 			return map;
 		}
 	}
+
+    class ForeginDataRowMapper implements RowMapper{
+
+        @Override
+        //实现mapRow方法
+        public Map<String, Object> mapRow(ResultSet rs, int num) throws SQLException {
+            //对类进行封装
+            Map<String, Object> map = new HashMap<>();
+            map.put("CONSTRAINT_NAME",rs.getString("CONSTRAINT_NAME"));
+            map.put("COLUMN_NAME", rs.getString("COLUMN_NAME"));
+            return map;
+        }
+    }
 }

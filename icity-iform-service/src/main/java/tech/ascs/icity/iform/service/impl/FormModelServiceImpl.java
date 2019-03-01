@@ -628,35 +628,12 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				&& itemModelEntity.getType() == ItemType.ReferenceList){
 				manyTomanyFormIdList.add(((ReferenceItemModelEntity) itemModelEntity).getReferenceFormId());
 			}
-			if(itemModelEntity instanceof RowItemModelEntity){
-				List<ItemModelEntity> list = ((RowItemModelEntity) itemModelEntity).getItems();
-				for(int j = 0 ; j < list.size(); j++ ) {
-					deleteItem(list, list.get(j));
-					j--;
-				}
-			}else if(itemModelEntity instanceof SubFormItemModelEntity){
-				List<SubFormRowItemModelEntity> subFormRowItems = ((SubFormItemModelEntity) itemModelEntity).getItems();
-				for(int j = 0 ; j < subFormRowItems.size(); j++ ) {
-					SubFormRowItemModelEntity itemModel = subFormRowItems.get(j);
-					List<ItemModelEntity> list = itemModel.getItems();
-					for(int n = 0; n < list.size(); n++ ) {
-						deleteItem(list, list.get(n));
-						n--;
-					}
-					subFormRowItems.remove(itemModel);
-					itemManager.delete(itemModel);
-					j--;
-				}
-			}else	if(itemModelEntity instanceof SubFormRowItemModelEntity){
-				List<ItemModelEntity> list = ((SubFormRowItemModelEntity) itemModelEntity).getItems();
-				for( int n = 0 ; n < list.size() ; n++ ) {
-					deleteItem(list, list.get(n));
-					n--;
-				}
+			deleteItemOtherReferenceEntity(itemModelEntity);
+			if(itemModelEntity instanceof ReferenceItemModelEntity && ((ReferenceItemModelEntity) itemModelEntity).getSelectMode() == SelectMode.Multiple){
+				columnModelService.deleteTable("if_"+((ReferenceItemModelEntity) itemModelEntity).getItemTableColunmName()+"_list");
 			}
-			deleteItem(itemModelEntityList, itemModelEntity);
-			i--;
 		}
+		deleteItem(itemModelEntityList);
 		deleteManyToManyReference(dataModelEntity, manyTomanyFormIdList);
 	}
 
@@ -681,13 +658,39 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		}
 	}
 
-	private void deleteItem(List<ItemModelEntity> list,  ItemModelEntity itemModelEntity){
-		deleteItemOtherReferenceEntity(itemModelEntity);
-		if(itemModelEntity instanceof ReferenceItemModelEntity && ((ReferenceItemModelEntity) itemModelEntity).getSelectMode() == SelectMode.Multiple){
-			columnModelService.deleteTable("if_"+((ReferenceItemModelEntity) itemModelEntity).getItemTableColunmName()+"_list");
+	private void deleteItem(List<ItemModelEntity> list){
+		Map<String, ItemModelEntity> modelEntityMap = new HashMap<>();
+		for(int i = 0 ; i <  list.size(); i ++){
+			ItemModelEntity itemModelEntity = list.get(i);
+			modelEntityMap.put(itemModelEntity.getId(), itemModelEntity);
 		}
-		list.remove(itemModelEntity);
-		itemManager.delete(itemModelEntity);
+		for(int i = 0 ; i <  list.size(); i ++){
+			ItemModelEntity itemModelEntity = list.get(i);
+			if(itemModelEntity instanceof ReferenceItemModelEntity ){
+				for(int j = 0 ; j < ((ReferenceItemModelEntity) itemModelEntity).getItems().size() ; j++) {
+					ReferenceItemModelEntity referenceItemModelEntity = ((ReferenceItemModelEntity) itemModelEntity).getItems().get(j);
+					ItemModelEntity itemModelEntity1 = modelEntityMap.remove(referenceItemModelEntity.getId());
+					if(itemModelEntity1 != null){
+						list.remove(itemModelEntity1);
+						//i--;
+						((ReferenceItemModelEntity) itemModelEntity).getItems().remove(j);
+						j--;
+						itemManager.delete(itemModelEntity1);
+					}else{
+						((ReferenceItemModelEntity) itemModelEntity).getItems().remove(j);
+						j--;
+						itemManager.delete(referenceItemModelEntity);
+					}
+					itemManager.save(itemModelEntity);
+				}
+			}
+			list.remove(itemModelEntity);
+			i--;
+			if(i<-1){
+				i=-1;
+			}
+			itemManager.delete(itemModelEntity);
+		}
 	}
 
 	//软删除控件关联实体
