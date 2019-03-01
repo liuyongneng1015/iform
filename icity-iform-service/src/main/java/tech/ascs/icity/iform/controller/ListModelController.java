@@ -89,6 +89,9 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		if (entity == null) {
 			throw new IFormException(404, "列表模型【" + id + "】不存在");
 		}
+		if (entity.getMasterForm()==null) {
+			return null;
+		}
 		try {
 			return toDTO(entity);
 		} catch (Exception e) {
