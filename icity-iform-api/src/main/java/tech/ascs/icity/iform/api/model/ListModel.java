@@ -68,6 +68,9 @@ public class ListModel extends NameEntity {
 	@ApiModelProperty(value = "应用id", position = 12)
 	private String applicationId;
 
+	@ApiModelProperty(value = "数据权限", position = 13)
+	private DataPermissionsType dataPermissions;
+
 	public String getDescription() {
 		return description;
 	}
@@ -154,6 +157,14 @@ public class ListModel extends NameEntity {
 
 	public void setDataModels(List<DataModel> dataModels) {
 		this.dataModels = dataModels;
+	}
+
+	public DataPermissionsType getDataPermissions() {
+		return dataPermissions;
+	}
+
+	public void setDataPermissions(DataPermissionsType dataPermissions) {
+		this.dataPermissions = dataPermissions;
 	}
 
 	@Override
