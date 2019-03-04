@@ -851,10 +851,13 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	private void setMasterFormItemInstances( FormDataSaveInstance formInstance, Map<String, Object> data, DisplayTimingType displayTimingType){
 		ItemInstance idItemInstance = null;
 		for (ItemInstance itemInstance : formInstance.getItems()) {
-            ItemModelEntity itemModel = itemModelManager.get(itemInstance.getId());
-            if(itemModel.getName().equals("id")){
+			ItemModelEntity itemModel = itemModelManager.get(itemInstance.getId());
+			if(itemModel.getName().equals("id")){
 				idItemInstance = itemInstance;
 			}
+		}
+		for (ItemInstance itemInstance : formInstance.getItems()) {
+            ItemModelEntity itemModel = itemModelManager.get(itemInstance.getId());
             if(itemModel instanceof ReferenceItemModelEntity){
             	continue;
 			}
@@ -1359,11 +1362,13 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 
 		//二维码只有一张图
-		List<FileUploadEntity> fileUploadEntityList = uploadService.getFileUploadEntity(FileUploadType.FormModel, formInstance.getFormId(), String.valueOf(idVlaue));
-		if(fileUploadEntityList != null && fileUploadEntityList.size() > 0) {
-			FileUploadModel fileUploadModel = new FileUploadModel();
-			BeanUtils.copyProperties(fileUploadEntityList.get(0), fileUploadModel);
-			formInstance.setFileUploadModel(fileUploadModel);
+		if(idVlaue != null && idVlaue != "") {
+			List<FileUploadEntity> fileUploadEntityList = uploadService.getFileUploadEntity(FileUploadType.FormModel, formInstance.getFormId(), String.valueOf(idVlaue));
+			if (fileUploadEntityList != null && fileUploadEntityList.size() > 0) {
+				FileUploadModel fileUploadModel = new FileUploadModel();
+				BeanUtils.copyProperties(fileUploadEntityList.get(0), fileUploadModel);
+				formInstance.setFileUploadModel(fileUploadModel);
+			}
 		}
 		return formInstance;
 	}
