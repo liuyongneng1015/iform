@@ -114,6 +114,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			throw new IFormException("关联表单的ID不能为空");
 		}
 		try {
+			ListModel.setDataPermissions(DataPermissionsType.AllPeople);
 			ListModelEntity entity = wrap(ListModel);
 			// 创建默认的功能按钮
 			List<ListFunction> functions = new ArrayList<>();
