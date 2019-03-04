@@ -154,7 +154,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 
     private List<String> listByTableName(ItemType itemType, String tableName, String key, Object value) {
-		StringBuffer params = new StringBuffer();
+		StringBuffer params = new StringBuffer("'");
 		if(value instanceof List){
 			List<String> valueList = new ArrayList<>();
 			if(itemType == ItemType.Media || itemType == ItemType.Attachment){
@@ -167,12 +167,17 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}
 			params.append(String.join(",", valueList));
 		}else{
-			params = new StringBuffer(String.valueOf(value));
+			params.append(String.valueOf(value));
 			if(itemType == ItemType.Media || itemType == ItemType.Attachment){
-				params = new StringBuffer(((FileUploadModel)value).getId());
+				params.append(((FileUploadModel)value).getId());
 			}
 		}
-        StringBuilder sql = new StringBuilder("SELECT id FROM if_").append(tableName).append(" where ").append(key).append("='"+params.toString()+"'");
+		params.append("'");
+		StringBuilder sql = new StringBuilder("SELECT id FROM if_").append(tableName).append(" where ").append(key).append("="+params.toString());
+		if(itemType == ItemType.InputNumber){
+			sql = new StringBuilder("SELECT id FROM if_").append(tableName).append(" where ").append(key).append("="+value);
+		}
+
         List<String> list = jdbcTemplate.queryForList(sql.toString(),String.class);
         return list;
     }
@@ -853,6 +858,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}
             //唯一校验
             if(itemModel.getUniquene() != null && itemModel.getUniquene() &&itemModel.getColumnModel() != null && itemModel.getColumnModel().getDataModel() != null){
+				List<String> stringList = new ArrayList<>();
+				stringList.add(itemModel.getId());
+            	getValue(stringList,itemInstance);
                List<String> list = listByTableName(itemModel.getType(), itemModel.getColumnModel().getDataModel().getTableName(), "f"+itemModel.getColumnModel().getColumnName(), itemInstance.getValue());
 
                for(String str : list){
