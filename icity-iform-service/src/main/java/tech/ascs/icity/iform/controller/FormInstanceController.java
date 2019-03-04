@@ -122,17 +122,6 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			}
 		}
 
-		if (listModel.getDataPermissions()!=null && DataPermissionsType.MySelf.equals(listModel.getDataPermissions())) {
-			FormModelEntity formModelEntity = listModel.getMasterForm();
-			Optional<ItemModelEntity> optional = formModelEntity.getItems().stream().filter(item->SystemItemType.Creator.equals(item.getSystemItemType())).findFirst();
-			if (optional.isPresent()) {
-				String userId = CurrentUserUtils.getCurrentUserId();
-				if (userId!=null) {
-					queryParameters.put(optional.get().getId(), userId);
-				}
-			}
-		}
-
 		return formInstanceService.pageFormInstance(listModel, page, pagesize, queryParameters);
 	}
 
