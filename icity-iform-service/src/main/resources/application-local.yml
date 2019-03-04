@@ -39,7 +39,7 @@ spring.rabbitmq:
 spring.cloud.stream.bindings.input.destination: iflow
 
 logging.level:
-  org.hibernate.SQL: debug
+  org.hibernate.SQL: WARN
   org.hibernate.type.descriptor.sql.BasicBinder: WARN
   org.springframework.cloud.stream: WARN
 
