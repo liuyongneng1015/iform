@@ -1949,7 +1949,7 @@ private DataModelInstance setDataModelInstance(FormModelEntity toModelEntity, Re
 						e.printStackTrace();
 						itemInstance.setDisplayValue(valueStr);
 					}
-				}else if(itemModel.getSystemItemType() == SystemItemType.CreateDate){
+				}else if(itemModel.getSystemItemType() == SystemItemType.CreateDate || itemModel.getType() == ItemType.DatePicker){
 					Date date = (Date) value;
 					itemInstance.setValue(date);
 					itemInstance.setDisplayValue(DateFormatUtils.format(date,((TimeItemModelEntity)itemModel).getTimeFormat() == null ? "yyyy-MM-dd HH:mm:ss" : ((TimeItemModelEntity)itemModel).getTimeFormat()));
