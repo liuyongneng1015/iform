@@ -1029,7 +1029,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		if (listModel.getDataPermissions()!=null && DataPermissionsType.MySelf.equals(listModel.getDataPermissions())) {
 			String userId = CurrentUserUtils.getCurrentUserId();
 			if (userId!=null) {
-				criteria.add(Restrictions.ge("create_by", userId));
+				criteria.add(Restrictions.eq("create_by", userId));
 			}
 		}
 	}
