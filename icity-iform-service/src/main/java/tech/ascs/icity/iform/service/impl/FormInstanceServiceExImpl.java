@@ -891,7 +891,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
                 value = o == null || StringUtils.isEmpty(o) ? null : o;
             }
 		} else if (itemModel.getType() == ItemType.InputNumber && ((NumberItemModelEntity)itemModel).getDecimalDigits() != null
-				&& ((NumberItemModelEntity)itemModel).getDecimalDigits() > 0 ) {
+				&& ((NumberItemModelEntity)itemModel).getDecimalDigits() > 0 && itemInstance.getValue() != null) {
 			value = new BigDecimal(String.valueOf(itemInstance.getValue())).divide(new BigDecimal(1.0), ((NumberItemModelEntity)itemModel).getDecimalDigits(), BigDecimal.ROUND_DOWN).doubleValue();
 		} else if (itemModel.getType() == ItemType.Media || itemModel.getType() == ItemType.Attachment) {
             Object o = itemInstance.getValue();
