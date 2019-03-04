@@ -14,11 +14,14 @@
 
 		<#list dataModel.columns as column>
             <#if column.columnName != 'id' &&  (!column.columnReferences?? || (column.columnReferences?size < 1)) >
-                <property name="${column.columnName!''}" type="${column.dataType?lower_case}">
-                    <column name="f${column.columnName!''}" default="${column.defaultValue!'null'}" not-null="${(column.notNull!false)?c}" length="<#if !column.length ?? || column.length = 0>255<#else >${column.length?c}</#if>" precision="<#if !column.precision ?? || column.precision = 0>255<#else >${column.precision}</#if>" <#if column.dataType?? && column.dataType.value ?? && (column.dataType.value ="Integer" || column.dataType.value = "Long" || column.dataType.value = "Float" || column.dataType.value = "Double")> scale="${column.scale!0}"</#if>>
-					<#if column.name??  && column.name !="" > <comment>${column.name!''}</comment> </#if>
-                    </column>
-                </property>
+                <#if column.columnName = 'master_id' >
+                <#else>
+                    <property name="${column.columnName!''}" type="${column.dataType?lower_case}">
+                        <column name="f${column.columnName!''}" default="${column.defaultValue!'null'}" not-null="${(column.notNull!false)?c}" length="<#if !column.length ?? || column.length = 0>255<#else >${column.length?c}</#if>" precision="<#if !column.precision ?? || column.precision = 0>255<#else >${column.precision}</#if>" <#if column.dataType?? && column.dataType.value ?? && (column.dataType.value ="Integer" || column.dataType.value = "Long" || column.dataType.value = "Float" || column.dataType.value = "Double")> scale="${column.scale!0}"</#if>>
+                        <#if column.name??  && column.name !="" > <comment>${column.name!''}</comment> </#if>
+                        </column>
+                    </property>
+                </#if>
             </#if>
             <#list column.columnReferences as reference>
                 <#if reference.referenceType.value = "OneToOne">
@@ -44,7 +47,7 @@
         </#list>
 
          <#list dataModel.slaverModels as slaver>
-                  <bag name="${slaver.tableName!''}_list" cascade="all"  lazy="false" fetch="select" >
+                  <bag name="${slaver.tableName!''}_list" inverse="true" lazy="false" fetch="select" >
                       <key column="master_id" />
                       <one-to-many entity-name="${slaver.tableName!''}" />
                   </bag>
