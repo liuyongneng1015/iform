@@ -444,7 +444,7 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 		}
 		if (listFunctions!=null && listFunctions.size()>0) {
 			for (ListFunction function:listFunctions) {
-				if (function.getAction()!=null && function.getLabel()!=null) {
+				if (function.getAction()!=null && function.getLabel()!=null && function.isVisible()) {
 					BtnPermission permission = new BtnPermission();
 					permission.setId(function.getId());
 					permission.setCode(function.getAction());
