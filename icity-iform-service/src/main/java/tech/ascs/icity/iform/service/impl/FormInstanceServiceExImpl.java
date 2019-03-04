@@ -43,6 +43,7 @@ import tech.ascs.icity.iform.service.FormInstanceServiceEx;
 import tech.ascs.icity.iform.service.FormModelService;
 import tech.ascs.icity.iform.service.UploadService;
 import tech.ascs.icity.iform.support.IFormSessionFactoryBuilder;
+import tech.ascs.icity.iform.utils.CurrentUserUtils;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 import tech.ascs.icity.model.Page;
@@ -121,6 +122,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	@Override
 	public Page<FormDataSaveInstance> pageFormInstance(ListModelEntity listModel, int page, int pagesize, Map<String, Object> queryParameters) {
 		Criteria criteria = generateCriteria(listModel, queryParameters);
+		addCreatorCriteria(criteria, listModel);
 		addSort(listModel, criteria);
 
 		criteria.setFirstResult((page - 1) * pagesize);
@@ -976,6 +978,15 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
             e.printStackTrace();
         }
         return sessionFactory == null ? null : sessionFactory.openSession();
+	}
+
+	public void addCreatorCriteria(Criteria criteria, ListModelEntity listModel) {
+		if (listModel.getDataPermissions()!=null && DataPermissionsType.MySelf.equals(listModel.getDataPermissions())) {
+			String userId = CurrentUserUtils.getCurrentUserId();
+			if (userId!=null) {
+				criteria.add(Restrictions.ge("create_by", userId));
+			}
+		}
 	}
 
 	@SuppressWarnings("deprecation")
