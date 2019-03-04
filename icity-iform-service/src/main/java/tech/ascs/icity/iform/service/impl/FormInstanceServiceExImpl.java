@@ -906,14 +906,19 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				List<Map<String, String>> fileList = (List<Map<String, String>>)o;
 				List<FileUploadEntity> newList = new ArrayList<>();
 				for(Map<String, String> fileUploadModelMap : fileList){
+					if(fileUploadModelMap == null || fileUploadModelMap.values() == null || fileUploadModelMap.values().size() < 1){
+						continue;
+					}
 					FileUploadEntity fileUploadEntity = getFileUploadEntity( fileUploadModelMap, fileUploadEntityMap, itemModel.getId());
 					newList.add(fileUploadEntity);
 				}
 				value = String.join(",", newList.parallelStream().map(FileUploadEntity::getId).collect(Collectors.toList()));
 			}else{
 				Map<String, String> fileUploadModel = o == null || StringUtils.isEmpty(o) ? null : (Map<String, String>)o;
-				FileUploadEntity fileUploadEntity = getFileUploadEntity( fileUploadModel, fileUploadEntityMap, itemModel.getId());
-				value = fileUploadEntity.getId();
+				if(fileUploadModel != null && fileUploadModel.values() != null && fileUploadModel.values().size() > 0){
+					FileUploadEntity fileUploadEntity = getFileUploadEntity( fileUploadModel, fileUploadEntityMap, itemModel.getId());
+					value = fileUploadEntity.getId();
+				}
 			}
 			for(String key : fileUploadEntityMap.keySet()){
 				fileUploadManager.deleteById(key);
