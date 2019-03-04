@@ -1661,7 +1661,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	private ItemModel toDTO(ItemModelEntity entity, boolean isPCItem, String tableName)  {
 		//TODO 根据模型找到对应的参数
 		ItemModel itemModel = new ItemModel();
-		BeanUtils.copyProperties(entity, itemModel, new String[]{"formModel", "columnModel", "activities", "options","searchItems","sortItems", "permissions","items","parentItem","referenceList"});
+		BeanUtils.copyProperties(entity, itemModel, new String[]{"formModel", "columnModel", "activities", "options","searchItems","sortItems", "permissions","items","parentItem","referenceList", "defaultValue"});
 
 		if(entity instanceof ReferenceItemModelEntity){
 			if(((ReferenceItemModelEntity) entity).getItemModelIds() != null) {
@@ -1847,6 +1847,10 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				subFormRows.add(itemModel1);
 			}
 			itemModel.setItems(subFormRows);
+		} else if (entity instanceof TreeSelectItemModelEntity) {
+			TreeSelectItemModelEntity treeSelectItemModelEntity = (TreeSelectItemModelEntity)entity;
+			itemModel.setDefaultValue(treeSelectItemModelEntity.getDefaultValue());
+			itemModel.setDefaultValueName(treeSelectItemModelEntity.getDefaultValueName());
 		}
 
 		if(entity.getColumnModel() != null) {
