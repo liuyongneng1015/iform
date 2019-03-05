@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import tech.ascs.icity.iform.api.model.AppListForm;
 import tech.ascs.icity.iform.api.model.ApplicationModel;
 import tech.ascs.icity.iform.api.model.ListFormBtnPermission;
 import tech.ascs.icity.iform.api.model.ListModel;
@@ -117,13 +118,23 @@ public interface ListModelService {
 	 *
 	 */
 	@ApiOperation(value = "查询列表应用模型", position = 6)
-    @ApiImplicitParams({
-        @ApiImplicitParam(paramType = "query", name = "formId", value = "表单ID", required = false, dataType = "String"),
-        @ApiImplicitParam(paramType = "query", name = "applicationId", value = "应用id", required = true, dataType = "String")
-    })
+	@ApiImplicitParams({
+			@ApiImplicitParam(paramType = "query", name = "formId", value = "表单ID", required = false, dataType = "String"),
+			@ApiImplicitParam(paramType = "query", name = "applicationId", value = "应用id", required = true, dataType = "String")
+	})
 	@GetMapping("/application")
 	List<ApplicationModel> findListApplicationModel(@RequestParam(name = "formId", required = false) String formId,
-                                                    @RequestParam(name="applicationId", required = true) String applicationId);
+													@RequestParam(name="applicationId", required = true) String applicationId);
+
+	/**
+	 * 查询应用关联的列表建模和表单建模
+	 */
+	@ApiOperation(value = "查询应用关联的列表建模和表单建模", position = 6)
+	@ApiImplicitParams({
+		@ApiImplicitParam(paramType = "query", name = "applicationId", value = "应用id", required = true, dataType = "String")
+	})
+	@GetMapping("/application-reference-list-form")
+	AppListForm findAppReferenceListForm(@RequestParam(name="applicationId", required = true) String applicationId);
 
 	/**
 	 * 查询列表的权限和列表绑定的表单的权限

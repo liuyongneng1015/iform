@@ -23,8 +23,11 @@ import tech.ascs.icity.iform.service.FormModelService;
 import tech.ascs.icity.iform.service.ItemModelService;
 import tech.ascs.icity.iform.service.ListModelService;
 import tech.ascs.icity.model.IdEntity;
+import tech.ascs.icity.model.NameEntity;
 import tech.ascs.icity.model.Page;
 import tech.ascs.icity.utils.BeanUtils;
+
+import javax.naming.Name;
 
 @Api(tags = "列表模型服务", description = "包含列表模型的增删改查等功能")
 @RestController
@@ -200,6 +203,26 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 	public List<ApplicationModel> findListApplicationModel(@RequestParam(name = "formId", required = false) String formId,
 														   @RequestParam(name="applicationId", required = true) String applicationId) {
 		return list(applicationId, listModelService.findListModelSimpleInfo(null, null, formId));
+	}
+
+	@Override
+	public AppListForm findAppReferenceListForm(@RequestParam(name="applicationId", required = true) String applicationId) {
+		AppListForm appListForm = new AppListForm();
+		if (!StringUtils.isEmpty(applicationId)) {
+			List<FormModelEntity> formModelEntities = formModelService.query().filterEqual("applicationId", applicationId).list();
+			List<NameEntity> forms = new ArrayList<>();
+			for (FormModelEntity entity:formModelEntities) {
+				forms.add(new NameEntity(entity.getId(), entity.getName()));
+			}
+			appListForm.setForms(forms);
+			List<ListModelEntity> listModelEntities = listModelService.query().filterEqual("applicationId", applicationId).list();
+			List<NameEntity> lists = new ArrayList<>();
+			for (ListModelEntity entity:listModelEntities) {
+				lists.add(new NameEntity(entity.getId(), entity.getName()));
+			}
+			appListForm.setLists(lists);
+		}
+		return appListForm;
 	}
 
 	@Override
