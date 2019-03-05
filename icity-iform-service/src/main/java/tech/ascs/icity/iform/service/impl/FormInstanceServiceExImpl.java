@@ -939,7 +939,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				}
 				value = String.join(",", newList.parallelStream().map(FileUploadEntity::getId).collect(Collectors.toList()));
 			}else{
-				Map<String, String> fileUploadModel = o == null || StringUtils.isEmpty(o) ? null : (Map<String, String>)o;
+				Map<String, String> fileUploadModel = o == null || o == "" ? null : (Map<String, String>)o;
 				if(fileUploadModel != null && fileUploadModel.values() != null && fileUploadModel.values().size() > 0){
 					FileUploadEntity fileUploadEntity = getFileUploadEntity( fileUploadModel, fileUploadEntityMap, itemModel.getId());
 					value = fileUploadEntity.getId();
@@ -1503,30 +1503,32 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			return;
 		}
 
-
+		Map<String, Boolean> map = getReferenceMap( fromItem,  toModelEntity);
 		//关联字段
+		String key = new ArrayList<>(map.keySet()).get(0);
+		boolean flag = map.get(key);
 		String referenceColumnName = fromItem.getColumnModel() == null ? null : fromItem.getColumnModel().getColumnName();
-		if(fromItem.getReferenceType() == ReferenceType.ManyToOne || fromItem.getReferenceType() == ReferenceType.OneToOne){
-			Map<String, Object> listMap = (Map<String, Object>)entity.get(referenceColumnName);
-			if( listMap == null || listMap.size() == 0) {
-				return;
-			}
-			DataModelInstance dataModelInstance = setDataModelInstance(toModelEntity, fromItem, columnModelEntity, listMap);
-			referenceDataModelList.add(dataModelInstance);
-		}else if(fromItem.getReferenceType() == ReferenceType.ManyToMany || fromItem.getReferenceType() == ReferenceType.OneToMany){
-			String key = toModelEntity.getDataModels().get(0).getTableName()+"_list";
-			if(fromItem.getReferenceType() == ReferenceType.OneToMany){
-				key = getRefenrenceItem(fromItem).getColumnModel().getColumnName();
-			}
-			List<Map<String, Object>> listMap = (List<Map<String, Object>>)entity.get(key);
-			if( listMap == null || listMap.size() == 0) {
-				return;
-			}
-			DataModelInstance dataModelInstance = setDataModelInstance(toModelEntity, entity, listMap);
+		Object listMap = null;
+		if(flag){
+			listMap = (Map<String, Object>)entity.get(key);
+		}else{
+			listMap = (List<Map<String, Object>>)entity.get(key);
+		}
+		if(flag) {
+			DataModelInstance dataModelInstance = setDataModelInstance(toModelEntity, fromItem, columnModelEntity, (Map<String, Object>)listMap);
 			dataModelInstance.setReferenceType(fromItem.getReferenceType());
 			dataModelInstance.setReferenceValueColumn(referenceColumnName);
 			referenceDataModelList.add(dataModelInstance);
+		}else{
+			List<Map<String, Object>> mapList = (List<Map<String, Object>>)listMap;
+			for(Map<String, Object> map1 : mapList){
+				DataModelInstance dataModelInstance = setDataModelInstance(toModelEntity, fromItem, columnModelEntity, map1);
+				dataModelInstance.setReferenceType(fromItem.getReferenceType());
+				dataModelInstance.setReferenceValueColumn(referenceColumnName);
+				referenceDataModelList.add(dataModelInstance);
+			}
 		}
+
 	}
 
 
@@ -1898,36 +1900,42 @@ private DataModelInstance setDataModelInstance(FormModelEntity toModelEntity, Re
 				subFormRowItemInstance.setItems(instances);
 				for (ItemModelEntity item : subFormRowItemModelEntity.getItems()) {
 					ColumnModelEntity columnModelEntity  = item.getColumnModel();
-					if(columnModelEntity == null && !(itemModel instanceof ReferenceItemModelEntity)){
+					if(columnModelEntity == null && !(item instanceof ReferenceItemModelEntity)){
 						continue;
 					}
 					ItemInstance itemInstance = new ItemInstance();
 					itemInstance.setId(item.getId());
-					if(itemModel instanceof ReferenceItemModelEntity) {
-						Map<String, Object> newMap = (Map<String, Object>) subFormSession.load(subFormDataModel.getTableName(), String.valueOf(map.get("id")));
-						setReferenceItemInstance( itemModel,  newMap, referenceDataModelList);
-						List<DataModelRowInstance> dataModelRowInstances = referenceDataModelList.get(0).getItems();
-						List<Object> idList = new ArrayList<>();
-						for(DataModelRowInstance dataModelRowInstance : dataModelRowInstances){
-							for(ItemInstance itemInstance1 : dataModelRowInstance.getItems()){
-								if(itemInstance1.getSystemItemType() == SystemItemType.ID){
-									idList.add(itemInstance1.getValue());
-									break;
+					itemInstance.setType(item.getType());
+					itemInstance.setSystemItemType(item.getSystemItemType());
+					if(item instanceof ReferenceItemModelEntity) {
+						if(item.getType() == ItemType.ReferenceLabel){
+							itemInstance.setValue(((ReferenceItemModelEntity) item).getReferenceItemId());
+						}else if(map.get("id") != null && map.get("id") != "") {
+							Map<String, Object> newMap = (Map<String, Object>) subFormSession.load(subFormDataModel.getTableName(), String.valueOf(map.get("id")));
+							setReferenceItemInstance(item, newMap, referenceDataModelList);
+							List<DataModelRowInstance> dataModelRowInstances = referenceDataModelList.get(0).getItems();
+							List<Object> idList = new ArrayList<>();
+							for (DataModelRowInstance dataModelRowInstance : dataModelRowInstances) {
+								for (ItemInstance itemInstance1 : dataModelRowInstance.getItems()) {
+									if (itemInstance1.getSystemItemType() == SystemItemType.ID) {
+										idList.add(itemInstance1.getValue());
+										break;
+									}
 								}
 							}
-						}
-						FormModelEntity toModelEntity = formModelService.find(((ReferenceItemModelEntity) itemModel).getReferenceFormId());
-						if (toModelEntity == null) {
-							continue;
-						}
-						Map<String, Boolean> keyMap = getReferenceMap((ReferenceItemModelEntity)itemModel, toModelEntity);
-						if(keyMap == null){
-							continue;
-						}
-						if(new ArrayList<>(keyMap.values()).get(0)) {
-							itemInstance.setValue(idList.get(0));
-						}else{
-							itemInstance.setValue(idList);
+							FormModelEntity toModelEntity = formModelService.find(((ReferenceItemModelEntity) item).getReferenceFormId());
+							if (toModelEntity == null) {
+								continue;
+							}
+							Map<String, Boolean> keyMap = getReferenceMap((ReferenceItemModelEntity) item, toModelEntity);
+							if (keyMap == null) {
+								continue;
+							}
+							if (new ArrayList<>(keyMap.values()).get(0) && idList.size() > 0) {
+								itemInstance.setValue(idList.get(0));
+							} else {
+								itemInstance.setValue(idList);
+							}
 						}
 					}else{
 						 itemInstance = setItemInstance(columnModelEntity.getKey(), item, map.get(columnModelEntity.getColumnName()), activityId);
@@ -1981,17 +1989,19 @@ private DataModelInstance setDataModelInstance(FormModelEntity toModelEntity, Re
 		formInstance.setFormId(formModelEntity.getId());
 		List<ItemInstance> items = new ArrayList<>();
 		List<ItemModelEntity> list = formModelService.getAllColumnItems(formModelEntity.getItems());
-		for (ItemModelEntity itemModel : list) {
-			System.out.println(itemModel.getId()+"____begin");
-			ColumnModelEntity column = itemModel.getColumnModel();
-			if(column == null || itemModel instanceof ReferenceItemModelEntity){
-				continue;
+		if(entity != null && list != null) {
+			for (ItemModelEntity itemModel : list) {
+				System.out.println(itemModel.getId() + "____begin");
+				ColumnModelEntity column = itemModel.getColumnModel();
+				if (column == null) {
+					continue;
+				}
+				Object value = entity.get(column.getColumnName());
+				ItemInstance itemInstance = setItemInstance(column.getKey(), itemModel, value, formInstance.getActivityId());
+				items.add(itemInstance);
+				formInstance.addData(itemModel.getColumnModel().getId(), itemInstance.getValue());
+				System.out.println(itemModel.getId() + "____end");
 			}
-			Object value = entity.get(column.getColumnName());
-			ItemInstance itemInstance = setItemInstance(column.getKey(), itemModel, value, formInstance.getActivityId());
-			items.add(itemInstance);
-			formInstance.addData(itemModel.getColumnModel().getId(), itemInstance.getValue());
-			System.out.println(itemModel.getId()+"____end");
 		}
 		formInstance.getItems().addAll(items);
 		return formInstance;

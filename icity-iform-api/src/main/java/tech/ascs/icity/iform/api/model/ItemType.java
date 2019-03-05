@@ -14,7 +14,7 @@ public enum ItemType {
 	Input("Input"),
 	/** 数值输入框 */
 	InputNumber("InputNumber"),
-	/** 图片 */
+	/** 视频或图片 */
 	Media("Media"),
 	/** 附件 */
 	Attachment("Attachment"),
