@@ -1119,6 +1119,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				continue;
 			}
 			ColumnModelEntity columnModel = itemModel.getColumnModel();
+
 			String propertyName = columnModel.getColumnName();
 			boolean equalsFlag = false;
 
