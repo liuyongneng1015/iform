@@ -1031,14 +1031,17 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			            String key = columnReferenceEntity.getToColumn().getColumnName()+"_list";
 			            if(entity.get(key) != null && entity.get(key) != ""){
 			                String formName = null;
+			                String itemName = null;
 			                for(ReferenceItemModelEntity referenceItemModelEntity : itemModelEntities){
 			                    FormModelEntity formModelEntity = referenceItemModelEntity.getFormModel();
 			                    if(formModelEntity == null && referenceItemModelEntity.getSourceFormModelId() != null){
                                     formModelEntity = formModelService.get(referenceItemModelEntity.getSourceFormModelId());
                                 }
                                 formName = formModelEntity == null? "" : formModelEntity.getName();
+                                itemName = referenceItemModelEntity.getName();
+                                break;
                             }
-                            throw new IFormException("数据被【" + formName + "】表关联，请先解除关联再进行删除");
+                            throw new IFormException("该数据被【" + formName + "】表单的【"+itemName+"】（数据标识）关联，无法删除");
                         }
                     }
                 }
