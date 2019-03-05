@@ -536,6 +536,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				}
 				//子表session
 				Session subFormSession = getSession(dataModelEntity);
+				subFormSession.beginTransaction();
 				//新的数据
 				List<Map<String, Object>> newListMap = new ArrayList<>();
 				List<ReferenceDataInstance> referenceData = new ArrayList<>();
@@ -544,6 +545,16 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				for (SubFormDataItemInstance subFormDataItemInstance : subFormItemInstance.getItemInstances()) {
 					Map<String, Object> map = new HashMap<>();
 					Map<String, List<String>> stringListMap = new HashMap<>();
+					for (SubFormRowItemInstance instance : subFormDataItemInstance.getItems()) {
+						for (ItemInstance itemModelService : instance.getItems()) {
+							ItemModelEntity itemModel = itemModelManager.get(itemModelService.getId());
+							if(itemModel != null && itemModelService.getValue() != null && StringUtils.hasText(String.valueOf(itemModelService.getValue())) &&
+									(itemModel.getType() == ItemType.SubForm || itemModel.getColumnModel() != null && itemModel.getColumnModel().getColumnName().equals("id"))){
+								map = (Map<String, Object>)subFormSession.load(dataModelEntity.getTableName(), (String)itemModelService.getValue());
+								break;
+							}
+						}
+					}
 					for (SubFormRowItemInstance instance : subFormDataItemInstance.getItems()) {
 						for (ItemInstance itemModelService : instance.getItems()) {
 							ItemModelEntity itemModel = itemModelManager.get(itemModelService.getId());
@@ -591,8 +602,12 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					formDataSaveInstance.setFormId(formInstance.getFormId());
 					formDataSaveInstance.setReferenceData(referenceData);
 					saveReferenceData(user, formDataSaveInstance, map, subFormSession, dataModelEntity.getTableName(), referenceItemModelEntityList, displayTimingType);
-					subFormSession.beginTransaction();
-					String newId = (String) session.save(dataModelEntity.getTableName(), data);
+					String newId = id;
+					if(id != null && StringUtils.hasText(id)){
+						subFormSession.merge(dataModelEntity.getTableName(), map);
+					}else{
+						newId = (String) subFormSession.save(dataModelEntity.getTableName(), map);
+					}
 					subFormSession.getTransaction().commit();
 					map.put("id", newId);
 					newListMap.add(map);
@@ -604,7 +619,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				deleteSubFormNewMapData("master_id", session, dataModelEntity, oldListMap, idList);
 				List<Map<String, Object>>  subFormData = new ArrayList<>();
 				for (Map<String, Object> map : newListMap) {
-					Map<String, Object> newMap = (Map<String, Object>) session.load(masterFormModelEntity.getDataModels().get(0).getTableName(), String.valueOf(map.get("id")));
+					Map<String, Object> newMap = (Map<String, Object>) session.load(dataModelEntity.getTableName(), String.valueOf(map.get("id")));
 					newMap.put("master_id", data);
 					subFormData.add(newMap);
 				}
