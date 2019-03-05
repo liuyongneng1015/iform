@@ -875,6 +875,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	private void setMasterFormItemInstances( FormDataSaveInstance formInstance, Map<String, Object> data, DisplayTimingType displayTimingType){
 		ItemInstance idItemInstance = null;
+		data.put("id", formInstance.getId());
 		for (ItemInstance itemInstance : formInstance.getItems()) {
 			ItemModelEntity itemModel = itemModelManager.get(itemInstance.getId());
 			if(itemModel.getName().equals("id")){
@@ -922,10 +923,12 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			value = new BigDecimal(String.valueOf(itemInstance.getValue())).divide(new BigDecimal(1.0), ((NumberItemModelEntity)itemModel).getDecimalDigits(), BigDecimal.ROUND_DOWN).doubleValue();
 		} else if (itemModel.getType() == ItemType.Media || itemModel.getType() == ItemType.Attachment) {
             Object o = itemInstance.getValue();
-			List<FileUploadEntity> fileUploadList = fileUploadManager.query().filterEqual("fromSource", itemModel.getId()).filterEqual("uploadType", FileUploadType.ItemModel).list();
 			Map<String, FileUploadEntity> fileUploadEntityMap = new HashMap<>();
-			for(FileUploadEntity fileUploadEntity : fileUploadList){
-				fileUploadEntityMap.put(fileUploadEntity.getId(), fileUploadEntity);
+			if(data.get("id") != null && data.get("id") != "") {
+				List<FileUploadEntity> fileUploadList = fileUploadManager.query().filterEqual("fromSourceDataId", data.get("id")).filterEqual("fromSource", itemModel.getId()).filterEqual("uploadType", FileUploadType.ItemModel).list();
+				for (FileUploadEntity fileUploadEntity : fileUploadList) {
+					fileUploadEntityMap.put(fileUploadEntity.getId(), fileUploadEntity);
+				}
 			}
 			if(o != null && o instanceof List){
 				List<Map<String, String>> fileList = (List<Map<String, String>>)o;
