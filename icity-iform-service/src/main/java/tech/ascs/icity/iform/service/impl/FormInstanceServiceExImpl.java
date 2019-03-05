@@ -1051,7 +1051,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
                             itemName = referenceItemModelEntity.getName();
                             break;
                         }
-                        throw new IFormException("该数据被【" + formName + "】表单的【"+itemName+"】关联，无法删除");
+                        throw new IFormException("该数据被【" + formName + "】表单的关联，无法删除");
                     }
                 }
             }
