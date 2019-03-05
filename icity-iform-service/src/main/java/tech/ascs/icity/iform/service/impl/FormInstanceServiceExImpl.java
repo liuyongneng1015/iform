@@ -1030,6 +1030,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
                             columnReferenceEntity.getReferenceType() == ReferenceType.OneToMany ){
 			            String key = columnReferenceEntity.getToColumn().getColumnName()+"_list";
 			            if(entity.get(key) != null && entity.get(key) != ""){
+			                if(entity.get(key) instanceof List && ((List) entity.get(key)).size() < 1){
+			                    continue;
+                            }
 			                String formName = null;
 			                String itemName = null;
 			                for(ReferenceItemModelEntity referenceItemModelEntity : itemModelEntities){
@@ -1041,12 +1044,16 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
                                 itemName = referenceItemModelEntity.getName();
                                 break;
                             }
-                            throw new IFormException("该数据被【" + formName + "】表单的【"+itemName+"】（数据标识）关联，无法删除");
+                            throw new IFormException("该数据被【" + formName + "】表单的【"+itemName+"】关联，无法删除");
                         }
                     }
                 }
             }
-
+            if(entity != null) {
+                session.beginTransaction();
+                session.delete(dataModel.getTableName(), entity);
+                session.getTransaction().commit();
+            }
 		} catch (Exception e) {
 			e.printStackTrace();
 			if(e instanceof IFormException){
@@ -1054,23 +1061,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
             }
 			throw new IFormException("删除【" + formModel.getName() + "】表单，instanceId【"+ instanceId +"】的数据失败");
 		}finally {
-			try {
-				if(entity != null) {
-					session.beginTransaction();
-					session.delete(dataModel.getTableName(), entity);
-					session.getTransaction().commit();
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-                if(e instanceof IFormException){
-                    throw e;
-                }
-				throw new IFormException("删除【" + formModel.getName() + "】表单，instanceId【"+ instanceId +"】的数据失败");
-			}finally {
-				if(session != null){
-					session.close();
-				}
-			}
+            if(session != null){
+                session.close();
+            }
 		}
 	}
 
