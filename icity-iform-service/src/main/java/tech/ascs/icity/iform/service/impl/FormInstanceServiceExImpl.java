@@ -1030,6 +1030,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
                             columnReferenceEntity.getReferenceType() == ReferenceType.OneToMany ){
 			            String key = columnReferenceEntity.getToColumn().getColumnName()+"_list";
 			            if(entity.get(key) != null && entity.get(key) != ""){
+			                if(entity.get(key) instanceof List && ((List) entity.get(key)).size() < 1){
+			                    continue;
+                            }
 			                String formName = null;
 			                String itemName = null;
 			                for(ReferenceItemModelEntity referenceItemModelEntity : itemModelEntities){
