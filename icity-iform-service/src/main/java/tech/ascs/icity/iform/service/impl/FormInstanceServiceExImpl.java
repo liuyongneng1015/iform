@@ -1878,26 +1878,29 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		return toItemModel;
 	}
 
-private DataModelInstance setDataModelInstance(FormModelEntity toModelEntity, ReferenceItemModelEntity fromItem, ColumnModelEntity columnModelEntity, Map<String, Object> listMap){
-	FormInstance f = getBaseItemInstance(toModelEntity, listMap);
-	DataModelInstance dataModelInstance = new DataModelInstance();
-	dataModelInstance.setId(toModelEntity.getDataModels().get(0).getId());
-	dataModelInstance.setName(toModelEntity.getDataModels().get(0).getName());
-	dataModelInstance.setReferenceTable(toModelEntity.getDataModels().get(0).getTableName());
-	dataModelInstance.setReferenceType(fromItem.getReferenceType());
-	dataModelInstance.setReferenceValueColumn(columnModelEntity == null ? null : columnModelEntity.getColumnName());
-	dataModelInstance.setSize(1);
-	DataModelRowInstance dataModelRowInstance = new DataModelRowInstance();
-	dataModelRowInstance.setRowNumber(1);
-	dataModelRowInstance.setItems(f.getItems());
-	dataModelInstance.getItems().add(dataModelRowInstance);
-	return dataModelInstance;
-}
+    private DataModelInstance setDataModelInstance(FormModelEntity toModelEntity, ReferenceItemModelEntity fromItem, ColumnModelEntity columnModelEntity, Map<String, Object> listMap){
+        FormInstance f = getBaseItemInstance(toModelEntity, listMap);
+        DataModelInstance dataModelInstance = new DataModelInstance();
+        dataModelInstance.setId(toModelEntity.getDataModels().get(0).getId());
+        dataModelInstance.setName(toModelEntity.getDataModels().get(0).getName());
+        dataModelInstance.setReferenceTable(toModelEntity.getDataModels().get(0).getTableName());
+        dataModelInstance.setReferenceType(fromItem.getReferenceType());
+        dataModelInstance.setReferenceValueColumn(columnModelEntity == null ? null : columnModelEntity.getColumnName());
+        dataModelInstance.setSize(1);
+        DataModelRowInstance dataModelRowInstance = new DataModelRowInstance();
+        dataModelRowInstance.setRowNumber(1);
+        dataModelRowInstance.setItems(f.getItems());
+        dataModelInstance.getItems().add(dataModelRowInstance);
+        return dataModelInstance;
+    }
 
 	private void setSubFormItemInstance(ItemModelEntity itemModel, Map<String, Object> entity, List<SubFormItemInstance> subFormItems, String activityId){
 		//TODO 子表数据结构
 		SubFormItemModelEntity itemModelEntity = (SubFormItemModelEntity)itemModel;
 		//子表
+        if (itemModelEntity.getColumnModel()==null) {
+            return;
+        }
 		DataModelEntity subFormDataModel = itemModelEntity.getColumnModel().getDataModel();
 		Session subFormSession  = getSession(subFormDataModel);
 		String key =((SubFormItemModelEntity) itemModel).getTableName()+"_list";
