@@ -1025,30 +1025,37 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}
 			List<ColumnReferenceEntity> referenceEntityList = idColumnModel.getColumnReferences();
 			for(ColumnReferenceEntity columnReferenceEntity : referenceEntityList){
-			    if(columnReferenceEntity.getReferenceType() != ReferenceType.ManyToMany ){
-			        if(columnReferenceEntity.getReferenceType() == ReferenceType.OneToOne ||
-                            columnReferenceEntity.getReferenceType() == ReferenceType.OneToMany ){
-			            String key = columnReferenceEntity.getToColumn().getColumnName()+"_list";
-			            if(entity.get(key) != null && entity.get(key) != ""){
-			                if(entity.get(key) instanceof List && ((List) entity.get(key)).size() < 1){
-			                    continue;
-                            }
-			                String formName = null;
-			                String itemName = null;
-			                for(ReferenceItemModelEntity referenceItemModelEntity : itemModelEntities){
-			                    FormModelEntity formModelEntity = referenceItemModelEntity.getFormModel();
-			                    if(formModelEntity == null && referenceItemModelEntity.getSourceFormModelId() != null){
-                                    formModelEntity = formModelService.get(referenceItemModelEntity.getSourceFormModelId());
-                                }
-                                formName = formModelEntity == null? "" : formModelEntity.getName();
-                                itemName = referenceItemModelEntity.getName();
-                                break;
-                            }
-                            throw new IFormException("该数据被【" + formName + "】表单的【"+itemName+"】关联，无法删除");
+			    if(columnReferenceEntity.getReferenceType() == ReferenceType.ManyToMany ){
+			        continue;
+                }
+                if(columnReferenceEntity.getReferenceType() == ReferenceType.OneToOne ||
+                        columnReferenceEntity.getReferenceType() == ReferenceType.OneToMany ){
+                    String key = columnReferenceEntity.getToColumn().getColumnName()+"_list";
+                    if(entity.get(key) != null && entity.get(key) != ""){
+                        if(entity.get(key) instanceof List && ((List) entity.get(key)).size() < 1){
+                            continue;
                         }
+                        String formName = null;
+                        String itemName = null;
+                        for(ReferenceItemModelEntity referenceItemModelEntity : itemModelEntities){
+                            if(referenceItemModelEntity.getType() == ItemType.ReferenceLabel || referenceItemModelEntity.getColumnModel() == null
+                                || !referenceItemModelEntity.getColumnModel().getId().equals(columnReferenceEntity.getToColumn().getId())){
+                                continue;
+                            }
+
+                            FormModelEntity formModelEntity = referenceItemModelEntity.getFormModel();
+                            if(formModelEntity == null && referenceItemModelEntity.getSourceFormModelId() != null){
+                                formModelEntity = formModelService.get(referenceItemModelEntity.getSourceFormModelId());
+                            }
+                            formName = formModelEntity == null? "" : formModelEntity.getName();
+                            itemName = referenceItemModelEntity.getName();
+                            break;
+                        }
+                        throw new IFormException("该数据被【" + formName + "】表单的【"+itemName+"】关联，无法删除");
                     }
                 }
             }
+
             if(entity != null) {
                 session.beginTransaction();
                 session.delete(dataModel.getTableName(), entity);
