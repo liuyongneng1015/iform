@@ -1223,8 +1223,11 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			if (itemModel.getDefaultValue()!=null && itemModel.getDefaultValue() instanceof String) {
 				((TreeSelectItemModelEntity) entity).setDefaultValue(itemModel.getDefaultValue().toString());
 			}
+			if (itemModel.getDefaultValue()!=null && itemModel.getDefaultValue() instanceof List) {
+				((TreeSelectItemModelEntity) entity).setDefaultValue(String.join(",", (List)itemModel.getDefaultValue()));
+			}
 			if (itemModel.getDefaultValueName()!=null) {
-				((TreeSelectItemModelEntity) entity).setDefaultValue(itemModel.getDefaultValueName());
+				((TreeSelectItemModelEntity) entity).setDefaultValueName(itemModel.getDefaultValueName());
 			}
 		}
 
@@ -1872,7 +1875,13 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			itemModel.setItems(subFormRows);
 		} else if (entity instanceof TreeSelectItemModelEntity) {
 			TreeSelectItemModelEntity treeSelectItemModelEntity = (TreeSelectItemModelEntity)entity;
-			itemModel.setDefaultValue(treeSelectItemModelEntity.getDefaultValue());
+			if (treeSelectItemModelEntity.getMultiple()) {
+				if (!StringUtils.isEmpty(treeSelectItemModelEntity.getDefaultValue())) {
+					itemModel.setDefaultValue(Arrays.asList(treeSelectItemModelEntity.getDefaultValue().split(",")));
+				}
+			} else {
+				itemModel.setDefaultValue(treeSelectItemModelEntity.getDefaultValue());
+			}
 			itemModel.setDefaultValueName(treeSelectItemModelEntity.getDefaultValueName());
 		}
 
