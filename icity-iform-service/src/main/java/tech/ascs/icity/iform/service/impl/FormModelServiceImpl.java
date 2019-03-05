@@ -658,7 +658,8 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		}
 	}
 
-	private void deleteItem(List<ItemModelEntity> list){
+	private void deleteItem(List<ItemModelEntity> lists){
+		List<ItemModelEntity> list = lists.parallelStream().sorted((d2, d1) -> d2.getOrderNo().compareTo(d1.getOrderNo())).collect(Collectors.toList());
 		Map<String, ItemModelEntity> modelEntityMap = new HashMap<>();
 		for(int i = 0 ; i <  list.size(); i ++){
 			ItemModelEntity itemModelEntity = list.get(i);
@@ -675,10 +676,16 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 						//i--;
 						((ReferenceItemModelEntity) itemModelEntity).getItems().remove(j);
 						j--;
+						if(itemModelEntity1.getColumnModel() != null){
+							columnModelService.deleteTableColumn(itemModelEntity1.getColumnModel().getDataModel().getTableName(), itemModelEntity1.getColumnModel().getColumnName());
+						}
 						itemManager.delete(itemModelEntity1);
 					}else{
 						((ReferenceItemModelEntity) itemModelEntity).getItems().remove(j);
 						j--;
+						if(itemModelEntity.getColumnModel() != null){
+							columnModelService.deleteTableColumn(itemModelEntity.getColumnModel().getDataModel().getTableName(), itemModelEntity.getColumnModel().getColumnName());
+						}
 						itemManager.delete(referenceItemModelEntity);
 					}
 					itemManager.save(itemModelEntity);
@@ -686,8 +693,14 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			}
 			list.remove(itemModelEntity);
 			i--;
+			if(itemModelEntity.getColumnModel() != null){
+				columnModelService.deleteTableColumn(itemModelEntity.getColumnModel().getDataModel().getTableName(), itemModelEntity.getColumnModel().getColumnName());
+			}
 			if(i<-1){
 				i=-1;
+			}
+			if(itemModelEntity instanceof SubFormItemModelEntity && itemModelEntity.getColumnModel() != null){
+				columnModelService.deleteTable(itemModelEntity.getColumnModel().getDataModel().getTableName());
 			}
 			itemManager.delete(itemModelEntity);
 		}
@@ -787,6 +800,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 	//获取item子item
 	private ItemModelEntity getNewItemModelEntity(Map<String, ItemModelEntity> oldMapItmes, Map<String, ColumnModelEntity> modelEntityMap, ItemModelEntity paramerItemModelEntity){
 		ItemModelEntity newModelEntity = getNewItemModel(oldMapItmes, modelEntityMap, paramerItemModelEntity);
+		newModelEntity.setOrderNo(-1);
 		if(paramerItemModelEntity instanceof RowItemModelEntity){
 			RowItemModelEntity rowItemModelEntity = (RowItemModelEntity)paramerItemModelEntity;
 			List<ItemModelEntity> rowItems = new ArrayList<ItemModelEntity>();
@@ -832,8 +846,11 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				TabPaneItemModelEntity childRenItem = tabPaneItemModelEntity.getItems().get(j);
 				TabPaneItemModelEntity newRowItem = getNewTabPaneItemModel(oldMapItmes, childRenItem);
 				List<ItemModelEntity> list = new ArrayList<>();
-				for(ItemModelEntity itemModelEntity : childRenItem.getItems()){
-					list.add(getNewItemModelEntity(oldMapItmes, modelEntityMap, itemModelEntity));
+				for(int k = 0 ; k < childRenItem.getItems().size() ; k++){
+					ItemModelEntity itemModelEntity = childRenItem.getItems().get(k);
+					ItemModelEntity itemModelEntity1 = getNewItemModelEntity(oldMapItmes, modelEntityMap, itemModelEntity);
+					itemModelEntity1.setOrderNo(k);
+					list.add(itemModelEntity1);
 				}
 				newRowItem.setParentItem((TabsItemModelEntity) newModelEntity);
 				newRowItem.setOrderNo(j);
@@ -1307,6 +1324,19 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 							if (columnModelEntity.getColumnName().equals("id")) {
 								itemModelEntity.setColumnModel(columnModelEntity);
 								break;
+							}
+						}
+					}else if(itemModelEntity instanceof TabsItemModelEntity){
+						for(TabPaneItemModelEntity tabPaneItemModelEntity : ((TabsItemModelEntity)itemModelEntity).getItems()){
+							for(ItemModelEntity itemModelEntity1 : tabPaneItemModelEntity.getItems()) {
+								if (itemModelEntity1 instanceof SubFormItemModelEntity && ((SubFormItemModelEntity) itemModelEntity1).getTableName().equals(dataModelEntity.getTableName())) {
+									for (ColumnModelEntity columnModelEntity : dataModelEntity.getColumns()) {
+										if (columnModelEntity.getColumnName().equals("id")) {
+											itemModelEntity1.setColumnModel(columnModelEntity);
+											break;
+										}
+									}
+								}
 							}
 						}
 					}
