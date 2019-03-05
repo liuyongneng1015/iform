@@ -497,7 +497,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			for(ItemModelEntity itemModelEntity : entity.getDisplayItems()) {
 				if (masterFormItemIds.contains(itemModelEntity.getId())) {
 					ItemModel itemModel = new ItemModel();
-					BeanUtils.copyProperties(itemModelEntity, itemModel, new String[]{"formModel", "columnModel", "activities", "options", "searchItems", "sortItems", "permissions", "referenceList", "items", "parentItem"});
+					BeanUtils.copyProperties(itemModelEntity, itemModel, new String[]{"defaultValue", "formModel", "columnModel", "activities", "options", "searchItems", "sortItems", "permissions", "referenceList", "items", "parentItem"});
 					list.add(itemModel);
 				}
 			}
@@ -548,7 +548,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 					SortItem sortItem = new SortItem();
 					BeanUtils.copyProperties(sortItemEntity, sortItem, new String[]{"listModel", "itemModel"});
 					ItemModel itemModel = new ItemModel();
-					BeanUtils.copyProperties(sortItemEntity.getItemModel(), itemModel, new String[]{"formModel", "columnModel", "activities", "options", "searchItems", "sortItems", "permissions", "referenceList", "items", "parentItem"});
+					BeanUtils.copyProperties(sortItemEntity.getItemModel(), itemModel, new String[]{"defaultValue", "formModel", "columnModel", "activities", "options", "searchItems", "sortItems", "permissions", "referenceList", "items", "parentItem"});
 					sortItem.setItemModel(itemModel);
 					sortItems.add(sortItem);
 				}
@@ -567,7 +567,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 					SearchItem searchItem = new SearchItem();
 
 					searchItem.setOrderNo(searchItemEntity.getOrderNo());
-					BeanUtils.copyProperties(itemModelEntity, searchItem, new String[]{"formModel", "columnModel", "activities", "options","searchItems","sortItems", "permissions","items","parentItem","referenceList"});
+					BeanUtils.copyProperties(itemModelEntity, searchItem, new String[]{"defaultValue", "formModel", "columnModel", "activities", "options","searchItems","sortItems", "permissions","items","parentItem","referenceList"});
 					List<ItemSelectOption> options = itemModelEntity.getOptions();
 					// 自定义的下拉框，在列表建模的渲染页面，要返回options属性
 					if (options!=null && options.size()>0) {
