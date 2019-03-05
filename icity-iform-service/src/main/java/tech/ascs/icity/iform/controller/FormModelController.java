@@ -194,6 +194,18 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
                 throw new IFormException("请不要重复提交");
             }
             concurrentmap.put(key, System.currentTimeMillis());
+            FormModelEntity formModelEntity = formModelService.get(id);
+            List<ItemModelEntity> lists = formModelService.getAllColumnItems(formModelEntity.getItems());
+            List<ItemModelEntity> list = lists.parallelStream().sorted((d2, d1) -> d2.getOrderNo().compareTo(d1.getOrderNo())).collect(Collectors.toList());
+            for(int i = 0 ; i < list.size() ; i ++){
+                ItemModelEntity itemModelEntity1 = list.get(i);
+                if(itemModelEntity1 instanceof SubFormItemModelEntity){
+                    columnModelService.deleteTable(itemModelEntity1.getColumnModel().getDataModel().getTableName());
+                }else {
+                    columnModelService.deleteTableColumn(itemModelEntity1.getColumnModel().getDataModel().getTableName(), itemModelEntity1.getColumnModel().getColumnName());
+                }
+            }
+            columnModelService.deleteTable(formModelEntity.getDataModels().get(0).getTableName());
             formModelService.deleteFormModelEntityById(id);
         }finally {
             if(concurrentmap.containsKey(key)){
@@ -561,17 +573,28 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		List<ItemModelEntity> items = new ArrayList<ItemModelEntity>();
 		Map<String, ItemModelEntity> map = new HashMap<>();
 		List<ItemModelEntity> itemModelEntityList = new ArrayList<>();
+		//为了设置关联
 		Map<String, List<ItemModelEntity>> formMap = new HashMap<>();
 		for (ItemModel itemModel : formModel.getItems()) {
 			ItemModelEntity itemModelEntity = wrap(formModel.getId(), itemModel, map);
 			itemModelEntity.setFormModel(entity);
 			items.add(itemModelEntity);
 			itemModelEntityList.add(itemModelEntity);
-			if(!(itemModelEntity instanceof SubFormItemModelEntity) ){
-				itemModelEntityList.addAll(formModelService.getChildRenItemModelEntity(itemModelEntity));
-			}else{
-				formMap.put(((SubFormItemModelEntity) itemModelEntity).getTableName(), formModelService.getChildRenItemModelEntity(itemModelEntity));
-			}
+			if(itemModelEntity instanceof TabsItemModelEntity){
+			    for(TabPaneItemModelEntity tabPaneItemModelEntity : ((TabsItemModelEntity)itemModelEntity).getItems()) {
+			        for(ItemModelEntity itemModelEntity1 : tabPaneItemModelEntity.getItems()) {
+			            if(itemModelEntity1 instanceof  SubFormItemModelEntity) {
+                            formMap.put(((SubFormItemModelEntity) itemModelEntity1).getTableName(), formModelService.getChildRenItemModelEntity(itemModelEntity1));
+                        }else{
+                            itemModelEntityList.addAll(formModelService.getChildRenItemModelEntity(itemModelEntity1));
+                        }
+                    }
+                }
+			}else if(!(itemModelEntity instanceof SubFormItemModelEntity) ){
+                itemModelEntityList.addAll(formModelService.getChildRenItemModelEntity(itemModelEntity));
+            } else{
+                formMap.put(((SubFormItemModelEntity) itemModelEntity).getTableName(), formModelService.getChildRenItemModelEntity(itemModelEntity));
+            }
 		}
 		formMap.put(masterDataModel.getTableName(), itemModelEntityList);
 
