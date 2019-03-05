@@ -773,8 +773,12 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 						map.remove(key);
 					}
 				}
-				if (flag && saveListMap.size() > 0) {
-					data.put(key, new ArrayList<>(saveListMap).get(0));
+				if (flag) {
+					if(saveListMap.size() > 0) {
+						data.put(key, new ArrayList<>(saveListMap).get(0));
+					}else{
+						data.put(key, null);
+					}
 				} else {
 					data.put(key, saveListMap);
 				}

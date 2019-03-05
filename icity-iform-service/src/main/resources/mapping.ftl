@@ -47,7 +47,7 @@
         </#list>
 
          <#list dataModel.slaverModels as slaver>
-                  <bag name="${slaver.tableName!''}_list" inverse="true" lazy="false" fetch="select" >
+                  <bag name="${slaver.tableName!''}_list" inverse="true" cascade="all" lazy="false" fetch="select" >
                       <key column="master_id" />
                       <one-to-many entity-name="${slaver.tableName!''}" />
                   </bag>
@@ -103,7 +103,7 @@
                             <one-to-one name="${reference.toColumn.columnName!''}_list" entity-name="${reference.toColumn.dataModel.tableName!''}" <#if reference.toColumn.columnName != "id">  property-ref="${reference.toColumn.columnName!''}"</#if> constrained="true"  lazy="false" fetch="select"  />
                         </#if>
                     <#elseif reference.referenceType.value = "ManyToOne">
-                        <many-to-one name="${column.columnName!''}" entity-name="${reference.toColumn.dataModel.tableName!''}" column="${column.columnName!''}" cascade="all" lazy="false" fetch="select"   />
+                        <many-to-one name="${column.columnName!''}" entity-name="${reference.toColumn.dataModel.tableName!''}" column="${column.columnName!''}" <#if column.columnName ?? && column.columnName="master_id"> <#else >cascade="all" </#if> lazy="false" fetch="select"   />
                     <#elseif reference.referenceType.value = "OneToMany">
                         <bag name="${reference.toColumn.columnName!''}_list"  lazy="false" fetch="select"  >
                             <key column="${reference.toColumn.columnName!''}" />
@@ -158,7 +158,7 @@
                 <#list slaver.columns as column>
                     <#if column.columnName != 'id' &&  (!column.columnReferences?? || (column.columnReferences?size < 1)) >
                         <#if column.columnName = 'master_id' >
-                            <many-to-one name="${column.columnName!''}" entity-name="${dataModel.tableName!''}" column="${column.columnName!''}" cascade="save-update" fetch="select"  />
+                            <many-to-one name="${column.columnName!''}" entity-name="${dataModel.tableName!''}" column="${column.columnName!''}" fetch="select"  />
                         <#else>
                             <property name="${column.columnName!''}" type="${column.dataType?lower_case}">
                                 <column name="f${column.columnName!''}" default="${column.defaultValue!'null'}" not-null="${(column.notNull!false)?c}" length="<#if !column.length ?? || column.length = 0>255<#else >${column.length?c}</#if>" precision="<#if !column.precision ?? || column.precision = 0>255<#else >${column.precision}</#if>" <#if column.dataType?? && column.dataType.value ?? && (column.dataType.value ="Integer" || column.dataType.value = "Long" || column.dataType.value = "Float" || column.dataType.value = "Double")> scale="${column.scale!0}"</#if>>
