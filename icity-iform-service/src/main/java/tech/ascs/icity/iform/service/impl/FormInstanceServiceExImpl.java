@@ -34,10 +34,7 @@ import tech.ascs.icity.iflow.client.TaskService;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.model.*;
-import tech.ascs.icity.iform.service.ColumnModelService;
-import tech.ascs.icity.iform.service.FormInstanceServiceEx;
-import tech.ascs.icity.iform.service.FormModelService;
-import tech.ascs.icity.iform.service.UploadService;
+import tech.ascs.icity.iform.service.*;
 import tech.ascs.icity.iform.support.IFormSessionFactoryBuilder;
 import tech.ascs.icity.iform.utils.CurrentUserUtils;
 import tech.ascs.icity.jpa.service.JPAManager;
@@ -89,6 +86,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
     @Autowired
     GroupService groupService;
+
+    @Autowired
+    ItemModelService itemModelService;
 
 	public
 	FormInstanceServiceExImpl() {
@@ -1011,7 +1011,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	@SuppressWarnings("unchecked")
 	@Override
 	public void deleteFormInstance(FormModelEntity formModel, String instanceId) {
+        List<ReferenceItemModelEntity> itemModelEntities = itemModelService.findRefenceItemByFormModelId(formModel.getId());
+
 		DataModelEntity dataModel = formModel.getDataModels().get(0);
+		ColumnModelEntity idColumnModel = columnModelService.saveColumnModelEntity(dataModel, "id");
+
 		Session session = getSession(dataModel);
 		Map<String, Object> entity = null;
 		try {
@@ -1019,8 +1023,32 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			if(entity == null || entity.keySet() == null) {
 				throw new IFormException("没有查询到【" + dataModel.getTableName() + "】表，id【"+ instanceId +"】的数据");
 			}
+			List<ColumnReferenceEntity> referenceEntityList = idColumnModel.getColumnReferences();
+			for(ColumnReferenceEntity columnReferenceEntity : referenceEntityList){
+			    if(columnReferenceEntity.getReferenceType() != ReferenceType.ManyToMany ){
+			        if(columnReferenceEntity.getReferenceType() == ReferenceType.OneToOne ||
+                            columnReferenceEntity.getReferenceType() == ReferenceType.OneToMany ){
+			            String key = columnReferenceEntity.getToColumn().getColumnName()+"_list";
+			            if(entity.get(key) != null && entity.get(key) != ""){
+			                String formName = null;
+			                for(ReferenceItemModelEntity referenceItemModelEntity : itemModelEntities){
+			                    FormModelEntity formModelEntity = referenceItemModelEntity.getFormModel();
+			                    if(formModelEntity == null && referenceItemModelEntity.getSourceFormModelId() != null){
+                                    formModelEntity = formModelService.get(referenceItemModelEntity.getSourceFormModelId());
+                                }
+                                formName = formModelEntity == null? "" : formModelEntity.getName();
+                            }
+                            throw new IFormException("数据被【" + formName + "】表关联，请先解除关联再进行删除");
+                        }
+                    }
+                }
+            }
+
 		} catch (Exception e) {
 			e.printStackTrace();
+			if(e instanceof IFormException){
+			    throw e;
+            }
 			throw new IFormException("删除【" + formModel.getName() + "】表单，instanceId【"+ instanceId +"】的数据失败");
 		}finally {
 			try {
@@ -1031,6 +1059,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
+                if(e instanceof IFormException){
+                    throw e;
+                }
 				throw new IFormException("删除【" + formModel.getName() + "】表单，instanceId【"+ instanceId +"】的数据失败");
 			}finally {
 				if(session != null){
