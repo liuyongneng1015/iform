@@ -194,19 +194,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
                 throw new IFormException("请不要重复提交");
             }
             concurrentmap.put(key, System.currentTimeMillis());
-            FormModelEntity formModelEntity = formModelService.get(id);
-            List<ItemModelEntity> lists = formModelService.getAllColumnItems(formModelEntity.getItems());
-            List<ItemModelEntity> list = lists.parallelStream().sorted((d2, d1) -> d2.getOrderNo().compareTo(d1.getOrderNo())).collect(Collectors.toList());
-            for(int i = 0 ; i < list.size() ; i ++){
-                ItemModelEntity itemModelEntity1 = list.get(i);
-                if(itemModelEntity1 instanceof SubFormItemModelEntity){
-                    columnModelService.deleteTable(itemModelEntity1.getColumnModel().getDataModel().getTableName());
-                }else {
-                    columnModelService.deleteTableColumn(itemModelEntity1.getColumnModel().getDataModel().getTableName(), itemModelEntity1.getColumnModel().getColumnName());
-                }
-            }
-            columnModelService.deleteTable(formModelEntity.getDataModels().get(0).getTableName());
             formModelService.deleteFormModelEntityById(id);
+        }catch (Exception e){
+            e.printStackTrace();
         }finally {
             if(concurrentmap.containsKey(key)){
                 concurrentmap.remove(key);
