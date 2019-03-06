@@ -123,6 +123,7 @@ public class UploadServiceImpl extends DefaultJPAService<FileUploadEntity> imple
 		FileUploadModel fileUploadModel = new FileUploadModel();
 		InputStream inputStream = file.getInputStream();
 		File thumbnailFile = null;
+		InputStream  thumbnailFileInputStream = null;
 		try {
 
 			String filename = file.getOriginalFilename();
@@ -137,6 +138,7 @@ public class UploadServiceImpl extends DefaultJPAService<FileUploadEntity> imple
 
 			// 打开两个新的输入流
 			InputStream stream1 = new ByteArrayInputStream(baos.toByteArray());
+			// 打开两个新的输入流
 			minioClient.putObject(minioConfig.getBucket(), filePath, stream1, file.getContentType());
 			FileUploadEntity fileUploadModelEntity = new FileUploadEntity();
 			fileUploadModelEntity.setFileKey(filePath);
@@ -147,7 +149,8 @@ public class UploadServiceImpl extends DefaultJPAService<FileUploadEntity> imple
 				thumbnailFile = new File("thumbnail.png");
 				InputStream stream2 = new ByteArrayInputStream(baos.toByteArray());
 				fetchFrame(stream2, thumbnailFile.getAbsolutePath());
-				minioClient.putObject(minioConfig.getBucket(), filePath+"_thumbnail.png", new FileInputStream(thumbnailFile), "image/png");
+				thumbnailFileInputStream = new FileInputStream(thumbnailFile);
+				minioClient.putObject(minioConfig.getBucket(), filePath+"_thumbnail.png", thumbnailFileInputStream, "image/png");
 				fileUploadModelEntity.setThumbnail(filePath+"_thumbnail.png");
 				fileUploadModelEntity.setThumbnailUrl(getFileUrl(filePath+"_thumbnail.png"));
 			}
@@ -158,6 +161,9 @@ public class UploadServiceImpl extends DefaultJPAService<FileUploadEntity> imple
 		} finally {
 			if(inputStream != null){
 				inputStream.close();
+			}
+			if(thumbnailFileInputStream != null){
+				thumbnailFileInputStream.close();
 			}
 			if(thumbnailFile != null && thumbnailFile.exists()){
 				thumbnailFile.delete();

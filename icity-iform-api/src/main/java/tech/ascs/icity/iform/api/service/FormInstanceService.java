@@ -190,6 +190,6 @@ public interface FormInstanceService {
 			@ApiImplicitParam(paramType = "path", name = "id", value = "表单实例ID", required = true, dataType = "String")
 	})
 	@PutMapping("/{formId}/{id}/reset_qrcode")
-	List<FileUploadModel> resetQrCode(@PathVariable(name="formId", required = true) String formId, @PathVariable(name="id", required = true) String id);
+	FileUploadModel resetQrCode(@PathVariable(name="formId", required = true) String formId, @PathVariable(name="id", required = true) String id);
 
 }

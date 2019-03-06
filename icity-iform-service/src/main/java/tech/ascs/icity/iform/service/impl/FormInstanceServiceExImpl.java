@@ -2089,7 +2089,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 				String valueStrs = value == null || StringUtils.isEmpty(value) ?  null : String.valueOf(value);
 				String[] strings = valueStrs == null ? new String[]{} : valueStrs.split(",");
-				List<String> ids  = Arrays.asList(strings);
+				List<String> ids  = strings == null ? new ArrayList<>() : Arrays.asList(strings);
 				if(((TreeSelectItemModelEntity)itemModel).getMultiple() != null && ((TreeSelectItemModelEntity)itemModel).getMultiple()){
 					itemInstance.setValue(ids);
 				}else {

@@ -230,7 +230,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	}
 
 	@Override
-	public List<FileUploadModel> resetQrCode(@PathVariable(name="formId", required = true) String formId, @PathVariable(name="id", required = true) String id) {
+	public FileUploadModel resetQrCode(@PathVariable(name="formId", required = true) String formId, @PathVariable(name="id", required = true) String id) {
 		FormModelEntity formModel = formModelService.find(formId);
 		if (formModel == null) {
 			throw new IFormException(404, "表单模型【" + formId + "】不存在");
@@ -253,6 +253,6 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			e.printStackTrace();
 			throw new IFormException(404, "表单模型【" + formId + "】,生成【" + id + "】二维码失败");
 		}
-		return fileUploadModels;
+		return fileUploadModels == null || fileUploadModels.size() < 1 ? null : fileUploadModels.get(0);
 	}
 }
