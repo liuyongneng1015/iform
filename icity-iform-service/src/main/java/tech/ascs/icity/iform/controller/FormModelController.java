@@ -1874,12 +1874,13 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			if (treeSelectItemModelEntity.getMultiple()) {
 				if (!StringUtils.isEmpty(treeSelectItemModelEntity.getDefaultValue())) {
 					itemModel.setDefaultValue(Arrays.asList(treeSelectItemModelEntity.getDefaultValue().split(",")));
-                    itemModel.setDefaultValueName(Arrays.asList(treeSelectItemModelEntity.getDefaultValueName().split(",")));
                 }
 			} else {
 				itemModel.setDefaultValue(treeSelectItemModelEntity.getDefaultValue());
-                itemModel.setDefaultValueName(treeSelectItemModelEntity.getDefaultValueName());
             }
+			if (!StringUtils.isEmpty(treeSelectItemModelEntity.getDefaultValueName())) {
+				itemModel.setDefaultValueName(Arrays.asList(treeSelectItemModelEntity.getDefaultValueName().split(",")));
+			}
 		}
 
 		if(entity.getColumnModel() != null) {
@@ -1932,7 +1933,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 		return itemModel;
 	}
-
 
 	private List<ItemModel> getItemModelList(List<String> idResultList){
 		if(idResultList == null || idResultList.size() < 1){
