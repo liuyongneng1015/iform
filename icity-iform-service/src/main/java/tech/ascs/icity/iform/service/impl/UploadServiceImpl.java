@@ -250,7 +250,7 @@ public class UploadServiceImpl extends DefaultJPAService<FileUploadEntity> imple
 	 * @param srcFileName
 	 * @return
 	 */
-	private String renameFile(String day, boolean rename, String srcFileName) {
+	public static String renameFile(String day, boolean rename, String srcFileName) {
 		String filePath = day + "/" + (UUID.randomUUID().toString().replace("-",""));
 		if (rename) {//判断文件是否要重命名
 			int index = srcFileName.lastIndexOf("."); //先判断文件是否有后缀名
