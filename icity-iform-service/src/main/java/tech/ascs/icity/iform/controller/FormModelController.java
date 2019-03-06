@@ -1220,15 +1220,21 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				((TabsItemModelEntity) entity).setItems(list);
 			}
 		} else if (entity instanceof TreeSelectItemModelEntity) {
-			if (itemModel.getDefaultValue()!=null && itemModel.getDefaultValue() instanceof String) {
-				((TreeSelectItemModelEntity) entity).setDefaultValue(itemModel.getDefaultValue().toString());
-			}
+
 			if (itemModel.getDefaultValue()!=null && itemModel.getDefaultValue() instanceof List) {
 				((TreeSelectItemModelEntity) entity).setDefaultValue(String.join(",", (List)itemModel.getDefaultValue()));
-			}
-			if (itemModel.getDefaultValueName()!=null) {
-				((TreeSelectItemModelEntity) entity).setDefaultValueName(itemModel.getDefaultValueName());
-			}
+			}else if (itemModel.getDefaultValue()!=null) {
+                ((TreeSelectItemModelEntity) entity).setDefaultValue(itemModel.getDefaultValue().toString());
+            }else{
+                ((TreeSelectItemModelEntity) entity).setDefaultValue(null);
+            }
+			if (itemModel.getDefaultValueName()!=null && itemModel.getDefaultValueName() instanceof List ) {
+                ((TreeSelectItemModelEntity) entity).setDefaultValueName(String.join(",", (List)itemModel.getDefaultValueName()));
+			}else if (itemModel.getDefaultValueName()!=null) {
+                ((TreeSelectItemModelEntity) entity).setDefaultValueName((String)itemModel.getDefaultValueName());
+            }else{
+                ((TreeSelectItemModelEntity) entity).setDefaultValueName(null);
+            }
 		}
 
 		List<ItemActivityInfo> activities = new ArrayList<ItemActivityInfo>();
@@ -1878,11 +1884,12 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			if (treeSelectItemModelEntity.getMultiple()) {
 				if (!StringUtils.isEmpty(treeSelectItemModelEntity.getDefaultValue())) {
 					itemModel.setDefaultValue(Arrays.asList(treeSelectItemModelEntity.getDefaultValue().split(",")));
-				}
+                    itemModel.setDefaultValueName(Arrays.asList(treeSelectItemModelEntity.getDefaultValueName().split(",")));
+                }
 			} else {
 				itemModel.setDefaultValue(treeSelectItemModelEntity.getDefaultValue());
-			}
-			itemModel.setDefaultValueName(treeSelectItemModelEntity.getDefaultValueName());
+                itemModel.setDefaultValueName(treeSelectItemModelEntity.getDefaultValueName());
+            }
 		}
 
 		if(entity.getColumnModel() != null) {

@@ -65,7 +65,7 @@ public class ItemModel extends NameEntity {
 	@ApiModelProperty(value = "默认值(数据字典的默认值)", position = 15)
 	private Object defaultValue;
 	@ApiModelProperty(value = "默认值名称(数据字典的默认值)", position = 15)
-	private String defaultValueName;
+	private Object defaultValueName;
 
 	@ApiModelProperty(value = "关联表单模型id", position = 15)
 	private String referenceFormId;
@@ -354,11 +354,11 @@ public class ItemModel extends NameEntity {
 		this.defaultValue = defaultValue;
 	}
 
-	public String getDefaultValueName() {
+	public Object getDefaultValueName() {
 		return defaultValueName;
 	}
 
-	public void setDefaultValueName(String defaultValueName) {
+	public void setDefaultValueName(Object defaultValueName) {
 		this.defaultValueName = defaultValueName;
 	}
 
