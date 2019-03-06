@@ -16,7 +16,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.annotations.Api;
 import tech.ascs.icity.admin.api.model.Application;
+import tech.ascs.icity.admin.api.model.TreeSelectData;
 import tech.ascs.icity.admin.client.ApplicationService;
+import tech.ascs.icity.admin.client.GroupService;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.model.*;
@@ -57,6 +59,8 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	@Autowired
 	private DictionaryService dictionaryService;
 
+	@Autowired
+	GroupService groupService;
 
 	@Override
 	public List<FormModel> list(@RequestParam(name="name", defaultValue="") String name, @RequestParam(name = "applicationId", required = false) String applicationId) {
@@ -194,19 +198,20 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
                 throw new IFormException("请不要重复提交");
             }
             concurrentmap.put(key, System.currentTimeMillis());
-            FormModelEntity formModelEntity = formModelService.get(id);
-            List<ItemModelEntity> lists = formModelService.getAllColumnItems(formModelEntity.getItems());
-            List<ItemModelEntity> list = lists.parallelStream().sorted((d2, d1) -> d2.getOrderNo().compareTo(d1.getOrderNo())).collect(Collectors.toList());
-            for(int i = 0 ; i < list.size() ; i ++){
-                ItemModelEntity itemModelEntity1 = list.get(i);
-                if(itemModelEntity1 instanceof SubFormItemModelEntity){
-                    columnModelService.deleteTable(itemModelEntity1.getColumnModel().getDataModel().getTableName());
-                }else {
-                    columnModelService.deleteTableColumn(itemModelEntity1.getColumnModel().getDataModel().getTableName(), itemModelEntity1.getColumnModel().getColumnName());
-                }
-            }
-            columnModelService.deleteTable(formModelEntity.getDataModels().get(0).getTableName());
-            formModelService.deleteFormModelEntityById(id);
+			FormModelEntity formModelEntity = formModelService.get(id);
+			List<ItemModelEntity> lists = formModelService.getAllColumnItems(formModelEntity.getItems());
+			List<ItemModelEntity> list = lists.parallelStream().sorted((d2, d1) -> d2.getOrderNo().compareTo(d1.getOrderNo())).collect(Collectors.toList());
+			for(int i = 0 ; i < list.size() ; i ++){
+				ItemModelEntity itemModelEntity1 = list.get(i);
+				if(itemModelEntity1 instanceof SubFormItemModelEntity){
+					columnModelService.deleteTable(itemModelEntity1.getColumnModel().getDataModel().getTableName());
+				}else {
+					columnModelService.deleteTableColumn(itemModelEntity1.getColumnModel().getDataModel().getTableName(), itemModelEntity1.getColumnModel().getColumnName());
+				}
+			}
+			formModelService.delete(formModelEntity);
+        }catch (Exception e){
+            e.printStackTrace();
         }finally {
             if(concurrentmap.containsKey(key)){
                 concurrentmap.remove(key);
@@ -1220,15 +1225,21 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				((TabsItemModelEntity) entity).setItems(list);
 			}
 		} else if (entity instanceof TreeSelectItemModelEntity) {
-			if (itemModel.getDefaultValue()!=null && itemModel.getDefaultValue() instanceof String) {
-				((TreeSelectItemModelEntity) entity).setDefaultValue(itemModel.getDefaultValue().toString());
-			}
+
 			if (itemModel.getDefaultValue()!=null && itemModel.getDefaultValue() instanceof List) {
 				((TreeSelectItemModelEntity) entity).setDefaultValue(String.join(",", (List)itemModel.getDefaultValue()));
-			}
-			if (itemModel.getDefaultValueName()!=null) {
-				((TreeSelectItemModelEntity) entity).setDefaultValueName(itemModel.getDefaultValueName());
-			}
+			}else if (itemModel.getDefaultValue()!=null) {
+                ((TreeSelectItemModelEntity) entity).setDefaultValue(itemModel.getDefaultValue().toString());
+            }else{
+                ((TreeSelectItemModelEntity) entity).setDefaultValue(null);
+            }
+			if (itemModel.getDefaultValueName()!=null && itemModel.getDefaultValueName() instanceof List ) {
+                ((TreeSelectItemModelEntity) entity).setDefaultValueName(String.join(",", (List)itemModel.getDefaultValueName()));
+			}else if (itemModel.getDefaultValueName()!=null) {
+                ((TreeSelectItemModelEntity) entity).setDefaultValueName((String)itemModel.getDefaultValueName());
+            }else{
+                ((TreeSelectItemModelEntity) entity).setDefaultValueName(null);
+            }
 		}
 
 		List<ItemActivityInfo> activities = new ArrayList<ItemActivityInfo>();
@@ -1878,11 +1889,16 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			if (treeSelectItemModelEntity.getMultiple()) {
 				if (!StringUtils.isEmpty(treeSelectItemModelEntity.getDefaultValue())) {
 					itemModel.setDefaultValue(Arrays.asList(treeSelectItemModelEntity.getDefaultValue().split(",")));
-				}
+                }
 			} else {
 				itemModel.setDefaultValue(treeSelectItemModelEntity.getDefaultValue());
+            }
+			if (!StringUtils.isEmpty(((TreeSelectItemModelEntity) entity).getDefaultValue())) {
+				List<TreeSelectData> list = groupService.getTreeSelectDataSourceByIds(((TreeSelectItemModelEntity) entity).getDataSource().getValue(), ((TreeSelectItemModelEntity) entity).getDefaultValue().split(","));
+				if(list != null && list.size() > 0) {
+					itemModel.setDefaultValueName(list.parallelStream().map(TreeSelectData::getName).collect(Collectors.toList()));
+				}
 			}
-			itemModel.setDefaultValueName(treeSelectItemModelEntity.getDefaultValueName());
 		}
 
 		if(entity.getColumnModel() != null) {
@@ -1935,7 +1951,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 		return itemModel;
 	}
-
 
 	private List<ItemModel> getItemModelList(List<String> idResultList){
 		if(idResultList == null || idResultList.size() < 1){

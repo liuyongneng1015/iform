@@ -1051,6 +1051,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
                             if(formModelEntity == null && referenceItemModelEntity.getSourceFormModelId() != null){
                                 formModelEntity = formModelService.get(referenceItemModelEntity.getSourceFormModelId());
                             }
+                           /* String itemModelEntityList = formModelEntity == null || formModelEntity.getItemModelIds() == null ? "" : formModelEntity.getItemModelIds();
+                            String[] list = itemModelEntityList.split(",");*/
                             formName = formModelEntity == null? "" : formModelEntity.getName();
                             itemName = referenceItemModelEntity.getName();
                             break;

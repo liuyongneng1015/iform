@@ -393,12 +393,13 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 				}
 			}
 		}
-		for(ColumnModelEntity columnModelEntity : columnModelEntities){
+		for(int i = 0; i < columnModelEntities.size(); i++){
+			ColumnModelEntity columnModelEntity = columnModelEntities.get(i);
 			List<ColumnReferenceEntity> list = columnModelEntity.getColumnReferences();
-			if(list == null || list.size() < 1){
-				continue;
+			if(list != null && list.size() > 0){
+				deleteColumnReferenceEntity(columnModelEntity);
 			}
-			deleteColumnReferenceEntity(columnModelEntity);
+			columnModelService.deleteTableColumn(columnModelEntity.getDataModel().getTableName(), columnModelEntity.getColumnName());
 		}
 		delete(modelEntity);
 	}
