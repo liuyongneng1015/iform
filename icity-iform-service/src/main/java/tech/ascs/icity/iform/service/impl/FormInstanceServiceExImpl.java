@@ -1134,10 +1134,21 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			if (values==null || values.length==0) {
 				continue;
 			}
-			ColumnModelEntity columnModel = itemModel.getColumnModel();
 
-//			String propertyName = columnModel.getColumnName();
-			String propertyName = columnModel.getColumnReferences().size() == 0 ? columnModel.getColumnName() : columnModel.getColumnName() + "." + columnModel.getColumnReferences().get(0).getToColumn().getColumnName();
+            String propertyName = "";
+            ColumnModelEntity columnModel = itemModel.getColumnModel();
+			// 关联列表
+			if (itemModel instanceof ReferenceItemModelEntity) {
+				if (columnModel!=null) {
+					propertyName = columnModel.getColumnName() + "." + columnModel.getColumnReferences().get(0).getToColumn().getColumnName();
+				}
+            } else if (columnModel!=null){
+                propertyName = columnModel.getColumnName();
+            }
+            if (StringUtils.isEmpty(propertyName)) {
+			    continue;
+            }
+
 			boolean equalsFlag = false;
 
 			for (int i = 0; i < values.length; i++) {
@@ -1177,15 +1188,19 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 						criteria.add(Restrictions.lt(propertyName, DateUtils.addDays(dateParams, 1)));
 					}
 				} else {
-					Criterion[] conditions = Arrays.asList(values).stream().map(item->Restrictions.eq(propertyName, item)).toArray(Criterion[]::new);
+					Criterion[] conditions = new Criterion[values.length];
+					for (int i=0; i<values.length; i++) {
+						conditions[i] = Restrictions.eq(propertyName, values[i]);
+					}
 					criteria.add(Restrictions.or(conditions));
-//					criteria.add(Restrictions.eq(propertyName, value));  criteria.add(Restrictions.like(propertyName, "%" + value + "%"));
 				}
 			} else {
-				Criterion[] conditions = Arrays.asList(values).stream().map(item->Restrictions.like(propertyName, "%" + item + "%")).toArray(Criterion[]::new);
+				Criterion[] conditions = new Criterion[values.length];
+				for (int i=0; i<values.length; i++) {
+					conditions[i] = Restrictions.eq(propertyName, "%"+values[i]+"%");
+				}
 				criteria.add(Restrictions.or(conditions));
 			}
-
 		}
 		return criteria;
 	}
