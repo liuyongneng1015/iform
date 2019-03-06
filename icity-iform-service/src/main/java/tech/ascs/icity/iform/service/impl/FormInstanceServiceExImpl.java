@@ -2111,7 +2111,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					itemInstance.setValue(valueStrs);
 				}
 
-                if(valueStrs.length() > 0) {
+                if(valueStrs != null && valueStrs.length() > 0) {
                     List<TreeSelectData> list = groupService.getTreeSelectDataSourceByIds(((TreeSelectItemModelEntity) itemModel).getDataSource().getValue(), valueStrs.split(","));
                     if(list != null && list.size() > 0) {
 						List<String> values = list.parallelStream().map(TreeSelectData::getName).collect(Collectors.toList());

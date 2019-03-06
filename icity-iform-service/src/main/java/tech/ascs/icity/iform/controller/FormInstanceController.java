@@ -18,10 +18,8 @@ import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.*;
-import tech.ascs.icity.iform.utils.CurrentUserUtils;
-import tech.ascs.icity.iform.utils.MergedQrCodeImages;
-import tech.ascs.icity.iform.utils.MinioConfig;
-import tech.ascs.icity.iform.utils.ZXingCodeUtils;
+import tech.ascs.icity.iform.service.impl.UploadServiceImpl;
+import tech.ascs.icity.iform.utils.*;
 import tech.ascs.icity.model.IdEntity;
 import tech.ascs.icity.model.Page;
 
@@ -239,15 +237,14 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		List<FileUploadModel> fileUploadModels = new ArrayList<>();
 		try {
 			for(FileUploadEntity fileUploadEntity : fileUploadEntityList) {
-				if (fileUploadEntity == null) {
-					fileUploadModels.add(createDataQrCode(formModel, id));
-				} else {
-					InputStream inputStream = getInputStream("www.baidu.com", "航天智慧");
-					uploadService.resetUploadOneFileByInputstream(fileUploadEntity.getFileKey(), inputStream, "image/png");
-					FileUploadModel fileUploadModel = new FileUploadModel();
-					BeanUtils.copyProperties(fileUploadEntity, fileUploadModel);
-					fileUploadModels.add(fileUploadModel);
-				}
+				InputStream inputStream = getInputStream("www.baidu.com", "航天智慧");
+				uploadService.resetUploadOneFileByInputstream(fileUploadEntity.getFileKey(), inputStream, "image/png");
+				FileUploadModel fileUploadModel = new FileUploadModel();
+				BeanUtils.copyProperties(fileUploadEntity, fileUploadModel);
+				fileUploadModels.add(fileUploadModel);
+			}
+			if(fileUploadEntityList == null || fileUploadEntityList.size() < 1) {
+				fileUploadModels.add(createDataQrCode(formModel, id));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
