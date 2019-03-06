@@ -479,7 +479,7 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 				listFormBtnPermission.setFormPermissions(formBtnPermissions);
 				tech.ascs.icity.admin.api.model.ListFormBtnPermission adminListFormBtnPermission = new tech.ascs.icity.admin.api.model.ListFormBtnPermission();
 				BeanUtils.copyProperties(listFormBtnPermission, adminListFormBtnPermission);
-				List<String> listIds = query().filterNotEqual("masterForm.id", entity.getId()).list().stream().map(item->item.getId()).collect(Collectors.toList());
+				List<String> listIds = query().filterEqual("masterForm.id", entity.getId()).list().stream().map(item->item.getId()).collect(Collectors.toList());
 				if (listIds!=null && listIds.size()>0) {
 					adminListFormBtnPermission.setListIds(listIds);
 					resourceService.editListFormPermissions(adminListFormBtnPermission);
