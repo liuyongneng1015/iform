@@ -471,7 +471,7 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 
 	@Override
 	public void submitFormBtnPermission(FormModelEntity entity) {
-		if (entity!=null && StringUtils.isEmpty(entity.getId())) {
+		if (entity!=null && !StringUtils.isEmpty(entity.getId())) {
 			List<BtnPermission> formBtnPermissions = assemblyBtnPermissions(null, entity);
 			if (formBtnPermissions != null) {
 				ListFormBtnPermission listFormBtnPermission = new ListFormBtnPermission();
