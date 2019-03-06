@@ -16,7 +16,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.annotations.Api;
 import tech.ascs.icity.admin.api.model.Application;
+import tech.ascs.icity.admin.api.model.TreeSelectData;
 import tech.ascs.icity.admin.client.ApplicationService;
+import tech.ascs.icity.admin.client.GroupService;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.model.*;
@@ -57,6 +59,8 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	@Autowired
 	private DictionaryService dictionaryService;
 
+	@Autowired
+	GroupService groupService;
 
 	@Override
 	public List<FormModel> list(@RequestParam(name="name", defaultValue="") String name, @RequestParam(name = "applicationId", required = false) String applicationId) {
@@ -1878,8 +1882,11 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			} else {
 				itemModel.setDefaultValue(treeSelectItemModelEntity.getDefaultValue());
             }
-			if (!StringUtils.isEmpty(treeSelectItemModelEntity.getDefaultValueName())) {
-				itemModel.setDefaultValueName(Arrays.asList(treeSelectItemModelEntity.getDefaultValueName().split(",")));
+			if (!StringUtils.isEmpty(((TreeSelectItemModelEntity) entity).getDefaultValue())) {
+				List<TreeSelectData> list = groupService.getTreeSelectDataSourceByIds(((TreeSelectItemModelEntity) entity).getDataSource().getValue(), ((TreeSelectItemModelEntity) entity).getDefaultValue().split(","));
+				if(list != null && list.size() > 0) {
+					itemModel.setDefaultValueName(list.parallelStream().map(TreeSelectData::getName).collect(Collectors.toList()));
+				}
 			}
 		}
 
