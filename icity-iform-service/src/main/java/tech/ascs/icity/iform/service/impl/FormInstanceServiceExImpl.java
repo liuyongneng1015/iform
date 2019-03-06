@@ -1111,10 +1111,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		DataModelEntity dataModel = formModelEntity.getDataModels().get(0);
 		Session session = getSession(dataModel);
 		Criteria criteria = session.createCriteria(dataModel.getTableName());
-		Map<String, ListSearchItem> searchItemMap = getSearchItemMaps(listModel.getSearchItems());
+//		Map<String, ListSearchItem> searchItemMap = getSearchItemMaps(listModel.getSearchItems());
         List<ItemModelEntity> items = getFormAllItems(formModelEntity);
-		// 要查询listModel.getSearchItems()和listModel.getQuickSearchItems()的取值
-		for (ItemModelEntity itemModel:items) {
+
+        for (ItemModelEntity itemModel:items) {
 			// queryParameters的value可能是数组
 			Object value = queryParameters.get(itemModel.getId());
 			if (value==null) {
@@ -1134,7 +1134,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}
 			ColumnModelEntity columnModel = itemModel.getColumnModel();
 
-			String propertyName = columnModel.getColumnName();
+//			String propertyName = columnModel.getColumnName();
+			String propertyName = columnModel.getColumnReferences().size() == 0 ? columnModel.getColumnName() : columnModel.getColumnName() + "." + columnModel.getColumnReferences().get(0).getToColumn().getColumnName();
 			boolean equalsFlag = false;
 
 			for (int i = 0; i < values.length; i++) {
@@ -1166,7 +1167,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				}
 			}
 
-			ListSearchItem searchItem = searchItemMap.get(itemModel.getId());
 			if (equalsFlag) {
 				if(itemModel.getSystemItemType() == SystemItemType.CreateDate) {
 					Date dateParams = timestampNumberToDate(value);
@@ -1179,12 +1179,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					criteria.add(Restrictions.or(conditions));
 //					criteria.add(Restrictions.eq(propertyName, value));  criteria.add(Restrictions.like(propertyName, "%" + value + "%"));
 				}
-			// searchItem 为空时，表示是快速搜索的搜索条件
-			} else if (searchItem!=null && searchItem.getSearch()!=null && searchItem.getSearch().getSearchType() == SearchType.Like && itemModel.getType() != ItemType.InputNumber) {
-				Criterion[] conditions = Arrays.asList(values).stream().map(item->Restrictions.like(propertyName, "%" + item + "%")).toArray(Criterion[]::new);
-				criteria.add(Restrictions.or(conditions));
 			} else {
-				Criterion[] conditions = Arrays.asList(values).stream().map(item->Restrictions.eq(propertyName, item)).toArray(Criterion[]::new);
+				Criterion[] conditions = Arrays.asList(values).stream().map(item->Restrictions.like(propertyName, "%" + item + "%")).toArray(Criterion[]::new);
 				criteria.add(Restrictions.or(conditions));
 			}
 
