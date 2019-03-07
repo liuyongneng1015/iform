@@ -146,7 +146,7 @@ public class UploadServiceImpl extends DefaultJPAService<FileUploadEntity> imple
 			fileUploadModelEntity.setName(filename);
 			fileUploadModelEntity.setUploadType(uploadType);
 			if(file.getContentType().contains("video")) {//视频
-				thumbnailFile = new File("thumbnail.png");
+				thumbnailFile = new File(UUID.randomUUID()+"_thumbnail.png");
 				InputStream stream2 = new ByteArrayInputStream(baos.toByteArray());
 				fetchFrame(stream2, thumbnailFile.getAbsolutePath());
 				thumbnailFileInputStream = new FileInputStream(thumbnailFile);

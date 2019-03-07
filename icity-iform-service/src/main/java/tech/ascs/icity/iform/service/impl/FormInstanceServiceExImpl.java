@@ -1538,7 +1538,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 
 		//设置关联属性
-		if(fromItem.getSelectMode() == SelectMode.Attribute){
+		if(fromItem.getSelectMode() == SelectMode.Attribute || fromItem.getType() == ItemType.ReferenceLabel){
 			setReferenceAttribute(fromItem, toModelEntity,  columnModelEntity, entity, referenceDataModelList);
 			return;
 		}
