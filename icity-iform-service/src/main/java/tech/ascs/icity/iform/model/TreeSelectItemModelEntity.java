@@ -30,9 +30,6 @@ public class TreeSelectItemModelEntity extends ItemModelEntity  {
 	@Column(name="default_value")// 默认值
 	private String defaultValue;
 
-	@Column(name="default_value_name")// 默认值名称
-	private String defaultValueName;
-
 	@Column(name="data_depth")// 数据深度
 	private Integer dataDepth;
 
@@ -84,11 +81,4 @@ public class TreeSelectItemModelEntity extends ItemModelEntity  {
 		this.defaultValue = defaultValue;
 	}
 
-	public String getDefaultValueName() {
-		return defaultValueName;
-	}
-
-	public void setDefaultValueName(String defaultValueName) {
-		this.defaultValueName = defaultValueName;
-	}
 }

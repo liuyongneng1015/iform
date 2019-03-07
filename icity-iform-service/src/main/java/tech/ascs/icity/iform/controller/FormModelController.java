@@ -1206,13 +1206,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
             }else{
                 ((TreeSelectItemModelEntity) entity).setDefaultValue(null);
             }
-			if (itemModel.getDefaultValueName()!=null && itemModel.getDefaultValueName() instanceof List ) {
-                ((TreeSelectItemModelEntity) entity).setDefaultValueName(String.join(",", (List)itemModel.getDefaultValueName()));
-			}else if (itemModel.getDefaultValueName()!=null) {
-                ((TreeSelectItemModelEntity) entity).setDefaultValueName((String)itemModel.getDefaultValueName());
-            }else{
-                ((TreeSelectItemModelEntity) entity).setDefaultValueName(null);
-            }
 		}
 
 		List<ItemActivityInfo> activities = new ArrayList<ItemActivityInfo>();
