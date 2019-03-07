@@ -1135,16 +1135,39 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				continue;
 			}
 
-            String propertyName = "";
-            ColumnModelEntity columnModel = itemModel.getColumnModel();
-			// 关联列表
-			if (itemModel instanceof ReferenceItemModelEntity) {
-				if (columnModel!=null) {
-					propertyName = columnModel.getColumnName() + "." + columnModel.getColumnReferences().get(0).getToColumn().getColumnName();
+//			String propertyName = columnModel.getColumnReferences().size()==0 ? columnModel.getColumnName():columnModel.getColumnName()+"."+columnModel.getColumnReferences().get(0).getToColumn().getColumnName();
+			ColumnModelEntity columnModel = itemModel.getColumnModel();
+//			columnModel.getColumnName() + "." + columnModel.getColumnReferences().get(0).getToColumn().getColumnName()
+
+			String propertyName = null;
+			if (itemModel instanceof ReferenceItemModelEntity) {  // 关联属性
+				ReferenceItemModelEntity referenceItemModel = (ReferenceItemModelEntity)itemModel;
+				if (referenceItemModel.getSelectMode() == SelectMode.Single && (referenceItemModel.getReferenceType() == ReferenceType.ManyToOne
+						|| referenceItemModel.getReferenceType() == ReferenceType.OneToOne)) {
+					if(referenceItemModel.getColumnModel() == null){
+						continue;
+					}
+					columnModel = referenceItemModel.getColumnModel();
+					propertyName = columnModel.getColumnName()+"."+referenceItemModel.getColumnModel().getColumnName();
+				} else if (referenceItemModel.getSelectMode() == SelectMode.Inverse && (referenceItemModel.getReferenceType() == ReferenceType.ManyToOne
+						|| referenceItemModel.getReferenceType() == ReferenceType.OneToOne)) {
+					ReferenceItemModelEntity referenceItemModelEntity1 = (ReferenceItemModelEntity)itemModelManager.get(referenceItemModel.getReferenceItemId());
+					if(referenceItemModelEntity1.getColumnModel() == null){
+						continue;
+					}
+					columnModel = referenceItemModelEntity1.getColumnModel();
+					propertyName = referenceItemModelEntity1.getColumnModel().getColumnName()+"_list";
 				}
-            } else if (columnModel!=null){
-                propertyName = columnModel.getColumnName();
-            }
+				// 反向时，一对多
+				// 多对多时
+//				columnModel = referenceItemModel.getColumnModel();
+//				propertyName = columnModel.getColumnName()+"_list";
+			} else if (itemModel.getColumnModel()!=null) {        // 普通控件
+				propertyName = columnModel.getColumnName();
+			} else {
+				continue;
+			}
+
             if (StringUtils.isEmpty(propertyName)) {
 			    continue;
             }
