@@ -1113,7 +1113,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		DataModelEntity dataModel = formModelEntity.getDataModels().get(0);
 		Session session = getSession(dataModel);
 		Criteria criteria = session.createCriteria(dataModel.getTableName());
-//		Map<String, ListSearchItem> searchItemMap = getSearchItemMaps(listModel.getSearchItems());
         List<ItemModelEntity> items = getFormAllItems(formModelEntity);
 
         for (ItemModelEntity itemModel:items) {
@@ -1147,16 +1146,17 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					if(referenceItemModel.getColumnModel() == null){
 						continue;
 					}
-					columnModel = referenceItemModel.getColumnModel();
-					propertyName = columnModel.getColumnName()+"."+referenceItemModel.getColumnModel().getColumnName();
+//					columnModel = referenceItemModel.getColumnModel();
+//					referenceItemModel.getColumnModel().getColumnReferences().get(0).getToColumn().getColumnName();
+					propertyName = referenceItemModel.getColumnModel().getColumnName()+".id";//+columnModel.getColumnName();
 				} else if (referenceItemModel.getSelectMode() == SelectMode.Inverse && (referenceItemModel.getReferenceType() == ReferenceType.ManyToOne
 						|| referenceItemModel.getReferenceType() == ReferenceType.OneToOne)) {
 					ReferenceItemModelEntity referenceItemModelEntity1 = (ReferenceItemModelEntity)itemModelManager.get(referenceItemModel.getReferenceItemId());
 					if(referenceItemModelEntity1.getColumnModel() == null){
 						continue;
 					}
-					columnModel = referenceItemModelEntity1.getColumnModel();
-					propertyName = referenceItemModelEntity1.getColumnModel().getColumnName()+"_list";
+//					columnModel = referenceItemModel.getColumnModel();
+					propertyName = referenceItemModelEntity1.getColumnModel().getColumnName()+"_list"+"."+columnModel.getColumnName();
 				}
 				// 反向时，一对多
 				// 多对多时
@@ -1220,7 +1220,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			} else {
 				Criterion[] conditions = new Criterion[values.length];
 				for (int i=0; i<values.length; i++) {
-					conditions[i] = Restrictions.eq(propertyName, "%"+values[i]+"%");
+					conditions[i] = Restrictions.like(propertyName, "%"+values[i]+"%");
 				}
 				criteria.add(Restrictions.or(conditions));
 			}
