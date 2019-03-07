@@ -534,8 +534,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 	//设备表单权限
 	private void saveItempermissions(ItemModelEntity saveItemModelEntity, ItemModelEntity paramerItemModelEntity){
-		if(saveItemModelEntity.getColumnModel() != null && !"id".equals(saveItemModelEntity.getColumnModel().getColumnName())
-				&& !"master_id".equals(saveItemModelEntity.getColumnModel().getColumnName())) {
+		if(paramerItemModelEntity.getColumnModel() != null && !"id".equals(paramerItemModelEntity.getColumnModel().getColumnName())) {
 			List<ItemPermissionInfo> list = new ArrayList<>();
 			Map<String, ItemPermissionInfo> oldItemPermission = new HashMap<>();
 			if(saveItemModelEntity.isNew()) {
@@ -877,6 +876,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			list.addAll(((SubFormItemModelEntity) itemModelEntity).getItems());
 			for (SubFormRowItemModelEntity subFormRowItemModelEntity :  ((SubFormItemModelEntity)itemModelEntity).getItems()) {
 				list.addAll(subFormRowItemModelEntity.getItems());
+				for(ItemModelEntity itemModelEntity1 : subFormRowItemModelEntity.getItems()){
+					list.addAll(getChildRenItemModelEntity(itemModelEntity1));
+				}
 			}
 		}else if(itemModelEntity instanceof TabsItemModelEntity){
 			list.addAll(((TabsItemModelEntity) itemModelEntity).getItems());
