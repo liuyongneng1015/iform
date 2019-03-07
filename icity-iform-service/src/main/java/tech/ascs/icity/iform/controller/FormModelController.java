@@ -591,6 +591,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			            if(itemModelEntity1 instanceof  SubFormItemModelEntity) {
                             formMap.put(((SubFormItemModelEntity) itemModelEntity1).getTableName(), formModelService.getChildRenItemModelEntity(itemModelEntity1));
                         }else{
+							itemModelEntityList.add(itemModelEntity1);
                             itemModelEntityList.addAll(formModelService.getChildRenItemModelEntity(itemModelEntity1));
                         }
                     }
@@ -1271,7 +1272,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	private void setItemPermissions(ItemPermissionModel itemPermissionModel, Map<String, ItemModelEntity> itemModelEntityMap){
 		List<ItemPermissionInfo> itemPermissionInfos = new ArrayList<>();
 		ItemModelEntity entity = itemModelEntityMap.get(itemPermissionModel.getItemModel().getTableName()+"_"+itemPermissionModel.getItemModel().getColumnName());
-		if(entity == null){
+		if(entity == null || entity.getSystemItemType() == SystemItemType.ID || "id".equals(itemPermissionModel.getItemModel().getColumnName()) ){
 			return;
 		}
 		if(itemPermissionModel.getAddPermissions() != null){
@@ -1408,7 +1409,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			List<ItemModelEntity> itemModelEntities = entity.getItems() == null || entity.getItems().size() < 2 ? entity.getItems() : entity.getItems().parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
 
 			//设置控件权限
-			List<ItemPermissionModel> itemPermissionModels = getItemPermissions(entity.getItems());
+			List<ItemPermissionModel> itemPermissionModels = getItemPermissions(formModelService.findAllItems(entity));
 			formModel.setPermissions(itemPermissionModels.size() > 0 ? itemPermissionModels : null);
 			String tableName = entity.getDataModels() == null || entity.getDataModels().size() < 1 ? null :  entity.getDataModels().get(0).getTableName();
 			for (ItemModelEntity itemModelEntity : itemModelEntities) {
@@ -1459,18 +1460,18 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	private List<ItemPermissionModel> getItemPermissions(List<ItemModelEntity> items){
 		List<ItemPermissionModel> itemPermissionsList = new ArrayList<>();
 		List<ItemModelEntity> columnItems = getColumnItem(items);
-		for(ItemModelEntity columnItem : columnItems){
-			if(columnItem.getPermissions() != null && columnItem.getPermissions().size() > 0){
+		for(ItemModelEntity itemModelEntity1 : columnItems){
+			if(itemModelEntity1.getPermissions() != null && itemModelEntity1.getPermissions().size() > 0){
 				ItemPermissionModel itemPermissionModel = new ItemPermissionModel();
-				itemPermissionModel.setId(columnItem.getId());
-				itemPermissionModel.setName(columnItem.getName());
+				itemPermissionModel.setId(itemModelEntity1.getId());
+				itemPermissionModel.setName(itemModelEntity1.getName());
 				ItemModel itemModel = new ItemModel();
-				itemModel.setId(columnItem.getId());
-				itemModel.setName(columnItem.getName());
-				itemModel.setTableName(columnItem.getColumnModel().getDataModel().getTableName());
-				itemModel.setColumnName(columnItem.getColumnModel().getColumnName());
+				itemModel.setId(itemModelEntity1.getId());
+				itemModel.setName(itemModelEntity1.getName());
+				itemModel.setTableName(itemModelEntity1.getColumnModel().getDataModel().getTableName());
+				itemModel.setColumnName(itemModelEntity1.getColumnModel().getColumnName());
 				itemPermissionModel.setItemModel(itemModel);
-				for(ItemPermissionInfo itemPermissionInfo : columnItem.getPermissions()) {
+				for(ItemPermissionInfo itemPermissionInfo : itemModelEntity1.getPermissions()) {
 					ItemPermissionInfoModel itemPermissionInfoModel = new ItemPermissionInfoModel();
 					BeanUtils.copyProperties(itemPermissionInfo, itemPermissionInfoModel, new String[]{"itemModel"});
 					if(itemPermissionInfo.getDisplayTiming() == DisplayTimingType.Add) {
@@ -1490,22 +1491,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	private List<ItemModelEntity> getColumnItem(List<ItemModelEntity> allItems){
 		List<ItemModelEntity> itemModels = new ArrayList<>();
 		for(ItemModelEntity itemModelEntity : allItems) {
-			if (itemModelEntity instanceof SubFormItemModelEntity) {
-				List<SubFormRowItemModelEntity> subRowItems = ((SubFormItemModelEntity) itemModelEntity).getItems();
-				for (SubFormRowItemModelEntity rowItemModelEntity : subRowItems) {
-					for (ItemModelEntity itemModel : rowItemModelEntity.getItems()) {
-						if (itemModel.getColumnModel() != null) {
-							itemModels.add(itemModel);
-						}
-					}
-				}
-			} else if (itemModelEntity instanceof RowItemModelEntity) {
-				for (ItemModelEntity itemModel : ((RowItemModelEntity) itemModelEntity).getItems()) {
-					if (itemModel.getColumnModel() != null) {
-						itemModels.add(itemModel);
-					}
-				}
-			} else if (itemModelEntity.getColumnModel() != null) {
+			if (itemModelEntity.getColumnModel() != null && !itemModelEntity.getColumnModel().getColumnName().equals("id")	) {
 				itemModels.add(itemModelEntity);
 			}
 		}
