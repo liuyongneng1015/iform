@@ -681,12 +681,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			List<ItemPermissionModel> itemPermissionModels = formModel.getPermissions();
 			for(int i = 0 ;i < itemPermissionModels.size() ; i++) {
 				ItemPermissionModel itemPermissionModel = itemPermissionModels.get(i);
-				ItemModelEntity itemModelEntity = map.get(itemPermissionModel.getItemModel().getTableName()+"_"+itemPermissionModel.getItemModel().getColumnName());
-				if(itemModelEntity == null && itemPermissionModel.getItemModel() != null && StringUtils.hasText(itemPermissionModel.getItemModel().getId())){
-					itemPermissionModels.remove(itemPermissionModel);
-					i--;
-					continue;
-				}
 				setItemPermissions(itemPermissionModel, map);
 			}
 		}
@@ -794,28 +788,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			List<FormSubmitCheckInfo> checkInfoList = checkInfos.size() < 2 ? checkInfos : checkInfos.parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
 			entity.setSubmitChecks(checkInfoList);
 		}
-	}
-
-	private FormModelEntity wrapPermission(FormModel formModel) {
-		FormModelEntity entity = new FormModelEntity();
-		BeanUtils.copyProperties(formModel, entity, new String[] {"items","dataModels","permissions","submitChecks","functions"});
-
-		if(formModel.getPermissions() != null){
-			List<ItemPermissionInfo> permissionInfos = new ArrayList<>();
-			for(ItemPermissionModel model : formModel.getPermissions()){
-				ItemPermissionInfo permissionInfo = new ItemPermissionInfo();
-				BeanUtils.copyProperties(model, permissionInfo, new String[]{"formModel" ,"itemModel"});
-				if(model.getItemModel() != null){
-					ItemModelEntity itemModelEntity = new ItemModelEntity();
-					BeanUtils.copyProperties(model.getItemModel(), itemModelEntity, new String[]{"formModel", "columnModel", "activities", "options","searchItems","sortItems", "permissions","items","parentItem","referenceList"});
-					permissionInfo.setItemModel(itemModelEntity);
-				}
-				permissionInfo.setDisplayTiming(DisplayTimingType.Add);
-				permissionInfos.add(permissionInfo);
-			}
-			//entity.getPermissions().addAll(permissionInfos);
-		}
-		return entity;
 	}
 
 	private FormModelEntity wrapSubmitCheck(FormModel formModel) {

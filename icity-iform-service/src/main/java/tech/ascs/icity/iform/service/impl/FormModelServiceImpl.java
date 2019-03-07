@@ -438,17 +438,23 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 	}
 
 	private ItemModelEntity  getNewItemModel(Map<String, ItemModelEntity> oldMapItmes, Map<String, ColumnModelEntity> modelEntityMap, ItemModelEntity paramerItemModelEntity){
-		ItemModelEntity saveItemModelEntity = getItemModelEntity(paramerItemModelEntity.getType());
-		if(paramerItemModelEntity.getSystemItemType() == SystemItemType.SerialNumber){
-			saveItemModelEntity = new SerialNumberItemModelEntity();
-		}else if(paramerItemModelEntity.getSystemItemType() == SystemItemType.Creator){
-			saveItemModelEntity = new CreatorItemModelEntity();
-		}else if(paramerItemModelEntity.getSystemItemType() == SystemItemType.CreateDate){
-			saveItemModelEntity = new TimeItemModelEntity();
-		}
+		ItemModelEntity saveItemModelEntity = null;
 		if(!paramerItemModelEntity.isNew()){
 			saveItemModelEntity = oldMapItmes.get(paramerItemModelEntity.getId());
+			if(saveItemModelEntity == null){
+				throw new IFormException("未找到【"+paramerItemModelEntity.getId()+"】对应控件");
+			}
+		}else{
+			saveItemModelEntity = getItemModelEntity(paramerItemModelEntity.getType());
+			if(paramerItemModelEntity.getSystemItemType() == SystemItemType.SerialNumber){
+				saveItemModelEntity = new SerialNumberItemModelEntity();
+			}else if(paramerItemModelEntity.getSystemItemType() == SystemItemType.Creator){
+				saveItemModelEntity = new CreatorItemModelEntity();
+			}else if(paramerItemModelEntity.getSystemItemType() == SystemItemType.CreateDate){
+				saveItemModelEntity = new TimeItemModelEntity();
+			}
 		}
+
 		String oldColumnName = saveItemModelEntity.getColumnModel() == null ? null : saveItemModelEntity.getColumnModel().getColumnName();
 		String newColunmName = paramerItemModelEntity.getColumnModel() == null ? null : paramerItemModelEntity.getColumnModel().getColumnName();
 		ReferenceType oldReferenceType = null;
@@ -457,8 +463,6 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			 oldReferenceType = ((ReferenceItemModelEntity)saveItemModelEntity).getReferenceType();
 			oldReferenceFormId = ((ReferenceItemModelEntity) saveItemModelEntity).getReferenceFormId();
 		}
-
-
 		ReferenceType newReferenceType = null;
 		String newReferenceFormId = null;
 		if(paramerItemModelEntity  instanceof ReferenceItemModelEntity){
@@ -467,6 +471,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		}
 
 		BeanUtils.copyProperties(paramerItemModelEntity, saveItemModelEntity, new String[]{"referencesItemModels","parentItem", "searchItems","sortItems","permissions", "referenceList","items","formModel","columnModel","activities","options"});
+
+		setAcitityOption(saveItemModelEntity, paramerItemModelEntity);
+		saveItempermissions(saveItemModelEntity, paramerItemModelEntity);
 
 		//newItemModelEntity.setFormModel(oldItemModelEntity.getFormModel());
 
@@ -493,9 +500,6 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			((SelectItemModelEntity)saveItemModelEntity).setReferenceDictionaryItemId(((SelectItemModelEntity) paramerItemModelEntity).getReferenceDictionaryItemId());
 			((SelectItemModelEntity)saveItemModelEntity).setParentItem(((SelectItemModelEntity) paramerItemModelEntity).getParentItem());
 		}
-
-		setAcitityOption(saveItemModelEntity, paramerItemModelEntity);
-
 
 		if(paramerItemModelEntity.getColumnModel() != null && paramerItemModelEntity.getColumnModel().getDataModel() != null){
 			ColumnModelEntity columnModelEntity = modelEntityMap.get(paramerItemModelEntity.getColumnModel().getDataModel().getTableName()+"_"+paramerItemModelEntity.getColumnModel().getColumnName());
@@ -524,8 +528,6 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			saveItemModelEntity.setColumnModel(null);
 		}
 
-		saveItempermissions(saveItemModelEntity, paramerItemModelEntity);
-
 
 		return saveItemModelEntity;
 	}
@@ -535,12 +537,12 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		if(saveItemModelEntity.getColumnModel() != null && !"id".equals(saveItemModelEntity.getColumnModel().getColumnName())
 				&& !"master_id".equals(saveItemModelEntity.getColumnModel().getColumnName())) {
 			List<ItemPermissionInfo> list = new ArrayList<>();
+			Map<String, ItemPermissionInfo> oldItemPermission = new HashMap<>();
 			if(saveItemModelEntity.isNew()) {
 				list.add(createItempermissionInfo(saveItemModelEntity, DisplayTimingType.Add));
 				list.add(createItempermissionInfo(saveItemModelEntity, DisplayTimingType.Update));
 				list.add(createItempermissionInfo(saveItemModelEntity, DisplayTimingType.Check));
 			}else{
-				Map<String, ItemPermissionInfo> oldItemPermission = new HashMap<>();
 				for(ItemPermissionInfo itemPermissionInfo : saveItemModelEntity.getPermissions()){
 					oldItemPermission.put(itemPermissionInfo.getId(), itemPermissionInfo);
 				}
@@ -550,11 +552,14 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 					newItemPermiss.setItemModel(saveItemModelEntity);
 					list.add(newItemPermiss);
 				}
-				for(String key: oldItemPermission.keySet()){
-					itemPermissionManager.deleteById(key);
-				}
 			}
 			saveItemModelEntity.setPermissions(list);
+			for(String key: oldItemPermission.keySet()){
+				ItemPermissionInfo permissionInfo = oldItemPermission.get(key);
+				permissionInfo.setItemModel(null);
+				itemPermissionManager.save(permissionInfo);
+				itemPermissionManager.delete(permissionInfo);
+			}
 		}
 	}
 
