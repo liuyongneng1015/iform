@@ -239,30 +239,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	@SuppressWarnings("unchecked")
 	@Override
 	public FormInstance getFormInstance(FormModelEntity formModel, String instanceId) {
-		//List<ItemModelEntity> columnItem = formModelService.getAllColumnItems(formModel.getItems());
-		/*Map<String, List<ItemModelEntity>> referenceMap = new HashMap<>();
-		for(ItemModelEntity itemModelEntity : columnItem){
-			if(itemModelEntity instanceof ReferenceItemModelEntity && ((ReferenceItemModelEntity) itemModelEntity).getSelectMode() == null) {
-				List<ItemModelEntity> list = referenceMap.get(itemModelEntity.getColumnModel().getDataModel()+"_f"+itemModelEntity.getColumnModel().getColumnName());
-				if(list == null){
-					list = new ArrayList<>();
-				}
-				list.add(itemModelEntity);
-				referenceMap.put(itemModelEntity.getColumnModel().getDataModel()+"_f"+itemModelEntity.getColumnModel().getColumnName(), list);
-			}
-		}*/
-
-		/*for(String key : map.keySet()){
-			map.put(dataModel.getTableName() + "_" + key, map.get(key));
-		}
-		for(DataModelEntity dataModelEntity : dataModel.getSlaverModels()){
-			 session = getSession(dataModel);
-			Map<String, Object> slaverMap = (Map<String, Object>) session.load(dataModel.getTableName(), instanceId);
-			for(String key : map.keySet()){
-				slaverMap.put(dataModel.getTableName() + "_" + key, map.get(key));
-			}
-			map.putAll(slaverMap);
-		}*/
 
 		FormInstance formInstance = null;
 		try {
@@ -1650,24 +1626,23 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		//关联字段
 		String key =new ArrayList<>(keyMap.keySet()).get(0);
 		boolean flag = keyMap.get(key);
-		if(fromItem.getReferenceType() == ReferenceType.ManyToOne || fromItem.getReferenceType() == ReferenceType.OneToOne){
-			Object listMap = null;
-			if(flag) {
-				listMap = (Map<String, Object>) entity.get(key);
-			}else{
-				listMap= (List<Map<String, Object>>) entity.get(key);
-			}
-			if( listMap == null) {
-				return;
-			}
-			ReferenceDataInstance dataModelInstance = new ReferenceDataInstance();
-			String formId = ((ReferenceItemModelEntity) itemModel).getReferenceFormId();
-			if(StringUtils.hasText(formId)) {
-				FormModelEntity formModelEntity = formModelService.find(formId);
-				dataModelInstance.setReferenceTable(formModelEntity == null ? null :formModelEntity.getDataModels().get(0).getTableName());
-			}
-			dataModelInstance.setId(itemModel.getId());
-
+		Object listMap = null;
+		if(flag) {
+			listMap = (Map<String, Object>) entity.get(key);
+		}else{
+			listMap= (List<Map<String, Object>>) entity.get(key);
+		}
+		if( listMap == null) {
+			return;
+		}
+		ReferenceDataInstance dataModelInstance = new ReferenceDataInstance();
+		String formId = ((ReferenceItemModelEntity) itemModel).getReferenceFormId();
+		if(StringUtils.hasText(formId)) {
+			FormModelEntity formModelEntity = formModelService.find(formId);
+			dataModelInstance.setReferenceTable(formModelEntity == null ? null :formModelEntity.getDataModels().get(0).getTableName());
+		}
+		dataModelInstance.setId(itemModel.getId());
+		if(fromItem.getReferenceType() == ReferenceType.ManyToOne || fromItem.getReferenceType() == ReferenceType.OneToOne ){
 			if(flag) {
 				if(listMap  != null && ((Map<String, Object>)listMap).get("id") != null && StringUtils.hasText(String.valueOf(((Map<String, Object>)listMap).get("id")))) {
 					ReferenceDataInstance referenceDataInstance = createDataModelInstance(fromItem, toModelEntity, String.valueOf(((Map<String, Object>) listMap).get("id")), stringList, false);
@@ -1688,30 +1663,16 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 							}
 						}
 					}
-					dataModelInstance.setValue(String.join(",",valueList));
-					dataModelInstance.setDisplayValue(String.join(",", displayValueList));
+					dataModelInstance.setValue(valueList);
+					dataModelInstance.setDisplayValue(displayValueList);
 					referenceDataModelList.add(dataModelInstance);
 				}
 			}
-		}else if(fromItem.getReferenceType() == ReferenceType.ManyToMany || fromItem.getReferenceType() == ReferenceType.OneToMany){
-			if(fromItem.getReferenceType() == ReferenceType.OneToMany){
-				key = getRefenrenceItem(fromItem).getColumnModel().getColumnName();
-			}
-			List<Map<String, Object>> listMap = (List<Map<String, Object>>)entity.get(key);
-			if( listMap == null || listMap.size() == 0) {
-				return;
-			}
-			ReferenceDataInstance dataModelInstance =  new ReferenceDataInstance();
-			String formId = ((ReferenceItemModelEntity) itemModel).getReferenceFormId();
-			if(StringUtils.hasText(formId)) {
-				FormModelEntity formModelEntity = formModelService.find(formId);
-				dataModelInstance.setReferenceTable(formModelEntity == null ? null :formModelEntity.getDataModels().get(0).getTableName());
-			}
-			dataModelInstance.setId(itemModel.getId());
+		}else if(fromItem.getReferenceType() == ReferenceType.ManyToMany || fromItem.getReferenceType() == ReferenceType.OneToMany ){
 			List<String> values = new ArrayList<>();
 			List<Object> idValues = new ArrayList<>();
 
-			for(Map<String, Object> map  : listMap) {
+			for(Map<String, Object> map  : (List<Map<String, Object>>)listMap) {
 				idValues.add(map.get("id"));
 				FormInstance getFormInstance = getFormInstance(toModelEntity, String.valueOf(map.get("id")));
 				List<String> arrayList = new ArrayList<>();
@@ -1730,7 +1691,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				values.add(String.join(",", arrayList));
 			}
 			dataModelInstance.setValue(idValues);
-			dataModelInstance.setDisplayValue(String.join(",", values));
+			dataModelInstance.setDisplayValue(values);
 			referenceDataModelList.add(dataModelInstance);
 		}
 	}
