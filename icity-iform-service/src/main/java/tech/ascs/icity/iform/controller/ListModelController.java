@@ -242,12 +242,9 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 	}
 
 	@Override
-	public void batchDelete(@RequestBody List<String> ids) {
-		if (ids!=null && ids.size()>0) {
-			String[] idArr = ids.stream().filter(item->!StringUtils.isEmpty(item)).toArray(String[]::new);
-			if (idArr!=null && idArr.length>0) {
-				listModelService.deleteById(idArr);
-			}
+	public void removeListModels(@RequestBody List<String> ids) {
+		for (String id:ids) {
+			removeListModel(id);
 		}
 	}
 

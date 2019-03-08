@@ -103,6 +103,10 @@ public interface ListModelService {
 	@DeleteMapping("/{id}")
 	void removeListModel(@PathVariable(name="id") String id);
 
+	@ApiOperation(value = "批量删除列表", position = 8)
+	@DeleteMapping("/batchDelete")
+	void removeListModels(@RequestBody List<String> ids);
+
 	/**
 	 * 查询列表模型
 	 *
@@ -145,10 +149,6 @@ public interface ListModelService {
 	@ApiImplicitParam(paramType = "path", name = "id", value = "列表模型ID", required = true, dataType = "String")
 	@GetMapping("/{id}/list-form-btn-permissions")
 	ListFormBtnPermission getListFormBtnPermissions(@PathVariable(name = "id") String id);
-
-	@ApiOperation(value = "批量删除列表", position = 8)
-	@DeleteMapping("/batch-delete")
-	void batchDelete(@RequestBody List<String> ids);
 
 	@ApiOperation(value = "批量ID查询概要信息，只返回ID和名称", position = 9)
 	@ApiImplicitParam(paramType="query", name = "ids", value = "ID集合", required = false, dataType = "Array")

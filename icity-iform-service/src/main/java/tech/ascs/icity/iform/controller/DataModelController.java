@@ -323,6 +323,13 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 	}
 
 	@Override
+	public void removeDataModels(@RequestBody List<String> ids) {
+		for (String id:ids) {
+			removeDataModel(id);
+		}
+	}
+
+	@Override
 	public List<DataModel> findDataModelByFormId(@PathVariable(name="formId") String formId) {
 		return dataModelService.findDataModelByFormId(formId);
 	}
