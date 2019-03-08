@@ -220,6 +220,13 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	}
 
 	@Override
+	public void removeFormModels(List<String> ids) {
+		for (String id:ids) {
+			removeFormModel(id);
+		}
+	}
+
+	@Override
 	public PCFormModel getPCFormModelById(@PathVariable(name="id") String id) {
 		FormModelEntity entity = formModelService.find(id);
 		if (entity == null) {

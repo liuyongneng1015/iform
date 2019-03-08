@@ -169,6 +169,13 @@ public interface DataModelService {
 	void removeDataModel(@PathVariable(name="id") String id);
 
 	/**
+	 * 批量删除数据模型
+	 */
+	@ApiOperation(value = "批量删除数据模型", position = 6)
+	@DeleteMapping("/batchDelete")
+	void removeDataModels(@RequestBody List<String> ids);
+
+	/**
 	 * 查询字段流程
 	 *
 	 * @param formId 数据模型ID
