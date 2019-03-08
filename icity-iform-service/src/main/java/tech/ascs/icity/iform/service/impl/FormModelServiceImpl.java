@@ -514,12 +514,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			} else if (columnModelEntity != null && saveItemModelEntity instanceof TreeSelectItemModelEntity) {
 				TreeSelectItemModelEntity treeSelectItemModelEntity = (TreeSelectItemModelEntity)saveItemModelEntity;
 				if (treeSelectItemModelEntity.getMultiple()!=null) {
-					if (treeSelectItemModelEntity.getMultiple()==true && treeSelectItemModelEntity.getColumnModel()!=null) {
-						if (treeSelectItemModelEntity.getColumnModel().getLength()!=null && treeSelectItemModelEntity.getColumnModel().getLength()<=4096) {
-							treeSelectItemModelEntity.getColumnModel().setLength(4096);
-						} else {
-							treeSelectItemModelEntity.getColumnModel().setLength(4096);
-						}
+					if (treeSelectItemModelEntity.getMultiple()==true) {
+						columnModelEntity.setDataType(ColumnType.String);
+						columnModelEntity.setLength(4096);
 					}
 				}
 			}
