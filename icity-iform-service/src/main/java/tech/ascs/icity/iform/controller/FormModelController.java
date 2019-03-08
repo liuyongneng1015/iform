@@ -1724,6 +1724,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 					itemModel1.setColumnName(((ReferenceItemModelEntity) entity).getParentItem().getColumnModel().getColumnName());
 				}
 				itemModel.setParentItem(itemModel1);
+				itemModel.setParentItemId(itemModel1.getId());
 			}
 
 			if(((ReferenceItemModelEntity) entity).getReferenceList() != null){
@@ -1770,6 +1771,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
                     parentItemModel.setTableName(columnModel.getTableName());
 				}
 				itemModel.setParentItem(parentItemModel);
+				itemModel.setParentItemId(parentItemModel.getId());
 			}
 
 			//pc表单控件才有下拉子类
