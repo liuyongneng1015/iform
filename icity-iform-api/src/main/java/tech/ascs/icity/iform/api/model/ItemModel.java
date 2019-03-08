@@ -101,6 +101,9 @@ public class ItemModel extends NameEntity {
 	@ApiModelProperty(value="上级关联控件模型",position = 22)
 	private ItemModel parentItem ;
 
+	@ApiModelProperty(value="上级关联控件模型id",position = 22)
+	private String parentItemId ;
+
 	//subformrow/row
 	@ApiModelProperty(value="当前行数",position = 23)
 	private Integer rowNumber;
@@ -256,6 +259,14 @@ public class ItemModel extends NameEntity {
 
 	public void setParentItem(ItemModel parentItem) {
 		this.parentItem = parentItem;
+	}
+
+	public String getParentItemId() {
+		return parentItemId;
+	}
+
+	public void setParentItemId(String parentItemId) {
+		this.parentItemId = parentItemId;
 	}
 
 	public String getColumnName() {

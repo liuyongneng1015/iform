@@ -1474,6 +1474,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				setItemInstance(itemModelEntity, referenceFlag, entity, referenceDataModelList,
 						 subFormItems,  items, formInstance);
 			}
+		}else if(itemModel instanceof TabsItemModelEntity){
+			for(TabPaneItemModelEntity itemModelEntity : ((TabsItemModelEntity) itemModel).getItems()) {
+				setItemInstance(itemModelEntity, referenceFlag, entity, referenceDataModelList,
+						subFormItems,  items, formInstance);
+			}
 		}else{
 			ItemInstance itemInstance = setItemInstance(column.getKey(), itemModel, value, formInstance.getActivityId());
 			items.add(itemInstance);
@@ -2197,13 +2202,15 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 //			}
 //		}
 		if((selectItemModelEntity.getSelectReferenceType() == SelectReferenceType.Dictionary ||
-			selectItemModelEntity.getReferenceDictionaryItemId() != null ||
-			checkParentSelectItemHasDictionaryItem(selectItemModelEntity)
-			) && list != null && list.size() > 0){
+			selectItemModelEntity.getReferenceDictionaryItemId() != null || checkParentSelectItemHasDictionaryItem(selectItemModelEntity)) && list != null && list.size() > 0){
 			List<DictionaryItemEntity> dictionaryItemEntities = dictionaryItemManager.query().filterIn("id",list).list();
 			if(dictionaryItemEntities != null) {
+				Map<String, String> map = new HashMap<>();
 				for (DictionaryItemEntity dictionaryItemEntity : dictionaryItemEntities) {
-					displayValuelist.add(dictionaryItemEntity.getName());
+					map.put(dictionaryItemEntity.getId(), dictionaryItemEntity.getName());
+				}
+				for(String str : list){
+					displayValuelist.add(map.get(str));
 				}
 			}
 			itemInstance.setDisplayValue(displayValuelist);
@@ -2212,10 +2219,14 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				itemInstance.setValue(new ArrayList<>());
 			}
 		}else if(itemModel.getOptions() != null && itemModel.getOptions().size() > 0) {
+			Map<String, String> map = new HashMap<>();
 			for (ItemSelectOption option : itemModel.getOptions()) {
 				if (list.contains(option.getId())) {
-					displayValuelist.add(option.getLabel());
+					map.put(option.getId(), option.getLabel());
 				}
+			}
+			for(String str : list){
+				displayValuelist.add(map.get(str));
 			}
 			itemInstance.setDisplayValue(displayValuelist);
 		}else {

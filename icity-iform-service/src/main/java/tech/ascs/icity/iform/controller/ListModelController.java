@@ -631,6 +631,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 								parentItemModel.setTableName(columnModel.getTableName());
 							}
 							searchItem.setParentItem(parentItemModel);
+							searchItem.setParentItemId(parentItemModel.getId());
 						}
 
 						// 在列表建模渲染页面，如果查询条件是连动的下拉选择框，要返回联动的items的信息
