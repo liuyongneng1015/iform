@@ -1474,6 +1474,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				setItemInstance(itemModelEntity, referenceFlag, entity, referenceDataModelList,
 						 subFormItems,  items, formInstance);
 			}
+		}else if(itemModel instanceof TabsItemModelEntity){
+			for(TabPaneItemModelEntity itemModelEntity : ((TabsItemModelEntity) itemModel).getItems()) {
+				setItemInstance(itemModelEntity, referenceFlag, entity, referenceDataModelList,
+						subFormItems,  items, formInstance);
+			}
 		}else{
 			ItemInstance itemInstance = setItemInstance(column.getKey(), itemModel, value, formInstance.getActivityId());
 			items.add(itemInstance);
