@@ -1132,11 +1132,16 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		DataModelEntity dataModel = formModelEntity.getDataModels().get(0);
 		Session session = getSession(dataModel);
 		Criteria criteria = session.createCriteria(dataModel.getTableName());
-        List<ItemModelEntity> items = getFormAllItems(formModelEntity);
 
-        for (ItemModelEntity itemModel:items) {
+		Map<String, ItemModelEntity> idAndItemMap = assemblyFormAllItems(formModelEntity);
+
+        for (String id:queryParameters.keySet()) {
+			ItemModelEntity itemModel = idAndItemMap.get(id);
+			if (itemModel==null) {
+				continue;
+			}
 			// queryParameters的value可能是数组
-			Object value = queryParameters.get(itemModel.getId());
+			Object value = queryParameters.get(id);
 			if (value==null) {
 				continue;
 			}
@@ -1279,50 +1284,50 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 	}
 
-	public List<ItemModelEntity> getFormAllItems(FormModelEntity formModelEntity) {
-		List<ItemModelEntity> list = new ArrayList<>();
+	public Map<String, ItemModelEntity> assemblyFormAllItems(FormModelEntity formModelEntity) {
+		Map<String, ItemModelEntity> map = new HashMap<>();
 		for (ItemModelEntity itemModel:formModelEntity.getItems()) {
-			list.add(itemModel);
-			list.addAll(getItemsInItem(itemModel));
+			assemblyItemsInItem(itemModel, map);
 		}
-		return list;
+		return map;
 	}
 
-	/** 获取item结构里面的items，如果是ReferenceItemModelEntity，要获取祖父级的item，referenceItemModelEntity.getParentItem().getParentItem() */
-	public List<ItemModelEntity> getItemsInItem(ItemModelEntity itemModelEntity) {
-		List<ItemModelEntity> list = new ArrayList<>();
+	/** 获取item结构里面的items和parentItem */
+	public void assemblyItemsInItem(ItemModelEntity itemModelEntity, Map<String, ItemModelEntity> idAndItemMap) {
 		if (itemModelEntity!=null) {
-			Class clazz = itemModelEntity.getClass();  //得到类对象
-			Field[] fs = clazz.getDeclaredFields();    //得到属性集合
-			for (Field f : fs) {                         //遍历属性
-				if (f.getName().equals("items")) {
-					f.setAccessible(true);             //设置属性是可以访问的(私有的也可以)
-					try {
-						Object itemValues = f.get(itemModelEntity);
-						if (itemValues != null && itemValues instanceof List) {
-							List<ItemModelEntity> items = (List<ItemModelEntity>) itemValues;
-							for (ItemModelEntity subItem : items) {
-								list.addAll(getItemsInItem(subItem));
+			String id = itemModelEntity.getId();
+			if (idAndItemMap.get(id)==null) {
+				idAndItemMap.put(id, itemModelEntity);
+				Class clazz = itemModelEntity.getClass();  //得到类对象
+				Field[] fs = clazz.getDeclaredFields();    //得到属性集合
+				for (Field f : fs) {                       //遍历属性
+					if (f.getName().equals("items")) {
+						f.setAccessible(true);             //设置属性是可以访问的(私有的也可以)
+						try {
+							Object itemValues = f.get(itemModelEntity);
+							if (itemValues != null && itemValues instanceof List) {
+								List<ItemModelEntity> items = (List<ItemModelEntity>) itemValues;
+								for (ItemModelEntity subItem : items) {
+									assemblyItemsInItem(subItem, idAndItemMap);
+								}
 							}
+						} catch (IllegalAccessException e) {
+							e.printStackTrace();
 						}
-					} catch (IllegalAccessException e) {
-						e.printStackTrace();
-					}
-				}
-			}
-			if (itemModelEntity instanceof ReferenceItemModelEntity) {
-				ReferenceItemModelEntity referenceItemModelEntity = (ReferenceItemModelEntity)itemModelEntity;
-				ReferenceItemModelEntity parentReferenceItemModelEntity = referenceItemModelEntity.getParentItem();
-				if (parentReferenceItemModelEntity!=null) {
-					list.add(parentReferenceItemModelEntity);
-					ReferenceItemModelEntity grandfather = parentReferenceItemModelEntity.getParentItem();
-					if (grandfather!=null) {
-						list.add(grandfather);
+					} else if (f.getName().equals("parentItem")) {
+						f.setAccessible(true);             //设置属性是可以访问的(私有的也可以)
+						try {
+							Object itemValue = f.get(itemModelEntity);
+							if (itemValue != null && itemValue instanceof ItemModelEntity) {
+								assemblyItemsInItem((ItemModelEntity)itemValue, idAndItemMap);
+							}
+						} catch (IllegalAccessException e) {
+							e.printStackTrace();
+						}
 					}
 				}
 			}
 		}
-		return list;
 	}
 
 	// 封装控件ID和ListSearchItem的关系
