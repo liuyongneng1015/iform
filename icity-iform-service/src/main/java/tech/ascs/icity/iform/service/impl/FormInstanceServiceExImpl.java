@@ -1243,26 +1243,36 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		return list;
 	}
 
-	/** 获取item结构里面的items */
+	/** 获取item结构里面的items，如果是ReferenceItemModelEntity，要获取祖父级的item，referenceItemModelEntity.getParentItem().getParentItem() */
 	public List<ItemModelEntity> getItemsInItem(ItemModelEntity itemModelEntity) {
 		List<ItemModelEntity> list = new ArrayList<>();
 		if (itemModelEntity!=null) {
-			list.add(itemModelEntity);
 			Class clazz = itemModelEntity.getClass();  //得到类对象
 			Field[] fs = clazz.getDeclaredFields();    //得到属性集合
-			for (Field f:fs) {                         //遍历属性
+			for (Field f : fs) {                         //遍历属性
 				if (f.getName().equals("items")) {
 					f.setAccessible(true);             //设置属性是可以访问的(私有的也可以)
 					try {
 						Object itemValues = f.get(itemModelEntity);
-						if (itemValues!=null && itemValues instanceof List) {
-							List<ItemModelEntity> items = (List<ItemModelEntity>)itemValues;
-							for (ItemModelEntity subItem:items) {
+						if (itemValues != null && itemValues instanceof List) {
+							List<ItemModelEntity> items = (List<ItemModelEntity>) itemValues;
+							for (ItemModelEntity subItem : items) {
 								list.addAll(getItemsInItem(subItem));
 							}
 						}
 					} catch (IllegalAccessException e) {
 						e.printStackTrace();
+					}
+				}
+			}
+			if (itemModelEntity instanceof ReferenceItemModelEntity) {
+				ReferenceItemModelEntity referenceItemModelEntity = (ReferenceItemModelEntity)itemModelEntity;
+				ReferenceItemModelEntity parentReferenceItemModelEntity = referenceItemModelEntity.getParentItem();
+				if (parentReferenceItemModelEntity!=null) {
+					list.add(parentReferenceItemModelEntity);
+					ReferenceItemModelEntity grandfather = parentReferenceItemModelEntity.getParentItem();
+					if (grandfather!=null) {
+						list.add(grandfather);
 					}
 				}
 			}
