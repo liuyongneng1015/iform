@@ -582,7 +582,23 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 						continue;
 					}
 					SearchItem searchItem = new SearchItem();
-
+                    if(((ReferenceItemModelEntity) itemModelEntity).getReferenceType() == ReferenceType.ManyToMany){
+                        searchItem.setMultiple(true);
+                    }else if(((ReferenceItemModelEntity) itemModelEntity).getReferenceType() == ReferenceType.OneToOne){
+                        searchItem.setMultiple(false);
+                    }else if(((ReferenceItemModelEntity) itemModelEntity).getReferenceType() == ReferenceType.ManyToOne){
+                        if(((ReferenceItemModelEntity) itemModelEntity).getType() == ItemType.ReferenceLabel){
+                            searchItem.setMultiple(true);
+                        }else{
+                            searchItem.setMultiple(false);
+                        }
+                    }else if(((ReferenceItemModelEntity) itemModelEntity).getReferenceType() == ReferenceType.OneToMany){
+                        if(((ReferenceItemModelEntity) itemModelEntity).getType() != ItemType.ReferenceLabel){
+                            searchItem.setMultiple(true);
+                        }else{
+                            searchItem.setMultiple(false);
+                        }
+                    }
 					searchItem.setOrderNo(searchItemEntity.getOrderNo());
 					BeanUtils.copyProperties(itemModelEntity, searchItem, new String[]{"defaultValue", "formModel", "columnModel", "activities", "options","searchItems","sortItems", "permissions","items","parentItem","referenceList"});
 					List<ItemSelectOption> options = itemModelEntity.getOptions();
