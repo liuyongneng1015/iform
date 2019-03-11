@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.annotations.Api;
+import tech.ascs.icity.ICityException;
 import tech.ascs.icity.admin.api.model.Application;
 import tech.ascs.icity.admin.api.model.TreeSelectData;
 import tech.ascs.icity.admin.client.ApplicationService;
@@ -1205,10 +1206,24 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				((TabsItemModelEntity) entity).setItems(list);
 			}
 		} else if (entity instanceof TreeSelectItemModelEntity) {
-
-			if (itemModel.getDefaultValue()!=null && itemModel.getDefaultValue() instanceof List) {
-				((TreeSelectItemModelEntity) entity).setDefaultValue(String.join(",", (List)itemModel.getDefaultValue()));
-			}else if (itemModel.getDefaultValue()!=null) {
+			if (itemModel.getDataSource()==null) {
+				throw new ICityException("必须设置数据源的类型");
+			}
+			Object defaultValue = itemModel.getDefaultValue();
+			if (defaultValue!=null && defaultValue instanceof List) {
+				List<String> defaultValues = (List)defaultValue;
+				if (defaultValues.size()>0) {
+					List<TreeSelectData> result = groupService.getTreeSelectDataSourceByIds(itemModel.getDataSource().getValue(), defaultValues.toArray(new String[]{}));
+					if (result == null || result.size() != defaultValues.size()) {
+						throw new ICityException("树形下拉框的默认值与数据源设置的类型不一致");
+					}
+					((TreeSelectItemModelEntity) entity).setDefaultValue(String.join(",", defaultValues));
+				}
+			}else if (defaultValue!=null && defaultValue instanceof String) {
+				List<TreeSelectData> result = groupService.getTreeSelectDataSourceByIds(itemModel.getDataSource().getValue(), new String[] {(String)defaultValue});
+				if (result==null || result.size()!=1) {
+					throw new ICityException("树形下拉框的默认值与数据源设置的类型不一致");
+				}
                 ((TreeSelectItemModelEntity) entity).setDefaultValue(itemModel.getDefaultValue().toString());
             }else{
                 ((TreeSelectItemModelEntity) entity).setDefaultValue(null);
