@@ -27,8 +27,6 @@ import tech.ascs.icity.model.NameEntity;
 import tech.ascs.icity.model.Page;
 import tech.ascs.icity.utils.BeanUtils;
 
-import javax.naming.Name;
-
 @Api(tags = "列表模型服务", description = "包含列表模型的增删改查等功能")
 @RestController
 public class ListModelController implements tech.ascs.icity.iform.api.service.ListModelService {
@@ -44,7 +42,6 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 
 	@Autowired
 	private ApplicationService applicationService;
-
 
 	@Override
 	public List<ListModel> list(@RequestParam(name = "name", defaultValue = "") String name,
@@ -749,7 +746,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			for (ItemModelEntity item:masterForm.getItems()) {
 				if (item.getType()!=null && item.getType()!=ItemType.SubForm) {
 					items.add(item);
-					items.addAll(getItemSubItems(item));
+					items.addAll(getItemsInItem(item));
 //					if (item.getType()!=ItemType.SubForm && item.getType()!=ItemType.ReferenceList) {
 //						// 过滤标签页这个外层的控件，遍历进去获取里面的控件
 //						if (item instanceof TabPaneItemModelEntity) {
@@ -759,12 +756,12 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 //							items.add(item);
 //						}
 //					}
-//					ids.addAll(getItemSubItems(item));
+//					ids.addAll(getItemsInItem(item));
 				}
 //				if (item.getType()!=null && item.getType()!=ItemType.Row &&
 //						item.getType()!=ItemType.SubForm && item.getType()!=ItemType.RowItem &&
 //						item.getType()!=ItemType.ReferenceList) {
-//					ids.addAll(getItemSubItems(item));
+//					ids.addAll(getItemsInItem(item));
 //				}
 			}
 		}
@@ -790,7 +787,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		return items;
 	}
 
-	public List<ItemModelEntity> getItemSubItems(ItemModelEntity itemModelEntity) {
+	public List<ItemModelEntity> getItemsInItem(ItemModelEntity itemModelEntity) {
 		List<ItemModelEntity> list = new ArrayList<>();
 		if (itemModelEntity!=null) {
 			list.add(itemModelEntity);
@@ -804,7 +801,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 						if (itemValues!=null && itemValues instanceof List) {
 							List<ItemModelEntity> items = (List<ItemModelEntity>)itemValues;
 							for (ItemModelEntity subItem:items) {
-								list.addAll(getItemSubItems(subItem));
+								list.addAll(getItemsInItem(subItem));
 							}
 						}
 					} catch (IllegalAccessException e) {
