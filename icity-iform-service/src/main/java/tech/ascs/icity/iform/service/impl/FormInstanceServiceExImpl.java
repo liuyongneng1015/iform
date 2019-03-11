@@ -1202,7 +1202,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 			for (int i = 0; i < values.length; i++) {
 				value = values[i];
-				if (itemModel.getSystemItemType() == SystemItemType.CreateDate) {
+				if (itemModel.getSystemItemType() == SystemItemType.CreateDate || itemModel.getType() == ItemType.DatePicker) {
 					equalsFlag = true;
 					if (!(value instanceof Date)) {
 						String strValue = String.valueOf(value);
@@ -1230,7 +1230,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}
 
 			if (equalsFlag) {
-				if(itemModel.getSystemItemType() == SystemItemType.CreateDate) {
+				if(itemModel.getSystemItemType() == SystemItemType.CreateDate || itemModel.getType() == ItemType.DatePicker) {
 					Date dateParams = timestampNumberToDate(value);
 					if (Objects.nonNull(value)) {  // Timestamp
 						criteria.add(Restrictions.ge(propertyName, dateParams));
