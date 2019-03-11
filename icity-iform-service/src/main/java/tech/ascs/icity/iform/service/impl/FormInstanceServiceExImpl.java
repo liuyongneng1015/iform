@@ -9,6 +9,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.google.api.client.util.ArrayMap;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.hibernate.Criteria;
@@ -1025,13 +1026,57 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
                             if(formModelEntity == null && referenceItemModelEntity.getSourceFormModelId() != null){
                                 formModelEntity = formModelService.get(referenceItemModelEntity.getSourceFormModelId());
                             }
-                           /* String itemModelEntityList = formModelEntity == null || formModelEntity.getItemModelIds() == null ? "" : formModelEntity.getItemModelIds();
-                            String[] list = itemModelEntityList.split(",");*/
+                            String itemModelEntityList = formModelEntity == null || formModelEntity.getItemModelIds() == null ? "" : formModelEntity.getItemModelIds();
+                            String[] list = itemModelEntityList.split(",");
+
                             formName = formModelEntity == null? "" : formModelEntity.getName();
-                            itemName = referenceItemModelEntity.getName();
-                            break;
+                            List<String> idList = new ArrayList<>();
+                            if(entity.get(key) instanceof List){
+                                for(Map<String, Object> objectMap : (List<Map<String,Object>>)entity.get(key)){
+                                   if(objectMap.get("id") != null){
+                                       idList.add((String)objectMap.get("id"));
+                                   }
+                                }
+                            }else{
+                                if(((Map<String, Object>)entity.get(key)).get("id") != null){
+                                    idList.add((String)((Map<String, Object>)entity.get(key)).get("id"));
+                                }
+                            }
+                            List<String> valueList = new ArrayList<>();
+                            for(String str : idList){
+                                FormInstance formInstance =  getFormInstance(formModelEntity, str);
+                                if(formInstance == null){
+                                    continue;
+                                }
+                                Map<String, ItemInstance> itemInstanceHashMap = new HashMap<>();
+                                for(ItemInstance itemInstance : formInstance.getItems()){
+                                    itemInstanceHashMap.put(itemInstance.getId(), itemInstance);
+                                }
+                                for(String idStr : list){
+                                    List<String> values = new ArrayList<>();
+                                    ItemInstance itemInstance = itemInstanceHashMap.get(idStr);
+                                    if(itemInstance == null){
+                                        continue;
+                                    }
+                                    if(itemInstance instanceof List){
+                                        if(itemInstance.getType() == ItemType.Media || itemInstance.getType() == ItemType.Attachment){
+                                            values.add(((FileUploadModel)itemInstance.getDisplayValue()).getName());
+                                        }else{
+                                            values.add((String)itemInstance.getDisplayValue());
+                                        }
+                                    }else{
+                                        if(itemInstance.getType() == ItemType.Media || itemInstance.getType() == ItemType.Attachment){
+                                            values.add(((FileUploadModel)itemInstance.getDisplayValue()).getName());
+                                        }else{
+                                            values.add((String)itemInstance.getDisplayValue());
+                                        }
+                                    }
+                                    valueList.add(String.join(",", values));
+                                }
+                            }
+                            itemName = String.join(",", valueList);
                         }
-                        throw new IFormException("该数据被【" + formName + "】表单的关联，无法删除");
+                        throw new IFormException("该数据被【" + formName + "】表单的【"+itemName+"】关联，无法删除");
                     }
                 }
             }
