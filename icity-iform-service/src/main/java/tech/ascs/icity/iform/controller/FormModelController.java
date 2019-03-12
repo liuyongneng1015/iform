@@ -1218,15 +1218,17 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 						throw new ICityException("树形下拉框的默认值与数据源设置的类型不一致");
 					}
 					((TreeSelectItemModelEntity) entity).setDefaultValue(String.join(",", defaultValues));
+				} else {
+					((TreeSelectItemModelEntity) entity).setDefaultValue("");
 				}
-			}else if (defaultValue!=null && defaultValue instanceof String) {
+			}else if (defaultValue!=null && defaultValue instanceof String && !StringUtils.isEmpty(defaultValue)) {
 				List<TreeSelectData> result = groupService.getTreeSelectDataSourceByIds(itemModel.getDataSource().getValue(), new String[] {(String)defaultValue});
 				if (result==null || result.size()!=1) {
 					throw new ICityException("树形下拉框的默认值与数据源设置的类型不一致");
 				}
                 ((TreeSelectItemModelEntity) entity).setDefaultValue(itemModel.getDefaultValue().toString());
             }else{
-                ((TreeSelectItemModelEntity) entity).setDefaultValue(null);
+                ((TreeSelectItemModelEntity) entity).setDefaultValue("");
             }
 		}
 
@@ -1866,7 +1868,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 					itemModel.setDefaultValue(Arrays.asList(treeSelectItemModelEntity.getDefaultValue().split(",")));
                 }
 			} else {
-				itemModel.setDefaultValue(treeSelectItemModelEntity.getDefaultValue());
+				if (!StringUtils.isEmpty(treeSelectItemModelEntity.getDefaultValue())) {
+					itemModel.setDefaultValue(treeSelectItemModelEntity.getDefaultValue());
+				}
             }
 			if (!StringUtils.isEmpty(((TreeSelectItemModelEntity) entity).getDefaultValue())) {
 				List<TreeSelectData> list = groupService.getTreeSelectDataSourceByIds(((TreeSelectItemModelEntity) entity).getDataSource().getValue(), ((TreeSelectItemModelEntity) entity).getDefaultValue().split(","));
