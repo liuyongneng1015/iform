@@ -86,6 +86,7 @@ public class ZXingCodeUtils {
 
                 // 自定义文本描述
                 if (StringUtils.isNotEmpty(note)) {
+                    System.out.println(note+"____"+new String(note.getBytes("UTF-8"),"UTF-8"));
                     log.error(note+"____"+new String(note.getBytes("UTF-8"),"UTF-8"));
                     // 新的图片，把带logo的二维码下面加上文字
                     BufferedImage outImage = new BufferedImage(400, 445, BufferedImage.TYPE_4BYTE_ABGR);

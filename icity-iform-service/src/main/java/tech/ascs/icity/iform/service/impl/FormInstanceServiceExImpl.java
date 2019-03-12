@@ -1044,6 +1044,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
                             }
                             List<String> valueList = new ArrayList<>();
                             for(String str : idList){
+                            	if(!StringUtils.hasText(str)){
+                            		continue;
+								}
                                 FormInstance formInstance =  getFormInstance(formModelEntity, str);
                                 if(formInstance == null){
                                     continue;
