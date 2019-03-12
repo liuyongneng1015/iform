@@ -500,6 +500,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 
 
+		List<NewDataList> newDataList = new ArrayList<>();
 		//TODO 子表数据
 		if(formInstance.getSubFormData() != null &&formInstance.getSubFormData().size() > 0) {
 			for (SubFormItemInstance subFormItemInstance : formInstance.getSubFormData()) {
@@ -589,33 +590,36 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					map.put("id", newId);
 					newListMap.add(map);
 				}
-
-
-				try {
-					//旧的数据
-					List<Map<String, Object>> oldListMap = (List<Map<String, Object>>) data.get(key);
-					deleteSubFormNewMapData("master_id", session, dataModelEntity, oldListMap, idList);
-					List<Map<String, Object>>  subFormData = new ArrayList<>();
-					for (Map<String, Object> map : newListMap) {
-						Map<String, Object> subFormMap = new HashMap<>();
-						if(referenceItemModelEntityList == null || referenceItemModelEntityList.size() < 1) {
-							 subFormMap = (Map<String, Object>) subFormSession.get(dataModelEntity.getTableName(), String.valueOf(map.get("id")));
-						}else {
-							subFormMap = (Map<String, Object>) session.load(dataModelEntity.getTableName(), String.valueOf(map.get("id")));
-						}
-						subFormMap.put("master_id", data);
-						subFormData.add(subFormMap);
-					}
-					data.put(key, subFormData);
-				} catch (Exception e) {
-					throw e;
-				}finally {
-					if(subFormSession != null) {
-						subFormSession.close();
-					}
-				}
+				NewDataList newDataList1 = new NewDataList();
+				newDataList1.setKey(key);
+				newDataList1.setTableName(dataModelEntity.getTableName());
+				newDataList1.setDataListMap(newListMap);
+				subFormSession.close();
+				newDataList.add(newDataList1);
+				//旧的数据
+				List<Map<String, Object>> oldListMap = (List<Map<String, Object>>) data.get(key);
+				deleteSubFormNewMapData("master_id", session, dataModelEntity, oldListMap, idList);
 			}
 		}
+		for(NewDataList newDataList1 : newDataList){
+			List<Map<String, Object>>  subFormData = new ArrayList<>();
+			for (Map<String, Object> map : newDataList1.getDataListMap()) {
+				Map<String, Object> subFormMap = new HashMap<>();
+						/*if(referenceItemModelEntityList == null || referenceItemModelEntityList.size() < 1) {
+							 subFormMap = (Map<String, Object>) subFormSession.get(dataModelEntity.getTableName(), String.valueOf(map.get("id")));
+						}else {*/
+				subFormMap = (Map<String, Object>) session.load(newDataList1.getTableName(), String.valueOf(map.get("id")));
+				//}
+				subFormMap.put("master_id", data);
+				subFormData.add(subFormMap);
+			}
+			data.put(newDataList1.getKey(), subFormData);
+		}
+		deleteSalverModelData( slaverModelsList,  session,  data);
+	}
+
+	//清楚子表旧数据
+	private void deleteSalverModelData(List<String> slaverModelsList, Session session, Map<String, Object> data){
 		for (String str : slaverModelsList) {
 			//旧的数据
 			List<Map<String, Object>> oldListMap = (List<Map<String, Object>>) data.get(str + "_list");
