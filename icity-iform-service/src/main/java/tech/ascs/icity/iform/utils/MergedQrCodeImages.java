@@ -73,7 +73,7 @@ public class MergedQrCodeImages {
     //克隆文件流
     public static ByteArrayOutputStream cloneInputStream(InputStream input) throws  Exception {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[input.available()];
             int len;
             while ((len = input.read(buffer)) > -1) {
                 baos.write(buffer, 0, len);
