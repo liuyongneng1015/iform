@@ -4,6 +4,7 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URL;
+import java.util.UUID;
 
 import javax.imageio.ImageIO;
 
@@ -23,7 +24,7 @@ public class MergedQrCodeImages {
 
             File file = null;
             try {
-                file = new File("back.png");
+                file = new File(UUID.randomUUID()+"_back.png");
                 writeToLocal(file.getAbsolutePath(), backFile);
 
                 BufferedImage small =ImageIO.read(qrCodeFile);;
@@ -73,7 +74,7 @@ public class MergedQrCodeImages {
     //克隆文件流
     public static ByteArrayOutputStream cloneInputStream(InputStream input) throws  Exception {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            byte[] buffer = new byte[input.available()];
+            byte[] buffer = new byte[2048];
             int len;
             while ((len = input.read(buffer)) > -1) {
                 baos.write(buffer, 0, len);

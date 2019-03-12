@@ -86,8 +86,6 @@ public class ZXingCodeUtils {
 
                 // 自定义文本描述
                 if (StringUtils.isNotEmpty(note)) {
-                    System.out.println(note+"____"+new String(note.getBytes("UTF-8"),"UTF-8"));
-                    log.error(note+"____"+new String(note.getBytes("UTF-8"),"UTF-8"));
                     // 新的图片，把带logo的二维码下面加上文字
                     BufferedImage outImage = new BufferedImage(400, 445, BufferedImage.TYPE_4BYTE_ABGR);
                     Graphics2D outg = outImage.createGraphics();
@@ -95,7 +93,7 @@ public class ZXingCodeUtils {
                     outg.drawImage(image, 0, 0, image.getWidth(), image.getHeight(), null);
                     // 画文字到新的面板
                     outg.setColor(Color.BLACK);
-                    outg.setFont(new Font("宋体", Font.BOLD, 24)); // 字体、字型、字号
+                    outg.setFont(new Font("宋体", Font.BOLD, 28)); // 字体、字型、字号
                     int strWidth = outg.getFontMetrics().stringWidth(note);
                     if (strWidth > 399) {
                         // //长度过长就截取前面部分
@@ -109,7 +107,7 @@ public class ZXingCodeUtils {
                         Graphics2D outg2 = outImage2.createGraphics();
                         outg2.drawImage(outImage, 0, 0, outImage.getWidth(), outImage.getHeight(), null);
                         outg2.setColor(Color.BLACK);
-                        outg2.setFont(new Font("宋体", Font.BOLD, 24)); // 字体、字型、字号
+                        outg2.setFont(new Font("宋体", Font.BOLD, 28)); // 字体、字型、字号
                         outg2.drawString(new String(note2.getBytes("UTF-8"),"UTF-8"), 200 - strWidth2 / 2,outImage.getHeight() + (outImage2.getHeight() - outImage.getHeight()) / 2 + 5);
                         outg2.dispose();
                         outImage2.flush();
