@@ -21,6 +21,9 @@ import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import tech.ascs.icity.iform.controller.DataModelController;
 
 /**
  * 画制定logo和制定描述的二维码
@@ -33,7 +36,7 @@ public class ZXingCodeUtils {
 
     private static final int WIDTH = 400; // 二维码宽
     private static final int HEIGHT = 400; // 二维码高
-    private static Random random = new Random(); // 随机数
+    private static final Logger log = LoggerFactory.getLogger(ZXingCodeUtils.class);
 
     // 用于设置QR二维码参数
     private static Map<EncodeHintType, Object> hints = new HashMap<EncodeHintType, Object>() {
@@ -83,6 +86,7 @@ public class ZXingCodeUtils {
 
                 // 自定义文本描述
                 if (StringUtils.isNotEmpty(note)) {
+                    log.error(note+"____"+new String(note.getBytes("UTF-8"),"UTF-8"));
                     // 新的图片，把带logo的二维码下面加上文字
                     BufferedImage outImage = new BufferedImage(400, 445, BufferedImage.TYPE_4BYTE_ABGR);
                     Graphics2D outg = outImage.createGraphics();
@@ -90,7 +94,7 @@ public class ZXingCodeUtils {
                     outg.drawImage(image, 0, 0, image.getWidth(), image.getHeight(), null);
                     // 画文字到新的面板
                     outg.setColor(Color.BLACK);
-                    outg.setFont(new Font("楷体", Font.BOLD, 30)); // 字体、字型、字号
+                    outg.setFont(new Font("宋体", Font.BOLD, 24)); // 字体、字型、字号
                     int strWidth = outg.getFontMetrics().stringWidth(note);
                     if (strWidth > 399) {
                         // //长度过长就截取前面部分
@@ -99,18 +103,18 @@ public class ZXingCodeUtils {
                         String note2 = note.substring(note.length() / 2, note.length());
                         int strWidth1 = outg.getFontMetrics().stringWidth(note1);
                         int strWidth2 = outg.getFontMetrics().stringWidth(note2);
-                        outg.drawString(new String(note1.getBytes("utf8"),"utf8"), 200 - strWidth1 / 2, height + (outImage.getHeight() - height) / 2 + 12);
+                        outg.drawString(new String(note1.getBytes("UTF-8"),"UTF-8"), 200 - strWidth1 / 2, height + (outImage.getHeight() - height) / 2 + 12);
                         BufferedImage outImage2 = new BufferedImage(400, 485, BufferedImage.TYPE_4BYTE_ABGR);
                         Graphics2D outg2 = outImage2.createGraphics();
                         outg2.drawImage(outImage, 0, 0, outImage.getWidth(), outImage.getHeight(), null);
                         outg2.setColor(Color.BLACK);
-                        outg2.setFont(new Font("宋体", Font.BOLD, 12)); // 字体、字型、字号
-                        outg2.drawString(new String(note2.getBytes("utf8"),"utf8"), 200 - strWidth2 / 2,outImage.getHeight() + (outImage2.getHeight() - outImage.getHeight()) / 2 + 5);
+                        outg2.setFont(new Font("宋体", Font.BOLD, 24)); // 字体、字型、字号
+                        outg2.drawString(new String(note2.getBytes("UTF-8"),"UTF-8"), 200 - strWidth2 / 2,outImage.getHeight() + (outImage2.getHeight() - outImage.getHeight()) / 2 + 5);
                         outg2.dispose();
                         outImage2.flush();
                         outImage = outImage2;
                     } else {
-                        outg.drawString(new String(note.getBytes("utf8"),"utf8") , 200 - strWidth / 2, height + (outImage.getHeight() - height) / 2 + 12); // 画文字
+                        outg.drawString(new String(note.getBytes("UTF-8"),"UTF-8") , 200 - strWidth / 2, height + (outImage.getHeight() - height) / 2 + 12); // 画文字
                     }
                     outg.dispose();
                     outImage.flush();
