@@ -1004,7 +1004,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}
 			List<ColumnReferenceEntity> referenceEntityList = idColumnModel.getColumnReferences();
 			for(ColumnReferenceEntity columnReferenceEntity : referenceEntityList){
-			    if(columnReferenceEntity.getReferenceType() == ReferenceType.ManyToMany ){
+			    if(columnReferenceEntity.getReferenceType() == ReferenceType.ManyToMany || !columnReferenceEntity.getFromColumn().getColumnName().equals("id") ){
 			        continue;
                 }
                 if(columnReferenceEntity.getReferenceType() == ReferenceType.OneToOne ||
@@ -1033,14 +1033,17 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
                             List<String> idList = new ArrayList<>();
                             if(entity.get(key) instanceof List){
                                 for(Map<String, Object> objectMap : (List<Map<String,Object>>)entity.get(key)){
-                                   if(objectMap.get("id") != null){
-                                       idList.add((String)objectMap.get("id"));
+                                	String idValue = objectMap.get("master_id") == null ? (String)objectMap.get("id") : (String)((Map<String, Object>)objectMap.get("master_id")).get("id");
+                                   if(idValue != null){
+                                       idList.add(idValue);
                                    }
                                 }
                             }else{
-                                if(((Map<String, Object>)entity.get(key)).get("id") != null){
-                                    idList.add((String)((Map<String, Object>)entity.get(key)).get("id"));
-                                }
+								Map<String, Object> objectMap = ((Map<String, Object>)entity.get(key));
+								String idValue = objectMap.get("master_id") == null ? (String)objectMap.get("id") : (String)((Map<String, Object>)objectMap.get("master_id")).get("id");
+								if(idValue != null){
+									idList.add(idValue);
+								}
                             }
                             List<String> valueList = new ArrayList<>();
                             for(String str : idList){

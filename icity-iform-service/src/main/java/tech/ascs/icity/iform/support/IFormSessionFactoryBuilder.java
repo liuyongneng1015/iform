@@ -96,10 +96,15 @@ public class IFormSessionFactoryBuilder {
 	private void setReferenceDataModel(DataModelEntity dataModel){
 		//行
 		List<DataModelEntity> referencesDataModel = dataModel.getReferencesDataModel() == null ? new ArrayList<>() : dataModel.getReferencesDataModel();
+		List<DataModelEntity> referencesDataParentModel = dataModel.getReferencesDataParentModel() == null ? new ArrayList<>() : dataModel.getReferencesDataParentModel();
+
 		List<ColumnModelEntity> columnModelEntities = dataModel.getColumns() == null ? new ArrayList<>() : dataModel.getColumns() ;
 		for(ColumnModelEntity columnModelEntity : columnModelEntities) {
 			for (ColumnReferenceEntity entity : columnModelEntity.getColumnReferences()){
 				DataModelEntity dataModelEntity = entity.getToColumn().getDataModel();
+				if(dataModelEntity.getMasterModel() != null && !referencesDataParentModel.contains(dataModelEntity.getMasterModel())){
+					referencesDataParentModel.add(dataModelEntity.getMasterModel());
+				}
 				if(referencesDataModel.contains(dataModelEntity)) {
 					continue;
 				}
