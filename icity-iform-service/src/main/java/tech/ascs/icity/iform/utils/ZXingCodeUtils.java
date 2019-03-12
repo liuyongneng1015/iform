@@ -37,11 +37,10 @@ public class ZXingCodeUtils {
 
     // 用于设置QR二维码参数
     private static Map<EncodeHintType, Object> hints = new HashMap<EncodeHintType, Object>() {
-        private static final long serialVersionUID = 1L;
         {
-            put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.H);// 设置QR二维码的纠错级别（H为最高级别）具体级别信息
+            put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.M);// 设置QR二维码的纠错级别（H为最高级别）具体级别信息
             put(EncodeHintType.CHARACTER_SET, "utf-8");// 设置编码方式
-            put(EncodeHintType.MARGIN, 0);
+            put(EncodeHintType.MARGIN, 2);
         }
     };
 

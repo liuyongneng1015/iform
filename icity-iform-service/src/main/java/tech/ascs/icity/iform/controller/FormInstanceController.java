@@ -237,7 +237,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		List<FileUploadModel> fileUploadModels = new ArrayList<>();
 		try {
 			for(FileUploadEntity fileUploadEntity : fileUploadEntityList) {
-				InputStream inputStream = getInputStream("www.baidu.com", "航天智慧");
+				InputStream inputStream = getInputStream("https://www.baidu.com", "航天智慧cityworks");
 				uploadService.resetUploadOneFileByInputstream(fileUploadEntity.getFileKey(), inputStream, "image/png");
 				FileUploadModel fileUploadModel = new FileUploadModel();
 				BeanUtils.copyProperties(fileUploadEntity, fileUploadModel);
