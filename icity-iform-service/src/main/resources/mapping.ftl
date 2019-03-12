@@ -235,7 +235,7 @@
                 <#list slaver.columns as column>
                     <#if column.columnName != 'id' &&  (!column.columnReferences?? || (column.columnReferences?size < 1)) >
                         <#if column.columnName = 'master_id' >
-                            <many-to-one name="${column.columnName!''}" entity-name="${dataModel.tableName!''}" column="${column.columnName!''}" fetch="select" not-found="ignore" />
+                            <many-to-one name="${column.columnName!''}" entity-name="${dataModel.tableName!''}" lazy="false" column="${column.columnName!''}" fetch="select" not-found="ignore" />
                         <#else>
                             <property name="${column.columnName!''}" type="${column.dataType?lower_case}">
                                 <column name="f${column.columnName!''}" default="${column.defaultValue!'null'}" not-null="${(column.notNull!false)?c}" length="<#if !column.length ?? || column.length = 0>255<#else >${column.length?c}</#if>" precision="<#if !column.precision ?? || column.precision = 0>255<#else >${column.precision}</#if>" <#if column.dataType?? && column.dataType.value ?? && (column.dataType.value ="Integer" || column.dataType.value = "Long" || column.dataType.value = "Float" || column.dataType.value = "Double")> scale="${column.scale!0}"</#if>>

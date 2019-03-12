@@ -587,18 +587,21 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					map.put("id", newId);
 					newListMap.add(map);
 				}
-				subFormSession.close();
+
 
 				//旧的数据
 				List<Map<String, Object>> oldListMap = (List<Map<String, Object>>) data.get(key);
 				deleteSubFormNewMapData("master_id", session, dataModelEntity, oldListMap, idList);
 				List<Map<String, Object>>  subFormData = new ArrayList<>();
 				for (Map<String, Object> map : newListMap) {
-					Map<String, Object> newMap = (Map<String, Object>) session.load(dataModelEntity.getTableName(), String.valueOf(map.get("id")));
-					newMap.put("master_id", data);
-					subFormData.add(newMap);
+					Map<String, Object> subFormMap = (Map<String, Object>) subFormSession.get(dataModelEntity.getTableName(), String.valueOf(map.get("id")));
+
+					//Map<String, Object> newMap = (Map<String, Object>) session.load(dataModelEntity.getTableName(), String.valueOf(map.get("id")));
+					subFormMap.put("master_id", data);
+					subFormData.add(subFormMap);
 				}
 				data.put(key, subFormData);
+				subFormSession.close();
 			}
 		}
 		for (String str : slaverModelsList) {
@@ -842,8 +845,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 
 	private void deleteData(Session session, String tableName, String id, String referenceKey){
-		Session subFormSession = session;//getSession(dataModelEntity);
-		Map<String, Object> subFormData = (Map<String, Object>) subFormSession.load(tableName, id);
+		Map<String, Object> subFormData = (Map<String, Object>) session.load(tableName, id);
 		//子表数据
 		if(subFormData == null || subFormData.keySet() == null) {
 			throw new IFormException("没有查询到【" + tableName + "】表，id【"+id+"】的数据");
