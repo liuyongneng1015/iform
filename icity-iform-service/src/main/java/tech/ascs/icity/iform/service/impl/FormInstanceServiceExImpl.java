@@ -576,7 +576,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					FormDataSaveInstance formDataSaveInstance = new FormDataSaveInstance();
 					formDataSaveInstance.setFormId(formInstance.getFormId());
 					formDataSaveInstance.setReferenceData(referenceData);
-					saveReferenceData(user, formDataSaveInstance, map, subFormSession, dataModelEntity.getTableName(), referenceItemModelEntityList, displayTimingType);
+					if(referenceItemModelEntityList != null && referenceItemModelEntityList.size() > 0) {
+						saveReferenceData(user, formDataSaveInstance, map, subFormSession, dataModelEntity.getTableName(), referenceItemModelEntityList, displayTimingType);
+					}
 					String newId = id;
 					if(id != null && StringUtils.hasText(id)){
 						subFormSession.merge(dataModelEntity.getTableName(), map);
@@ -595,9 +597,12 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					deleteSubFormNewMapData("master_id", session, dataModelEntity, oldListMap, idList);
 					List<Map<String, Object>>  subFormData = new ArrayList<>();
 					for (Map<String, Object> map : newListMap) {
-						Map<String, Object> subFormMap = (Map<String, Object>) subFormSession.get(dataModelEntity.getTableName(), String.valueOf(map.get("id")));
-
-						//Map<String, Object> newMap = (Map<String, Object>) session.load(dataModelEntity.getTableName(), String.valueOf(map.get("id")));
+						Map<String, Object> subFormMap = new HashMap<>();
+						if(referenceItemModelEntityList == null || referenceItemModelEntityList.size() < 1) {
+							 subFormMap = (Map<String, Object>) subFormSession.get(dataModelEntity.getTableName(), String.valueOf(map.get("id")));
+						}else {
+							subFormMap = (Map<String, Object>) session.load(dataModelEntity.getTableName(), String.valueOf(map.get("id")));
+						}
 						subFormMap.put("master_id", data);
 						subFormData.add(subFormMap);
 					}
