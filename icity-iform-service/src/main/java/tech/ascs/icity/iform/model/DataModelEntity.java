@@ -52,9 +52,6 @@ public class DataModelEntity extends BaseEntity implements Serializable {
 	@Transient//关联数据模型不存数据库
 	private List<DataModelEntity> referencesDataModel = new ArrayList<DataModelEntity>();
 
-	@Transient//关联数据模型父级
-	private List<DataModelEntity> referencesDataParentModel = new ArrayList<DataModelEntity>();
-
 	public String getTableName() {
 		return tableName;
 	}
@@ -136,13 +133,5 @@ public class DataModelEntity extends BaseEntity implements Serializable {
 
 	public void setReferencesDataModel(List<DataModelEntity> referencesDataModel) {
 		this.referencesDataModel = referencesDataModel;
-	}
-
-	public List<DataModelEntity> getReferencesDataParentModel() {
-		return referencesDataParentModel;
-	}
-
-	public void setReferencesDataParentModel(List<DataModelEntity> referencesDataParentModel) {
-		this.referencesDataParentModel = referencesDataParentModel;
 	}
 }

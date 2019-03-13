@@ -2,10 +2,7 @@ package tech.ascs.icity.iform.support;
 
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceUnit;
@@ -94,22 +91,34 @@ public class IFormSessionFactoryBuilder {
 	}
 
 	private void setReferenceDataModel(DataModelEntity dataModel){
-		//行
-		List<DataModelEntity> referencesDataModel = dataModel.getReferencesDataModel() == null ? new ArrayList<>() : dataModel.getReferencesDataModel();
-		List<DataModelEntity> referencesDataParentModel = dataModel.getReferencesDataParentModel() == null ? new ArrayList<>() : dataModel.getReferencesDataParentModel();
+		Set<DataModelEntity> allDataModels = new HashSet<>();
+		allDataModels.add(dataModel);
+		//子表
+		List<DataModelEntity> slaverModels = dataModel.getSlaverModels();
+		allDataModels.addAll(slaverModels);
 
-		List<ColumnModelEntity> columnModelEntities = dataModel.getColumns() == null ? new ArrayList<>() : dataModel.getColumns() ;
-		for(ColumnModelEntity columnModelEntity : columnModelEntities) {
-			for (ColumnReferenceEntity entity : columnModelEntity.getColumnReferences()){
+		//关联表
+		Set<DataModelEntity> referencesDataModel = new HashSet<>();
+
+		//主表关联
+		setReferencesDataModel(allDataModels, referencesDataModel, dataModel);
+		for(DataModelEntity slaverDataModel: slaverModels){
+			//子表关联
+			setReferencesDataModel(allDataModels, referencesDataModel, slaverDataModel);
+		}
+		dataModel.setReferencesDataModel(new ArrayList<>(referencesDataModel));
+	}
+
+	private void setReferencesDataModel(Set<DataModelEntity> allDataModels, Set<DataModelEntity> referencesDataModel, DataModelEntity dataModelEntity1){
+		for(ColumnModelEntity columnModelEntity : dataModelEntity1.getColumns()) {
+			for (ColumnReferenceEntity entity : columnModelEntity.getColumnReferences()) {
 				DataModelEntity dataModelEntity = entity.getToColumn().getDataModel();
-				if(dataModelEntity.getMasterModel() != null && !referencesDataParentModel.contains(dataModelEntity.getMasterModel())){
-					referencesDataParentModel.add(dataModelEntity.getMasterModel());
+				if (!referencesDataModel.contains(dataModelEntity) && !allDataModels.contains(dataModelEntity)) {
+					referencesDataModel.add(dataModelEntity);
+					allDataModels.add(dataModelEntity);
+					//关联表的关联
+					setReferencesDataModel( allDataModels,  referencesDataModel, dataModelEntity);
 				}
-				if(referencesDataModel.contains(dataModelEntity)) {
-					continue;
-				}
-				referencesDataModel.add(dataModelEntity);
-				setReferenceDataModel(dataModelEntity);
 			}
 		}
 	}
