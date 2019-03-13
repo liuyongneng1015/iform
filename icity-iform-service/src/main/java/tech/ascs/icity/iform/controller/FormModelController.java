@@ -503,6 +503,17 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		if(!formModel.isNew() && !idList.contains(formModel.getId())) {
 			throw new IFormException("表单名称重复了");
 		}
+		if(formModel.getDataModels() != null && formModel.getDataModels().size() > 0) {
+			List<DataModelEntity> dataModelEntities = dataModelService.query().filterEqual("tableName", formModel.getDataModels().get(0).getTableName()).list();
+			if(!StringUtils.hasText(formModel.getDataModels().get(0).getId()) && dataModelEntities.size() > 0){
+				throw new IFormException("数据模型表名重复了");
+			}
+			for(DataModelEntity dataModelEntity : dataModelEntities){
+				if(!formModel.getDataModels().get(0).getId().equals(dataModelEntity.getId())){
+					throw new IFormException("数据模型表名重复了");
+				}
+			}
+		}
 	}
 
 	//校验表单建模
