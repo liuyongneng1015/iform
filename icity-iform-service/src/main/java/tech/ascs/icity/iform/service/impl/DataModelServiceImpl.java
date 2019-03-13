@@ -226,7 +226,7 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		if(StringUtils.isNoneBlank(tableName)) {
 			DataModelEntity dataModelEntity = findUniqueByProperty("tableName", tableName);
 			if(dataModelEntity != null && !StringUtils.equals(dataModelEntity.getId(), old.getId())){
-				throw new IFormException("表名重复了");
+				throw new IFormException("数据模型表名重复了");
 			}
 		}
 	}
