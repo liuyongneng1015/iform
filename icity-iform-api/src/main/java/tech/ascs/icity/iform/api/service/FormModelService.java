@@ -111,7 +111,7 @@ public interface FormModelService {
 	 * 批量删除表单模型
 	 */
 	@ApiOperation(value = "批量删除表单模型", position = 6)
-	@DeleteMapping("/batchDelete")
+	@DeleteMapping("/batch-delete")
 	void removeFormModels(@RequestBody List<String> ids);
 
 	/**
