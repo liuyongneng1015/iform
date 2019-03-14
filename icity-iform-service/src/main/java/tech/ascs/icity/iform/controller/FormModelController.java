@@ -860,7 +860,12 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		//columnModelService.saveColumnReferenceEntity(parentIdColumnEntity, masterIdColumn, ReferenceType.OneToMany);
 	}
 
+	private String regEx = "[a-zA-Z]{1,}[a-zA-Z0-9_]{0,}";
+
 	private void veryTableName(DataModelEntity oldDataModelEntity){
+		if (!Pattern.matches(regEx, oldDataModelEntity.getTableName())) {
+			throw new IFormException("表名必须以字母开头，只能包含数字，字母，下划线，不能包含中文，横杆等特殊字符");
+		}
 		List<DataModelEntity> list = dataModelService.findByProperty("tableName", oldDataModelEntity.getTableName());
 		if(!StringUtils.hasText(oldDataModelEntity.getId()) && list.size() > 0){
 			throw new IFormException("数据模型表名重复了");
