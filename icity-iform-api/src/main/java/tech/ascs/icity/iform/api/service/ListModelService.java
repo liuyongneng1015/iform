@@ -104,7 +104,7 @@ public interface ListModelService {
 	void removeListModel(@PathVariable(name="id") String id);
 
 	@ApiOperation(value = "批量删除列表", position = 8)
-	@DeleteMapping("/batchDelete")
+	@DeleteMapping("/batch-delete")
 	void removeListModels(@RequestBody List<String> ids);
 
 	/**

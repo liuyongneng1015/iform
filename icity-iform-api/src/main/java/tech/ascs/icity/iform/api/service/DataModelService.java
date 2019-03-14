@@ -172,7 +172,7 @@ public interface DataModelService {
 	 * 批量删除数据模型
 	 */
 	@ApiOperation(value = "批量删除数据模型", position = 6)
-	@DeleteMapping("/batchDelete")
+	@DeleteMapping("/batch-delete")
 	void removeDataModels(@RequestBody List<String> ids);
 
 	/**
