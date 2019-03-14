@@ -237,7 +237,7 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 		if (StringUtils.isEmpty(dataModel.getTableName())) {
 			throw new IFormException("表名不允许为空");
 		}
-		if (Pattern.matches(regEx, dataModel.getTableName()) == false) {
+		if (!Pattern.matches(regEx, dataModel.getTableName())) {
 			throw new IFormException("表名必须以字母开头，只能包含数字，字母，下划线，不能包含中文，横杆等特殊字符");
 		}
 		if (dataModel.getColumns()==null || dataModel.getColumns().size()==0) {
