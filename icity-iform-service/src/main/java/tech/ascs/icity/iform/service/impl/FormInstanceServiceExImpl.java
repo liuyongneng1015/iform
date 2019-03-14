@@ -480,7 +480,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			if(e instanceof IFormException){
 				throw e;
 			}
-			throw new IFormException("没有查询到【" + dataModel.getTableName() + "】表，id【"+instanceId+"】的数据");
+			throw new IFormException("保存【" + dataModel.getTableName() + "】表，id【"+instanceId+"】的数据失败");
 		}finally {
 			if(session != null){
 				session.close();
@@ -495,8 +495,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 		//子表
 		List<String> slaverModelsList = new ArrayList<>();
-		for(DataModelEntity dataModelEntity : masterFormModelEntity.getDataModels().get(0).getSlaverModels()){
-			slaverModelsList.add(dataModelEntity.getTableName());
+		List<DataModelEntity> slaverModels = masterFormModelEntity.getDataModels().get(0).getSlaverModels();
+		for(DataModelEntity slaverDataModelEntity : slaverModels){
+			slaverModelsList.add(slaverDataModelEntity.getTableName());
 		}
 
 
@@ -561,6 +562,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 							}
 						}
 					}
+					if(map == null || map.keySet() == null || map.keySet().size() < 1){
+						continue;
+					}
+
 					if(displayTimingType == DisplayTimingType.Add){
 						map.put("create_at", new Date());
 						map.put("create_by", user != null ? user.getId() : "-1" );
@@ -585,7 +590,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					}else{
 						newId = (String) subFormSession.save(dataModelEntity.getTableName(), map);
 					}
-					//subFormSession.getTransaction().commit();
 					map.put("id", newId);
 					newListMap.add(map);
 				}
@@ -593,33 +597,29 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				newDataList1.setKey(key);
 				newDataList1.setTableName(dataModelEntity.getTableName());
 				newDataList1.setDataListMap(newListMap);
-				//subFormSession.close();
 				newDataList.add(newDataList1);
 				//旧的数据
 				List<Map<String, Object>> oldListMap = (List<Map<String, Object>>) data.get(key);
+				data.put(key, new ArrayList<>());
 				deleteSubFormNewMapData("master_id", session, dataModelEntity, oldListMap, idList);
 			}
 		}
 		for(NewDataList newDataList1 : newDataList){
 			List<Map<String, Object>>  subFormData = new ArrayList<>();
 			for (Map<String, Object> map : newDataList1.getDataListMap()) {
-				Map<String, Object> subFormMap = new HashMap<>();
-						/*if(referenceItemModelEntityList == null || referenceItemModelEntityList.size() < 1) {
-							 subFormMap = (Map<String, Object>) subFormSession.get(dataModelEntity.getTableName(), String.valueOf(map.get("id")));
-						}else {*/
-				subFormMap = (Map<String, Object>) session.load(newDataList1.getTableName(), String.valueOf(map.get("id")));
-				//}
+				Map<String, Object> subFormMap =(Map<String, Object>) session.load(newDataList1.getTableName(), String.valueOf(map.get("id")));
 				subFormMap.put("master_id", data);
 				subFormData.add(subFormMap);
 			}
 			data.put(newDataList1.getKey(), subFormData);
 		}
-		deleteSalverModelData( slaverModelsList,  session,  data);
+		deleteSalverModelData(slaverModelsList,  session,  data);
 	}
 
 	//清楚子表旧数据
 	private void deleteSalverModelData(List<String> slaverModelsList, Session session, Map<String, Object> data){
 		for (String str : slaverModelsList) {
+			data.put(str + "_list", new ArrayList<>());
 			//旧的数据
 			List<Map<String, Object>> oldListMap = (List<Map<String, Object>>) data.get(str + "_list");
 			if (oldListMap != null && oldListMap.size() > 0) {
@@ -627,7 +627,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					deleteData(session, str, String.valueOf(map.get("id")), "master_id");
 				}
 			}
-			data.put(str + "_list", null);
 		}
 	}
 
@@ -774,15 +773,16 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			if(oldData != null) {
 				ReferenceDataModel dataModel = referenceMap.get(str);
 				if (dataModel.getFlag()) {
+					data.put(str, null);
 					deleteData(session, dataModel.getTableName(), String.valueOf(((Map<String, Object>)oldData).get("id")), str);
 				} else {
 					List<Map<String, Object>> oldListMap = (List<Map<String, Object>>) oldData;
+					data.put(str, new ArrayList<>());
 					for(Map<String, Object> map : oldListMap){
 						deleteData(session, dataModel.getTableName(), String.valueOf(map.get("id")), str);
 					}
 				}
 			}
-			data.put(str, null);
 		}
 	}
 
@@ -851,13 +851,13 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 
 	private void deleteData(Session session, String tableName, String id, String referenceKey){
-		Map<String, Object> subFormData = (Map<String, Object>) session.load(tableName, id);
-		//子表数据
-		if(subFormData == null || subFormData.keySet() == null) {
-			throw new IFormException("没有查询到【" + tableName + "】表，id【"+id+"】的数据");
+		try {
+			Map<String, Object> objectMap = (Map<String, Object>)session.load(tableName, id);
+			session.delete(objectMap);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new IFormException("删除【" + tableName + "】表，id【"+id+"】的数据失败");
 		}
-		subFormData.remove(referenceKey);
-		subFormData.put(referenceKey, null);
 	}
 
 	private void setMasterFormItemInstances( FormDataSaveInstance formInstance, Map<String, Object> data, DisplayTimingType displayTimingType){
