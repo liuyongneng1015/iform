@@ -1884,7 +1884,12 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			if (!StringUtils.isEmpty(((TreeSelectItemModelEntity) entity).getDefaultValue())) {
 				List<TreeSelectData> list = groupService.getTreeSelectDataSourceByIds(((TreeSelectItemModelEntity) entity).getDataSource().getValue(), ((TreeSelectItemModelEntity) entity).getDefaultValue().split(","));
 				if(list != null && list.size() > 0) {
-					itemModel.setDefaultValueName(list.parallelStream().map(TreeSelectData::getName).collect(Collectors.toList()));
+					List<String> defalueVlaues = list.parallelStream().map(TreeSelectData::getName).collect(Collectors.toList());
+					if(treeSelectItemModelEntity.getMultiple() != null && treeSelectItemModelEntity.getMultiple()) {
+						itemModel.setDefaultValueName(defalueVlaues);
+					}else{
+						itemModel.setDefaultValueName(defalueVlaues.get(0));
+					}
 				}
 			}
 		}
