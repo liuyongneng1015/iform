@@ -313,6 +313,8 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 			concurrentmap.put(key, System.currentTimeMillis());
 			DataModelEntity dataModelEntity = dataModelService.get(id);
 			if (dataModelEntity != null) {
+				// 删除前先校验是否被关联
+				dataModelService.checkDataModelIsReference(Arrays.asList(dataModelEntity));
 				dataModelService.deleteDataModel(dataModelEntity);
 			}
 		}finally {
@@ -324,8 +326,13 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 
 	@Override
 	public void removeDataModels(@RequestBody List<String> ids) {
-		for (String id:ids) {
-			removeDataModel(id);
+		if (ids!=null && ids.size()>0) {
+			List<DataModelEntity> list = dataModelService.query().filterIn("id", ids).list();
+			// 删除前先校验是否被关联
+			dataModelService.checkDataModelIsReference(list);
+			for (DataModelEntity dataModelEntity:list) {
+				dataModelService.deleteDataModel(dataModelEntity);
+			}
 		}
 	}
 

@@ -5,6 +5,8 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 import tech.ascs.icity.iform.IFormException;
@@ -39,6 +41,9 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 
 	@Autowired
 	private FormModelService formModelService;
+
+	@Autowired
+	JdbcTemplate jdbcTemplate;
 
 	public DataModelServiceImpl() {
 		super(DataModelEntity.class);
@@ -385,14 +390,6 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 	@Override
 	public void deleteDataModel(DataModelEntity modelEntity) {
 		List<ColumnModelEntity> columnModelEntities = modelEntity.getColumns();
-		for(ColumnModelEntity columnModelEntity : columnModelEntities){
-			List<ItemModelEntity> itemModelEntity = itemManager.findByProperty("columnModel.id", columnModelEntity.getId());
-			if(itemModelEntity != null && itemModelEntity.size() > 0){
-				for (ItemModelEntity itemModel : itemModelEntity) {
-					throw new IFormException(CommonUtils.exceptionCode, columnModelEntity.getColumnName() + "字段被" + columnModelEntity.getDataModel().getTableName() + "表单" + itemModel.getName() + "控件关联");
-				}
-			}
-		}
 		for(int i = 0; i < columnModelEntities.size(); i++){
 			ColumnModelEntity columnModelEntity = columnModelEntities.get(i);
 			List<ColumnReferenceEntity> list = columnModelEntity.getColumnReferences();
@@ -402,6 +399,28 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 			columnModelService.deleteTableColumn(columnModelEntity.getDataModel().getTableName(), columnModelEntity.getColumnName());
 		}
 		delete(modelEntity);
+		String tableName = modelEntity.getTableName();
+		try {
+			String deleteTableSql ="DROP TABLE IF exists "+tableName;
+			jdbcTemplate.execute(deleteTableSql);
+		} catch (DataAccessException e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public void checkDataModelIsReference(List<DataModelEntity> list) {
+		for (DataModelEntity modelEntity:list) {
+			List<ColumnModelEntity> columnModelEntities = modelEntity.getColumns();
+			for (ColumnModelEntity columnModelEntity : columnModelEntities) {
+				List<ItemModelEntity> itemModelEntity = itemManager.findByProperty("columnModel.id", columnModelEntity.getId());
+				if (itemModelEntity != null && itemModelEntity.size() > 0) {
+					for (ItemModelEntity itemModel : itemModelEntity) {
+						throw new IFormException(CommonUtils.exceptionCode, modelEntity.getTableName()+"数据表的"+columnModelEntity.getColumnName() + "字段被" + columnModelEntity.getDataModel().getTableName() + "表单" + itemModel.getName() + "控件关联");
+					}
+				}
+			}
+		}
 	}
 
 	@Transactional(readOnly = false)

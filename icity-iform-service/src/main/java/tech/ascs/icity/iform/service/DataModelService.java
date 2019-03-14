@@ -22,4 +22,7 @@ public interface DataModelService extends JPAService<DataModelEntity> {
 	PCDataModel transitionToModel(String formId, DataModelEntity modelEntity, List<String> displayColuns);
 
 	void deleteDataModel(DataModelEntity modelEntity);
+
+	// 单个删除或者批量删除时，校验模型是否被关联
+	void checkDataModelIsReference(List<DataModelEntity> list);
 }
