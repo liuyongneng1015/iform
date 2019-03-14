@@ -195,37 +195,50 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	public void removeFormModel(@PathVariable(name="id", required = true) String id) {
         String key = id;
         try {
-            if (concurrentmap.get(key) != null) {
-                throw new IFormException("请不要重复提交");
-            }
             concurrentmap.put(key, System.currentTimeMillis());
 			FormModelEntity formModelEntity = formModelService.get(id);
-			List<ItemModelEntity> lists = formModelService.getAllColumnItems(formModelEntity.getItems());
-			List<ItemModelEntity> list = lists.parallelStream().sorted((d2, d1) -> d2.getOrderNo().compareTo(d1.getOrderNo())).collect(Collectors.toList());
-			for(int i = 0 ; i < list.size() ; i ++){
-				ItemModelEntity itemModelEntity1 = list.get(i);
-				if(itemModelEntity1 instanceof SubFormItemModelEntity){
-					columnModelService.deleteTable(itemModelEntity1.getColumnModel().getDataModel().getTableName());
-				}else {
-					columnModelService.deleteTableColumn(itemModelEntity1.getColumnModel().getDataModel().getTableName(), itemModelEntity1.getColumnModel().getColumnName());
-				}
-			}
-			formModelService.delete(formModelEntity);
+            checkFormModelCanDelete(Arrays.asList(formModelEntity));
+            deleteFormModel(formModelEntity);
         }catch (Exception e){
             e.printStackTrace();
-        }finally {
-            if(concurrentmap.containsKey(key)){
-                concurrentmap.remove(key);
-            }
+            throw e;
         }
 	}
 
 	@Override
-	public void removeFormModels(List<String> ids) {
-		for (String id:ids) {
-			removeFormModel(id);
-		}
+	public void removeFormModels(@RequestBody List<String> ids) {
+	    if (ids!=null && ids.size()>0) {
+	        List<FormModelEntity> list = formModelService.query().filterIn("id", ids).list();
+	        checkFormModelCanDelete(list);
+	        for (FormModelEntity formModelEntity:list) {
+                deleteFormModel(formModelEntity);
+            }
+        }
 	}
+
+    public void deleteFormModel(FormModelEntity formModelEntity) {
+        List<ItemModelEntity> lists = formModelService.getAllColumnItems(formModelEntity.getItems());
+        List<ItemModelEntity> list = lists.parallelStream().sorted((d2, d1) -> d2.getOrderNo().compareTo(d1.getOrderNo())).collect(Collectors.toList());
+        for(int i = 0 ; i < list.size() ; i ++){
+            ItemModelEntity itemModelEntity1 = list.get(i);
+            if(itemModelEntity1 instanceof SubFormItemModelEntity){
+                columnModelService.deleteTable(itemModelEntity1.getColumnModel().getDataModel().getTableName());
+            }else {
+                columnModelService.deleteTableColumn(itemModelEntity1.getColumnModel().getDataModel().getTableName(), itemModelEntity1.getColumnModel().getColumnName());
+            }
+        }
+        formModelService.delete(formModelEntity);
+    }
+
+    // 校验表单是否被列表关联了
+    public void checkFormModelCanDelete(List<FormModelEntity> list) {
+        for (FormModelEntity formModel:list) {
+            ListModelEntity listModel = listModelService.query().filterEqual("masterForm.id", formModel.getId()).first();
+            if (listModel!=null) {
+                throw new IFormException("\""+formModel.getName()+"\"表单被\""+listModel.getName()+"\"列表关联了");
+            }
+        }
+    }
 
 	@Override
 	public PCFormModel getPCFormModelById(@PathVariable(name="id") String id) {
