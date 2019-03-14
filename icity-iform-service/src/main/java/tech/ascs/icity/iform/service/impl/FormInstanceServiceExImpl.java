@@ -1761,7 +1761,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					}
 				}
 				for(String string : stringList){
-					if(StringUtils.hasText(stringMap.get(string))){
+					if( stringMap.get(string) != null && StringUtils.hasText(stringMap.get(string))){
 						arrayList.add(stringMap.get(string));
 					}
 				}
@@ -1815,7 +1815,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 		for(String string : stringList){
 			if(valueMap.get(string) != null) {
-				valueList.add(getValue(stringList, valueMap.get(string)));
+				String value = getValue(stringList, valueMap.get(string));
+				if(StringUtils.hasText(value)) {
+					valueList.add(value);
+				}
 			}
 		}
 		dataModelInstance.setDisplayValue(String.join(",", valueList));
@@ -1842,7 +1845,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					FileItemModel fileItemModel = (FileItemModel)itemInstance.getDisplayValue();
 					return fileItemModel.getName();
 				}
-				return String.valueOf(itemInstance.getDisplayValue());
+				return itemInstance.getDisplayValue() == null || itemInstance.getDisplayValue() == "" ? null : String.valueOf(itemInstance.getDisplayValue());
 			}
 		}
 		return null;
@@ -2194,8 +2197,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 						}
                     }
                 }
-
-
 				break;
 			case Media:
 				setFileItemInstance(value, itemInstance);
@@ -2292,12 +2293,14 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 		// displayValuelist为空，说明在字典表里面已经删掉该内容，因此value也要设为空
 		if (displayValuelist == null || displayValuelist.size() == 0) {
-			itemInstance.setValue(null);
+			itemInstance.setDisplayValue(null);
 		}else{
-			if(selectItemModelEntity.getMultiple() != null && selectItemModelEntity.getMultiple()){
-				itemInstance.setValue(displayValuelist);
+			if(selectItemModelEntity.getSystemItemType() == SystemItemType.RadioGroup){
+				itemInstance.setDisplayValue(displayValuelist.get(0));
+			}if(selectItemModelEntity.getSystemItemType() == SystemItemType.CheckboxGroup || (selectItemModelEntity.getMultiple() != null && selectItemModelEntity.getMultiple())){
+				itemInstance.setDisplayValue(displayValuelist);
 			}else{
-				itemInstance.setValue(displayValuelist.get(0));
+				itemInstance.setDisplayValue(displayValuelist.get(0));
 			}
 		}
 	}
