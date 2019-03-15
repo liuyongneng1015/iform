@@ -937,6 +937,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				List<ColumnReferenceEntity> referenceEntityList = columnModelEntity.getColumnReferences();
 				for(int m = 0 ; m < referenceEntityList.size(); m++ ){
 					ColumnReferenceEntity referenceEntity = referenceEntityList.get(m);
+					if(columnModelEntity.getColumnName().equals("id") &&  referenceEntity.getReferenceType() != ReferenceType.ManyToMany){
+						continue;
+					}
 					List<ColumnReferenceEntity> toReferenceEntityList = referenceEntity.getToColumn().getColumnReferences();
 					for(int j = 0 ; j < toReferenceEntityList.size(); j++){
 						ColumnReferenceEntity columnReferenceEntity = toReferenceEntityList.get(j);
