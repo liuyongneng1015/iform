@@ -13,6 +13,8 @@ public class SearchItem extends ItemModel implements Comparable<SearchItem> {
 		private boolean visible;
 		@ApiModelProperty(value = "查询条件默认值", position = 2)
 		private Object defaultValue;
+		@ApiModelProperty(value = "查询条件默认值", position = 2)
+		private Object defaultValueName;
 		public SearchType getSearchType() {
 			return searchType;
 		}
@@ -32,6 +34,14 @@ public class SearchItem extends ItemModel implements Comparable<SearchItem> {
 
 		public void setDefaultValue(Object defaultValue) {
 			this.defaultValue = defaultValue;
+		}
+
+		public Object getDefaultValueName() {
+			return defaultValueName;
+		}
+
+		public void setDefaultValueName(Object defaultValueName) {
+			this.defaultValueName = defaultValueName;
 		}
 	}
 

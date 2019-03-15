@@ -13,7 +13,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.annotations.Api;
 import tech.ascs.icity.admin.api.model.Application;
+import tech.ascs.icity.admin.api.model.TreeSelectData;
 import tech.ascs.icity.admin.client.ApplicationService;
+import tech.ascs.icity.admin.client.GroupService;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.api.model.ListModel.SortItem;
@@ -42,6 +44,9 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 
 	@Autowired
 	private ApplicationService applicationService;
+
+	@Autowired
+	GroupService groupService;
 
 	@Override
 	public List<ListModel> list(@RequestParam(name = "name", defaultValue = "") String name,
@@ -687,6 +692,22 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 							// ItemType.Input，ItemType.RadioGroup和ItemType.Editor返回的defaultValue是字符串格式，不是字符串数组格式
 							} else if (ItemType.Input.equals(itemType) || ItemType.RadioGroup.equals(itemType) || ItemType.Editor.equals(itemType)) {
 								search.setDefaultValue(defaultValue);
+							} else if (itemModelEntity instanceof TreeSelectItemModelEntity) {
+								TreeSelectItemModelEntity treeSelectItem = (TreeSelectItemModelEntity)itemModelEntity;
+								Boolean multiple = treeSelectItem.getMultiple();
+								TreeSelectDataSource dataSource = treeSelectItem.getDataSource();
+								Set<String> set = new HashSet(Arrays.asList(Arrays.asList("Department", "Position", "Personnel", "PositionIdentify")));
+								if (set.contains(dataSource.getValue()) && dataSource!=null && multiple!=null && multiple) {
+									List<TreeSelectData> list = groupService.getTreeSelectDataSourceByIds(dataSource.getValue(), defaultValue.split(","));
+									if (list!=null) {
+										search.setDefaultValueName(list.stream().map(item->item.getName()).collect(Collectors.toList()));
+									}
+								} else if (set.contains(dataSource.getValue()) && dataSource!=null && multiple!=null && multiple==false) {
+									List<TreeSelectData> list = groupService.getTreeSelectDataSourceByIds(dataSource.getValue(), new String[]{defaultValue});
+									if (list!=null && list.size()>0) {
+										search.setDefaultValueName(list.get(0).getName());
+									}
+								}
 							} else {
 								search.setDefaultValue(Arrays.asList(defaultValue.split(",")));
 							}
