@@ -687,7 +687,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				}else{
 					if (referenceItemModelEntity.getReferenceType() == ReferenceType.ManyToOne
 							|| referenceItemModelEntity.getReferenceType() == ReferenceType.OneToOne) {
-						toReferenceKey = referenceItemModelEntity.getColumnModel().getColumnName() + "_list";
+						toReferenceKey = referenceItemModelEntity.getColumnModel().getDataModel().getTableName()+"_"+referenceItemModelEntity.getColumnModel().getColumnName() + "_list";
 					} else{
 						toReferenceKey = masterFormModelEntity.getDataModels().get(0).getTableName() + "_list";
 					}
@@ -1017,7 +1017,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
                 }
                 if(columnReferenceEntity.getReferenceType() == ReferenceType.OneToOne ||
                         columnReferenceEntity.getReferenceType() == ReferenceType.OneToMany ){
-                    String key = columnReferenceEntity.getToColumn().getColumnName()+"_list";
+                    String key = columnReferenceEntity.getToColumn().getDataModel().getTableName()+"_"+columnReferenceEntity.getToColumn().getColumnName()+"_list";
                     if(entity.get(key) != null && entity.get(key) != ""){
                         if(entity.get(key) instanceof List && ((List) entity.get(key)).size() < 1){
                             continue;
@@ -1193,7 +1193,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
                     }
                     propertyIsCollection = true;
                     columnModel = referenceItemModelEntity1.getColumnModel();
-                    propertyName = referenceItemModelEntity1.getColumnModel().getColumnName()+"_list";
+                    propertyName = referenceItemModelEntity1.getColumnModel().getDataModel().getTableName()+"_"+referenceItemModelEntity1.getColumnModel().getColumnName()+"_list";
                 }else if(referenceItemModel.getSelectMode() == SelectMode.Multiple){
                     columnModel = new ColumnModelEntity();
                     columnModel.setDataType(ColumnType.String);
@@ -1791,7 +1791,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			if(referenceItemModelEntity1.getColumnModel() == null){
 				return null;
 			}
-			key = referenceItemModelEntity1.getColumnModel().getColumnName()+"_list";
+			key = referenceItemModelEntity1.getColumnModel().getDataModel().getTableName()+"_"+referenceItemModelEntity1.getColumnModel().getColumnName()+"_list";
 			if(fromItem.getReferenceType() == ReferenceType.OneToOne) {
 				flag = true;
 			}
@@ -1856,7 +1856,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		if(fromItem.getParentItem() == null || fromItem.getParentItem().getColumnModel() == null){
 			return;
 		}
-		String key = fromItem.getParentItem().getColumnModel().getColumnName()+"_list";
+		String key = fromItem.getParentItem().getColumnModel().getDataModel().getTableName()+"_"+fromItem.getParentItem().getColumnModel().getColumnName()+"_list";
 		if(fromItem.getReferenceType() == ReferenceType.ManyToOne){
 			List<Map<String, Object>> listMap = (List<Map<String, Object>>)entity.get(key);
 			if( listMap == null || listMap.size() == 0) {
