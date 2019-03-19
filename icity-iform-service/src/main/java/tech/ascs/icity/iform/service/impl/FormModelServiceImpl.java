@@ -664,50 +664,59 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 	private void deleteItem(List<ItemModelEntity> lists){
 		List<ItemModelEntity> list = lists.parallelStream().sorted((d2, d1) -> d2.getOrderNo().compareTo(d1.getOrderNo())).collect(Collectors.toList());
-		Map<String, ItemModelEntity> modelEntityMap = new HashMap<>();
 		for(int i = 0 ; i <  list.size(); i ++){
 			ItemModelEntity itemModelEntity = list.get(i);
-			modelEntityMap.put(itemModelEntity.getId(), itemModelEntity);
-		}
-		for(int i = 0 ; i <  list.size(); i ++){
-			ItemModelEntity itemModelEntity = list.get(i);
-			if(itemModelEntity instanceof ReferenceItemModelEntity ){
-				for(int j = 0 ; j < ((ReferenceItemModelEntity) itemModelEntity).getItems().size() ; j++) {
-					ReferenceItemModelEntity referenceItemModelEntity = ((ReferenceItemModelEntity) itemModelEntity).getItems().get(j);
-					ItemModelEntity itemModelEntity1 = modelEntityMap.remove(referenceItemModelEntity.getId());
-					if(itemModelEntity1 != null){
-						list.remove(itemModelEntity1);
-						//i--;
-						((ReferenceItemModelEntity) itemModelEntity).getItems().remove(j);
-						j--;
-						if(itemModelEntity1.getColumnModel() != null){
-							columnModelService.deleteTableColumn(itemModelEntity1.getColumnModel().getDataModel().getTableName(), itemModelEntity1.getColumnModel().getColumnName());
-						}
-						itemManager.delete(itemModelEntity1);
-					}else{
-						((ReferenceItemModelEntity) itemModelEntity).getItems().remove(j);
-						j--;
-						if(itemModelEntity.getColumnModel() != null){
-							columnModelService.deleteTableColumn(itemModelEntity.getColumnModel().getDataModel().getTableName(), itemModelEntity.getColumnModel().getColumnName());
-						}
-						itemManager.delete(referenceItemModelEntity);
-					}
-					itemManager.save(itemModelEntity);
-				}
-			}
 			list.remove(itemModelEntity);
 			i--;
-			if(itemModelEntity.getColumnModel() != null){
-				columnModelService.deleteTableColumn(itemModelEntity.getColumnModel().getDataModel().getTableName(), itemModelEntity.getColumnModel().getColumnName());
+			if(itemModelEntity instanceof ReferenceItemModelEntity ){
+				if(((ReferenceItemModelEntity) itemModelEntity).getParentItem() != null){
+					((ReferenceItemModelEntity) itemModelEntity).getParentItem().getItems().remove(itemModelEntity);
+					((ReferenceItemModelEntity) itemModelEntity).setParentItem(null);
+				}
+				deleteItemAndColumn(itemModelEntity);
+			}else if(itemModelEntity instanceof SelectItemModelEntity ){
+				if(((SelectItemModelEntity) itemModelEntity).getParentItem() != null){
+					((SelectItemModelEntity) itemModelEntity).getParentItem().getItems().remove(itemModelEntity);
+					((SelectItemModelEntity) itemModelEntity).setParentItem(null);
+				}
+				itemManager.delete(itemModelEntity);
+			}else if(itemModelEntity instanceof TabsItemModelEntity ){
+				for(int t =0 ; t < ((TabsItemModelEntity) itemModelEntity).getItems().size(); t++) {
+					TabPaneItemModelEntity tabPaneItemModelEntity = ((TabsItemModelEntity) itemModelEntity).getItems().get(t);
+					List<ItemModelEntity> list1 = tabPaneItemModelEntity.getItems();
+					list1.removeAll(list1);
+					deleteItem(list1);
+					tabPaneItemModelEntity.getParentItem().getItems().remove(tabPaneItemModelEntity);
+					tabPaneItemModelEntity.setParentItem(null);
+					itemManager.delete(tabPaneItemModelEntity);
+				}
+				itemManager.delete(itemModelEntity);
+			}else if(itemModelEntity instanceof SubFormItemModelEntity){
+				columnModelService.deleteTable(itemModelEntity.getColumnModel().getDataModel().getTableName());
+				for(int t =0 ; t < ((SubFormItemModelEntity) itemModelEntity).getItems().size(); t++) {
+					SubFormRowItemModelEntity subFormRowItemModelEntity = ((SubFormItemModelEntity) itemModelEntity).getItems().get(t);
+					List<ItemModelEntity> list1 = subFormRowItemModelEntity.getItems();
+					list1.removeAll(list1);
+					deleteItem(list1);
+					subFormRowItemModelEntity.getParentItem().getItems().remove(subFormRowItemModelEntity);
+					subFormRowItemModelEntity.setParentItem(null);
+					itemManager.delete(subFormRowItemModelEntity);
+				}
+				itemManager.delete(itemModelEntity);
+			}else {
+				deleteItemAndColumn(itemModelEntity);
 			}
 			if(i<-1){
 				i=-1;
 			}
-			if(itemModelEntity instanceof SubFormItemModelEntity && itemModelEntity.getColumnModel() != null){
-				columnModelService.deleteTable(itemModelEntity.getColumnModel().getDataModel().getTableName());
-			}
-			itemManager.delete(itemModelEntity);
 		}
+	}
+
+	private void deleteItemAndColumn(ItemModelEntity itemModelEntity){
+		if(itemModelEntity.getColumnModel() != null){
+			columnModelService.deleteTableColumn(itemModelEntity.getColumnModel().getDataModel().getTableName(), itemModelEntity.getColumnModel().getColumnName());
+		}
+		itemManager.delete(itemModelEntity);
 	}
 
 	//软删除控件关联实体
