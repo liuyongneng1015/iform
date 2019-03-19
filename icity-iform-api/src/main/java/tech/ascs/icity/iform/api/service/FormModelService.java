@@ -195,4 +195,11 @@ public interface FormModelService {
 	List<ItemModel> findReferenceItemsByFormId(@RequestParam(name="formModelId", required = true) String formModelId,
 											   @RequestParam(name="referenceFormModelId", required = true) String referenceFormModelId);
 
+	@ApiOperation(value = "获取表单模型分页数据", position = 1)
+	@ApiImplicitParams({
+		@ApiImplicitParam(paramType = "query", name = "name", value = "表单名称", required = false),
+		@ApiImplicitParam(paramType = "query", name = "applicationId", value = "应用ID", required = false)
+	})
+	@GetMapping(value = "/find-by-name")
+	FormModel findByName(@RequestParam(name = "name", defaultValue = "") String name);
 }
