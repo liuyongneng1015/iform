@@ -47,4 +47,18 @@ public interface FileUploadService {
 	@ApiOperation("下载功能")
 	@GetMapping("/download")
 	String downloadTemplate(HttpServletResponse response, HttpServletRequest request);
+
+
+	/**
+	 * 更换头像
+	 *
+	 * @param request 文件
+	 * @return
+	 */
+	@ApiOperation(value = "更换头像", notes = "更换头像", position = 0)
+	@ApiImplicitParams({
+			@ApiImplicitParam(paramType = "query", name = "file", value = "文件", required = true)
+	})
+	@PostMapping("/head-portrait")
+	FileUploadModel replaceHeadPortrait(HttpServletRequest request);
 }

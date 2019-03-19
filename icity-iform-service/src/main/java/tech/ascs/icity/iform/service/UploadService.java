@@ -36,7 +36,7 @@ public interface UploadService  extends JPAService<FileUploadEntity> {
      * @return
      * @throws Exception
      */
-    FileUploadModel uploadOneFileReturnUrl(FileUploadType uploadType, Integer fileSize, MultipartFile file) throws Exception;
+    FileUploadModel uploadOneFileReturnUrl(String fileKey, FileUploadType uploadType, Integer fileSize, MultipartFile file) throws Exception;
 
 
     /**

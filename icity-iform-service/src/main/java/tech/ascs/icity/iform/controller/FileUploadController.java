@@ -13,8 +13,10 @@ import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.FileUploadModel;
 import tech.ascs.icity.iform.api.model.FileUploadType;
 import tech.ascs.icity.iform.api.service.FileUploadService;
+import tech.ascs.icity.iform.model.FileUploadEntity;
 import tech.ascs.icity.iform.service.UploadService;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
+import tech.ascs.icity.iform.utils.CurrentUserUtils;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
@@ -45,7 +47,7 @@ public class FileUploadController implements FileUploadService {
 			size = Integer.parseInt(fileSizeLimit);
 		}
 		try {
-			return uploadService.uploadOneFileReturnUrl(uploadType, size, file);
+			return uploadService.uploadOneFileReturnUrl(null, uploadType, size, file);
 		} catch (Exception e) {
 			throw new IFormException("上传文件失败" + e.getMessage());
 		}
@@ -64,7 +66,7 @@ public class FileUploadController implements FileUploadService {
 		if(files != null && files.size() > 0) {
 			for (MultipartFile file : files){
 				try {
-					list.add(uploadService.uploadOneFileReturnUrl(uploadType, size, file));
+					list.add(uploadService.uploadOneFileReturnUrl(null, uploadType, size, file));
 				} catch (Exception e) {
 					throw new IFormException("上传文件失败" + e.getMessage());
 				}
@@ -120,6 +122,32 @@ public class FileUploadController implements FileUploadService {
 			e.printStackTrace();
 		}
 		return "下载失败";
+	}
+
+	@Override
+	public FileUploadModel replaceHeadPortrait(HttpServletRequest request) {
+		log.error("replaceHeadPortrait in ");
+		MultipartFile file = ((MultipartHttpServletRequest)request).getFile("file");
+		String fileSizeLimit = request.getParameter("fileSizeLimit");
+		FileUploadType uploadType = FileUploadType.HeadPortrait;
+		Integer size = null;
+		if(StringUtils.isNoneBlank(fileSizeLimit)){
+			size = Integer.parseInt(fileSizeLimit);
+		}
+		String userId = request.getParameter("userId");
+		if(!org.springframework.util.StringUtils.hasText(userId)){
+			throw new IFormException("请先登录");
+		}
+		String fileId = request.getParameter("fileId");
+
+		FileUploadEntity fileUploadEntity = org.springframework.util.StringUtils.hasText(fileId) ? uploadService.get(fileId) : null;
+		try {
+			FileUploadModel fileUploadModel = uploadService.uploadOneFileReturnUrl(fileUploadEntity == null ? null : fileUploadEntity.getFileKey(), uploadType, size, file);
+			//TODO 调用修改用户表头像的信息
+			return fileUploadModel;
+		} catch (Exception e) {
+			throw new IFormException("上传文件失败" + e.getMessage());
+		}
 	}
 
 }

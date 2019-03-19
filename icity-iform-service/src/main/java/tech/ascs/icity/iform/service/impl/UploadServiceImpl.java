@@ -119,7 +119,7 @@ public class UploadServiceImpl extends DefaultJPAService<FileUploadEntity> imple
 	 * @throws Exception
 	 */
 	@Override
-	public FileUploadModel uploadOneFileReturnUrl(FileUploadType uploadType, Integer fileSize, MultipartFile file) throws Exception {
+	public FileUploadModel uploadOneFileReturnUrl(String fileKey, FileUploadType uploadType, Integer fileSize, MultipartFile file) throws Exception {
 		FileUploadModel fileUploadModel = new FileUploadModel();
 		InputStream inputStream = file.getInputStream();
 		File thumbnailFile = null;
@@ -128,7 +128,7 @@ public class UploadServiceImpl extends DefaultJPAService<FileUploadEntity> imple
 
 			String filename = file.getOriginalFilename();
 			String day = CommonUtils.date2Str(new Date(), "yyyy-MM-dd");
-			String filePath = renameFile(day, true, filename);
+			String filePath = org.springframework.util.StringUtils.hasText(fileKey) ? fileKey : renameFile(day, true, filename);
 			if (fileSize != null) {
 				if (file.getBytes().length > fileSize * 1024) {
 					throw new IFormException("文件超过【"+fileSize+"kb】了");
