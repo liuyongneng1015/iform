@@ -544,6 +544,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				}
 				for(ItemPermissionInfo itemPermissionInfo : paramerItemModelEntity.getPermissions()){
 					ItemPermissionInfo newItemPermiss = itemPermissionInfo.isNew() ? new ItemPermissionInfo() : oldItemPermission.remove(itemPermissionInfo.getId());
+					if(newItemPermiss == null){
+						newItemPermiss = new ItemPermissionInfo();
+					}
 					BeanUtils.copyProperties(itemPermissionInfo, newItemPermiss, new String[]{"itemModel"});
 					newItemPermiss.setItemModel(saveItemModelEntity);
 					list.add(newItemPermiss);
