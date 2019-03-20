@@ -6,6 +6,7 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import tech.ascs.icity.iform.api.model.FileUploadModel;
+import tech.ascs.icity.iform.api.model.FileUploadType;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -38,7 +39,7 @@ public interface FileUploadService {
 	 */
 	@ApiOperation(value = "文件批量上传", notes = "文件批量上传", position = 0)
 	@ApiImplicitParams({
-			@ApiImplicitParam(paramType = "query", name = "files", value = "多个文件", required = true)
+			@ApiImplicitParam(paramType = "query", name = "file", value = "多个文件", required = true)
 	})
 	@PostMapping(value="/batch/upload")
 	List<FileUploadModel> batchFileUpload(HttpServletRequest request) ;
@@ -49,16 +50,4 @@ public interface FileUploadService {
 	String downloadTemplate(HttpServletResponse response, HttpServletRequest request);
 
 
-	/**
-	 * 更换头像
-	 *
-	 * @param request 文件
-	 * @return
-	 */
-	@ApiOperation(value = "更换头像", notes = "更换头像", position = 0)
-	@ApiImplicitParams({
-			@ApiImplicitParam(paramType = "query", name = "file", value = "文件", required = true)
-	})
-	@PostMapping("/head-portrait")
-	FileUploadModel replaceHeadPortrait(HttpServletRequest request);
 }

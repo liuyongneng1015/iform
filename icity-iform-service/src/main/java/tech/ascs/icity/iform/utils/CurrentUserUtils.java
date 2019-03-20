@@ -44,4 +44,9 @@ public class CurrentUserUtils {
             }
         }
     }
+
+    public static String getUserHeadPortraitFileId(String userId) {
+        String fileId = CacheUtils.get(userId+"-userId");
+        return fileId;
+    }
 }
