@@ -137,9 +137,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			//form直接的新的item
 			List<ItemModelEntity> itemModelEntities = new ArrayList<ItemModelEntity>();
 			for(int i = 0; i < entity.getItems().size() ; i++) {
-				ItemModelEntity oldItemModelEntity = entity.getItems().get(i);
+				ItemModelEntity paramerItemModelEntity = entity.getItems().get(i);
 				//oldItemModelEntity.setFormModel(old);
-				ItemModelEntity newItemModelEntity = getNewItemModelEntity(oldMapItmes, columnModelEntityMap, oldItemModelEntity);
+				ItemModelEntity newItemModelEntity = getNewItemModelEntity(oldMapItmes, columnModelEntityMap, paramerItemModelEntity);
 				newItemModelEntity.setFormModel(old);
 				newItemModelEntity.setOrderNo(i);
 				//包括所有的item(包括子item)
@@ -555,7 +555,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			saveItemModelEntity.setPermissions(list);
 			for(String key: oldItemPermission.keySet()){
 				ItemPermissionInfo permissionInfo = oldItemPermission.get(key);
-				if(permissionInfo.getItemModel() != null && permissionInfo.getItemModel().getPermissions() != null) {
+				if(permissionInfo.getItemModel() != null){
 					permissionInfo.getItemModel().getPermissions().remove(permissionInfo);
 				}
 				permissionInfo.setItemModel(null);
