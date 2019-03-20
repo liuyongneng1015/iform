@@ -533,6 +533,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 	private void saveItempermissions(ItemModelEntity saveItemModelEntity, ItemModelEntity paramerItemModelEntity){
 		if(paramerItemModelEntity.getColumnModel() != null && !"id".equals(paramerItemModelEntity.getColumnModel().getColumnName())) {
 			List<ItemPermissionInfo> list = new ArrayList<>();
+			if("2c93808369901364016998aec208035b".equals(saveItemModelEntity.getId())){
+				System.out.println("zzz");
+			}
 			Map<String, ItemPermissionInfo> oldItemPermission = new HashMap<>();
 			if(saveItemModelEntity.isNew()) {
 				list.add(createItempermissionInfo(saveItemModelEntity, DisplayTimingType.Add));
@@ -555,8 +558,8 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			saveItemModelEntity.setPermissions(list);
 			for(String key: oldItemPermission.keySet()){
 				ItemPermissionInfo permissionInfo = oldItemPermission.get(key);
+				permissionInfo.getItemModel().getPermissions().remove(permissionInfo);
 				permissionInfo.setItemModel(null);
-				itemPermissionManager.save(permissionInfo);
 				itemPermissionManager.delete(permissionInfo);
 			}
 		}

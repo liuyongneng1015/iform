@@ -50,7 +50,7 @@ public class SelectItemModelEntity extends ItemModelEntity  {
 	private DictionaryValueType dictionaryValueType;
 
 
-	@ManyToOne(cascade = {CascadeType.MERGE})
+	@ManyToOne(cascade = {CascadeType.PERSIST})
 	@JoinColumn(name="parent_select_id")// 关联字典联动目标
 	private SelectItemModelEntity parentItem;
 
