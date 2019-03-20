@@ -298,16 +298,17 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	}
 
 	@Override
-	public FormModel findByName(@RequestParam(name = "name", defaultValue = "") String name) {
-		if (StringUtils.isEmpty(name)) {
+	public FormModel findByTableName(@RequestParam(name = "tableName", defaultValue = "") String tableName) {
+		if (StringUtils.isEmpty(tableName)) {
 			return null;
 		}
 		Query<FormModelEntity, FormModelEntity> query = formModelService.query();
-		if (StringUtils.hasText(name)) {
-			query.filterLike("name", name);
-		}
+		query.filterEqual("dataModels.tableName", tableName);
 		FormModelEntity entitiy = query.sort(Sort.desc("id")).first();
-		return toDTO(entitiy);
+		if (entitiy!=null) {
+			return toDTODetail(entitiy);
+		}
+		return null;
 	}
 
 	@Override
