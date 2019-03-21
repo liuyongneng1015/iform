@@ -298,7 +298,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	}
 
 	@Override
-	public FormModel findByTableName(@RequestParam(name = "tableName", defaultValue = "") String tableName) {
+	public IdEntity findByTableName(@RequestParam(name = "tableName", defaultValue = "") String tableName) {
 		if (StringUtils.isEmpty(tableName)) {
 			return null;
 		}
@@ -306,9 +306,20 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		query.filterEqual("dataModels.tableName", tableName);
 		FormModelEntity entitiy = query.sort(Sort.desc("id")).first();
 		if (entitiy!=null) {
-			return toDTODetail(entitiy);
+			IdEntity idEntity = new IdEntity();
+			idEntity.setId(entitiy.getId());
+			return idEntity;
 		}
 		return null;
+	}
+
+	@Override
+	public ItemModel findItemByTableAndColumName(@RequestParam(name = "tableName", defaultValue = "") String tableName,
+												 @RequestParam(name = "columnName", defaultValue = "") String columnName) {
+		if (StringUtils.isEmpty(tableName) || StringUtils.isEmpty(columnName)) {
+			return null;
+		}
+		return formModelService.findItemByTableAndColumName(tableName, columnName);
 	}
 
 	@Override

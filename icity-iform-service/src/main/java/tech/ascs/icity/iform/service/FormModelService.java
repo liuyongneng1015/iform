@@ -2,6 +2,7 @@ package tech.ascs.icity.iform.service;
 
 import tech.ascs.icity.iform.api.model.DataModel;
 import tech.ascs.icity.iform.api.model.FormModel;
+import tech.ascs.icity.iform.api.model.ItemModel;
 import tech.ascs.icity.iform.api.model.ItemType;
 import tech.ascs.icity.iform.model.DataModelEntity;
 import tech.ascs.icity.iform.model.FormModelEntity;
@@ -40,4 +41,6 @@ public interface FormModelService extends JPAService<FormModelEntity> {
      List<ItemModelEntity> getChildRenItemModelEntity(ItemModelEntity itemModelEntity);
 
      DataModel getDataModel(DataModelEntity dataModelEntity);
+
+     ItemModel findItemByTableAndColumName(String tableName, String columnName);
 }
