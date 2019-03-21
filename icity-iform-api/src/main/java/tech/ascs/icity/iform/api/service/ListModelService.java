@@ -154,4 +154,17 @@ public interface ListModelService {
 	@ApiImplicitParam(paramType="query", name = "ids", value = "ID集合", required = false, dataType = "Array")
 	@GetMapping("/batch-simple-info")
 	List<ListModel> findListModelSimpleByIds(@RequestParam(name = "ids", required = false) String[] ids);
+
+	/**
+	 * 根据列表模型ID获取列表模型对象
+	 *
+	 * @param tableName 列表模型ID（uuid）
+	 * @return
+	 */
+	@ApiOperation(value = "根据数据库表名获取列表模型对象", position = 2)
+	@ApiImplicitParams({
+			@ApiImplicitParam(paramType = "path", name = "tableName", value = "数据库表名", required = true, dataType = "String")
+	})
+	@GetMapping("/find_by_tableName/{tableName}")
+	ListModel getByTableName(@PathVariable(name="tableName") String tableName);
 }
