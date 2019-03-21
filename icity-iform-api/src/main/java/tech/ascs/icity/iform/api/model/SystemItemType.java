@@ -77,7 +77,9 @@ public enum SystemItemType {
 	/** 标签页子项 */
 	TabPane("TabPane"),
 	/** 树形下拉 */
-	Treeselect("Treeselect");
+	Treeselect("Treeselect"),
+	/** 地图 */
+	Map("Map");
 
 	private String value;
 	private SystemItemType(String value) {

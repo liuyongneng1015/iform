@@ -137,9 +137,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			//form直接的新的item
 			List<ItemModelEntity> itemModelEntities = new ArrayList<ItemModelEntity>();
 			for(int i = 0; i < entity.getItems().size() ; i++) {
-				ItemModelEntity oldItemModelEntity = entity.getItems().get(i);
+				ItemModelEntity paramerItemModelEntity = entity.getItems().get(i);
 				//oldItemModelEntity.setFormModel(old);
-				ItemModelEntity newItemModelEntity = getNewItemModelEntity(oldMapItmes, columnModelEntityMap, oldItemModelEntity);
+				ItemModelEntity newItemModelEntity = getNewItemModelEntity(oldMapItmes, columnModelEntityMap, paramerItemModelEntity);
 				newItemModelEntity.setFormModel(old);
 				newItemModelEntity.setOrderNo(i);
 				//包括所有的item(包括子item)
@@ -534,7 +534,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		if(paramerItemModelEntity.getColumnModel() != null && !"id".equals(paramerItemModelEntity.getColumnModel().getColumnName())) {
 			List<ItemPermissionInfo> list = new ArrayList<>();
 			Map<String, ItemPermissionInfo> oldItemPermission = new HashMap<>();
-			if(saveItemModelEntity.isNew()) {
+			if(saveItemModelEntity.isNew() && (paramerItemModelEntity.getPermissions() == null || paramerItemModelEntity.getPermissions().size() < 1)) {
 				list.add(createItempermissionInfo(saveItemModelEntity, DisplayTimingType.Add));
 				list.add(createItempermissionInfo(saveItemModelEntity, DisplayTimingType.Update));
 				list.add(createItempermissionInfo(saveItemModelEntity, DisplayTimingType.Check));
@@ -555,8 +555,10 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			saveItemModelEntity.setPermissions(list);
 			for(String key: oldItemPermission.keySet()){
 				ItemPermissionInfo permissionInfo = oldItemPermission.get(key);
+				if(permissionInfo.getItemModel() != null){
+					permissionInfo.getItemModel().getPermissions().remove(permissionInfo);
+				}
 				permissionInfo.setItemModel(null);
-				itemPermissionManager.save(permissionInfo);
 				itemPermissionManager.delete(permissionInfo);
 			}
 		}
@@ -1119,6 +1121,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				break;
 			case  Treeselect:
 				entity = new TreeSelectItemModelEntity();
+				break;
+			case  Map:
+				entity = new MapItemModelEntity();
 				break;
 			default:
 				entity = new ItemModelEntity();

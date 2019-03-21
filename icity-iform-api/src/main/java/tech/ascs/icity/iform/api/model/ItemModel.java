@@ -181,6 +181,15 @@ public class ItemModel extends NameEntity {
 	@ApiModelProperty(value = "数据范围名称", position = 48)
 	private String dataRangeName;
 
+	@ApiModelProperty(value = "经度", position = 49)
+	private String longitude;
+
+	@ApiModelProperty(value = "纬度", position = 50)
+	private String latitude;
+
+	@ApiModelProperty(value = "描述", position = 51)
+	private String desc;
+
 	public ItemType getType() {
 		return type;
 	}
@@ -659,6 +668,30 @@ public class ItemModel extends NameEntity {
 
 	public void setDataRangeName(String dataRangeName) {
 		this.dataRangeName = dataRangeName;
+	}
+
+	public String getLongitude() {
+		return longitude;
+	}
+
+	public void setLongitude(String longitude) {
+		this.longitude = longitude;
+	}
+
+	public String getLatitude() {
+		return latitude;
+	}
+
+	public void setLatitude(String latitude) {
+		this.latitude = latitude;
+	}
+
+	public String getDesc() {
+		return desc;
+	}
+
+	public void setDesc(String desc) {
+		this.desc = desc;
 	}
 
 	@Override

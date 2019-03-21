@@ -43,7 +43,7 @@ public class ReferenceItemModelEntity extends ItemModelEntity  {
 	@Column(name="item_model_ids", length = 2048) // 关联数据标识：控件id集合
 	private String itemModelIds;
 
-	@ManyToOne(cascade = {CascadeType.MERGE})
+	@ManyToOne(cascade = {CascadeType.PERSIST})
 	@JoinColumn(name="parent_reference_id")// 父类控件
 	private ReferenceItemModelEntity parentItem;
 

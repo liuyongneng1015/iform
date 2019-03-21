@@ -22,6 +22,8 @@ public interface FormInstanceServiceEx {
 
 	FormInstance getFormInstance(FormModelEntity formModel, String instanceId);
 
+	FormDataSaveInstance getQrCodeFormDataSaveInstance(ListModelEntity listModel, String instanceId);
+
 	FormInstance newFormInstance(FormModelEntity formModel);
 
 	String createFormInstance(FormModelEntity formModel, FormDataSaveInstance formInstance);

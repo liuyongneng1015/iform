@@ -134,13 +134,13 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 	}
 
 	@Override
-	public Page<DictionaryModel> page(@RequestParam(name = "page", defaultValue = "1") int page, @RequestParam(name="pageSize", defaultValue = "12") int pageSize) {
-		Page<DictionaryEntity> pageEntity = dictionaryService.query().sort(Sort.asc("orderNo")).page(page, pageSize).page();
+	public Page<DictionaryModel> page(@RequestParam(name = "page", defaultValue = "1") int page, @RequestParam(name="pagesize", defaultValue = "12") int pagesize) {
+		Page<DictionaryEntity> pageEntity = dictionaryService.query().sort(Sort.asc("orderNo")).page(page, pagesize).page();
 		List<DictionaryModel> dictionaryModels = new ArrayList<>();
 		for(DictionaryEntity dictionaryEntity : pageEntity.getResults()){
 			dictionaryModels.add(getDictionaryModelByEntity(dictionaryEntity));
 		}
-		Page<DictionaryModel> listModels = Page.get(page, pageSize);
+		Page<DictionaryModel> listModels = Page.get(page, pagesize);
 		listModels.data(pageEntity.getTotalCount(), dictionaryModels);
 		return listModels;
 	}

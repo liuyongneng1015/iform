@@ -74,6 +74,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	private JPAManager<FileUploadEntity> fileUploadManager;
 
+	private JPAManager<GeographicalMapEntity> mapEntityJPAManager;
+
 	@Autowired
 	JdbcTemplate jdbcTemplate;
 
@@ -102,6 +104,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		itemModelManager = getJPAManagerFactory().getJPAManager(ItemModelEntity.class);
 		dataModelManager = getJPAManagerFactory().getJPAManager(DataModelEntity.class);
 		fileUploadManager = getJPAManagerFactory().getJPAManager(FileUploadEntity.class);
+		mapEntityJPAManager = getJPAManagerFactory().getJPAManager(GeographicalMapEntity.class);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -250,6 +253,20 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new IFormException("没有查询到【" + formModel.getName() + "】表单，instanceId【"+instanceId+"】的数据");
+		}
+		return formInstance;
+	}
+
+	@Override
+	public FormDataSaveInstance getQrCodeFormDataSaveInstance(ListModelEntity listModel, String instanceId) {
+		FormDataSaveInstance formInstance = null;
+		try {
+			DataModelEntity dataModel = listModel.getMasterForm().getDataModels().get(0);
+			Map<String, Object> map =  getDataInfo(dataModel, instanceId);
+			formInstance = wrapQrCodeFormDataEntity(true, listModel, map, instanceId, true);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new IFormException("没有查询到【" + listModel.getMasterForm().getName() + "】表单，instanceId【"+instanceId+"】的数据");
 		}
 		return formInstance;
 	}
@@ -938,7 +955,27 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			for(String key : fileUploadEntityMap.keySet()){
 				fileUploadManager.deleteById(key);
 			}
-		} else {
+		}  else if (itemModel.getType() == ItemType.Map) {
+			Object o = itemInstance.getValue();
+			if(o != null && o instanceof List){
+				List<Map<String, String>> fileList = (List<Map<String, String>>)o;
+				List<GeographicalMapEntity> newList = new ArrayList<>();
+				for(Map<String, String> geographicalMap : fileList){
+					if(geographicalMap == null || geographicalMap.values() == null || geographicalMap.values().size() < 1){
+						continue;
+					}
+					GeographicalMapEntity fileUploadEntity = getGeographicalMapEntity( geographicalMap, itemModel.getId());
+					newList.add(fileUploadEntity);
+				}
+				value = String.join(",", newList.parallelStream().map(GeographicalMapEntity::getId).collect(Collectors.toList()));
+			}else{
+				Map<String, String> fileUploadModel = o == null || o == "" ? null : (Map<String, String>)o;
+				if(fileUploadModel != null && fileUploadModel.values() != null && fileUploadModel.values().size() > 0){
+					GeographicalMapEntity fileUploadEntity = getGeographicalMapEntity( fileUploadModel, itemModel.getId());
+					value = fileUploadEntity.getId();
+				}
+			}
+		}else {
 			value = itemInstance.getValue() == null || StringUtils.isEmpty(itemInstance.getValue()) ? null : itemInstance.getValue();
         }
 		ColumnModelEntity columnModel = itemModel.getColumnModel();
@@ -971,6 +1008,24 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		fileUploadEntity.setFromSource(itemId);
 		fileUploadManager.save(fileUploadEntity);
 		return fileUploadEntity;
+	}
+
+	private GeographicalMapEntity getGeographicalMapEntity(Map<String, String> geographicalMap, String itemId){
+		GeographicalMapEntity geographicalMapEntity = null;
+		if(geographicalMap.get("id") != null){
+			geographicalMapEntity = mapEntityJPAManager.get(geographicalMap.get("id"));
+			if(geographicalMapEntity == null){
+				throw new IFormException("未找到【"+geographicalMap.get("id")+"】对应的文件");
+			}
+		}else {
+			geographicalMapEntity = new GeographicalMapEntity();
+		}
+		geographicalMapEntity.setDesc(geographicalMap.get("mapDesc"));
+		geographicalMapEntity.setLatitude(geographicalMap.get("latitude"));
+		geographicalMapEntity.setLongitude(geographicalMap.get("longitude"));
+		geographicalMapEntity.setFromSource(itemId);
+		mapEntityJPAManager.save(geographicalMapEntity);
+		return geographicalMapEntity;
 	}
 
 	//校验字段值
@@ -1396,7 +1451,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	protected List<FormDataSaveInstance> wrapFormDataList(ListModelEntity listModel, List<Map<String, Object>> entities) {
 		List<FormDataSaveInstance> FormInstanceList = new ArrayList<FormDataSaveInstance>();
 		for (Map<String, Object> entity : entities) {
-			FormInstanceList.add(wrapFormDataEntity(listModel, entity,String.valueOf(entity.get("id")), true));
+			FormInstanceList.add(wrapFormDataEntity(false, listModel, entity,String.valueOf(entity.get("id")), true));
 		}
 		return FormInstanceList;
 	}
@@ -1424,7 +1479,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		return setFormInstanceModel(formInstance, formModel, entity, referenceFlag);
 	}
 
-	protected FormDataSaveInstance wrapFormDataEntity(ListModelEntity listModel, Map<String, Object> entity, String instanceId, boolean referenceFlag) {
+	protected FormDataSaveInstance wrapFormDataEntity(boolean isQrCodeFlag, ListModelEntity listModel, Map<String, Object> entity, String instanceId, boolean referenceFlag) {
 		FormDataSaveInstance formInstance = new FormDataSaveInstance();
 		FormModelEntity formModel = listModel.getMasterForm();
 		formInstance.setFormId(formModel.getId());
@@ -1436,7 +1491,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			formInstance.setActivityId((String) entity.get("ACTIVITY_ID"));
 			formInstance.setActivityInstanceId((String) entity.get("ACTIVITY_INSTANCE"));
 		}
-		return setFormDataInstanceModel(formInstance, formModel,  listModel, entity, referenceFlag);
+		return setFormDataInstanceModel(isQrCodeFlag, formInstance, formModel,  listModel, entity, referenceFlag);
+	}
+
+	protected FormDataSaveInstance wrapQrCodeFormDataEntity(boolean isQrCodeFlag, ListModelEntity listModel, Map<String, Object> entity, String instanceId, boolean referenceFlag) {
+		return wrapFormDataEntity(isQrCodeFlag, listModel, entity,String.valueOf(entity.get("id")), true);
 	}
 
 	private FormInstance setFormInstanceModel(FormInstance formInstance, FormModelEntity fromFormModel, Map<String, Object> entity, boolean referenceFlag){
@@ -1452,14 +1511,14 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		return formInstance;
 	}
 
-	private FormDataSaveInstance setFormDataInstanceModel(FormDataSaveInstance formInstance, FormModelEntity formModel,  ListModelEntity listModelEntity,
+	private FormDataSaveInstance setFormDataInstanceModel(boolean isQrCodeFlag, FormDataSaveInstance formInstance, FormModelEntity formModel,  ListModelEntity listModelEntity,
 														  Map<String, Object> entity, boolean referenceFlag){
 		List<ItemInstance> items = new ArrayList<>();
 		List<ItemModelEntity> list = listModelEntity.getMasterForm().getItems();
 		List<ReferenceDataInstance> referenceDataModelList = formInstance.getReferenceData();
 		List<SubFormItemInstance> subFormItems = formInstance.getSubFormData();
 		for (ItemModelEntity itemModel : list) {
-			setFormDataItemInstance(formModel, itemModel, referenceFlag, entity, referenceDataModelList,
+			setFormDataItemInstance(isQrCodeFlag, itemModel, referenceFlag, entity, referenceDataModelList,
 					subFormItems, items, formInstance);
 		}
 
@@ -1522,6 +1581,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		return formInstance;
 	}
 
+
 	private void setItemInstance(ItemModelEntity itemModel, boolean referenceFlag, Map<String, Object> entity, List<DataModelInstance> referenceDataModelList,
 								 List<SubFormItemInstance> subFormItems, List<ItemInstance> items, FormInstance formInstance){
 		System.out.println(itemModel.getId()+"____begin");
@@ -1562,7 +1622,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	}
 
 
-	private void setFormDataItemInstance(FormModelEntity formModel, ItemModelEntity itemModel, boolean referenceFlag, Map<String, Object> entity, List<ReferenceDataInstance> referenceDataModelList,
+	private void setFormDataItemInstance(boolean isQrCodeFlag, ItemModelEntity itemModel, boolean referenceFlag, Map<String, Object> entity, List<ReferenceDataInstance> referenceDataModelList,
 								 List<SubFormItemInstance> subFormItems, List<ItemInstance> items, FormDataSaveInstance formInstance){
 		System.out.println(itemModel.getId()+"____begin");
 		ColumnModelEntity column = itemModel.getColumnModel();
@@ -1578,7 +1638,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			if(!referenceFlag){
 				return;
 			}
-			setFormDataReferenceItemInstance(itemModel,  entity,  referenceDataModelList, referenceFlag);
+			setFormDataReferenceItemInstance(isQrCodeFlag, itemModel,  entity,  referenceDataModelList, referenceFlag);
 		}else if(itemModel instanceof SubFormItemModelEntity) {
 			if(!referenceFlag){
 				return;
@@ -1586,13 +1646,13 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			setSubFormItemInstance( itemModel,  entity,  subFormItems, formInstance.getActivityId());
 		}else if(itemModel instanceof RowItemModelEntity){
 			for(ItemModelEntity itemModelEntity : ((RowItemModelEntity) itemModel).getItems()) {
-				setFormDataItemInstance(formModel, itemModelEntity, referenceFlag, entity, referenceDataModelList,
+				setFormDataItemInstance(isQrCodeFlag, itemModelEntity, referenceFlag, entity, referenceDataModelList,
 						subFormItems,  items, formInstance);
 			}
 		}else if(itemModel instanceof TabsItemModelEntity){
 			for(TabPaneItemModelEntity itemModelEntity : ((TabsItemModelEntity) itemModel).getItems()) {
 				for(ItemModelEntity itemModelEntity1 : itemModelEntity.getItems()) {
-					setFormDataItemInstance(formModel, itemModelEntity1, referenceFlag, entity, referenceDataModelList,
+					setFormDataItemInstance(isQrCodeFlag, itemModelEntity1, referenceFlag, entity, referenceDataModelList,
 							subFormItems, items, formInstance);
 				}
 			}
@@ -1661,7 +1721,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	}
 
 
-	private void setFormDataReferenceItemInstance( ItemModelEntity itemModel, Map<String, Object> entity, List<ReferenceDataInstance> referenceDataModelList, boolean referenceFlag){
+	private void setFormDataReferenceItemInstance( boolean isQrCodeFlag, ItemModelEntity itemModel, Map<String, Object> entity, List<ReferenceDataInstance> referenceDataModelList, boolean referenceFlag){
 		//主表字段
 		ReferenceItemModelEntity fromItem = (ReferenceItemModelEntity)itemModel;
 
@@ -1692,7 +1752,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			throw new IFormException("关联控件【"+fromItem.getName()+"】未找到对应的列表模型");
 		}
 
-		String itemModelIds = toModelEntity.getItemModelIds();
+		String itemModelIds = isQrCodeFlag ? toModelEntity.getQrCodeItemModelIds() : toModelEntity.getItemModelIds();
 		List<String> stringList = StringUtils.hasText(itemModelIds) ? Arrays.asList(itemModelIds.split(",")) : new ArrayList<>();
 		if(stringList == null || stringList.size() < 1){
 			return;
@@ -1724,7 +1784,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		if(fromItem.getReferenceType() == ReferenceType.ManyToOne || fromItem.getReferenceType() == ReferenceType.OneToOne ){
 			if(flag) {
 				if(listMap  != null && ((Map<String, Object>)listMap).get("id") != null && StringUtils.hasText(String.valueOf(((Map<String, Object>)listMap).get("id")))) {
-					ReferenceDataInstance referenceDataInstance = createDataModelInstance(fromItem, toModelEntity, String.valueOf(((Map<String, Object>) listMap).get("id")), stringList, false);
+					ReferenceDataInstance referenceDataInstance = createDataModelInstance(isQrCodeFlag, fromItem, toModelEntity, String.valueOf(((Map<String, Object>) listMap).get("id")), stringList, false);
 					dataModelInstance.setValue(referenceDataInstance.getValue());
 					List<Object> displayList = new ArrayList<>();
 					displayList.add(referenceDataInstance.getDisplayValue());
@@ -1737,7 +1797,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				if(listMap != null && ((List<Map<String, Object>>) listMap).size() > 0) {
 					for (Map<String, Object> map : (List<Map<String, Object>>) listMap) {
 						if (map.get("id") != null && StringUtils.hasText(String.valueOf(map.get("id")))) {
-							ReferenceDataInstance referenceDataInstance = createDataModelInstance(fromItem, toModelEntity, String.valueOf(map.get("id")), stringList, false);
+							ReferenceDataInstance referenceDataInstance = createDataModelInstance(isQrCodeFlag, fromItem, toModelEntity, String.valueOf(map.get("id")), stringList, false);
 							if (referenceDataInstance != null && referenceDataInstance.getValue() != null) {
 								valueList.add(String.valueOf(referenceDataInstance.getValue()));
 								displayValueList.add(String.valueOf(referenceDataInstance.getDisplayValue()));
@@ -1806,11 +1866,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		return map;
 	}
 
-	private ReferenceDataInstance createDataModelInstance(ReferenceItemModelEntity fromItem, FormModelEntity toModelEntity, String id, List<String> stringList, boolean referenceFlag){
+	private ReferenceDataInstance createDataModelInstance(boolean isQrCodeFlag, ReferenceItemModelEntity fromItem, FormModelEntity toModelEntity, String id, List<String> stringList, boolean referenceFlag){
 		ReferenceDataInstance dataModelInstance = new ReferenceDataInstance();
 		dataModelInstance.setValue(id);
 		Map<String, Object> map = getDataInfo(toModelEntity.getDataModels().get(0), id);
-		FormDataSaveInstance formDataSaveInstance = wrapFormDataEntity(fromItem.getReferenceList(), map, id, referenceFlag);
+		FormDataSaveInstance formDataSaveInstance = wrapFormDataEntity(isQrCodeFlag, fromItem.getReferenceList(), map, id, referenceFlag);
 
 		List<String> valueList = new ArrayList<>();
 		Map<String, ItemInstance> valueMap = new HashMap<>();
@@ -2208,6 +2268,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			case Attachment:
 				setFileItemInstance(value, itemInstance);
 				break;
+			case Map:
+				setMapItemInstance(value, itemInstance);
+				break;
 			default:
                 String valueStr = value == null || StringUtils.isEmpty(value) ?  null : String.valueOf(value);
                 itemInstance.setValue(value);
@@ -2345,6 +2408,22 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}
 			itemInstance.setValue(listModels);
 			itemInstance.setDisplayValue(listModels);
+		}
+	}
+
+	private void setMapItemInstance(Object value, ItemInstance itemInstance){
+		String valueStr = value == null || StringUtils.isEmpty(value) ?  null : String.valueOf(value);
+		if(valueStr != null) {
+			List<String> listv = Arrays.asList(valueStr.split(","));
+			GeographicalMapModel mapModel = new GeographicalMapModel();
+			List<GeographicalMapEntity> entityList = mapEntityJPAManager.query().filterIn("id", listv).list();
+			for(GeographicalMapEntity entity : entityList){
+				GeographicalMapModel geographicalMapModel = new GeographicalMapModel();
+				BeanUtils.copyProperties(entity, geographicalMapModel);
+				mapModel = geographicalMapModel;
+			}
+			itemInstance.setValue(mapModel);
+			itemInstance.setDisplayValue(mapModel);
 		}
 	}
 
