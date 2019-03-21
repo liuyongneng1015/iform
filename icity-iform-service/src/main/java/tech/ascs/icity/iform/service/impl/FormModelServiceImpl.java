@@ -534,7 +534,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		if(paramerItemModelEntity.getColumnModel() != null && !"id".equals(paramerItemModelEntity.getColumnModel().getColumnName())) {
 			List<ItemPermissionInfo> list = new ArrayList<>();
 			Map<String, ItemPermissionInfo> oldItemPermission = new HashMap<>();
-			if(saveItemModelEntity.isNew()) {
+			if(saveItemModelEntity.isNew() && (paramerItemModelEntity.getPermissions() == null || paramerItemModelEntity.getPermissions().size() < 1)) {
 				list.add(createItempermissionInfo(saveItemModelEntity, DisplayTimingType.Add));
 				list.add(createItempermissionInfo(saveItemModelEntity, DisplayTimingType.Update));
 				list.add(createItempermissionInfo(saveItemModelEntity, DisplayTimingType.Check));
