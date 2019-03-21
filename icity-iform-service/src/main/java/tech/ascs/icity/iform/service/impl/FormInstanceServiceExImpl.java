@@ -120,7 +120,23 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	@Override
 	public Page<FormDataSaveInstance> pageFormInstance(FormModelEntity formModel, int page, int pagesize, Map<String, Object> queryParameters) {
 		Criteria criteria = generateCriteria(formModel, queryParameters);
-		return Page.get(page, pagesize);
+		criteria.setFirstResult((page - 1) * pagesize);
+		criteria.setMaxResults(pagesize);
+		List<Map<String, Object>> entities = null;
+		Page<FormDataSaveInstance> result = Page.get(page, pagesize);
+		try {
+			entities = criteria.list();
+		} catch (HibernateException e) {
+			e.printStackTrace();
+			return result;
+		}
+		List<FormDataSaveInstance> list = wrapFormDataList(formModel, null, entities);
+
+		criteria.setFirstResult(0);
+		criteria.setProjection(Projections.rowCount());
+		Number count = (Number) criteria.uniqueResult();
+
+		return result.data(count.intValue(), list);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -141,7 +157,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			return result;
 		}
 
-		List<FormDataSaveInstance> list = wrapFormDataList(listModel, entities);
+		List<FormDataSaveInstance> list = wrapFormDataList(null, listModel, entities);
 
 		criteria.setFirstResult(0);
 		criteria.setProjection(Projections.rowCount());
@@ -1455,10 +1471,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 	}
 
-	protected List<FormDataSaveInstance> wrapFormDataList(ListModelEntity listModel, List<Map<String, Object>> entities) {
+	protected List<FormDataSaveInstance> wrapFormDataList(FormModelEntity formModel, ListModelEntity listModel, List<Map<String, Object>> entities) {
 		List<FormDataSaveInstance> FormInstanceList = new ArrayList<FormDataSaveInstance>();
 		for (Map<String, Object> entity : entities) {
-			FormInstanceList.add(wrapFormDataEntity(false, listModel, entity,String.valueOf(entity.get("id")), true));
+			FormInstanceList.add(wrapFormDataEntity(false, formModel, listModel, entity,String.valueOf(entity.get("id")), true));
 		}
 		return FormInstanceList;
 	}
@@ -1486,9 +1502,14 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		return setFormInstanceModel(formInstance, formModel, entity, referenceFlag);
 	}
 
-	protected FormDataSaveInstance wrapFormDataEntity(boolean isQrCodeFlag, ListModelEntity listModel, Map<String, Object> entity, String instanceId, boolean referenceFlag) {
+	protected FormDataSaveInstance wrapFormDataEntity(boolean isQrCodeFlag, FormModelEntity formModelEntity, ListModelEntity listModel, Map<String, Object> entity, String instanceId, boolean referenceFlag) {
 		FormDataSaveInstance formInstance = new FormDataSaveInstance();
-		FormModelEntity formModel = listModel.getMasterForm();
+		FormModelEntity formModel = null;
+		if (listModel!=null) {
+			formModel = listModel.getMasterForm();
+		} else {
+			formModel = formModelEntity;
+		}
 		formInstance.setFormId(formModel.getId());
 		//数据id
 		formInstance.setId(instanceId);
@@ -1502,7 +1523,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	}
 
 	protected FormDataSaveInstance wrapQrCodeFormDataEntity(boolean isQrCodeFlag, ListModelEntity listModel, Map<String, Object> entity, String instanceId, boolean referenceFlag) {
-		return wrapFormDataEntity(isQrCodeFlag, listModel, entity,String.valueOf(entity.get("id")), true);
+		return wrapFormDataEntity(isQrCodeFlag, null, listModel, entity,String.valueOf(entity.get("id")), true);
 	}
 
 	private FormInstance setFormInstanceModel(FormInstance formInstance, FormModelEntity fromFormModel, Map<String, Object> entity, boolean referenceFlag){
@@ -1521,7 +1542,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	private FormDataSaveInstance setFormDataInstanceModel(boolean isQrCodeFlag, FormDataSaveInstance formInstance, FormModelEntity formModel,  ListModelEntity listModelEntity,
 														  Map<String, Object> entity, boolean referenceFlag){
 		List<ItemInstance> items = new ArrayList<>();
-		List<ItemModelEntity> list = listModelEntity.getMasterForm().getItems();
+		List<ItemModelEntity> list = formModel.getItems();
 		List<ReferenceDataInstance> referenceDataModelList = formInstance.getReferenceData();
 		List<SubFormItemInstance> subFormItems = formInstance.getSubFormData();
 		for (ItemModelEntity itemModel : list) {
@@ -1877,7 +1898,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		ReferenceDataInstance dataModelInstance = new ReferenceDataInstance();
 		dataModelInstance.setValue(id);
 		Map<String, Object> map = getDataInfo(toModelEntity.getDataModels().get(0), id);
-		FormDataSaveInstance formDataSaveInstance = wrapFormDataEntity(isQrCodeFlag, fromItem.getReferenceList(), map, id, referenceFlag);
+		FormDataSaveInstance formDataSaveInstance = wrapFormDataEntity(isQrCodeFlag, null, fromItem.getReferenceList(), map, id, referenceFlag);
 
 		List<String> valueList = new ArrayList<>();
 		Map<String, ItemInstance> valueMap = new HashMap<>();

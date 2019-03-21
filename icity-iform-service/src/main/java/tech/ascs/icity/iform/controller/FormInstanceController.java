@@ -106,9 +106,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		if (listModel == null) {
 			throw new IFormException(404, "列表模型【" + listId + "】不存在");
 		}
-
 		Map<String, Object> queryParameters = assemblyQueryParameters(parameters);
-
 		return formInstanceService.pageFormInstance(listModel, page, pagesize, queryParameters);
 	}
 
