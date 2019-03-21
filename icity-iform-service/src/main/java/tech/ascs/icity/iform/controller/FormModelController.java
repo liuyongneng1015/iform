@@ -589,10 +589,11 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			List<String> columnModelEntities = dataModel.getColumns().parallelStream().map(ColumnModel::getColumnName).collect(Collectors.toList());
 			Map<String, Object> map = new HashMap<String, Object>();
 			for(String string : columnModelEntities){
-				if(map.containsKey(string)){
-					throw new IFormException("字段重复了");
+				String key = string.toLowerCase();
+				if(map.containsKey(key)){
+					throw new IFormException(key+"字段重复了");
 				}
-				map.put(string, string);
+				map.put(key, string);
 			}
 		}
 
