@@ -258,6 +258,11 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		return new ArrayList<>();
 	}
 
+	@Override
+	public ListModel getByTableName(@PathVariable(name="tableName") String tableName) {
+		return listModelService.getByTableName(tableName);
+	}
+
 	private List<ApplicationModel> list(String applicationId, List<ListModel> entities){
 		if(entities == null){
 			return new ArrayList<>();

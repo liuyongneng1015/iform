@@ -40,6 +40,10 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 
 	private JPAManager<QuickSearchEntity> quickSearchEntityManager;
 
+	private JPAManager<FormModelEntity> formModelEntityJPAManager;
+
+	private JPAManager<DataModelEntity> dataModelEntityJPAManager;
+
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
 
@@ -68,6 +72,8 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 		quickSearchEntityManager = getJPAManagerFactory().getJPAManager(QuickSearchEntity.class);
 		selectItemModelEntityManager = getJPAManagerFactory().getJPAManager(SelectItemModelEntity.class);
 		referenceItemModelEntityManager = getJPAManagerFactory().getJPAManager(ReferenceItemModelEntity.class);
+		formModelEntityJPAManager = getJPAManagerFactory().getJPAManager(FormModelEntity.class);
+		dataModelEntityJPAManager = getJPAManagerFactory().getJPAManager(DataModelEntity.class);
 	}
 
 	@Override
@@ -374,12 +380,18 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 			}
 			List<ListModelEntity> listModelEntities = query().filterIn("id",idlist).list();
 			for(ListModelEntity listModelEntity : listModelEntities){
-				list.add(BeanUtils.copy(listModelEntity, ListModel.class, new String[]{"displayItems","searchItems","functions","sortItems","slaverForms","masterForm"}));
+				list.add(entityToModel(listModelEntity));
 			}
 			return list;
 		} catch (Exception e) {
 			throw new IFormException("获取列表模型列表失败：" + e.getMessage(), e);
 		}
+	}
+
+	private ListModel entityToModel(ListModelEntity listModelEntity){
+		ListModel listModel = new ListModel();
+		BeanUtils.copyProperties(listModelEntity, listModel, new String[]{"displayItems","searchItems","functions","sortItems","slaverForms","masterForm"});
+		return listModel;
 	}
 
 	@Transactional(readOnly = false)
@@ -525,5 +537,23 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 		} catch (Exception e) {
 			throw new IFormException("获取列表模型列表失败：" + e.getMessage(), e);
 		}
+	}
+
+	@Override
+	public ListModel getByTableName(String tableName) {
+		if(!StringUtils.hasText(tableName)){
+			throw new IFormException("请求参数【"+tableName+"】为空了");
+		}
+
+		List<ListModelEntity> listModelEntities = query().filterEqual("masterForm.dataModels.tableName", tableName).list();
+
+		if(listModelEntities == null || listModelEntities.size() < 1 ){
+			throw new IFormException("未找到【"+tableName+"】对应的列表模型");
+		}
+		ListModel list = entityToModel(listModelEntities.get(0));
+		FormModel formModel = new FormModel();
+		formModel.setId(listModelEntities.get(0).getMasterForm().getId());
+		list.setMasterForm(formModel);
+		return list;
 	}
 }
