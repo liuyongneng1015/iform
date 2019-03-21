@@ -1198,13 +1198,17 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	@SuppressWarnings("deprecation")
 	protected Criteria generateCriteria(ListModelEntity listModel, Map<String, Object> queryParameters) {
 		FormModelEntity formModelEntity = listModel.getMasterForm();
+		return generateCriteria(formModelEntity, queryParameters);
+	}
+
+	public Criteria generateCriteria(FormModelEntity formModelEntity, Map<String, Object> queryParameters) {
 		DataModelEntity dataModel = formModelEntity.getDataModels().get(0);
 		Session session = getSession(dataModel);
 		Criteria criteria = session.createCriteria(dataModel.getTableName());
 
 		Map<String, ItemModelEntity> idAndItemMap = assemblyFormAllItems(formModelEntity);
 
-        for (String id:queryParameters.keySet()) {
+		for (String id:queryParameters.keySet()) {
 			ItemModelEntity itemModel = idAndItemMap.get(id);
 			if (itemModel==null) {
 				continue;
@@ -1232,40 +1236,40 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			// 要查询的属性是一对多中多的一方或者是多对多中的Collection对象集合(List对象集合或者Set对象集合)
 			Boolean propertyIsCollection = false;
 			if (itemModel instanceof ReferenceItemModelEntity) {
-                ReferenceItemModelEntity referenceItemModel = (ReferenceItemModelEntity)itemModel;
-                if (referenceItemModel.getSelectMode() == SelectMode.Single && (referenceItemModel.getReferenceType() == ReferenceType.ManyToOne
-                        || referenceItemModel.getReferenceType() == ReferenceType.OneToOne)) {
-                    if(referenceItemModel.getColumnModel() == null){
-                        continue;
-                    }
-                    columnModel = referenceItemModel.getColumnModel();
-                    propertyName = referenceItemModel.getColumnModel().getColumnName()+".id";
-                }else if (referenceItemModel.getSelectMode() == SelectMode.Inverse && (referenceItemModel.getReferenceType() == ReferenceType.ManyToOne
-                        || referenceItemModel.getReferenceType() == ReferenceType.OneToOne)) {
-                    ReferenceItemModelEntity referenceItemModelEntity1 = (ReferenceItemModelEntity)itemModelManager.get(referenceItemModel.getReferenceItemId());
-                    if(referenceItemModelEntity1.getColumnModel() == null){
-                        continue;
-                    }
-                    propertyIsCollection = true;
-                    columnModel = referenceItemModelEntity1.getColumnModel();
-                    propertyName = referenceItemModelEntity1.getColumnModel().getDataModel().getTableName()+"_"+referenceItemModelEntity1.getColumnModel().getColumnName()+"_list";
-                }else if(referenceItemModel.getSelectMode() == SelectMode.Multiple){
-                    columnModel = new ColumnModelEntity();
-                    columnModel.setDataType(ColumnType.String);
-                    propertyIsCollection = true;
-                    FormModelEntity toModelEntity = formModelService.find(((ReferenceItemModelEntity) itemModel).getReferenceFormId());
-                    if (toModelEntity == null) {
-                        continue;
-                    }
-                    propertyName = toModelEntity.getDataModels().get(0).getTableName()+"_list";
-                }
+				ReferenceItemModelEntity referenceItemModel = (ReferenceItemModelEntity)itemModel;
+				if (referenceItemModel.getSelectMode() == SelectMode.Single && (referenceItemModel.getReferenceType() == ReferenceType.ManyToOne
+						|| referenceItemModel.getReferenceType() == ReferenceType.OneToOne)) {
+					if(referenceItemModel.getColumnModel() == null){
+						continue;
+					}
+					columnModel = referenceItemModel.getColumnModel();
+					propertyName = referenceItemModel.getColumnModel().getColumnName()+".id";
+				}else if (referenceItemModel.getSelectMode() == SelectMode.Inverse && (referenceItemModel.getReferenceType() == ReferenceType.ManyToOne
+						|| referenceItemModel.getReferenceType() == ReferenceType.OneToOne)) {
+					ReferenceItemModelEntity referenceItemModelEntity1 = (ReferenceItemModelEntity)itemModelManager.get(referenceItemModel.getReferenceItemId());
+					if(referenceItemModelEntity1.getColumnModel() == null){
+						continue;
+					}
+					propertyIsCollection = true;
+					columnModel = referenceItemModelEntity1.getColumnModel();
+					propertyName = referenceItemModelEntity1.getColumnModel().getDataModel().getTableName()+"_"+referenceItemModelEntity1.getColumnModel().getColumnName()+"_list";
+				}else if(referenceItemModel.getSelectMode() == SelectMode.Multiple){
+					columnModel = new ColumnModelEntity();
+					columnModel.setDataType(ColumnType.String);
+					propertyIsCollection = true;
+					FormModelEntity toModelEntity = formModelService.find(((ReferenceItemModelEntity) itemModel).getReferenceFormId());
+					if (toModelEntity == null) {
+						continue;
+					}
+					propertyName = toModelEntity.getDataModels().get(0).getTableName()+"_list";
+				}
 			} else if (itemModel.getColumnModel()!=null) {        // 普通控件
 				propertyName = columnModel.getColumnName();
 			}
 
-            if (StringUtils.isEmpty(propertyName) || columnModel == null) {
-			    continue;
-            }
+			if (StringUtils.isEmpty(propertyName) || columnModel == null) {
+				continue;
+			}
 
 			boolean equalsFlag = false;
 
@@ -1313,23 +1317,23 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					criteria.add(Restrictions.or(conditions));
 				}
 			} else {
-                // 要查询的属性是一对多中多的一方或者是多对多中的Collection对象集合(List对象集合或者Set对象集合)
-			    if (propertyIsCollection) {
+				// 要查询的属性是一对多中多的一方或者是多对多中的Collection对象集合(List对象集合或者Set对象集合)
+				if (propertyIsCollection) {
 //                  // 方案一
-                    criteria.createCriteria(propertyName).add(Restrictions.in("id", values));
+					criteria.createCriteria(propertyName).add(Restrictions.in("id", values));
 //			        // 方案二
 //                    Disjunction disjunction = Restrictions.disjunction();
 //                    criteria.createAlias(propertyName, "mr",CriteriaSpecification.LEFT_JOIN);
 //                    disjunction.add(Restrictions.in("mr.id", values));
 //                    criteria.add(disjunction);
 
-                } else {
-                    Criterion[] conditions = new Criterion[values.length];
-                    for (int i = 0; i < values.length; i++) {
-                        conditions[i] = Restrictions.like(propertyName, "%" + values[i] + "%");
-                    }
-                    criteria.add(Restrictions.or(conditions));
-                }
+				} else {
+					Criterion[] conditions = new Criterion[values.length];
+					for (int i = 0; i < values.length; i++) {
+						conditions[i] = Restrictions.like(propertyName, "%" + values[i] + "%");
+					}
+					criteria.add(Restrictions.or(conditions));
+				}
 			}
 		}
 		return criteria;
