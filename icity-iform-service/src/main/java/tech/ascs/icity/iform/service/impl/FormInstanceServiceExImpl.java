@@ -1551,11 +1551,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 
 		//展示字段
-		List<String> displayIds = listModelEntity.getDisplayItems().parallelStream().map(ItemModelEntity::getId).collect(Collectors.toList());
-		List<String> copyDisplayIds = new ArrayList<>();
-		for(String string : displayIds){
-			copyDisplayIds.add(string);
+		List<String> displayIds = new ArrayList<>();
+		if (listModelEntity!=null) {
+			displayIds = listModelEntity.getDisplayItems().parallelStream().map(ItemModelEntity::getId).collect(Collectors.toList());
 		}
+		List<String> copyDisplayIds = displayIds.stream().collect(Collectors.toList());
 		//所以的字段
 		List<String> itemIds = items.parallelStream().map(ItemInstance::getId).collect(Collectors.toList());
 		List<String> copyItemIds = new ArrayList<>();
