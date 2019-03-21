@@ -125,7 +125,7 @@ public interface FormInstanceService {
 	/**
 	 * 根据表单实例ID获取表单二维码实例对象
 	 *
-	 * @param formId 表单模型ID
+	 * @param listId 表单模型ID
 	 * @param id 表单实例ID
 	 * @return
 	 */
