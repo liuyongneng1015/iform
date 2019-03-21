@@ -542,24 +542,13 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 	@Override
 	public ListModel getByTableName(String tableName) {
 		if(!StringUtils.hasText(tableName)){
-			return null;
+			throw new IFormException("请求参数【"+tableName+"】为空了");
 		}
-		DataModelEntity dataModelEntity = dataModelEntityJPAManager.findUniqueByProperty("tableName", tableName);
-		if(dataModelEntity == null){
-			throw new IFormException("获取【"+tableName+"】数据模型失败");
-		}
-		List<String> idlist = jdbcTemplate.query("select t.form_model from ifm_form_data_bind t where t.data_model in ('"+dataModelEntity.getId()+"')",
-				new RowMapper<String>() {
-					@Override
-					public String mapRow(ResultSet rs, int rowNum) throws SQLException {
-						return rs.getString("form_model");
-					}});
-		if(idlist == null || idlist.size() < 1) {
-			return null;
-		}
-		List<ListModelEntity> listModelEntities = query().filterIn("masterForm.id", idlist).list();
+
+		List<ListModelEntity> listModelEntities = query().filterEqual("masterForm.dataModels.tableName", tableName).list();
+
 		if(listModelEntities == null || listModelEntities.size() < 1 ){
-			return null;
+			throw new IFormException("未找到【"+tableName+"】对应的列表模型");
 		}
 		ListModel list = entityToModel(listModelEntities.get(0));
 		FormModel formModel = new FormModel();
