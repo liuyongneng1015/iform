@@ -123,6 +123,21 @@ public interface FormInstanceService {
 
 
 	/**
+	 * 根据表单实例ID获取表单二维码实例对象
+	 *
+	 * @param formId 表单模型ID
+	 * @param id 表单实例ID
+	 * @return
+	 */
+	@ApiOperation(value = "根据表单实例ID获取表单二维码实例对象", position = 2)
+	@ApiImplicitParams({
+			@ApiImplicitParam(paramType = "path", name = "listId", value = "列表模型ID", required = true, dataType = "String"),
+			@ApiImplicitParam(paramType = "path", name = "id", value = "表单实例ID", required = true, dataType = "String")
+	})
+	@GetMapping("/qrcode/{listId}/{id}")
+	FormDataSaveInstance getQrCode(@PathVariable(name="listId") String listId, @PathVariable(name="id") String id);
+
+	/**
 	  * 新建表单实例
 	 * 
 	 * @param formId 表单模型ID

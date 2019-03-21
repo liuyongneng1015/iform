@@ -49,7 +49,10 @@ public enum ItemType {
 	TabPane("TabPane"),
 
 	/** 树形下拉 */
-	Treeselect("Treeselect");
+	Treeselect("Treeselect"),
+
+	/** 地图 */
+	Map("Map");
 
 	private String value;
 	private ItemType(String value) {
