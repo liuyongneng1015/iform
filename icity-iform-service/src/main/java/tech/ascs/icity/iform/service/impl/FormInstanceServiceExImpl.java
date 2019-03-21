@@ -118,6 +118,13 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	@SuppressWarnings("unchecked")
 	@Override
+	public Page<FormDataSaveInstance> pageFormInstance(FormModelEntity formModel, int page, int pagesize, Map<String, Object> queryParameters) {
+		Criteria criteria = generateCriteria(formModel, queryParameters);
+		return Page.get(page, pagesize);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
 	public Page<FormDataSaveInstance> pageFormInstance(ListModelEntity listModel, int page, int pagesize, Map<String, Object> queryParameters) {
 		Criteria criteria = generateCriteria(listModel, queryParameters);
 		addCreatorCriteria(criteria, listModel);

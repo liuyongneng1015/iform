@@ -72,6 +72,28 @@ public interface FormInstanceService {
 			@RequestParam Map<String, Object> parameters);
 
 	/**
+	 * 通过表单ID和条件分页查询表单实例数据
+	 *
+	 * @param formId 表单模型ID
+	 * @param page （可选）页码，默认为1
+	 * @param pagesize （可选）每页记录数，默认为10
+	 * @return
+	 */
+	@ApiOperation(value = "通过表单ID和条件分页查询表单实例数据", notes = "附加查询条件（可选）：列表建模中的查询条件，以key=value的形式拼接到url，其中key为字段模型ID", position = 1)
+	@ApiImplicitParams({
+		@ApiImplicitParam(paramType = "path", name = "formId", value = "表单模型ID", required = true, dataType = "String"),
+		@ApiImplicitParam(paramType = "query", name = "page", value = "页码", required = false, defaultValue = "1"),
+		@ApiImplicitParam(paramType = "query", name = "pagesize", value = "每页记录数", required = false, defaultValue = "10"),
+		@ApiImplicitParam(paramType = "query", name = "parameters", value = "查询参数", required = false)
+	})
+	@GetMapping("/form/{formId}/page")
+	Page<FormDataSaveInstance> formPage(
+				@PathVariable(name="formId") String formId,
+				@RequestParam(name = "page", defaultValue = "1") int page,
+				@RequestParam(name="pagesize", defaultValue = "10") int pagesize,
+				@RequestParam Map<String, Object> parameters);
+
+	/**
 	 * 获取表单实例分页数据
 	 *
 	 * @param tableName 表名
