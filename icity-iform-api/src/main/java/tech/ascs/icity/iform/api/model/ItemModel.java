@@ -187,8 +187,8 @@ public class ItemModel extends NameEntity {
 	@ApiModelProperty(value = "纬度", position = 50)
 	private String latitude;
 
-	@ApiModelProperty(value = "描述", position = 51)
-	private String desc;
+	@ApiModelProperty(value = "地图描述", position = 51)
+	private String mapDesc;
 
 	public ItemType getType() {
 		return type;
@@ -686,12 +686,12 @@ public class ItemModel extends NameEntity {
 		this.latitude = latitude;
 	}
 
-	public String getDesc() {
-		return desc;
+	public String getMapDesc() {
+		return mapDesc;
 	}
 
-	public void setDesc(String desc) {
-		this.desc = desc;
+	public void setMapDesc(String mapDesc) {
+		this.mapDesc = mapDesc;
 	}
 
 	@Override
