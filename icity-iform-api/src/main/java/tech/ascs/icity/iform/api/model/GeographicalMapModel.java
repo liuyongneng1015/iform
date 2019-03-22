@@ -17,7 +17,7 @@ public class GeographicalMapModel extends NameEntity {
 	@ApiModelProperty(value = "纬度", position = 50)
 	private String latitude;
 
-	@ApiModelProperty(value = "描述", position = 51)
+	@ApiModelProperty(value = "地图描述", position = 51)
 	private String mapDesc;
 
 	public String getFromSource() {

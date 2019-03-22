@@ -24,8 +24,8 @@ public class GeographicalMapEntity extends BaseEntity implements Serializable {
 	@Column(name="latitude")//纬度
 	private String latitude;
 
-	@Column(name="desc")//描述
-	private String desc;
+	@Column(name="map_desc")//地图描述
+	private String mapDesc;
 
 	public String getFromSource() {
 		return fromSource;
@@ -51,11 +51,11 @@ public class GeographicalMapEntity extends BaseEntity implements Serializable {
 		this.latitude = latitude;
 	}
 
-	public String getDesc() {
-		return desc;
+	public String getMapDesc() {
+		return mapDesc;
 	}
 
-	public void setDesc(String desc) {
-		this.desc = desc;
+	public void setMapDesc(String mapDesc) {
+		this.mapDesc = mapDesc;
 	}
 }

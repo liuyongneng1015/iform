@@ -9,7 +9,6 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import com.google.api.client.util.ArrayMap;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.hibernate.Criteria;
@@ -1043,7 +1042,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}else {
 			geographicalMapEntity = new GeographicalMapEntity();
 		}
-		geographicalMapEntity.setDesc(geographicalMap.get("mapDesc"));
+		geographicalMapEntity.setMapDesc(geographicalMap.get("mapDesc"));
 		geographicalMapEntity.setLatitude(geographicalMap.get("latitude"));
 		geographicalMapEntity.setLongitude(geographicalMap.get("longitude"));
 		geographicalMapEntity.setFromSource(itemId);
