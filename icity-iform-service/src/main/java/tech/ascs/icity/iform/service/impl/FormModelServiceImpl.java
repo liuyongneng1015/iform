@@ -519,7 +519,10 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 						columnModelEntity.setLength(4096);
 					}
 				}
-			}
+			}else if (columnModelEntity != null && saveItemModelEntity.getType() == ItemType.TimePicker) {//不带日期的时间控件为String类型
+                    columnModelEntity.setDataType(ColumnType.String);
+                    columnModelEntity.setLength(255);
+            }
 			saveItemModelEntity.setColumnModel(columnModelEntity);
 		}else if(!"id".equals(saveItemModelEntity.getName())){
 			saveItemModelEntity.setColumnModel(null);
@@ -1089,6 +1092,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			case  DatePicker:
 				entity = new TimeItemModelEntity();
 				break;
+            case  TimePicker:
+                entity = new TimeItemModelEntity();
+                break;
 			case  Select:
 				entity = new SelectItemModelEntity();
 				break;

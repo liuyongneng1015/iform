@@ -22,6 +22,9 @@ public enum ItemType {
 	/** 日期控件 */
 	DatePicker("DatePicker"),
 
+	/** 时间控件 */
+	TimePicker("TimePicker"),
+
 	/** 下拉选择 */
 	Select("Select"),
 	/** 单选 */
