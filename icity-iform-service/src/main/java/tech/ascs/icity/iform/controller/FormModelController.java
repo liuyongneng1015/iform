@@ -2,7 +2,6 @@ package tech.ascs.icity.iform.controller;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -74,7 +73,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				query.filterEqual("applicationId",  applicationId);
 			}
 			List<FormModelEntity> entities = query.list();
-			return toDTO(entities);
+			return toDTO(entities, false);
 		} catch (Exception e) {
 			throw new IFormException("获取表单模型列表失败：" + e.getMessage(), e);
 		}
@@ -270,7 +269,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 		formModelEntity.setItems(formModelService.getAllColumnItems(formModelEntity.getItems()));
 		try {
-			 FormModel formModel = toDTO(formModelEntity);
+			 FormModel formModel = toDTO(formModelEntity, false);
 			 for(ItemModel itemModel : formModel.getItems()){
 			 	if(stringList.contains(itemModel.getId())){
 			 		itemModel.setSelectFlag(true);
@@ -292,6 +291,19 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		try {
 			FormModelEntity entity = wrapSubmitCheck(formModel);
 			formModelService.saveFormModelSubmitCheck(entity);
+		} catch (Exception e) {
+			throw new IFormException("保存表单模型列表失败：" + e.getMessage(), e);
+		}
+	}
+
+	@Override
+	public void saveFormModelProcessBind(String id, FormModel formModel) {
+		if (!StringUtils.hasText(formModel.getId()) || !id.equals(formModel.getId())) {
+			throw new IFormException("表单模型ID不一致");
+		}
+		try {
+			FormModelEntity entity = wrapProcessActivityBind(formModel);
+			formModelService.saveFormModelProcessBind(entity);
 		} catch (Exception e) {
 			throw new IFormException("保存表单模型列表失败：" + e.getMessage(), e);
 		}
@@ -569,7 +581,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	private FormModelEntity wrap(FormModel formModel) {
 		veryFormModel(formModel);
 		FormModelEntity entity = new FormModelEntity();
-		BeanUtils.copyProperties(formModel, entity, new String[] {"items","dataModels","permissions","submitChecks","functions"});
+		BeanUtils.copyProperties(formModel, entity, new String[] {"items","dataModels","permissions","submitChecks","functions","itemProcessBindModels"});
 
 		verifyFormModelName(formModel);
 
@@ -838,9 +850,48 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 	}
 
+	private FormModelEntity wrapProcessActivityBind(FormModel formModel) {
+		FormModelEntity entity = new FormModelEntity();
+		BeanUtils.copyProperties(formModel, entity, new String[] {"items","dataModels","permissions","submitChecks","functions","itemProcessBindModels"});
+
+		//流程
+		if(formModel.getProcess() != null){
+			FormModel.ProceeeModel proceeeModel = formModel.getProcess();
+			FormProcessInfo processInfo = new FormProcessInfo();
+			BeanUtils.copyProperties(proceeeModel, processInfo);
+			entity.setProcess(processInfo);
+		}
+
+		//流程环节绑定
+		if(formModel.getItemProcessBindModels() != null){
+			Map<String, ItemModelEntity> itemModelEntityMap = new HashMap<>();
+			for(ItemProcessBindModel processBindModel : formModel.getItemProcessBindModels()){
+				for(ItemActivityInfoModel model1: processBindModel.getActivityInfoModels()){
+					ItemModelEntity itemModelEntity1 = itemModelEntityMap.get(model1.getItemModel().getId());
+					if(itemModelEntity1 == null) {
+						itemModelEntity1 = new ItemModelEntity();
+						itemModelEntity1.setId(model1.getItemModel().getId());
+						itemModelEntityMap.put(model1.getItemModel().getId(), itemModelEntity1);
+					}
+					List<ItemActivityInfo> itemActivityInfos = itemModelEntity1.getActivities();
+					if(itemActivityInfos == null){
+						itemActivityInfos = new ArrayList<>();
+					}
+					ItemActivityInfo checkInfo =  new ItemActivityInfo();
+					BeanUtils.copyProperties(model1, checkInfo, new String[]{"itemModel"});
+					checkInfo.setItemModel(itemModelEntity1);
+					itemActivityInfos.add(checkInfo);
+					itemModelEntity1.setActivities(itemActivityInfos);
+				}
+			}
+			entity.setItems(new ArrayList<>(itemModelEntityMap.values()));
+		}
+		return entity;
+	}
+
 	private FormModelEntity wrapSubmitCheck(FormModel formModel) {
 		FormModelEntity entity = new FormModelEntity();
-		BeanUtils.copyProperties(formModel, entity, new String[] {"items","dataModels","permissions","submitChecks","functions"});
+		BeanUtils.copyProperties(formModel, entity, new String[] {"items","dataModels","permissions","submitChecks","functions","itemProcessBindModels"});
 
 		if(formModel.getSubmitChecks() != null){
 			List<FormSubmitCheckInfo> checkInfos = new ArrayList<>();
@@ -1438,19 +1489,19 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 	private Page<FormModel> toDTO(Page<FormModelEntity> entities)  {
 		Page<FormModel> formModels = Page.get(entities.getPage(), entities.getPagesize());
-		formModels.data(entities.getTotalCount(), toDTO(entities.getResults()));
+		formModels.data(entities.getTotalCount(), toDTO(entities.getResults(), true));
 		return formModels;
 	}
 
-	private List<FormModel> toDTO(List<FormModelEntity> entities) {
+	private List<FormModel> toDTO(List<FormModelEntity> entities, boolean setFormProcessFlag) {
 		List<FormModel> formModels = new ArrayList<FormModel>();
 		for (FormModelEntity entity : entities) {
-			formModels.add(toDTO(entity));
+			formModels.add(toDTO(entity, setFormProcessFlag));
 		}
 		return formModels;
 	}
 
-	private FormModel toDTO(FormModelEntity entity) {
+	private FormModel toDTO(FormModelEntity entity, boolean setFormProcessFlag) {
 		FormModel formModel = new FormModel();
 		BeanUtils.copyProperties(entity, formModel, new String[] {"items","dataModels","permissions","submitChecks","functions"});
 		if(entity.getDataModels() != null && entity.getDataModels().size() > 0){
@@ -1463,8 +1514,42 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			}
 			formModel.setDataModels(dataModelList);
 		}
-
+		if(setFormProcessFlag) {
+			setFormProcess( entity,  formModel);
+		}
 		return formModel;
+	}
+
+	//设置表单流程
+	private void setFormProcess(FormModelEntity entity, FormModel formModel){
+		List<ItemModelEntity> itemModelEntityList = formModelService.findAllItems(entity);
+		List<ItemProcessBindModel> processBindModels = new ArrayList<>();
+		Map<String, List<ItemActivityInfoModel>> activityInfoModelMap = new HashMap<>();
+		for(ItemModelEntity entity1 : itemModelEntityList){
+			for(ItemActivityInfo info : entity1.getActivities()){
+				ItemActivityInfoModel model = new ItemActivityInfoModel();
+				BeanUtils.copyProperties(info, model, new String[]{"itemModel"});
+				ItemModel itemModel = new ItemModel();
+				itemModel.setName(info.getItemModel().getName());
+				itemModel.setId(info.getItemModel().getId());
+				model.setItemModel(itemModel);
+
+				List<ItemActivityInfoModel> activityInfoModels = activityInfoModelMap.get(info.getActivityId());
+				if(activityInfoModels == null){
+					activityInfoModels = new ArrayList<>();
+				}
+				activityInfoModels.add(model);
+				activityInfoModelMap.put(info.getActivityId(), activityInfoModels);
+			}
+		}
+		for(String key : activityInfoModelMap.keySet()){
+			ItemProcessBindModel processBindModel = new ItemProcessBindModel();
+			processBindModel.setActivityId(key);
+			processBindModel.setActivityName(activityInfoModelMap.get(key) != null  && activityInfoModelMap.get(key).size() > 0 ? activityInfoModelMap.get(key).get(0).getActivityName() : "");
+			processBindModel.setActivityInfoModels(activityInfoModelMap.get(key));
+			processBindModels.add(processBindModel);
+		}
+		formModel.setItemProcessBindModels(processBindModels);
 	}
 
 	private FormModel toDTODetail(FormModelEntity entity)  {

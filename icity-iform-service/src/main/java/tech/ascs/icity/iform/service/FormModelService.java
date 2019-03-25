@@ -28,6 +28,9 @@ public interface FormModelService extends JPAService<FormModelEntity> {
      //保存检查校验
      FormModelEntity saveFormModelSubmitCheck(FormModelEntity entity);
 
+     //流程绑定
+     FormModelEntity saveFormModelProcessBind(FormModelEntity entity);
+
      //根据数据模型查询表单
      List<FormModelEntity> listByDataModel(DataModelEntity dataModelEntity);
 
