@@ -390,6 +390,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		setMasterFormItemInstances(formInstance, data, DisplayTimingType.Add);
 		data.put("create_at", new Date());
 		data.put("create_by",  user != null ? user.getId() : "-1");
+		//流程参数
+		data.put("PROCESS_ID", formInstance.getProcessId());
+		data.put("PROCESS_INSTANCE", formInstance.getProcessInstanceId());
+		data.put("ACTIVITY_ID", formInstance.getActivityId());
+		data.put("ACTIVITY_INSTANCE", formInstance.getActivityInstanceId());
 
 		//设置子表数据
 		setSubFormReferenceData(session, user, formInstance, data, DisplayTimingType.Add);
@@ -1535,6 +1540,14 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			setItemInstance(itemModel, referenceFlag, entity, referenceDataModelList,
 					 subFormItems, items, formInstance);
 		}
+		//流程参数
+		Map<String, Object> data = new HashMap<>();
+		data.put("PROCESS_ID", entity.get("PROCESS_ID"));
+		data.put("PROCESS_INSTANCE", entity.get("PROCESS_INSTANCE"));
+		data.put("ACTIVITY_ID", entity.get("ACTIVITY_ID"));
+		data.put("ACTIVITY_INSTANCE", entity.get("ACTIVITY_INSTANCE"));
+		formInstance.setData(data);
+
 		formInstance.getItems().addAll(items);
 		return formInstance;
 	}
