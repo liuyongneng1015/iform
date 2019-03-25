@@ -367,7 +367,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					list.remove(itemMap.get(itemModelEntity.getId()));
 				}
 				String format = ((SerialNumberItemModelEntity)itemModelEntity).getTimeFormat();
-				StringBuffer str = new StringBuffer(((SerialNumberItemModelEntity)itemModelEntity).getPrefix());
+				String prefix = ((SerialNumberItemModelEntity)itemModelEntity).getPrefix();
+				StringBuffer str = new StringBuffer(!StringUtils.hasText(prefix) ? "" : prefix);
 				str.append("_");
 				if(format != null){
 					SimpleDateFormat simpleDateFormat = new SimpleDateFormat(format);
