@@ -297,7 +297,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	}
 
 	@Override
-	public void saveFormModelProcessBind(String id, FormModel formModel) {
+	public void saveFormModelProcessBind(@PathVariable(name="id", required = true) String id,@RequestBody FormModel formModel) {
 		if (!StringUtils.hasText(formModel.getId()) || !id.equals(formModel.getId())) {
 			throw new IFormException("表单模型ID不一致");
 		}
