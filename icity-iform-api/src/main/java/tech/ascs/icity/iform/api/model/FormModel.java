@@ -59,8 +59,11 @@ public class FormModel extends NameEntity {
 	@ApiModelProperty(value="数据标识:控件集合",position = 10)
 	private List<ItemModel> itemModelList = new ArrayList<ItemModel>();
 
-	@ApiModelProperty(value="二维码数据标识:控件集合",position = 10)
+	@ApiModelProperty(value="二维码数据标识:控件集合",position = 11)
 	private List<ItemModel> qrCodeItemModelList = new ArrayList<ItemModel>();
+
+	@ApiModelProperty(value="表单控件流程环节绑定流程",position = 12)
+	private List<ItemProcessBindModel> itemProcessBindModels = new ArrayList<>();
 
 	public String getDescription() {
 		return description;
@@ -140,6 +143,14 @@ public class FormModel extends NameEntity {
 
 	public void setQrCodeItemModelList(List<ItemModel> qrCodeItemModelList) {
 		this.qrCodeItemModelList = qrCodeItemModelList;
+	}
+
+	public List<ItemProcessBindModel> getItemProcessBindModels() {
+		return itemProcessBindModels;
+	}
+
+	public void setItemProcessBindModels(List<ItemProcessBindModel> itemProcessBindModels) {
+		this.itemProcessBindModels = itemProcessBindModels;
 	}
 
 	@Override

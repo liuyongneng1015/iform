@@ -155,6 +155,20 @@ public interface FormModelService {
 
 
 	/**
+	 * 流程绑定
+	 *
+	 * @param id 表单模型ID
+	 * @param formModel 表单模型
+	 */
+	@ApiOperation(value = "流程绑定", position = 3)
+	@ApiImplicitParams({
+			@ApiImplicitParam(paramType = "path", name = "id", value = "表单模型ID", required = true, dataType = "String")
+	})
+	@PutMapping(value = "/process_bind/{id}", consumes = {MediaType.APPLICATION_JSON_UTF8_VALUE})
+	void saveFormModelProcessBind(@PathVariable(name="id") String id, @RequestBody FormModel formModel);
+
+
+	/**
 	 * 应用表单模型
 	 *
 	 */

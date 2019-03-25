@@ -138,7 +138,6 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			List<ItemModelEntity> itemModelEntities = new ArrayList<ItemModelEntity>();
 			for(int i = 0; i < entity.getItems().size() ; i++) {
 				ItemModelEntity paramerItemModelEntity = entity.getItems().get(i);
-				//oldItemModelEntity.setFormModel(old);
 				ItemModelEntity newItemModelEntity = getNewItemModelEntity(oldMapItmes, columnModelEntityMap, paramerItemModelEntity);
 				newItemModelEntity.setFormModel(old);
 				newItemModelEntity.setOrderNo(i);
@@ -472,7 +471,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 		BeanUtils.copyProperties(paramerItemModelEntity, saveItemModelEntity, new String[]{"referencesItemModels","parentItem", "searchItems","sortItems","permissions", "referenceList","items","formModel","columnModel","activities","options"});
 
-		setAcitityOption(saveItemModelEntity, paramerItemModelEntity);
+		setOption(saveItemModelEntity, paramerItemModelEntity);
 		saveItempermissions(saveItemModelEntity, paramerItemModelEntity);
 
 		//newItemModelEntity.setFormModel(oldItemModelEntity.getFormModel());
@@ -762,30 +761,13 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 	}
 
 	//得到最新的item
-	private ItemModelEntity setAcitityOption(ItemModelEntity newEntity, ItemModelEntity paramerItemModelEntity){
-		List<ItemActivityInfo> activities = new ArrayList<ItemActivityInfo>();
-
+	private ItemModelEntity setOption(ItemModelEntity newEntity, ItemModelEntity paramerItemModelEntity){
 		//旧数据
 		List<ItemSelectOption> itemSelectOptions = newEntity.getOptions();
-		List<ItemActivityInfo> itemActivityInfos = newEntity.getActivities();
 		Map<String, ItemSelectOption> itemSelectOptionMap = new HashMap<>();
-		Map<String, ItemActivityInfo> itemActivityInfoMap = new HashMap<>();
 		for(ItemSelectOption option : itemSelectOptions){
 			itemSelectOptionMap.put(option.getId(), option);
 		}
-		for(ItemActivityInfo activityInfo : itemActivityInfos){
-			itemActivityInfoMap.put(activityInfo.getId(), activityInfo);
-		}
-
-
-		for (ItemActivityInfo activity : paramerItemModelEntity.getActivities()) {
-            ItemActivityInfo newItemActivity = activity.isNew() ?  new ItemActivityInfo() : itemActivityInfoMap.remove(activity.getId());
-            BeanUtils.copyProperties(activity, newItemActivity, new String[]{"itemModel"});
-            newItemActivity.setItemModel(newEntity);
-			activities.add(newItemActivity);
-		}
-
-
 		List<ItemSelectOption> options = new ArrayList<ItemSelectOption>();
 		for (ItemSelectOption option : paramerItemModelEntity.getOptions()) {
             ItemSelectOption newOption = option.isNew() ?  new ItemSelectOption() : itemSelectOptionMap.remove(option.getId());
@@ -795,11 +777,6 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		}
 
 		newEntity.setOptions(options);
-		newEntity.setActivities(activities);
-
-		for(String key : itemActivityInfoMap.keySet()){
-			itemActivityManager.deleteById(key);
-		}
 		for(String key : itemSelectOptionMap.keySet()){
 			itemSelectOptionManager.deleteById(key);
 		}
@@ -1018,7 +995,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
             newDataModelIds.add(dataModelEntity.getId());
             newAddDataModel.add(dataModelEntity);
         }
-		BeanUtils.copyProperties(formModel, oldEntity, new String[] {"items","indexes","dataModels","permissions","submitChecks","functions"});
+		BeanUtils.copyProperties(formModel, oldEntity, new String[] {"items","indexes","dataModels","permissions","submitChecks","functions","itemProcessBindModels"});
         if(formModel.isNew()){
             oldEntity.setId(null);
         }
@@ -1216,6 +1193,74 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		}
 		formModelManager.save(formModelEntity);
 		return formModelEntity;
+	}
+
+	@Override
+	public FormModelEntity saveFormModelProcessBind(FormModelEntity entity) {
+		FormModelEntity formModelEntity = get(entity.getId());
+		BeanUtils.copyProperties(entity, formModelEntity, new String[] {"items","dataModels","permissions","submitChecks","functions"});
+
+		List<ItemModelEntity> parameterItems = entity.getItems();
+
+		//参数
+		Map<String, List<ItemActivityInfo>> parameterMap = new HashMap<>();
+		for(ItemModelEntity parameterItem : parameterItems){
+			if(parameterItem.getActivities() != null && parameterItem.getActivities().size() > 0) {
+				parameterMap.put(parameterItem.getId(), parameterItem.getActivities());
+			}
+		}
+
+		//旧数据
+		Map<String, List<ItemActivityInfo>> oldMap = new HashMap<>();
+		List<ItemModelEntity> oldItems = findAllItems(formModelEntity);
+		Map<String, ItemModelEntity> oldItemsMap = new HashMap<>();
+		for(ItemModelEntity oldItem : oldItems){
+			oldItemsMap.put(oldItem.getId(), oldItem);
+			if(oldItem.getActivities() != null && oldItem.getActivities().size() > 0) {
+				oldMap.put(oldItem.getId(), oldItem.getActivities());
+			}
+		}
+
+
+		for(String key : parameterMap.keySet()){
+			List<ItemActivityInfo> oldItemActivity = oldMap.remove(key);
+			Map<String, ItemActivityInfo> oldItemActivityMap = new HashMap<>();
+			if(oldItemActivity != null){
+				for(ItemActivityInfo activityInfo : oldItemActivity){
+					oldItemActivityMap.put(activityInfo.getId(), activityInfo);
+				}
+			}
+			ItemModelEntity itemModelEntity1 = oldItemsMap.get(key);
+			List<ItemActivityInfo> newItemActivity = new ArrayList<>();
+			for(ItemActivityInfo parameterItemActivity : parameterMap.get(key)){
+				ItemActivityInfo info = parameterItemActivity.isNew() ? new ItemActivityInfo() : oldItemActivityMap.remove(parameterItemActivity.getId());
+				BeanUtils.copyProperties(parameterItemActivity, info, new String[]{"itemModel"});
+				info.setItemModel(itemModelEntity1);
+				newItemActivity.add(info);
+			}
+			itemModelEntity1.setActivities(newItemActivity);
+			for(String actvityKey : oldItemActivityMap.keySet()){
+				deleteItemActivityInfo(oldItemActivityMap.get(actvityKey));
+			}
+		}
+		for(String key : oldMap.keySet()){
+			ItemModelEntity oldItem = oldItemsMap.get(key);
+			oldItem.setActivities(null);
+			List<ItemActivityInfo> list = oldMap.get(key);
+			for(int i = 0 ; i < list.size(); i++){
+				ItemActivityInfo info = list.get(i);
+				list.remove(info);
+				deleteItemActivityInfo(info);
+				i--;
+			}
+		}
+		formModelManager.save(formModelEntity);
+		return formModelEntity;
+	}
+
+	private void deleteItemActivityInfo(ItemActivityInfo old){
+		old.setItemModel(null);
+		itemActivityManager.delete(old);
 	}
 
 	@Override
