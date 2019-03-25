@@ -32,6 +32,13 @@ spring.jpa:
   hibernate.ddl-auto: update
   properties.hibernate.dialect: org.hibernate.dialect.MySQL57Dialect
 
+spring.redis:
+  database: 0
+  host: 192.168.4.151
+  port: 6379
+  password:
+  timeout: 5000ms
+
 spring.rabbitmq:
   host: 192.168.4.151
   port: 5672
