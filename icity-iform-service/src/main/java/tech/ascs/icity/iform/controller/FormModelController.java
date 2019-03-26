@@ -1525,7 +1525,8 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			formModel.setDataModels(dataModelList);
 		}
 		if(setFormProcessFlag) {
-			setFormProcess( entity,  formModel);
+			setFormProcess(entity, formModel);
+			setFormItemColumn(entity, formModel);
 		}
 		return formModel;
 	}
@@ -1560,6 +1561,22 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			processBindModels.add(processBindModel);
 		}
 		formModel.setItemProcessBindModels(processBindModels);
+	}
+
+	//设置表单流程字段
+	private void setFormItemColumn(FormModelEntity entity, FormModel formModel){
+		List<ItemModelEntity> itemModelEntityList = formModelService.getAllColumnItems(entity.getItems());
+		List<ItemModel> itemModels = new ArrayList<>();
+		for(ItemModelEntity entity1 : itemModelEntityList){
+			if(entity1.getColumnModel().getColumnName().equals("id") || !entity1.getColumnModel().getColumnName().equals("master_id")){
+				continue;
+			}
+			ItemModel itemModel = new ItemModel();
+			itemModel.setName(entity1.getName());
+			itemModel.setId(entity1.getId());
+			itemModels.add(itemModel);
+		}
+		formModel.setItems(itemModels);
 	}
 
 	private FormModel toDTODetail(FormModelEntity entity)  {
