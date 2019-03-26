@@ -995,7 +995,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
             newDataModelIds.add(dataModelEntity.getId());
             newAddDataModel.add(dataModelEntity);
         }
-		BeanUtils.copyProperties(formModel, oldEntity, new String[] {"items","indexes","dataModels","permissions","submitChecks","functions","itemProcessBindModels"});
+		BeanUtils.copyProperties(formModel, oldEntity, new String[] {"items","indexes","dataModels","permissions","submitChecks","functions"});
         if(formModel.isNew()){
             oldEntity.setId(null);
         }
