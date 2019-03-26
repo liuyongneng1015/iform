@@ -18,10 +18,10 @@ public class ActivityInfo extends Activity {
 	@ApiModelProperty(value = "是否只读", position = 3)
 	private boolean readonly;
 
-	@ApiModelProperty(value = "流程id", position = 4)
+	@ApiModelProperty(value = "环节id", position = 4)
 	private String activityId;
 
-	@ApiModelProperty(value = "流程名称", position = 5)
+	@ApiModelProperty(value = "环节名称", position = 5)
 	private String activityName;
 
 	@JsonIgnore
