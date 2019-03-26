@@ -1568,7 +1568,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		List<ItemModelEntity> itemModelEntityList = formModelService.getAllColumnItems(entity.getItems());
 		List<ItemModel> itemModels = new ArrayList<>();
 		for(ItemModelEntity entity1 : itemModelEntityList){
-			if(entity1.getColumnModel().getColumnName().equals("id") || entity1.getColumnModel().getColumnName().equals("master_id")){
+			ColumnModelEntity columnModelEntity = entity1.getColumnModel();
+			if(columnModelEntity.getColumnName().equals("id") || columnModelEntity.getColumnName().equals("master_id")
+					|| !columnModelEntity.getDataModel().getTableName().equals(entity.getDataModels().get(0).getTableName())){
 				continue;
 			}
 			ItemModel itemModel = new ItemModel();
