@@ -160,7 +160,7 @@ public interface FormModelService {
 	 *
 	 */
 	@ApiOperation(value = "获取所有流程", position = 3)
-	@GetMapping(value = "/process", consumes = {MediaType.APPLICATION_JSON_UTF8_VALUE})
+	@GetMapping(value = "/process")
 	List<Process> getAllProcess();
 
 	/**
