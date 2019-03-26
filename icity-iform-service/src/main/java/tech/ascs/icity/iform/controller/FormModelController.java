@@ -19,6 +19,8 @@ import tech.ascs.icity.admin.api.model.Application;
 import tech.ascs.icity.admin.api.model.TreeSelectData;
 import tech.ascs.icity.admin.client.ApplicationService;
 import tech.ascs.icity.admin.client.GroupService;
+import tech.ascs.icity.iflow.api.model.Process;
+import tech.ascs.icity.iflow.client.ProcessService;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.model.*;
@@ -60,7 +62,10 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	private DictionaryService dictionaryService;
 
 	@Autowired
-	GroupService groupService;
+	private GroupService groupService;
+
+	@Autowired
+	private ProcessService processService;
 
 	@Override
 	public List<FormModel> list(@RequestParam(name="name", defaultValue="") String name, @RequestParam(name = "applicationId", required = false) String applicationId) {
@@ -294,6 +299,11 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		} catch (Exception e) {
 			throw new IFormException("保存表单模型列表失败：" + e.getMessage(), e);
 		}
+	}
+
+	@Override
+	public List<Process> getAllProcess() {
+		return processService.list();
 	}
 
 	@Override
@@ -1605,6 +1615,10 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			}
 			formModel.setDataModels(dataModelList);
 		}
+
+
+		//表单流程
+		setFormProcess( entity, formModel);
 
 
 		return formModel;
