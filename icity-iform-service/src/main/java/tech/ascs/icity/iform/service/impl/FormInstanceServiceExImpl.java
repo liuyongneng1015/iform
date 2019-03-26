@@ -34,7 +34,7 @@ import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.*;
 import tech.ascs.icity.iform.support.IFormSessionFactoryBuilder;
-import tech.ascs.icity.iform.utils.CurrentUserUtil;
+import tech.ascs.icity.iform.utils.CurrentUserUtils;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 import tech.ascs.icity.model.Page;
@@ -337,7 +337,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 		UserInfo user = null;
 		try {
-			user = CurrentUserUtil.getCurrentUser();
+			user = CurrentUserUtils.getCurrentUser();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -469,7 +469,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 		UserInfo user = null;
 		try {
-			user = CurrentUserUtil.getCurrentUser();
+			user = CurrentUserUtils.getCurrentUser();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -1216,7 +1216,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	public void addCreatorCriteria(Criteria criteria, ListModelEntity listModel) {
 		if (listModel.getDataPermissions()!=null && DataPermissionsType.MySelf.equals(listModel.getDataPermissions())) {
-			String userId = CurrentUserUtil.getCurrentUserId();
+			String userId = CurrentUserUtils.getCurrentUserId();
 			if (userId!=null) {
 				criteria.add(Restrictions.eq("create_by", userId));
 			}

@@ -15,12 +15,12 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.concurrent.TimeUnit;
 
 @Component
-public class CurrentUserUtil implements ApplicationContextAware {
+public class CurrentUserUtils implements ApplicationContextAware {
     private static ApplicationContext applicationContext;
     private static RedisTemplate<String,Object> redisTemplate;
 
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        CurrentUserUtil.applicationContext = applicationContext;
+        CurrentUserUtils.applicationContext = applicationContext;
     }
 
     public static <T> T getBean(Class<T> beanClass) {
@@ -29,7 +29,7 @@ public class CurrentUserUtil implements ApplicationContextAware {
 
     @Autowired
     public void setRedisTemplate(RedisTemplate<String,Object> redisTemplate) {
-        CurrentUserUtil.redisTemplate = redisTemplate;
+        CurrentUserUtils.redisTemplate = redisTemplate;
     }
 
     public static UserInfo getCurrentUser() {
@@ -37,7 +37,7 @@ public class CurrentUserUtil implements ApplicationContextAware {
         if (StringUtils.isEmpty(token)) {
             throw new ICityException(401, 401, "未登录");
         }
-        String userTokenKey = token+"-icity-user";
+        String userTokenKey = "icity-token-get-userInfo-"+token;
         UserInfo user = (UserInfo) redisTemplate.opsForValue().get(userTokenKey);
         if (user==null) {
             HttpServletRequest request = Application.getRequest();
@@ -47,6 +47,8 @@ public class CurrentUserUtil implements ApplicationContextAware {
             try {
                 UserInfo userInfo = Application.getCurrentUser();
                 if (userInfo != null) {
+                    // 用户ID作为缓存的key，通过用户ID可以直接找到token，若后台编辑了用户信息，通过用户ID定位到token，然后通过定位到缓存的用户信息，把缓存的用户信息更改过来
+                    redisTemplate.opsForValue().set("icity-userId-get-token-"+userInfo.getId(), token, 300, TimeUnit.SECONDS);
                     redisTemplate.opsForValue().set(userTokenKey, userInfo, 300, TimeUnit.SECONDS);
                     return userInfo;
                 } else {
