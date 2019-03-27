@@ -93,13 +93,18 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		return dataInstances;
 	}
 
+	@Autowired
+	private ItemModelService itemModelService;
+	@Autowired
+	private DictionaryService dictionaryService;
+
 	// url?param1=value1&param2=value2&param2=value3,value4&param2=value5
 	// @RequestParam Map<String, Object> parameters 有两个问题
 	// 1) 因为Object没有指定具体类型，接收后会变成字符串
 	// 2) 接收数组时，相同的Key会被覆盖掉，接收 param1=value1&param2=value2 的 param1参数，map的键值对会覆盖掉相同的Key
 	@Override
 	public Page<FormDataSaveInstance> page(@PathVariable(name="listId") String listId,
-										   @RequestParam(name = "page", defaultValue = "1") int page,
+										   @RequestParam(name="page", defaultValue = "1") int page,
 										   @RequestParam(name="pagesize", defaultValue = "10") int pagesize,
 										   @RequestParam Map<String, Object> parameters) {
 		ListModelEntity listModel = listModelService.find(listId);
@@ -107,11 +112,57 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			throw new IFormException(404, "列表模型【" + listId + "】不存在");
 		}
 		Map<String, Object> queryParameters = assemblyQueryParameters(parameters);
+		Set<String> itemIds = queryParameters.keySet();
+		if (itemIds!=null && itemIds.size()>0) {
+			List<ItemModelEntity> items = itemModelService.query().filterIn("id", itemIds).list();
+			Optional<ItemModelEntity> optional = items.stream().filter(item->(
+								(item instanceof SelectItemModelEntity && ((SelectItemModelEntity)item).getMultiple()==false)
+							) && "处理状态".equals(item.getName())).findFirst();
+			if (optional.isPresent()) {
+				ItemModelEntity statusItem = optional.get();
+				String valueId = queryParameters.get(statusItem.getId())!=null ? queryParameters.get(statusItem.getId()).toString() : null;
+				if (StringUtils.hasText(valueId)) {
+					int status = 0; // 1表示查所有，2表示查待办理，3表示已办理，若最后status的值还是0，表示不用查工作流
+					SelectItemModelEntity selectItem = (SelectItemModelEntity) statusItem;
+					if (SelectReferenceType.Table == selectItem.getSelectReferenceType()) {
+						List<ItemSelectOption> options = selectItem.getOptions();
+						for (ItemSelectOption selectOption:options) {
+							status = assemblyProcessStatus(selectOption.getLabel());
+							if (status!=1 && status!=2 && status!=3) {
+								break;
+							}
+						}
+					} else if (SelectReferenceType.Dictionary == selectItem.getSelectReferenceType()) {
+						DictionaryItemEntity dictionaryItem = dictionaryService.getDictionaryItemById(valueId);
+						if (dictionaryItem!=null) {
+							status = assemblyProcessStatus(dictionaryItem.getName());
+						}
+					}
+					Map<String, Object> iflowQueryParameters = new HashMap<>();
+				}
+			}
+
+		}
 		return formInstanceService.pageFormInstance(listModel, page, pagesize, queryParameters);
 	}
 
+	public int assemblyProcessStatus(String statusStr) {
+		if (StringUtils.isEmpty(statusStr)) {
+			return 0;
+		}
+		switch (statusStr) {
+			case "全部":
+				return 1;
+			case "待处理":
+				return 2;
+			case "已处理":
+				return 3;
+		}
+		return 0;
+	}
+
 	public Page<FormDataSaveInstance> formPage(@PathVariable(name="formId") String formId,
-											   @RequestParam(name = "page", defaultValue = "1") int page,
+											   @RequestParam(name="page", defaultValue = "1") int page,
 											   @RequestParam(name="pagesize", defaultValue = "10") int pagesize,
 											   @RequestParam Map<String, Object> parameters) {
 		FormModelEntity formModel = formModelService.find(formId);
