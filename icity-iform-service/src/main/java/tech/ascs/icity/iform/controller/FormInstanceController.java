@@ -94,8 +94,6 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	}
 
 	@Autowired
-	private ItemModelService itemModelService;
-	@Autowired
 	private DictionaryService dictionaryService;
 
 	// url?param1=value1&param2=value2&param2=value3,value4&param2=value5
