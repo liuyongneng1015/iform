@@ -136,10 +136,84 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 							status = assemblyProcessStatus(dictionaryItem.getName());
 						}
 					}
-					Map<String, Object> iflowQueryParameters = new HashMap<>();
+					if (status!=0) {
+						Map<String, Object> iflowQueryParams = new HashMap<>();
+						for (ItemModelEntity item:items) {
+							Object value = queryParameters.get(item.getId());
+							if (value==null) {
+								continue;
+							}
+							ColumnModelEntity columnModel = item.getColumnModel();
+							if (columnModel==null) {
+								continue;
+							}
+//							if (SystemItemType.Input==item.getSystemItemType() ||
+//								SystemItemType.MoreInput==item.getSystemItemType() ||
+//								SystemItemType.InputNumber==item.getSystemItemType() ||
+//								SystemItemType.TimePicker==item.getSystemItemType() ||
+//								SystemItemType.Editor==item.getSystemItemType() ||
+//								SystemItemType.Label==item.getSystemItemType() ||
+//								SystemItemType.Description==item.getSystemItemType()) {
+//								iflowQueryParams.put(columnModel.getColumnName(), value);
+//							}
+							if (ItemType.Input==item.getType() ||
+								ItemType.DatePicker==item.getType() ||
+								ItemType.DatePicker==item.getType() ||
+								ItemType.Editor==item.getType() ||
+								ItemType.TimePicker==item.getType()) {
+								iflowQueryParams.put(columnModel.getColumnName(), value);
+							} else if (item instanceof SelectItemModelEntity) {
+								selectItem = (SelectItemModelEntity) item;
+								if (value instanceof String[]) {
+									String[] valueArr = (String[])value;
+									StringBuffer queryNames = new StringBuffer();
+									for (String valueItem:valueArr) {
+										if (SelectReferenceType.Table == selectItem.getSelectReferenceType()) {
+											List<ItemSelectOption> options = selectItem.getOptions();
+											for (ItemSelectOption selectOption : options) {
+												if (selectOption.equals(valueItem)) {
+													queryNames.append(selectOption.getLabel()+",");
+												}
+											}
+										} else if (SelectReferenceType.Dictionary == selectItem.getSelectReferenceType()) {
+											DictionaryItemEntity dictionaryItem = dictionaryService.getDictionaryItemById(valueItem);
+											if (dictionaryItem != null) {
+												queryNames.append(dictionaryItem.getName()+",");
+											}
+										}
+									}
+									if (queryNames.toString().length()>0) {
+										iflowQueryParams.put(columnModel.getColumnName(), queryNames.toString());
+									}
+								} else {
+									String valueStr = value.toString();
+									if (SelectReferenceType.Table == selectItem.getSelectReferenceType()) {
+										List<ItemSelectOption> options = selectItem.getOptions();
+										for (ItemSelectOption selectOption:options) {
+											if (selectOption.equals(valueStr)) {
+												iflowQueryParams.put(columnModel.getColumnName(), selectOption.getLabel());
+											}
+										}
+									} else if (SelectReferenceType.Dictionary == selectItem.getSelectReferenceType()) {
+										DictionaryItemEntity dictionaryItem = dictionaryService.getDictionaryItemById(valueStr);
+										if (dictionaryItem!=null) {
+											iflowQueryParams.put(columnModel.getColumnName(), dictionaryItem.getName());
+										}
+									}
+								}
+							}
+						}
+
+						if (status==1) {
+							// 1表示查所有，2表示查待办理，3表示已办理，若最后status的值还是0，表示不用查工作流
+						} else if (status==2) {
+							// 1表示查所有，2表示查待办理，3表示已办理，若最后status的值还是0，表示不用查工作流
+						} else if (status==3) {
+							// 1表示查所有，2表示查待办理，3表示已办理，若最后status的值还是0，表示不用查工作流
+						}
+					}
 				}
 			}
-
 		}
 		return formInstanceService.pageFormInstance(listModel, page, pagesize, queryParameters);
 	}
@@ -178,7 +252,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			if (value instanceof String) {
 				if (!StringUtils.isEmpty(value)) {
 					String valueStr = value.toString();
-					// 如果传过来的参数是数组且以逗号划分开的话,组件ID的长度是32位，若32位是逗号，当作数组处理
+					// 如果传过来的参数是数组且以逗号划分开的话,组件ID的长度是32位，若第33位是逗号，当作数组处理
 					if (valueStr.length()>32 && valueStr.substring(32,33).equals(",")) {
 						queryParameters.put(entry.getKey(), valueStr.split(","));
 					} else {
