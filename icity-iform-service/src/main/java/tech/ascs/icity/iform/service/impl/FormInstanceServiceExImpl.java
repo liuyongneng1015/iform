@@ -90,8 +90,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
     @Autowired
     ItemModelService itemModelService;
 
-	public
-	FormInstanceServiceExImpl() {
+	public	FormInstanceServiceExImpl() {
 		super(FormModelEntity.class);
 	}
 	@Override
@@ -405,6 +404,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 		// 启动流程
 		if (formModel.getProcess() != null && formModel.getProcess().getKey() != null) {
+			//跳过第一个流程环节
+			data.put("PASS_THROW_FIRST_USERTASK", true);
 			String processInstanceId = processInstanceService.startProcess(formModel.getProcess().getKey(), newId, data);
 			updateProcessInfo(formModel, data, processInstanceId);
 		}
