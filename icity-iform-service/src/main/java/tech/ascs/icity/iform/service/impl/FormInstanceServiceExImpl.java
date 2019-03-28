@@ -2349,7 +2349,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}
 		}else {
 			if (numberItemModelEntity.getDecimalDigits() != null && numberItemModelEntity.getDecimalDigits() > 0) {
-				stringBuffer.append("#0.	");
+				stringBuffer.append("#0.");
 				for (int i = 0; i < numberItemModelEntity.getDecimalDigits(); i++) {
 					stringBuffer.append("0");
 				}
