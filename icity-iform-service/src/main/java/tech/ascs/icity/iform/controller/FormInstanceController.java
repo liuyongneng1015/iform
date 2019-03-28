@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,9 @@ import org.springframework.web.bind.annotation.*;
 import io.swagger.annotations.Api;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import tech.ascs.icity.iflow.api.model.TaskInstance;
+import tech.ascs.icity.iflow.client.ProcessInstanceService;
+import tech.ascs.icity.iflow.client.TaskService;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.model.*;
@@ -95,6 +99,8 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 
 	@Autowired
 	private DictionaryService dictionaryService;
+	@Autowired
+	private TaskService taskService;
 
 	// url?param1=value1&param2=value2&param2=value3,value4&param2=value5
 	// @RequestParam Map<String, Object> parameters 有两个问题
@@ -110,106 +116,101 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			throw new IFormException(404, "列表模型【" + listId + "】不存在");
 		}
 		Map<String, Object> queryParameters = assemblyQueryParameters(parameters);
-		Set<String> itemIds = queryParameters.keySet();
-		if (itemIds!=null && itemIds.size()>0) {
-			List<ItemModelEntity> items = itemModelService.query().filterIn("id", itemIds).list();
-			Optional<ItemModelEntity> optional = items.stream().filter(item->(
-								(item instanceof SelectItemModelEntity && (((SelectItemModelEntity)item).getMultiple()==null || ((SelectItemModelEntity)item).getMultiple()==false))
-							) && "处理状态".equals(item.getName())).findFirst();
-			if (optional.isPresent()) {
-				ItemModelEntity statusItem = optional.get();
-				String valueId = queryParameters.get(statusItem.getId())!=null ? queryParameters.get(statusItem.getId()).toString() : null;
-				if (StringUtils.hasText(valueId)) {
-					int status = 0; // 1表示查所有，2表示查待办理，3表示已办理，若最后status的值还是0，表示不用查工作流
-					SelectItemModelEntity selectItem = (SelectItemModelEntity) statusItem;
-					if (SelectReferenceType.Table == selectItem.getSelectReferenceType()) {
-						List<ItemSelectOption> options = selectItem.getOptions();
-						for (ItemSelectOption selectOption:options) {
-							status = assemblyProcessStatus(selectOption.getLabel());
-							if (status!=1 && status!=2 && status!=3) {
-								break;
+		FormModelEntity formModelEntity = listModel.getMasterForm();
+		if (formModelEntity.getProcess()!=null && StringUtils.hasText(formModelEntity.getProcess().getId()) && StringUtils.hasText(formModelEntity.getProcess().getKey())) {
+			Set<String> itemIds = queryParameters.keySet();
+			if (itemIds != null && itemIds.size() > 0) {
+				List<ItemModelEntity> items = itemModelService.query().filterIn("id", itemIds).list();
+				Optional<ItemModelEntity> optional = items.stream().filter(item -> (
+						(item instanceof SelectItemModelEntity && (((SelectItemModelEntity) item).getMultiple() == null || ((SelectItemModelEntity) item).getMultiple() == false))
+				) && "处理状态".equals(item.getName())).findFirst();
+				if (optional.isPresent()) {
+					ItemModelEntity statusItem = optional.get();
+					String valueId = queryParameters.get(statusItem.getId()) != null ? queryParameters.get(statusItem.getId()).toString() : null;
+					if (StringUtils.hasText(valueId)) {
+						int status = -2; // -1表示查所有，0表示查未处理，1表示已处理，若最后status的值还是-2，表示不用查工作流
+						SelectItemModelEntity selectItem = (SelectItemModelEntity) statusItem;
+						if (SelectReferenceType.Table == selectItem.getSelectReferenceType()) {
+							List<ItemSelectOption> options = selectItem.getOptions();
+							for (ItemSelectOption selectOption : options) {
+								status = assemblyProcessStatus(selectOption.getLabel());
+								if (status != -1 && status != 0 && status != 1) {
+									break;
+								}
+							}
+						} else if (SelectReferenceType.Dictionary == selectItem.getSelectReferenceType()) {
+							DictionaryItemEntity dictionaryItem = dictionaryService.getDictionaryItemById(valueId);
+							if (dictionaryItem != null) {
+								status = assemblyProcessStatus(dictionaryItem.getName());
 							}
 						}
-					} else if (SelectReferenceType.Dictionary == selectItem.getSelectReferenceType()) {
-						DictionaryItemEntity dictionaryItem = dictionaryService.getDictionaryItemById(valueId);
-						if (dictionaryItem!=null) {
-							status = assemblyProcessStatus(dictionaryItem.getName());
-						}
-					}
-					if (status!=0) {
-						Map<String, Object> iflowQueryParams = new HashMap<>();
-						for (ItemModelEntity item:items) {
-							Object value = queryParameters.get(item.getId());
-							if (value==null) {
-								continue;
-							}
-							ColumnModelEntity columnModel = item.getColumnModel();
-							if (columnModel==null) {
-								continue;
-							}
-//							if (SystemItemType.Input==item.getSystemItemType() ||
-//								SystemItemType.MoreInput==item.getSystemItemType() ||
-//								SystemItemType.InputNumber==item.getSystemItemType() ||
-//								SystemItemType.TimePicker==item.getSystemItemType() ||
-//								SystemItemType.Editor==item.getSystemItemType() ||
-//								SystemItemType.Label==item.getSystemItemType() ||
-//								SystemItemType.Description==item.getSystemItemType()) {
-//								iflowQueryParams.put(columnModel.getColumnName(), value);
-//							}
-							if (ItemType.Input==item.getType() ||
-								ItemType.DatePicker==item.getType() ||
-								ItemType.DatePicker==item.getType() ||
-								ItemType.Editor==item.getType() ||
-								ItemType.TimePicker==item.getType()) {
-								iflowQueryParams.put(columnModel.getColumnName(), value);
-							} else if (item instanceof SelectItemModelEntity) {
-								selectItem = (SelectItemModelEntity) item;
-								if (value instanceof String[]) {
-									String[] valueArr = (String[])value;
-									StringBuffer queryNames = new StringBuffer();
-									for (String valueItem:valueArr) {
+						if (status != -2) {
+							Map<String, Object> iflowQueryParams = new HashMap<>();
+							for (ItemModelEntity item : items) {
+								Object value = queryParameters.get(item.getId());
+								if (value == null) {
+									continue;
+								}
+								ColumnModelEntity columnModel = item.getColumnModel();
+								if (columnModel == null) {
+									continue;
+								}
+								if (ItemType.Input == item.getType() ||
+										ItemType.DatePicker == item.getType() ||
+										ItemType.DatePicker == item.getType() ||
+										ItemType.Editor == item.getType() ||
+										ItemType.TimePicker == item.getType()) {
+									iflowQueryParams.put(columnModel.getColumnName(), value);
+								} else if (item instanceof SelectItemModelEntity) {
+									selectItem = (SelectItemModelEntity) item;
+									if (value instanceof String[]) {
+										String[] valueArr = (String[]) value;
+										StringBuffer queryNames = new StringBuffer();
+										for (String valueItem : valueArr) {
+											if (SelectReferenceType.Table == selectItem.getSelectReferenceType()) {
+												List<ItemSelectOption> options = selectItem.getOptions();
+												for (ItemSelectOption selectOption : options) {
+													if (selectOption.equals(valueItem)) {
+														queryNames.append(selectOption.getLabel() + ",");
+													}
+												}
+											} else if (SelectReferenceType.Dictionary == selectItem.getSelectReferenceType()) {
+												DictionaryItemEntity dictionaryItem = dictionaryService.getDictionaryItemById(valueItem);
+												if (dictionaryItem != null) {
+													queryNames.append(dictionaryItem.getName() + ",");
+												}
+											}
+										}
+										if (queryNames.toString().length() > 0) {
+											iflowQueryParams.put(columnModel.getColumnName(), queryNames.toString());
+										}
+									} else {
+										String valueStr = value.toString();
 										if (SelectReferenceType.Table == selectItem.getSelectReferenceType()) {
 											List<ItemSelectOption> options = selectItem.getOptions();
 											for (ItemSelectOption selectOption : options) {
-												if (selectOption.equals(valueItem)) {
-													queryNames.append(selectOption.getLabel()+",");
+												if (selectOption.equals(valueStr)) {
+													iflowQueryParams.put(columnModel.getColumnName(), selectOption.getLabel());
 												}
 											}
 										} else if (SelectReferenceType.Dictionary == selectItem.getSelectReferenceType()) {
-											DictionaryItemEntity dictionaryItem = dictionaryService.getDictionaryItemById(valueItem);
+											DictionaryItemEntity dictionaryItem = dictionaryService.getDictionaryItemById(valueStr);
 											if (dictionaryItem != null) {
-												queryNames.append(dictionaryItem.getName()+",");
+												iflowQueryParams.put(columnModel.getColumnName(), dictionaryItem.getName());
 											}
-										}
-									}
-									if (queryNames.toString().length()>0) {
-										iflowQueryParams.put(columnModel.getColumnName(), queryNames.toString());
-									}
-								} else {
-									String valueStr = value.toString();
-									if (SelectReferenceType.Table == selectItem.getSelectReferenceType()) {
-										List<ItemSelectOption> options = selectItem.getOptions();
-										for (ItemSelectOption selectOption:options) {
-											if (selectOption.equals(valueStr)) {
-												iflowQueryParams.put(columnModel.getColumnName(), selectOption.getLabel());
-											}
-										}
-									} else if (SelectReferenceType.Dictionary == selectItem.getSelectReferenceType()) {
-										DictionaryItemEntity dictionaryItem = dictionaryService.getDictionaryItemById(valueStr);
-										if (dictionaryItem!=null) {
-											iflowQueryParams.put(columnModel.getColumnName(), dictionaryItem.getName());
 										}
 									}
 								}
 							}
-						}
 
-						if (status==1) {
-							// 1表示查所有，2表示查待办理，3表示已办理，若最后status的值还是0，表示不用查工作流
-						} else if (status==2) {
-							// 1表示查所有，2表示查待办理，3表示已办理，若最后status的值还是0，表示不用查工作流
-						} else if (status==3) {
-							// 1表示查所有，2表示查待办理，3表示已办理，若最后status的值还是0，表示不用查工作流
+							Page<TaskInstance> pageTask = taskService.taskPage(page, pagesize, formModelEntity.getProcess().getKey(), status, null, iflowQueryParams);
+							String[] formInstanceIds = pageTask.getResults().stream().map(item->item.getFormInstanceId()).toArray(String[]::new);
+							if (formInstanceIds!=null && formInstanceIds.length>0) {
+								Optional<ItemModelEntity> idItemOption = formModelEntity.getItems().stream().filter(item->SystemItemType.ID == item.getSystemItemType()).findFirst();
+								if (idItemOption.isPresent()) {
+									queryParameters.put(idItemOption.get().getId(), formInstanceIds);
+								}
+							}
 						}
 					}
 				}
@@ -220,17 +221,17 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 
 	public int assemblyProcessStatus(String statusStr) {
 		if (StringUtils.isEmpty(statusStr)) {
-			return 0;
+			return -2;
 		}
 		switch (statusStr) {
 			case "全部":
-				return 1;
-			case "待处理":
-				return 2;
+				return -1;
+			case "未处理":
+				return 0;
 			case "已处理":
-				return 3;
+				return 1;
 		}
-		return 0;
+		return -2;
 	}
 
 	public Page<FormDataSaveInstance> formPage(@PathVariable(name="formId") String formId,
