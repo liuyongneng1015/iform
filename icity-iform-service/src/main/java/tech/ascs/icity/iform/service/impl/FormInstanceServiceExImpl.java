@@ -953,7 +953,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
             }
 		} else if (itemModel.getType() == ItemType.InputNumber && ((NumberItemModelEntity)itemModel).getDecimalDigits() != null
 				&& ((NumberItemModelEntity)itemModel).getDecimalDigits() > 0 && itemInstance.getValue() != null) {
-			value = new BigDecimal(String.valueOf(itemInstance.getValue())).divide(new BigDecimal(1.0), ((NumberItemModelEntity)itemModel).getDecimalDigits(), BigDecimal.ROUND_DOWN).doubleValue();
+			BigDecimal bigDecimal = new BigDecimal(String.valueOf(itemInstance.getValue()));
+			value = bigDecimal.divide(new BigDecimal(1.0), ((NumberItemModelEntity)itemModel).getDecimalDigits(), BigDecimal.ROUND_DOWN).doubleValue();
+			System.out.println(value);
 		} else if (itemModel.getType() == ItemType.Media || itemModel.getType() == ItemType.Attachment) {
             Object o = itemInstance.getValue();
 			Map<String, FileUploadEntity> fileUploadEntityMap = new HashMap<>();
@@ -2347,7 +2349,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}
 		}else {
 			if (numberItemModelEntity.getDecimalDigits() != null && numberItemModelEntity.getDecimalDigits() > 0) {
-				stringBuffer.append("#.	");
+				stringBuffer.append("#0.	");
 				for (int i = 0; i < numberItemModelEntity.getDecimalDigits(); i++) {
 					stringBuffer.append("0");
 				}
