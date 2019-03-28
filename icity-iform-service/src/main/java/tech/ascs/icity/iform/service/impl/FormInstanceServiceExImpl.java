@@ -2240,6 +2240,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		ItemInstance itemInstance = new ItemInstance();
 		itemInstance.setId(itemModel.getId());
 		itemInstance.setColumnModelId(itemModel.getColumnModel().getId());
+		itemInstance.setColumnModelName(itemModel.getColumnModel().getColumnName());
 		itemInstance.setType(itemModel.getType());
 		itemInstance.setSystemItemType(itemModel.getSystemItemType());
 //		itemInstance.setProps(itemModel.getProps());
