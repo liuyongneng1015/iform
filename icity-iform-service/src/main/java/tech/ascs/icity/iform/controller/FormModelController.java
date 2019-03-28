@@ -1540,7 +1540,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			ItemModel itemModel = new ItemModel();
 			itemModel.setName(entity1.getName());
 			itemModel.setId(entity1.getId());
-			if(entity1.getActivities() != null) {
+			if(entity1.getActivities() != null && entity1.getActivities().size() > 0) {
 				List<ActivityInfo> activityInfos = new ArrayList<>();
 				for(ItemActivityInfo info : entity1.getActivities()){
 					ActivityInfo activityInfo = new ActivityInfo();
@@ -1549,6 +1549,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				}
 				itemModel.setActivities(activityInfos);
 			}
+
 			itemModels.add(itemModel);
 		}
 		formModel.setItems(itemModels);
@@ -2035,7 +2036,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			itemModel.setColumnModel(columnModel);
 		}
 
-		if (entity.getActivities().size() > 0) {
+		if (entity.getActivities() != null && entity.getActivities().size() > 0) {
 			List<ActivityInfo> activities = new ArrayList<ActivityInfo>();
 			for (ItemActivityInfo activityEntity : entity.getActivities()) {
 				activities.add(toDTO(activityEntity));
@@ -2071,7 +2072,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			itemModel.setPermissions(itemPermissionModel);
 		}
 
-		if(entity.getActivities() != null) {
+		if(entity.getActivities() != null && entity.getActivities().size() > 0) {
 			List<ActivityInfo> activityInfos = new ArrayList<>();
 			for(ItemActivityInfo info : entity.getActivities()){
 				ActivityInfo activityInfo = new ActivityInfo();
