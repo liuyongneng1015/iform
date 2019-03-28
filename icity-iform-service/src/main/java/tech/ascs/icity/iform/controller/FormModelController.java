@@ -1188,6 +1188,14 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}else if(itemModel.getSystemItemType() == SystemItemType.CreateDate){
 			entity = new TimeItemModelEntity();
 		}
+
+		if(itemModel.getType() == ItemType.CheckboxGroup){
+			itemModel.setMultiple(true);
+		}
+		if(itemModel.getType() == ItemType.RadioGroup){
+			itemModel.setMultiple(false);
+		}
+
 		//需要保持column
 		BeanUtils.copyProperties(itemModel, entity, new String[] {"defaultValue","referenceList","parentItem", "searchItems","sortItems", "permissions", "items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});
 
