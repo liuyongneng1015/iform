@@ -114,7 +114,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		if (itemIds!=null && itemIds.size()>0) {
 			List<ItemModelEntity> items = itemModelService.query().filterIn("id", itemIds).list();
 			Optional<ItemModelEntity> optional = items.stream().filter(item->(
-								(item instanceof SelectItemModelEntity && ((SelectItemModelEntity)item).getMultiple()==false)
+								(item instanceof SelectItemModelEntity && (((SelectItemModelEntity)item).getMultiple()==null || ((SelectItemModelEntity)item).getMultiple()==false))
 							) && "处理状态".equals(item.getName())).findFirst();
 			if (optional.isPresent()) {
 				ItemModelEntity statusItem = optional.get();
