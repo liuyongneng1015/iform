@@ -27,6 +27,9 @@ public class ItemInstance extends IdEntity {
 	@ApiModelProperty(value = "对应数据模型字段id", position = 5)
 	private String columnModelId;
 
+	@ApiModelProperty(value = "对应数据模型字段名称", position = 5)
+	private String columnModelName;
+
 	@ApiModelProperty(value = "前端格式", position = 6)
 	private String props;
 
@@ -87,6 +90,14 @@ public class ItemInstance extends IdEntity {
 
 	public void setColumnModelId(String columnModelId) {
 		this.columnModelId = columnModelId;
+	}
+
+	public String getColumnModelName() {
+		return columnModelName;
+	}
+
+	public void setColumnModelName(String columnModelName) {
+		this.columnModelName = columnModelName;
 	}
 
 	public String getProps() {
