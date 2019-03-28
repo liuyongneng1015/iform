@@ -141,7 +141,7 @@ public interface FormInstanceService {
 		@ApiImplicitParam(paramType = "path", name = "id", value = "表单实例ID", required = true, dataType = "String")
 	})
 	@GetMapping("/{formId}/{id}")
-	FormInstance get(@PathVariable(name="formId") String formId, @PathVariable(name="id") String id);
+    FormDataSaveInstance get(@PathVariable(name="formId") String formId, @PathVariable(name="id") String id);
 
 
 	/**
