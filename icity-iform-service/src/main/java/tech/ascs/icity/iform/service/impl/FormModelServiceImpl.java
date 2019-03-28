@@ -171,8 +171,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			deleteItems(oldDataModelEntity, new ArrayList<>(oldMapItmes.values()));
 
 
-			//设置关联关系
-			//setReferenceItems(deletedItemIds, idColumnModelEntity, allItems);
+			//保存表单
 			FormModelEntity formModelEntity = doSave(old, dataModelUpdateNeeded);
 
 			List<ItemModelEntity> itemModelEntityList = new ArrayList<>();

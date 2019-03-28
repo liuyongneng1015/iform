@@ -1541,13 +1541,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			setItemInstance(itemModel, referenceFlag, entity, referenceDataModelList,
 					 subFormItems, items, formInstance);
 		}
-		//流程参数
-		Map<String, Object> data = new HashMap<>();
-		data.put("PROCESS_ID", entity.get("PROCESS_ID"));
-		data.put("PROCESS_INSTANCE", entity.get("PROCESS_INSTANCE"));
-		data.put("ACTIVITY_ID", entity.get("ACTIVITY_ID"));
-		data.put("ACTIVITY_INSTANCE", entity.get("ACTIVITY_INSTANCE"));
-		formInstance.setData(data);
 
 		formInstance.getItems().addAll(items);
 		return formInstance;
@@ -2485,5 +2478,20 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		} else {
 			return new ArrayList<>();
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public FormDataSaveInstance getFormDataSaveInstance(FormModelEntity formModel, String id) {
+		FormDataSaveInstance formInstance = null;
+		try {
+			DataModelEntity dataModel = formModel.getDataModels().get(0);
+			Map<String, Object> map =  getDataInfo(dataModel, id);
+			formInstance = wrapFormDataEntity(false, formModel, null, map, id,true);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new IFormException("没有查询到【" + formModel.getName() + "】表单，instanceId【"+id+"】的数据");
+		}
+		return formInstance;
 	}
 }

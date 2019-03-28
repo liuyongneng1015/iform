@@ -281,12 +281,13 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	}
 
 	@Override
-	public FormInstance get(@PathVariable(name="formId") String formId, @PathVariable(name="id") String id) {
+	public FormDataSaveInstance get(@PathVariable(name="formId") String formId, @PathVariable(name="id") String id) {
 		FormModelEntity formModel = formModelService.find(formId);
 		if (formModel == null) {
 			throw new IFormException(404, "表单模型【" + formId + "】不存在");
 		}
-		return formInstanceService.getFormInstance(formModel, id);
+		//return formInstanceService.getFormInstance(formModel, id);
+		return formInstanceService.getFormDataSaveInstance(formModel, id);
 	}
 
 	@Override

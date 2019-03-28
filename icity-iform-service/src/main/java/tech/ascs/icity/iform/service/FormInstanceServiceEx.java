@@ -38,4 +38,6 @@ public interface FormInstanceServiceEx {
 	void updateValue(ItemModelEntity itemModel, ItemInstance itemInstance, Object value);
 
 	List<User> getUserInfoByIds(List<String> ids);
+
+    FormDataSaveInstance getFormDataSaveInstance(FormModelEntity formModel, String id);
 }

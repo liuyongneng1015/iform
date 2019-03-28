@@ -52,27 +52,6 @@
                       <one-to-many entity-name="${slaver.tableName!''}" />
                   </bag>
          </#list>
-
-        <property name="PROCESS_ID" type="string">
-            <column name="PROCESS_ID" length="255">
-                <comment>流程ID</comment>
-            </column>
-        </property>
-        <property name="PROCESS_INSTANCE" type="string">
-            <column name="PROCESS_INSTANCE" length="255">
-                <comment>流程实例ID</comment>
-            </column>
-        </property>
-        <property name="ACTIVITY_ID" type="string">
-            <column name="ACTIVITY_ID" length="255">
-                <comment>环节ID</comment>
-            </column>
-        </property>
-        <property name="ACTIVITY_INSTANCE" type="string">
-            <column name="ACTIVITY_INSTANCE" length="255">
-                <comment>环节实例ID</comment>
-            </column>
-        </property>
     </class>
 
     <#list dataModel.referencesDataModel as referencesData>
@@ -118,27 +97,6 @@
                 </#if>
             </#list>
         </#list>
-
-         <property name="PROCESS_ID" type="string">
-             <column name="PROCESS_ID" length="255">
-                 <comment>流程ID</comment>
-             </column>
-         </property>
-         <property name="PROCESS_INSTANCE" type="string">
-             <column name="PROCESS_INSTANCE" length="255">
-                 <comment>流程实例ID</comment>
-             </column>
-         </property>
-         <property name="ACTIVITY_ID" type="string">
-             <column name="ACTIVITY_ID" length="255">
-                 <comment>环节ID</comment>
-             </column>
-         </property>
-         <property name="ACTIVITY_INSTANCE" type="string">
-             <column name="ACTIVITY_INSTANCE" length="255">
-                 <comment>环节实例ID</comment>
-             </column>
-         </property>
      </class>
     </#list>
 
@@ -186,26 +144,6 @@
                         </#if>
                     </#list>
                 </#list>
-                <property name="PROCESS_ID" type="string">
-                    <column name="PROCESS_ID" length="255">
-                        <comment>流程ID</comment>
-                    </column>
-                </property>
-                <property name="PROCESS_INSTANCE" type="string">
-                    <column name="PROCESS_INSTANCE" length="255">
-                        <comment>流程实例ID</comment>
-                    </column>
-                </property>
-                <property name="ACTIVITY_ID" type="string">
-                    <column name="ACTIVITY_ID" length="255">
-                        <comment>环节ID</comment>
-                    </column>
-                </property>
-                <property name="ACTIVITY_INSTANCE" type="string">
-                    <column name="ACTIVITY_INSTANCE" length="255">
-                        <comment>环节实例ID</comment>
-                    </column>
-                </property>
             </class>
     </#list>
 
