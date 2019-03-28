@@ -20,7 +20,7 @@ public class ItemModel extends NameEntity {
 	private ColumnModelInfo columnModel;
 
 	@ApiModelProperty(value = "流程环节配置", position = 6)
-	private List<ActivityInfo> activities = new ArrayList<ActivityInfo>();
+	private List<ActivityInfo> activities;
 
 	//FileItemModel
 	@ApiModelProperty(value = "文件类型", position = 7)

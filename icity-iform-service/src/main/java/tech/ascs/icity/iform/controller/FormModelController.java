@@ -879,14 +879,16 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				ItemModelEntity itemModelEntity1 = new ItemModelEntity();
 				itemModelEntity1.setId(itemModel.getId());
 				itemModelEntity1.setName(itemModel.getName());
-				List<ItemActivityInfo> itemActivityInfos = new ArrayList<>();
-				for(ActivityInfo activityInfo: itemModel.getActivities()){
-					ItemActivityInfo activityInfo1 =  new ItemActivityInfo();
-					BeanUtils.copyProperties(activityInfo, activityInfo1, new String[]{"itemModel"});
-					activityInfo1.setItemModel(itemModelEntity1);
-					itemActivityInfos.add(activityInfo1);
+				if(itemModel.getActivities() != null) {
+					List<ItemActivityInfo> itemActivityInfos = new ArrayList<>();
+					for (ActivityInfo activityInfo : itemModel.getActivities()) {
+						ItemActivityInfo activityInfo1 = new ItemActivityInfo();
+						BeanUtils.copyProperties(activityInfo, activityInfo1, new String[]{"itemModel"});
+						activityInfo1.setItemModel(itemModelEntity1);
+						itemActivityInfos.add(activityInfo1);
+					}
+					itemModelEntity1.setActivities(itemActivityInfos);
 				}
-				itemModelEntity1.setActivities(itemActivityInfos);
 				itemModelEntityList.add(itemModelEntity1);
 			}
 			entity.setItems(itemModelEntityList);
@@ -1581,7 +1583,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
                 FormSubmitCheckModel checkModel = new FormSubmitCheckModel();
                 BeanUtils.copyProperties(info, checkModel, new String[] {"formModel"});
 				FormModel submitCheckFormModel = new FormModel();
-				BeanUtils.copyProperties(entity, submitCheckFormModel, new String[] {"items","process","dataModels","permissions","submitChecks","functions"});
+				BeanUtils.copyProperties(entity, submitCheckFormModel, new String[] {"items","dataModels","permissions","submitChecks","functions"});
                 checkModel.setFormModel(submitCheckFormModel);
                 submitCheckModels.add(checkModel);
             }
@@ -1714,7 +1716,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	}
 
 	private void entityToDTO(FormModelEntity entity, Object object, boolean isPCForm){
-		BeanUtils.copyProperties(entity, object, new String[] {"process","dataModels","items","permissions","submitChecks","functions"});
+		BeanUtils.copyProperties(entity, object, new String[] {"dataModels","items","permissions","submitChecks","functions"});
 		if(entity.getFunctions() != null && entity.getFunctions().size() > 0){
 			List<FunctionModel> functionModels = new ArrayList<>();
 			for(ListFunction function : entity.getFunctions()){

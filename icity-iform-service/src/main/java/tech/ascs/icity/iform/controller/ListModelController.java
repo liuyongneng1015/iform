@@ -321,7 +321,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 
 		if(listModel.getMasterForm() != null && !listModel.getMasterForm().isNew()) {
 			FormModelEntity formModelEntity = new FormModelEntity();
-			BeanUtils.copyProperties(listModel.getMasterForm(), formModelEntity, new String[] {"dataModels","process","items", "permissions","submitChecks","functions"});
+			BeanUtils.copyProperties(listModel.getMasterForm(), formModelEntity, new String[] {"dataModels","items", "permissions","submitChecks","functions"});
 			entity.setMasterForm(formModelEntity);
 		}
 
@@ -329,7 +329,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			List<FormModelEntity> formModelEntities = new ArrayList<>();
 			for (FormModel formModel : listModel.getSlaverForms()){
 				FormModelEntity formModelEntity = new FormModelEntity();
-				BeanUtils.copyProperties(formModel, formModelEntity, new String[]{"dataModels", "process", "items", "permissions", "submitChecks","functions"});
+				BeanUtils.copyProperties(formModel, formModelEntity, new String[]{"dataModels", "items", "permissions", "submitChecks","functions"});
 				formModelEntities.add(formModelEntity);
 			}
 			entity.setSlaverForms(formModelEntities);
