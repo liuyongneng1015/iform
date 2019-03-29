@@ -118,6 +118,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		if (listModel == null) {
 			throw new IFormException(404, "列表模型【" + listId + "】不存在");
 		}
+		Map<String, Boolean> instanceIdAndEditMap = new HashMap();
 		Map<String, Object> queryParameters = assemblyQueryParameters(parameters);
 		FormModelEntity formModelEntity = listModel.getMasterForm();
 		if (formModelEntity.getProcess()!=null && StringUtils.hasText(formModelEntity.getProcess().getId()) && StringUtils.hasText(formModelEntity.getProcess().getKey())) {
@@ -206,19 +207,32 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 								}
 							}
 							Page<ProcessInstance> pageProcess = processInstanceService.page(page, pagesize, formModelEntity.getProcess().getKey(), status, iflowQueryParams);
+							instanceIdAndEditMap = pageProcess.getResults().stream().collect(Collectors.toMap(ProcessInstance::getId, ProcessInstance::isMyTask));
 							String[] formInstanceIds = pageProcess.getResults().stream().map(item->item.getBusinessKey()).toArray(String[]::new);
 							if (formInstanceIds!=null && formInstanceIds.length>0) {
 								Optional<ItemModelEntity> idItemOption = formModelEntity.getItems().stream().filter(item->SystemItemType.ID == item.getSystemItemType()).findFirst();
 								if (idItemOption.isPresent()) {
 									queryParameters.put(idItemOption.get().getId(), formInstanceIds);
 								}
+							} else { //如果在iflow查出的表单实例为空，直接返回
+								return Page.get(page, pagesize);
 							}
 						}
 					}
 				}
 			}
 		}
-		return formInstanceService.pageFormInstance(listModel, page, pagesize, queryParameters);
+		Page<FormDataSaveInstance> pageInstance = formInstanceService.pageFormInstance(listModel, page, pagesize, queryParameters);
+		List<FormDataSaveInstance> list = pageInstance.getResults();
+		if (list!=null && list.size()>0) {
+			for (FormDataSaveInstance item:list) {
+				Boolean myTask = instanceIdAndEditMap.get(item.getId());
+				if (myTask!=null) {
+					item.setCanEdit(myTask);
+				}
+			}
+		}
+		return pageInstance;
 	}
 
 	public int assemblyProcessStatus(String statusStr) {
