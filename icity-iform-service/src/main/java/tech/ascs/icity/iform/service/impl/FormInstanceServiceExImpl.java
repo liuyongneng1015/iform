@@ -234,31 +234,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			formInstance.setActivityId(formModel.getProcess().getStartActivity());
 		}
 
-		List<ItemInstance> items = new ArrayList<ItemInstance>();
-		for (ItemModelEntity itemModel : formModel.getItems()) {
-			ColumnModelEntity column = itemModel.getColumnModel();
-			if(column == null){
-				continue;
-			}
-			ItemInstance itemInstance = new ItemInstance();
-			itemInstance.setId(itemModel.getId());
-			if (column.getKey()) {
-				itemInstance.setVisible(false);
-				itemInstance.setReadonly(true);
-			} else {
-				for (ItemActivityInfo activityInfo : itemModel.getActivities()) {
-					if (activityInfo.getActivityId().equals(formModel.getProcess().getStartActivity())) {
-						itemInstance.setVisible(activityInfo.isVisible());
-						itemInstance.setReadonly(activityInfo.isReadonly());
-						break;
-					}
-				}
-			}
-			items.add(itemInstance);
-			formInstance.addData(column.getColumnName(), itemInstance.getValue());
-		}
-		formInstance.setItems(items);
-
+		setFormInstanceModel( formInstance,  formModel, new HashMap<>(), true);
 		return formInstance;
 	}
 
@@ -1644,7 +1620,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 								 List<SubFormItemInstance> subFormItems, List<ItemInstance> items, FormInstance formInstance){
 		System.out.println(itemModel.getId()+"____begin");
 		ColumnModelEntity column = itemModel.getColumnModel();
-		if(column == null && !(itemModel instanceof  ReferenceItemModelEntity) && !(itemModel instanceof  RowItemModelEntity) && !(itemModel instanceof SubFormItemModelEntity)){
+		if(column == null && !(itemModel instanceof  ReferenceItemModelEntity) && !(itemModel instanceof  RowItemModelEntity) && !(itemModel instanceof SubFormItemModelEntity) && !(itemModel instanceof TabsItemModelEntity)){
 			return;
 		}
 		Object value = new Object();
@@ -1668,8 +1644,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}
 		}else if(itemModel instanceof TabsItemModelEntity){
 			for(TabPaneItemModelEntity itemModelEntity : ((TabsItemModelEntity) itemModel).getItems()) {
-				setItemInstance(itemModelEntity, referenceFlag, entity, referenceDataModelList,
-						subFormItems,  items, formInstance);
+				for(ItemModelEntity itemModelEntity1 : itemModelEntity.getItems()) {
+					setItemInstance(itemModelEntity1, referenceFlag, entity, referenceDataModelList,
+							subFormItems, items, formInstance);
+				}
 			}
 		}else{
 			ItemInstance itemInstance = setItemInstance(column.getKey(), itemModel, value, formInstance.getActivityId());
@@ -1761,6 +1739,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}else{
 			listMap = (List<Map<String, Object>>)entity.get(key);
 		}
+		if(listMap == null){
+			return;
+		}
 		if(flag) {
 			DataModelInstance dataModelInstance = setDataModelInstance(toModelEntity, fromItem, columnModelEntity, (Map<String, Object>)listMap);
 			dataModelInstance.setReferenceType(fromItem.getReferenceType());
@@ -1768,7 +1749,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			referenceDataModelList.add(dataModelInstance);
 		}else{
 			List<Map<String, Object>> mapList = (List<Map<String, Object>>)listMap;
-			for(Map<String, Object> map1 : mapList){
+			for (Map<String, Object> map1 : mapList) {
 				DataModelInstance dataModelInstance = setDataModelInstance(toModelEntity, fromItem, columnModelEntity, map1);
 				dataModelInstance.setReferenceType(fromItem.getReferenceType());
 				dataModelInstance.setReferenceValueColumn(referenceColumnName);
