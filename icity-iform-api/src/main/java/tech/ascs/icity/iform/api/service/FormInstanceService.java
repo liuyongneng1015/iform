@@ -129,19 +129,35 @@ public interface FormInstanceService {
 
 
 	/**
-	 * 根据表单实例ID获取表单实例对象
-	 * 
-	 * @param formId 表单模型ID
-	 * @param id 表单实例ID
-	 * @return
-	 */
-	@ApiOperation(value = "根据表单实例ID获取表单实例对象", position = 2)
-	@ApiImplicitParams({
-		@ApiImplicitParam(paramType = "path", name = "formId", value = "表单模型ID", required = true, dataType = "String"),
-		@ApiImplicitParam(paramType = "path", name = "id", value = "表单实例ID", required = true, dataType = "String")
-	})
-	@GetMapping("/{formId}/{id}")
+     * 根据表单实例ID获取表单实例对象
+     *
+     * @param formId 表单模型ID
+     * @param id 表单实例ID
+     * @return
+     */
+    @ApiOperation(value = "根据表单实例ID获取表单实例对象", position = 2)
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "path", name = "formId", value = "表单模型ID", required = true, dataType = "String"),
+            @ApiImplicitParam(paramType = "path", name = "id", value = "表单实例ID", required = true, dataType = "String")
+    })
+    @GetMapping("/{formId}/{id}")
     FormDataSaveInstance get(@PathVariable(name="formId") String formId, @PathVariable(name="id") String id);
+
+
+    /**
+     * 根据表单实例ID获取表单实例对象
+     *
+     * @param listId 表单模型ID
+     * @param id 表单实例ID
+     * @return
+     */
+    @ApiOperation(value = "根据列表id和实例ID获取表单实例对象", position = 2)
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "path", name = "listId", value = "列表模型ID", required = true, dataType = "String"),
+            @ApiImplicitParam(paramType = "path", name = "id", value = "表单实例ID", required = true, dataType = "String")
+    })
+    @GetMapping("/formData/{listId}/{id}")
+    FormDataSaveInstance getFormDataByListId(@PathVariable(name="listId") String listId, @PathVariable(name="id") String id);
 
 
 	/**
