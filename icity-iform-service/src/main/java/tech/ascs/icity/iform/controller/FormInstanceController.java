@@ -15,8 +15,10 @@ import org.springframework.web.bind.annotation.*;
 import io.swagger.annotations.Api;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import tech.ascs.icity.iflow.api.model.ProcessInstance;
 import tech.ascs.icity.iflow.api.model.TaskInstance;
 import tech.ascs.icity.iflow.client.ProcessInstanceService;
+import tech.ascs.icity.iflow.client.ProcessService;
 import tech.ascs.icity.iflow.client.TaskService;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
@@ -100,7 +102,8 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	@Autowired
 	private DictionaryService dictionaryService;
 	@Autowired
-	private TaskService taskService;
+	private ProcessInstanceService processInstanceService;
+//	private TaskService taskService;
 
 	// url?param1=value1&param2=value2&param2=value3,value4&param2=value5
 	// @RequestParam Map<String, Object> parameters 有两个问题
@@ -202,9 +205,8 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 									}
 								}
 							}
-
-							Page<TaskInstance> pageTask = taskService.taskPage(page, pagesize, formModelEntity.getProcess().getKey(), status, null, iflowQueryParams);
-							String[] formInstanceIds = pageTask.getResults().stream().map(item->item.getFormInstanceId()).toArray(String[]::new);
+							Page<ProcessInstance> pageProcess = processInstanceService.page(page, pagesize, formModelEntity.getProcess().getKey(), status, iflowQueryParams);
+							String[] formInstanceIds = pageProcess.getResults().stream().map(item->item.getBusinessKey()).toArray(String[]::new);
 							if (formInstanceIds!=null && formInstanceIds.length>0) {
 								Optional<ItemModelEntity> idItemOption = formModelEntity.getItems().stream().filter(item->SystemItemType.ID == item.getSystemItemType()).findFirst();
 								if (idItemOption.isPresent()) {
