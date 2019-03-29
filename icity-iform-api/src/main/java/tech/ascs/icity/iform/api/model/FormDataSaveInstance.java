@@ -43,6 +43,9 @@ public class FormDataSaveInstance extends IdEntity {
 	@ApiModelProperty(value = "二维码图片", position = 10)
 	private FileUploadModel fileUploadModel;
 
+	@ApiModelProperty(value = "是否能编辑", position = 10)
+	private Boolean canEdit = true;
+
 	public String getFormId() {
 		return formId;
 	}
@@ -129,6 +132,14 @@ public class FormDataSaveInstance extends IdEntity {
 
 	public void setFileUploadModel(FileUploadModel fileUploadModel) {
 		this.fileUploadModel = fileUploadModel;
+	}
+
+	public Boolean getCanEdit() {
+		return canEdit;
+	}
+
+	public void setCanEdit(Boolean canEdit) {
+		this.canEdit = canEdit;
 	}
 
 	@ApiModelProperty(value = "表单实例ID", position = 0)
