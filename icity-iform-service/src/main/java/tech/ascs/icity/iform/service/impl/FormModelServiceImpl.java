@@ -848,9 +848,11 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				for(int k = 0 ; k < childRenItem.getItems().size() ; k++){
 					ItemModelEntity itemModelEntity = childRenItem.getItems().get(k);
 					ItemModelEntity itemModelEntity1 = getNewItemModelEntity(oldMapItmes, modelEntityMap, itemModelEntity);
+					itemModelEntity1.setFormModel(null);
 					itemModelEntity1.setOrderNo(k);
 					list.add(itemModelEntity1);
 				}
+				newRowItem.setFormModel(null);
 				newRowItem.setParentItem((TabsItemModelEntity) newModelEntity);
 				newRowItem.setOrderNo(j);
 				newRowItem.setItems(list);
