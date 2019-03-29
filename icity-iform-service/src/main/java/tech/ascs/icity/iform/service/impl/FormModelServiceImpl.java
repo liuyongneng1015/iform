@@ -458,8 +458,16 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		ReferenceType oldReferenceType = null;
 		String oldReferenceFormId = null;
 		if(saveItemModelEntity  instanceof ReferenceItemModelEntity){
-			 oldReferenceType = ((ReferenceItemModelEntity)saveItemModelEntity).getReferenceType();
+			oldReferenceType = ((ReferenceItemModelEntity)saveItemModelEntity).getReferenceType();
 			oldReferenceFormId = ((ReferenceItemModelEntity) saveItemModelEntity).getReferenceFormId();
+		}
+		if(paramerItemModelEntity.getType() != saveItemModelEntity.getType() ||
+				(paramerItemModelEntity instanceof NumberItemModelEntity && saveItemModelEntity instanceof NumberItemModelEntity &&
+						((NumberItemModelEntity)paramerItemModelEntity).getDecimalDigits() != ((NumberItemModelEntity)saveItemModelEntity).getDecimalDigits())){
+			//删除字段
+			if(oldColumnName != null) {
+				columnModelService.deleteTableColumn(saveItemModelEntity.getColumnModel().getDataModel().getTableName(), oldColumnName);
+			}
 		}
 		ReferenceType newReferenceType = null;
 		String newReferenceFormId = null;
@@ -472,8 +480,6 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 		setOption(saveItemModelEntity, paramerItemModelEntity);
 		saveItempermissions(saveItemModelEntity, paramerItemModelEntity);
-
-		//newItemModelEntity.setFormModel(oldItemModelEntity.getFormModel());
 
 		//设置列表模型
 		if (paramerItemModelEntity instanceof ReferenceItemModelEntity ) {
