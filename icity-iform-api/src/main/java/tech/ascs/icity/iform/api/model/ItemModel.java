@@ -164,7 +164,7 @@ public class ItemModel extends NameEntity {
 	private String calculationFormula;
 
 	@ApiModelProperty(value = "数字位数", position = 43)
-	private Integer decimalDigits;
+	private Integer decimalDigits = 0;
 
 	@ApiModelProperty(value = "千分位分隔符", position = 44)
 	private Boolean thousandSeparator;
@@ -623,6 +623,9 @@ public class ItemModel extends NameEntity {
 	}
 
 	public Integer getDecimalDigits() {
+		if(decimalDigits == null){
+			decimalDigits = 0;
+		}
 		return decimalDigits;
 	}
 

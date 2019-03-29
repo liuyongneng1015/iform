@@ -13,7 +13,7 @@ public class NumberItemModelEntity extends ItemModelEntity  {
 	private static final long serialVersionUID = 1L;
 
 	@JoinColumn(name="decimal_digits")//数字位数
-	private Integer decimalDigits;
+	private Integer decimalDigits = 0;
 
 	@JoinColumn(name="thousand_separator")//千分位分隔符
 	private Boolean thousandSeparator;
