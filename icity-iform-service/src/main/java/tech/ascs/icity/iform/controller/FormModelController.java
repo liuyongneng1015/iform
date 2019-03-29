@@ -1286,7 +1286,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}else if(entity instanceof RowItemModelEntity){
 			List<ItemModelEntity> rowList = new ArrayList<>() ;
 			for(ItemModel rowItemModel : itemModel.getItems()) {
-				rowList.add(wrap(sourceFormModelId, rowItemModel, map));
+                ItemModelEntity itemModelEntity1 = wrap(sourceFormModelId, rowItemModel, map);
+                itemModelEntity1.setFormModel(null);
+				rowList.add(itemModelEntity1);
 			}
 			((RowItemModelEntity) entity).setItems(rowList);
 		}else if(entity instanceof SubFormItemModelEntity){
@@ -1297,8 +1299,11 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				BeanUtils.copyProperties(rowItemModelEntity, subFormRowItemModelEntity, new String[] {"searchItems","sortItems","items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});
 				List<ItemModelEntity> rowItemList = new ArrayList<>();
 				for(ItemModel childrenItem : rowItemModelEntity.getItems()) {
-					rowItemList.add(wrap(sourceFormModelId, childrenItem, map));
+                    ItemModelEntity itemModelEntity1 = wrap(sourceFormModelId, childrenItem, map);
+                    itemModelEntity1.setFormModel(null);
+                    rowItemList.add(itemModelEntity1);
 				}
+                subFormRowItemModelEntity.setFormModel(null);
 				subFormRowItemModelEntity.setItems(rowItemList);
 				rowItemModelEntities.add(subFormRowItemModelEntity);
 			}
@@ -1313,10 +1318,13 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 					List<ItemModelEntity> rowItemList = new ArrayList<>();
 					if(itemModel1.getItems() != null) {
 						for (ItemModel childrenItem : itemModel1.getItems()) {
-							rowItemList.add(wrap(sourceFormModelId, childrenItem, map));
+						    ItemModelEntity itemModelEntity1 = wrap(sourceFormModelId, childrenItem, map);
+                            itemModelEntity1.setFormModel(null);
+							rowItemList.add(itemModelEntity1);
 						}
 					}
 					tabPaneItemModelEntity.setParentItem((TabsItemModelEntity)entity);
+                    tabPaneItemModelEntity.setFormModel(null);
 					tabPaneItemModelEntity.setItems(rowItemList);
 					list.add(tabPaneItemModelEntity);
 				}
