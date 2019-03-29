@@ -406,7 +406,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		if (formModel.getProcess() != null && formModel.getProcess().getKey() != null) {
 			//跳过第一个流程环节
 			data.put("PASS_THROW_FIRST_USERTASK", true);
-			if(dataModel.getTableName().equals("events_mgt") && user != null){
+			/*if(dataModel.getTableName().equals("events_mgt") && user != null){
                 data.put("report_name",  user.getUsername());
                 data.put("report_telephone", user.getPhone());
                 data.put("iform1553673917770",  "WORK");
@@ -418,7 +418,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
                         data.put("handle_telephone", user.getPhone());
                     }
                 }
-            }
+            }*/
 			String processInstanceId = processInstanceService.startProcess(formModel.getProcess().getKey(), newId, data);
 			updateProcessInfo(formModel, data, processInstanceId);
 		}
@@ -530,14 +530,14 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			if (formInstance.getActivityInstanceId() != null) {
 				taskService.completeTask(formInstance.getActivityInstanceId(), data);
 				updateProcessInfo(formModel, data, formInstance.getProcessInstanceId());
-                if(dataModel.getTableName().equals("events_mgt") && user != null){
+                /*if(dataModel.getTableName().equals("events_mgt") && user != null){
                     ProcessInstance processInstance = processInstanceService.get(formInstance.getProcessInstanceId());
                     if (processInstance != null && processInstance.getStatus() == ProcessInstance.Status.Ended) {
                         data.put("iform1553673917770", "DONE");
                         data.put("handle_name", user.getUsername());
                         data.put("handle_telephone", user.getPhone());
                     }
-                }
+                }*/
 			}
 
 			session.update(dataModel.getTableName(), data);
