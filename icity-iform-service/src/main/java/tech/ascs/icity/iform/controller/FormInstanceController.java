@@ -307,6 +307,16 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	}
 
 	@Override
+	public FormDataSaveInstance getFormDataByListId(@PathVariable(name="listId") String listId, @PathVariable(name="id") String id) {
+		ListModelEntity listModel = listModelService.find(listId);
+		if (listModel == null) {
+			throw new IFormException(404, "列表模型【" + listId + "】不存在");
+		}
+
+		return formInstanceService.getFormDataSaveInstance(listModel.getMasterForm(), id);
+	}
+
+	@Override
 	public FormDataSaveInstance getQrCode(@PathVariable(name="listId") String listId, @PathVariable(name="id") String id) {
 		ListModelEntity formModel = listModelService.find(listId);
 		if (formModel == null) {
