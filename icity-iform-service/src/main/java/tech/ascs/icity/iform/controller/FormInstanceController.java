@@ -134,21 +134,22 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 					if (StringUtils.hasText(valueId)) {
 						int status = -2; // -1表示查所有，0表示查未处理，1表示已处理，若最后status的值还是-2，表示不用查工作流
 						SelectItemModelEntity selectItem = (SelectItemModelEntity) statusItem;
-						if (SelectReferenceType.Table == selectItem.getSelectReferenceType()) {
+						if (SelectReferenceType.Dictionary == selectItem.getSelectReferenceType()) {
+							DictionaryItemEntity dictionaryItem = dictionaryService.getDictionaryItemById(valueId);
+							if (dictionaryItem != null) {
+								status = assemblyProcesDictionaryStatus(dictionaryItem.getName());
+							}
+						} else {
 							List<ItemSelectOption> options = selectItem.getOptions();
 							for (ItemSelectOption selectOption : options) {
-								status = assemblyProcessStatus(selectOption.getLabel());
+								status = assemblyProcessStatus(selectOption.getValue());
 								if (status != -1 && status != 0 && status != 1) {
 									break;
 								}
 							}
-						} else if (SelectReferenceType.Dictionary == selectItem.getSelectReferenceType()) {
-							DictionaryItemEntity dictionaryItem = dictionaryService.getDictionaryItemById(valueId);
-							if (dictionaryItem != null) {
-								status = assemblyProcessStatus(dictionaryItem.getName());
-							}
 						}
 						if (status != -2) {
+							queryParameters.remove(selectItem.getId());
 							Map<String, Object> iflowQueryParams = new HashMap<>();
 							for (ItemModelEntity item : items) {
 								Object value = queryParameters.get(item.getId());
@@ -235,16 +236,31 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		return pageInstance;
 	}
 
-	public int assemblyProcessStatus(String statusStr) {
-		if (StringUtils.isEmpty(statusStr)) {
+	public int assemblyProcesDictionaryStatus(String valueStr) {
+		if (StringUtils.isEmpty(valueStr)) {
 			return -2;
 		}
-		switch (statusStr) {
+		switch (valueStr) {
 			case "全部":
 				return -1;
-			case "未处理":
+			case "待处理":
 				return 0;
 			case "已处理":
+				return 1;
+		}
+		return -2;
+	}
+
+	public int assemblyProcessStatus(String valueStr) {
+		if (StringUtils.isEmpty(valueStr)) {
+			return -2;
+		}
+		switch (valueStr) {
+			case "ALL":
+				return -1;
+			case "WORK":
+				return 0;
+			case "DONE":
 				return 1;
 		}
 		return -2;
