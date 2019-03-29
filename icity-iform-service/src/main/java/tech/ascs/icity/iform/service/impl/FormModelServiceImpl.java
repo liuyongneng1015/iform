@@ -463,7 +463,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		}
 		if(paramerItemModelEntity instanceof NumberItemModelEntity && saveItemModelEntity instanceof NumberItemModelEntity &&
 						((NumberItemModelEntity)paramerItemModelEntity).getDecimalDigits() != ((NumberItemModelEntity)saveItemModelEntity).getDecimalDigits() &&
-                         ((NumberItemModelEntity)paramerItemModelEntity).getDecimalDigits() == 0 || ((NumberItemModelEntity)saveItemModelEntity).getDecimalDigits() == 0){
+								(((NumberItemModelEntity)paramerItemModelEntity).getDecimalDigits() == 0 || ((NumberItemModelEntity)saveItemModelEntity).getDecimalDigits() == 0)){
 			//删除字段
 			if(oldColumnName != null) {
 				columnModelService.deleteTableColumn(saveItemModelEntity.getColumnModel().getDataModel().getTableName(), oldColumnName);
