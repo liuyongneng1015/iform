@@ -140,11 +140,9 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 							}
 						} else {
 							List<ItemSelectOption> options = selectItem.getOptions();
-							for (ItemSelectOption selectOption : options) {
-								status = assemblyProcessStatus(selectOption.getValue());
-								if (status != -1 && status != 0 && status != 1) {
-									break;
-								}
+							Optional<ItemSelectOption> itemSelectOptionOption = options.stream().filter(item->valueId.equals(item.getId())).findFirst();
+							if (itemSelectOptionOption.isPresent()) {
+								status = assemblyProcessStatus(itemSelectOptionOption.get().getValue());
 							}
 						}
 						if (status != -2) {
@@ -208,7 +206,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 							}
 							// 查工作流
 							Page<ProcessInstance> pageProcess = processInstanceService.page(page, pagesize, formModelEntity.getProcess().getKey(), status, iflowQueryParams);
-							Map<String, ProcessInstance> instanceIdAndEditMap = pageProcess.getResults().stream().collect(Collectors.toMap(ProcessInstance::getId, processInstance -> processInstance));
+							Map<String, ProcessInstance> instanceIdAndEditMap = pageProcess.getResults().stream().collect(Collectors.toMap(ProcessInstance::getBusinessKey, processInstance -> processInstance));
 							String[] formInstanceIds = pageProcess.getResults().stream().map(item->item.getBusinessKey()).toArray(String[]::new);
 							if (formInstanceIds!=null && formInstanceIds.length>0) {
 								Optional<ItemModelEntity> idItemOption = formModelEntity.getItems().stream().filter(item->SystemItemType.ID == item.getSystemItemType()).findFirst();
@@ -267,6 +265,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		if (StringUtils.isEmpty(valueStr)) {
 			return -2;
 		}
+		valueStr = valueStr.trim();
 		switch (valueStr) {
 			case "ALL":
 				return -1;
