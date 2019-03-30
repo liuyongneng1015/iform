@@ -833,8 +833,19 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				}
 				FormModelEntity formModelEntity = formModelService.get(((ReferenceItemModelEntity) itemModelEntity).getReferenceFormId());
 				if(referenceColumnModel != null){
+                    Map<String, Object> map = new HashMap<>();
+                    for(int i = 0; i <  referenceColumnModel.getReferenceTables().size(); i ++){
+                        ReferenceModel referenceModel  = referenceColumnModel.getReferenceTables().get(i);
+                        String referenceKey = referenceModel.getReferenceTable()+"_"+referenceModel.getReferenceType().getValue();
+                        if(map.get(referenceKey) != null){
+                            referenceColumnModel.getReferenceTables().remove(referenceModel);
+                            i--;
+                        }
+                        map.put(referenceKey, System.currentTimeMillis());
+                    }
 					List<String> refenceTables = referenceColumnModel.getReferenceTables().parallelStream().map(ReferenceModel::getReferenceTable).collect(Collectors.toList());
-					if(!refenceTables.contains(formModelEntity.getDataModels().get(0).getTableName())){
+					if(!refenceTables.contains(formModelEntity.getDataModels().get(0).getTableName()) ||
+                            map.get(formModelEntity.getDataModels().get(0).getTableName()+"_"+((ReferenceItemModelEntity) itemModelEntity).getReferenceType().getValue()) == null){
 						ReferenceModel referenceModel = new ReferenceModel();
 						referenceModel.setReferenceType(((ReferenceItemModelEntity) itemModelEntity).getReferenceType());
 						referenceModel.setReferenceTable(formModelEntity.getDataModels().get(0).getTableName());
