@@ -30,6 +30,12 @@ spring.jpa:
   hibernate.ddl-auto: update
   properties.hibernate.dialect: org.hibernate.dialect.MySQL57Dialect
 
+icity:
+  iform:
+    qrcode:
+      base-url: 192.168.4.152:8089
+      name: 航天智慧cityworks
+
 spring.redis:
   database: 0
   host: 192.168.4.151
