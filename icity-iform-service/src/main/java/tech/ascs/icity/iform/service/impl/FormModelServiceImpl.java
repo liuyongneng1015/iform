@@ -902,7 +902,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 					list.addAll(getChildRenItemModel(itemModel1));
 				}
 			}
-		}else if(itemModel.getType() == ItemType.TabPane && itemModel.getItems() != null ){
+		}else if(itemModel.getType() == ItemType.Tabs && itemModel.getItems() != null ){
 			list.addAll(itemModel.getItems());
 			for (ItemModel tabPaneItemModel :  itemModel.getItems()) {
 				list.addAll(tabPaneItemModel.getItems());

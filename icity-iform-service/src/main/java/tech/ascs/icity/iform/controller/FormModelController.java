@@ -1672,8 +1672,8 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				activityInfos.put(activity.getId(), activityInfo);
 			}
 			for (ItemModel itemModel :itemModels){
-				if(itemModel.getType() == ItemType.Row || itemModel.getType() == ItemType.SubForm
-						|| itemModel.getSystemItemType() == SystemItemType.ID){
+				if(itemModel.getType() == ItemType.Row || itemModel.getType() == ItemType.SubForm || itemModel.getType() == ItemType.RowItem
+						|| itemModel.getType() == ItemType.Tabs || itemModel.getType() == ItemType.TabPane 	|| itemModel.getSystemItemType() == SystemItemType.ID){
 					continue;
 				}
 				if(itemModel.getActivities() == null || itemModel.getActivities().size() < 1){
