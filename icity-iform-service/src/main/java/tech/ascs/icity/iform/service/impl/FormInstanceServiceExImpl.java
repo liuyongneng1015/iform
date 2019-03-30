@@ -397,12 +397,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
                     }
                 }
             }*/
-			try {
-				ObjectMapper o = new ObjectMapper();
-				System.out.println("___"+data.get("event_nature")+":"+ o.writeValueAsString(data));
-			} catch (JsonProcessingException e) {
-				e.printStackTrace();
-			}
+			System.out.println("___"+data.get("event_nature"));
 			String processInstanceId = processInstanceService.startProcess(formModel.getProcess().getKey(), newId, data);
 			updateProcessInfo(formModel, data, processInstanceId);
 		}
@@ -523,12 +518,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
                     }
                 }*/
 			}
-			try {
-				ObjectMapper o = new ObjectMapper();
-				System.out.println("___"+data.get("event_nature")+":"+ o.writeValueAsString(data));
-			} catch (JsonProcessingException e) {
-				e.printStackTrace();
-			}
+			System.out.println("___"+data.get("event_nature"));
 			session.update(dataModel.getTableName(), data);
 			session.getTransaction().commit();
 		} catch (Exception e) {
