@@ -374,10 +374,10 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	@Value("${icity.iform.qrcode.name}")
 	private String qrcodeName;
 
-	private FileUploadModel createDataQrCode(FormModelEntity formModel, String id){
+	private FileUploadModel createDataQrCode(String listId, FormModelEntity formModel, String id){
 		FileUploadModel qrCodeFileUploadModel = null;
 		try {
-			InputStream inputStream = getInputStream(qrcodeBaseUrl+"?status=check&formId="+formModel.getId()+"&listRowId="+id, new String(qrcodeName.getBytes("UTF-8"),"UTF-8"));
+			InputStream inputStream = getInputStream(qrcodeBaseUrl+"?status=check&listId="+listId+"&formId="+formModel.getId()+"&listRowId="+id, new String(qrcodeName.getBytes("UTF-8"),"UTF-8"));
 			FileUploadModel fileUploadModel = uploadService.uploadOneFileByInputstream(formModel.getName()+"_"+id+".png" ,inputStream,"image/png");
 			fileUploadModel.setUploadType(FileUploadType.FormModel);
 			fileUploadModel.setFromSource(formModel.getId());
@@ -452,14 +452,14 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		List<FileUploadModel> fileUploadModels = new ArrayList<>();
 		try {
 			for(FileUploadEntity fileUploadEntity : fileUploadEntityList) {
-				InputStream inputStream = getInputStream(qrcodeBaseUrl+"?status=check&formId="+formModel.getId()+"&listRowId="+id, new String(qrcodeName.getBytes("UTF-8"),"UTF-8"));
+				InputStream inputStream = getInputStream(qrcodeBaseUrl+"?status=check&listId="+listId+"&formId="+formModel.getId()+"&listRowId="+id, new String(qrcodeName.getBytes("UTF-8"),"UTF-8"));
 				uploadService.resetUploadOneFileByInputstream(fileUploadEntity.getFileKey(), inputStream, "image/png");
 				FileUploadModel fileUploadModel = new FileUploadModel();
 				BeanUtils.copyProperties(fileUploadEntity, fileUploadModel);
 				fileUploadModels.add(fileUploadModel);
 			}
 			if(fileUploadEntityList == null || fileUploadEntityList.size() < 1) {
-				fileUploadModels.add(createDataQrCode(formModel, id));
+				fileUploadModels.add(createDataQrCode(listId, formModel, id));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
