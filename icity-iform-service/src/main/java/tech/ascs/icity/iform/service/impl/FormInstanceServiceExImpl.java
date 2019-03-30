@@ -963,7 +963,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
             if(o != null && o instanceof List){
                 value = String.join(",", (List)o );
             }else{
-                value = o == null || StringUtils.isEmpty(o) ? null : o;
+                value = o == null || StringUtils.isEmpty(o) ? null : String.valueOf(o);
             }
 		} else if (itemModel.getType() == ItemType.InputNumber && ((NumberItemModelEntity)itemModel).getDecimalDigits() != null
 				&& ((NumberItemModelEntity)itemModel).getDecimalDigits() > 0 && itemInstance.getValue() != null) {

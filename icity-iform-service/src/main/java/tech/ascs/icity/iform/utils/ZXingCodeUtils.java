@@ -60,7 +60,6 @@ public class ZXingCodeUtils {
         public static BufferedImage drawLogoQRCode(InputStream inputStream, File codeFile, String qrUrl, String note) {
             BufferedImage image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
             try {
-                System.out.println("drawLogoQRCode begin");
                 MultiFormatWriter multiFormatWriter = new MultiFormatWriter();
                 // 参数顺序分别为：编码内容，编码类型，生成图片宽度，生成图片高度，设置参数
                 BitMatrix bm = multiFormatWriter.encode(qrUrl, BarcodeFormat.QR_CODE, WIDTH, HEIGHT, hints);
@@ -84,7 +83,6 @@ public class ZXingCodeUtils {
                     g.dispose();
                     logo.flush();
                 }
-                System.out.println("drawLogoQRCode middel");
                 // 自定义文本描述
                 if (StringUtils.isNotEmpty(note)) {
                     // 新的图片，把带logo的二维码下面加上文字
@@ -122,13 +120,11 @@ public class ZXingCodeUtils {
                 }
 
                 image.flush();
-                System.out.println("drawLogoQRCode zzz");
 
                 ImageIO.write(image, "png", codeFile); // TODO
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            System.out.println("drawLogoQRCode end");
 
             return image;
         }
@@ -138,14 +134,11 @@ public class ZXingCodeUtils {
     public static InputStream createLogoQRCode(URL logoFile, String url, String note) {
         File file = new File(System.currentTimeMillis()+"_"+ (new Random().nextInt(10000))+"_qrCode.png");
         try {
-            System.out.println("createLogoQRCodexx begin");
             boolean logoFlag = logoFile == null || StringUtils.isBlank(logoFile.getFile()) ? true : false ;
             if(logoFlag && StringUtils.isBlank(note)){
-                System.out.println("createLogoQRCodexx 11");
                 QRCodeGenerator.generateQRCodeImage( url, 400, 400, file.getAbsolutePath());
                 return getInputStream(file);
             }else {
-                System.out.println("createLogoQRCodexx 22");
                 drawLogoQRCode(logoFlag ? null : logoFile.openStream(), file, url, note);
                 return getInputStream(file);
             }
