@@ -9,6 +9,8 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.hibernate.Criteria;
@@ -395,6 +397,12 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
                     }
                 }
             }*/
+			try {
+				ObjectMapper o = new ObjectMapper();
+				System.out.println("___"+data.get("event_nature")+":"+ o.writeValueAsString(data));
+			} catch (JsonProcessingException e) {
+				e.printStackTrace();
+			}
 			String processInstanceId = processInstanceService.startProcess(formModel.getProcess().getKey(), newId, data);
 			updateProcessInfo(formModel, data, processInstanceId);
 		}
@@ -515,7 +523,12 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
                     }
                 }*/
 			}
-
+			try {
+				ObjectMapper o = new ObjectMapper();
+				System.out.println("___"+data.get("event_nature")+":"+ o.writeValueAsString(data));
+			} catch (JsonProcessingException e) {
+				e.printStackTrace();
+			}
 			session.update(dataModel.getTableName(), data);
 			session.getTransaction().commit();
 		} catch (Exception e) {
