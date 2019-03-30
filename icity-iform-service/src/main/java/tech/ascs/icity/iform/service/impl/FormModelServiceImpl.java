@@ -889,6 +889,31 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		return new ArrayList<>(list);
 	}
 
+	//获取item子item
+	public List<ItemModel> getChildRenItemModel(ItemModel itemModel){
+		Set<ItemModel> list = new HashSet<>();
+		if(itemModel.getType() == ItemType.ReferenceList && itemModel.getItems() != null){
+			list.addAll(itemModel.getItems());
+		}else if(itemModel.getType() == ItemType.SubForm && itemModel.getItems() != null){
+			list.addAll(itemModel.getItems());
+			for (ItemModel subFormRowItemModel :  itemModel.getItems()) {
+				list.addAll(subFormRowItemModel.getItems());
+				for(ItemModel itemModel1 : subFormRowItemModel.getItems()){
+					list.addAll(getChildRenItemModel(itemModel1));
+				}
+			}
+		}else if(itemModel.getType() == ItemType.TabPane && itemModel.getItems() != null ){
+			list.addAll(itemModel.getItems());
+			for (ItemModel tabPaneItemModel :  itemModel.getItems()) {
+				list.addAll(tabPaneItemModel.getItems());
+				for(ItemModel itemModel1 : tabPaneItemModel.getItems()){
+					list.addAll(getChildRenItemModel(itemModel1));
+				}
+			}
+		}
+		return new ArrayList<>(list);
+	}
+
 	//校验关联
 	private void verifyReference(ReferenceItemModelEntity rowItem){
 		FormModelEntity formModelEntity = find(rowItem.getReferenceFormId());
@@ -1351,6 +1376,16 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			}
 		}
 		return itemModel;
+	}
+
+	@Override
+	public List<ItemModel> findAllItemModels(FormModel formModel) {
+		List<ItemModel> itemModels = new ArrayList<>();
+		for(ItemModel itemModel : formModel.getItems()){
+			itemModels.add(itemModel);
+			itemModels.addAll(getChildRenItemModel(itemModel));
+		}
+		return itemModels;
 	}
 
 	//设置表单功能

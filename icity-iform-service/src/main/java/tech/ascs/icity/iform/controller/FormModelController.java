@@ -19,6 +19,7 @@ import tech.ascs.icity.admin.api.model.Application;
 import tech.ascs.icity.admin.api.model.TreeSelectData;
 import tech.ascs.icity.admin.client.ApplicationService;
 import tech.ascs.icity.admin.client.GroupService;
+import tech.ascs.icity.iflow.api.model.Activity;
 import tech.ascs.icity.iflow.api.model.Process;
 import tech.ascs.icity.iflow.client.ProcessService;
 import tech.ascs.icity.iform.IFormException;
@@ -1586,6 +1587,14 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
         FormModel formModel = new FormModel();
 
 		entityToDTO( entity,  formModel, false);
+		List<Activity> activities = new ArrayList<>();
+		if(entity.getProcess() != null && StringUtils.hasText(entity.getProcess().getKey())){
+			Process process = processService.get(entity.getProcess().getKey());
+			if(process != null){
+				activities.addAll(process.getActivities());
+			}
+		}
+
 
 		if (entity.getItems().size() > 0) {
 			List<ItemModel> items = new ArrayList<ItemModel>();
@@ -1636,7 +1645,38 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			formModel.setDataModels(dataModelList);
 		}
 
+		setFormItemActvitiy( formModel,  activities);
 		return formModel;
+	}
+
+	//设置控件权限
+	private void setFormItemActvitiy(FormModel formModel, List<Activity> activities){
+		List<ItemModel> itemModels = formModelService.findAllItemModels(formModel);
+		if(activities.size() > 0) {
+			Map<String, ActivityInfo> activityInfos = new HashMap<>();
+			for(Activity activity : activities){
+				ActivityInfo activityInfo = new ActivityInfo();
+				BeanUtils.copyProperties(activity, activityInfo);
+				activityInfo.setReadonly(true);
+				activityInfo.setVisible(true);
+				activityInfos.put(activity.getId(), activityInfo);
+			}
+			for (ItemModel itemModel :itemModels){
+				if(itemModel.getActivities() == null || itemModel.getActivities().size() < 1){
+					itemModel.setActivities(new ArrayList<>(activityInfos.values()));
+					continue;
+				}
+				if(itemModel.getActivities().size()>= activities.size()){
+					continue;
+				}
+				List<String> activityIds = itemModel.getActivities().parallelStream().map(ActivityInfo::getActivityId).collect(Collectors.toList());
+				for(String key : activityInfos.keySet()){
+					if(!activityIds.contains(key)){
+						itemModel.getActivities().add(activityInfos.get(key));
+					}
+				}
+			}
+		}
 	}
 
 	private List<ItemPermissionModel> getItemPermissions(List<ItemModelEntity> items){

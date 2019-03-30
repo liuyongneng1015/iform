@@ -46,4 +46,7 @@ public interface FormModelService extends JPAService<FormModelEntity> {
      DataModel getDataModel(DataModelEntity dataModelEntity);
 
      ItemModel findItemByTableAndColumName(String tableName, String columnName);
+
+     List<ItemModel> findAllItemModels(FormModel formModel);
+
 }
