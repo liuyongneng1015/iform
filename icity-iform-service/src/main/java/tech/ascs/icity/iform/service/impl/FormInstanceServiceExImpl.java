@@ -772,16 +772,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					}
 				}
 
-				Object o = null;
-				if (toFlag) {
-					o = data;
-				} else {
-					List<Map<String, Object>> map = new ArrayList<>();
-					map.add(data);
-					o = map;
-				}
 				//新的数据
-				List<Map<String, Object>> saveListMap = getNewMapData(user, toReferenceKey, session, o, dataModelEntity, oldListMap, idList, newListMap, displayTimingType);
+				List<Map<String, Object>> saveListMap = getNewMapData(user, toFlag, toReferenceKey, session, data, dataModelEntity, oldListMap, idList, newListMap, displayTimingType);
 
 				if (referenceItemModelEntity.getReferenceType() == ReferenceType.OneToOne && referenceItemModelEntity.getColumnModel() != null && saveListMap != null && saveListMap.size() > 0) {
 					String idValue = String.valueOf(saveListMap.get(0).get("id"));
@@ -817,12 +809,12 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				ReferenceDataModel dataModel = referenceMap.get(str);
 				if (dataModel.getFlag()) {
 					data.put(str, null);
-					deleteData(session, dataModel.getTableName(), String.valueOf(((Map<String, Object>)oldData).get("id")), str);
+					//deleteData(session, dataModel.getTableName(), String.valueOf(((Map<String, Object>)oldData).get("id")), str);
 				} else {
 					List<Map<String, Object>> oldListMap = (List<Map<String, Object>>) oldData;
 					data.put(str, new ArrayList<>());
 					for(Map<String, Object> map : oldListMap){
-						deleteData(session, dataModel.getTableName(), String.valueOf(map.get("id")), str);
+						//deleteData(session, dataModel.getTableName(), String.valueOf(map.get("id")), str);
 					}
 				}
 			}
@@ -843,7 +835,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 	}
 
-	private List<Map<String, Object>> getNewMapData(UserInfo user, String referenceKey, Session session, Object data, DataModelEntity dataModelEntity, List<Map<String, Object>> oldListMap, List<String> idList, List<Map<String, Object>> newListMap, DisplayTimingType displayTimingType){
+	private List<Map<String, Object>> getNewMapData(UserInfo user,boolean flag, String referenceKey, Session session, Map<String,Object> data, DataModelEntity dataModelEntity, List<Map<String, Object>> oldListMap, List<String> idList, List<Map<String, Object>> newListMap, DisplayTimingType displayTimingType){
 		List<Map<String, Object>> saveListMap = new ArrayList<>();
 		//旧的数据
 		if(oldListMap != null && oldListMap.size() > 0) {
@@ -851,7 +843,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				if (map == null || map.get("id") == null || idList.contains(String.valueOf(map.get("id")))) {
 					continue;
 				}
-				deleteData( session, dataModelEntity.getTableName(), String.valueOf(map.get("id")),  referenceKey);
+				Map<String, Object> objectMap = (Map<String, Object>)session.load(dataModelEntity.getTableName(), String.valueOf(map.get("id")));
+				objectMap.put(referenceKey, null);
+				session.update(dataModelEntity.getTableName(), objectMap);
 			}
 		}
 		if(newListMap != null && newListMap.size() > 0) {
@@ -885,7 +879,30 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				}
 
 				//子表数据
-				//subFormData.put(referenceKey, null);
+				if(flag) {
+					subFormData.put(referenceKey, data);
+				}else{
+					List<Map<String, Object>> list = (List<Map<String, Object>>)subFormData.get(referenceKey);
+					if(list != null){
+						List<String> referenceIds = new ArrayList<>();
+						if(data.get("id") == null){
+							list.add(data);
+						}else {
+							for (Map<String, Object> map : list) {
+								if (map.get("id") != null) {
+									referenceIds.add((String) map.get("id"));
+								}
+							}
+							if (!referenceIds.contains(data.get("id"))) {
+								list.add(data);
+							}
+						}
+					}else{
+						list = new ArrayList<>();
+						list.add(data);
+						subFormData.put(referenceKey, list);
+					}
+				}
 				saveListMap.add(subFormData);
 			}
 		}
