@@ -24,6 +24,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import tech.ascs.icity.ICityException;
 import tech.ascs.icity.admin.api.model.TreeSelectData;
 import tech.ascs.icity.admin.api.model.User;
 import tech.ascs.icity.admin.client.GroupService;
@@ -110,60 +111,78 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	@SuppressWarnings("unchecked")
 	@Override
 	public List<FormInstance> listFormInstance(ListModelEntity listModel, Map<String, Object> queryParameters) {
-		Criteria criteria = generateCriteria(listModel.getMasterForm(), queryParameters);
-		addSort(listModel, criteria);
-
-		return wrapList(listModel, criteria.list());
+		Session session = getSession(listModel.getMasterForm().getDataModels().get(0));
+		List<FormInstance> list = new ArrayList<>();
+		try {
+			Criteria criteria = generateCriteria(session, listModel.getMasterForm(), queryParameters);
+			addSort(listModel, criteria);
+			list = wrapList(listModel, criteria.list());
+		} catch (Exception e) {
+			e.printStackTrace();
+			new ICityException(e.getLocalizedMessage(), e);
+		} finally {
+			if (session!=null) {
+				session.close();
+			}
+		}
+		return list;
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public Page<FormDataSaveInstance> pageFormInstance(FormModelEntity formModel, int page, int pagesize, Map<String, Object> queryParameters) {
-		Criteria criteria = generateCriteria(formModel, queryParameters);
-		criteria.setFirstResult((page - 1) * pagesize);
-		criteria.setMaxResults(pagesize);
-		List<Map<String, Object>> entities = null;
 		Page<FormDataSaveInstance> result = Page.get(page, pagesize);
+		Session session = getSession(formModel.getDataModels().get(0));
 		try {
-			entities = criteria.list();
-		} catch (HibernateException e) {
+			Criteria criteria = generateCriteria(session, formModel, queryParameters);
+			criteria.setFirstResult((page - 1) * pagesize);
+			criteria.setMaxResults(pagesize);
+			List<FormDataSaveInstance> list = wrapFormDataList(formModel, null, criteria.list());
+
+			criteria.setFirstResult(0);
+			criteria.setProjection(Projections.rowCount());
+			Number count = (Number) criteria.uniqueResult();
+			result.data(count.intValue(), list);
+		} catch (Exception e) {
 			e.printStackTrace();
-			return result;
+			new ICityException(e.getLocalizedMessage(), e);
+		} finally {
+			if (session!=null) {
+				session.close();
+			}
 		}
-		List<FormDataSaveInstance> list = wrapFormDataList(formModel, null, entities);
-
-		criteria.setFirstResult(0);
-		criteria.setProjection(Projections.rowCount());
-		Number count = (Number) criteria.uniqueResult();
-
-		return result.data(count.intValue(), list);
+		return result;
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public Page<FormDataSaveInstance> pageFormInstance(ListModelEntity listModel, int page, int pagesize, Map<String, Object> queryParameters) {
-		Criteria criteria = generateCriteria(listModel.getMasterForm(), queryParameters);
-		addCreatorCriteria(criteria, listModel);
-		addSort(listModel, criteria);
-
-		criteria.setFirstResult((page - 1) * pagesize);
-		criteria.setMaxResults(pagesize);
-		List<Map<String, Object>> entities = null;
 		Page<FormDataSaveInstance> result = Page.get(page, pagesize);
+		Session session = getSession(listModel.getMasterForm().getDataModels().get(0));
 		try {
-			entities = criteria.list();
-		} catch (HibernateException e) {
+			Criteria criteria = generateCriteria(session, listModel.getMasterForm(), queryParameters);
+			addCreatorCriteria(criteria, listModel);
+			addSort(listModel, criteria);
+
+			criteria.setFirstResult((page - 1) * pagesize);
+			criteria.setMaxResults(pagesize);
+
+			List<FormDataSaveInstance> list = wrapFormDataList(null, listModel, criteria.list());
+
+			criteria.setFirstResult(0);
+			criteria.setProjection(Projections.rowCount());
+			Number count = (Number) criteria.uniqueResult();
+
+			result.data(count.intValue(), list);
+		} catch (Exception e) {
 			e.printStackTrace();
-			return result;
+			new ICityException(e.getLocalizedMessage(), e);
+		} finally {
+			if (session!=null) {
+				session.close();
+			}
 		}
-
-		List<FormDataSaveInstance> list = wrapFormDataList(null, listModel, entities);
-
-		criteria.setFirstResult(0);
-		criteria.setProjection(Projections.rowCount());
-		Number count = (Number) criteria.uniqueResult();
-
-		return result.data(count.intValue(), list);
+		return result;
 	}
 
 	@Override
@@ -1253,9 +1272,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 	}
 
-	public Criteria generateCriteria(FormModelEntity formModelEntity, Map<String, Object> queryParameters) {
+	public Criteria generateCriteria(Session session, FormModelEntity formModelEntity, Map<String, Object> queryParameters) {
 		DataModelEntity dataModel = formModelEntity.getDataModels().get(0);
-		Session session = getSession(dataModel);
+
 		Criteria criteria = session.createCriteria(dataModel.getTableName());
 
 		Map<String, ItemModelEntity> idAndItemMap = assemblyFormAllItems(formModelEntity);
