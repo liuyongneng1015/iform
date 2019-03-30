@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -368,6 +369,10 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		return new IdEntity(id);
 	}
 
+	@Value("${icity.iform.qrcode.base-url}")
+	private String qrcodeBaseUrl;
+	@Value("${icity.iform.qrcode.name}")
+	private String qrcodeName;
 	private FileUploadModel createDataQrCode(FormModelEntity formModel, String id){
 		FileUploadModel qrCodeFileUploadModel = null;
 		try {
