@@ -885,7 +885,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				}
 
 				//子表数据
-				subFormData.put(referenceKey, data);
+				//subFormData.put(referenceKey, null);
 				saveListMap.add(subFormData);
 			}
 		}
