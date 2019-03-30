@@ -1581,6 +1581,14 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			itemModels.add(itemModel);
 		}
 		formModel.setItems(itemModels);
+		List<Activity> activities = new ArrayList<>();
+		if(entity.getProcess() != null && StringUtils.hasText(entity.getProcess().getKey())){
+			Process process = processService.get(entity.getProcess().getKey());
+			if(process != null){
+				activities.addAll(process.getActivities());
+			}
+		}
+		setFormItemActvitiy( formModel.getItems(),  activities);
 	}
 
 	private FormModel toDTODetail(FormModelEntity entity)  {
@@ -1645,13 +1653,12 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			formModel.setDataModels(dataModelList);
 		}
 
-		setFormItemActvitiy( formModel,  activities);
+		setFormItemActvitiy( formModelService.findAllItemModels(formModel),  activities);
 		return formModel;
 	}
 
 	//设置控件权限
-	private void setFormItemActvitiy(FormModel formModel, List<Activity> activities){
-		List<ItemModel> itemModels = formModelService.findAllItemModels(formModel);
+	private void setFormItemActvitiy(List<ItemModel> itemModels, List<Activity> activities){
 		if(activities.size() > 0) {
 			Map<String, ActivityInfo> activityInfos = new HashMap<>();
 			for(Activity activity : activities){
@@ -1665,6 +1672,10 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				activityInfos.put(activity.getId(), activityInfo);
 			}
 			for (ItemModel itemModel :itemModels){
+				if(itemModel.getType() == ItemType.Row || itemModel.getType() == ItemType.SubForm
+						|| itemModel.getSystemItemType() == SystemItemType.ID){
+					continue;
+				}
 				if(itemModel.getActivities() == null || itemModel.getActivities().size() < 1){
 					itemModel.setActivities(new ArrayList<>(activityInfos.values()));
 					continue;
