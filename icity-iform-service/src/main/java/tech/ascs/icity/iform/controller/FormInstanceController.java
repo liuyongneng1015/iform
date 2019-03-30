@@ -373,10 +373,11 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	private String qrcodeBaseUrl;
 	@Value("${icity.iform.qrcode.name}")
 	private String qrcodeName;
+
 	private FileUploadModel createDataQrCode(FormModelEntity formModel, String id){
 		FileUploadModel qrCodeFileUploadModel = null;
 		try {
-			InputStream inputStream = getInputStream("www.baidu.com", new String("航天智慧cityworks".getBytes("UTF-8"),"UTF-8"));
+			InputStream inputStream = getInputStream(qrcodeBaseUrl, new String(qrcodeName.getBytes("UTF-8"),"UTF-8"));
 			FileUploadModel fileUploadModel = uploadService.uploadOneFileByInputstream(formModel.getName()+"_"+id+".png" ,inputStream,"image/png");
 			fileUploadModel.setUploadType(FileUploadType.FormModel);
 			fileUploadModel.setFromSource(formModel.getId());
@@ -447,7 +448,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		List<FileUploadModel> fileUploadModels = new ArrayList<>();
 		try {
 			for(FileUploadEntity fileUploadEntity : fileUploadEntityList) {
-				InputStream inputStream = getInputStream("https://www.baidu.com", new String("航天智慧cityworks".getBytes("UTF-8"),"UTF-8"));
+				InputStream inputStream = getInputStream("https://"+qrcodeBaseUrl, new String(qrcodeName.getBytes("UTF-8"),"UTF-8"));
 				uploadService.resetUploadOneFileByInputstream(fileUploadEntity.getFileKey(), inputStream, "image/png");
 				FileUploadModel fileUploadModel = new FileUploadModel();
 				BeanUtils.copyProperties(fileUploadEntity, fileUploadModel);
