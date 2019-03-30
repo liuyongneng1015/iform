@@ -176,7 +176,7 @@ public class UploadServiceImpl extends DefaultJPAService<FileUploadEntity> imple
 	public FileUploadModel uploadOneFileByInputstream(String fileName, InputStream inputStream, String contentType) throws Exception {
 		FileUploadModel fileUploadModel = null;
 		try {
-
+			System.out.println("uploadOneFileByInputstream begin");
 			String day = CommonUtils.date2Str(new Date(), "yyyy-MM-dd");
 			String filePath = renameFile(day, true, fileName);
 			minioClient.putObject(minioConfig.getBucket(), filePath, inputStream, contentType);
@@ -184,6 +184,7 @@ public class UploadServiceImpl extends DefaultJPAService<FileUploadEntity> imple
 			fileUploadModel.setFileKey(filePath);
 			fileUploadModel.setUrl(getFileUrl(filePath));
 			fileUploadModel.setName(fileName);
+			System.out.println("uploadOneFileByInputstream end");
 		} catch (Exception e) {
 			throw  e;
 		} finally {
@@ -198,6 +199,7 @@ public class UploadServiceImpl extends DefaultJPAService<FileUploadEntity> imple
 	@Override
 	public void resetUploadOneFileByInputstream(String filePath, InputStream inputStream, String contentType) throws Exception {
 		try {
+			System.out.println("resetUploadOneFileByInputstream");
 			minioClient.putObject(minioConfig.getBucket(), filePath, inputStream, contentType);
 		} catch (Exception e) {
 			throw  e;

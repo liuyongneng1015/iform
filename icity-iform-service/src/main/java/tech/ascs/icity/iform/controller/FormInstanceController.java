@@ -377,14 +377,18 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	private FileUploadModel createDataQrCode(String listId, FormModelEntity formModel, String id){
 		FileUploadModel qrCodeFileUploadModel = null;
 		try {
+            System.out.println("createDataQrCode begin");
 			InputStream inputStream = getInputStream(qrcodeBaseUrl+"?status=check&listId="+listId+"&formId="+formModel.getId()+"&listRowId="+id, new String(qrcodeName.getBytes("UTF-8"),"UTF-8"));
-			FileUploadModel fileUploadModel = uploadService.uploadOneFileByInputstream(formModel.getName()+"_"+id+".png" ,inputStream,"image/png");
+            System.out.println("createDataQrCode middle");
+
+            FileUploadModel fileUploadModel = uploadService.uploadOneFileByInputstream(formModel.getName()+"_"+id+".png" ,inputStream,"image/png");
 			fileUploadModel.setUploadType(FileUploadType.FormModel);
 			fileUploadModel.setFromSource(formModel.getId());
 			fileUploadModel.setFromSourceDataId(id);
 			FileUploadEntity fileUploadEntity = uploadService.saveFileUploadEntity(fileUploadModel);
 			qrCodeFileUploadModel = new FileUploadModel();
 			BeanUtils.copyProperties(fileUploadEntity, qrCodeFileUploadModel);
+            System.out.println("createDataQrCode end");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -392,9 +396,10 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	}
 
 	private InputStream getInputStream(String skipUrl, String note) throws  Exception{
+        System.out.println("getInputStream begin");
 		URL logoUrl = new URL(minioConfig.getLogoUrl());
 		URL backUrl = new URL(minioConfig.getBackUrl());
-
+        System.out.println("getInputStream middle");
 		InputStream is = ZXingCodeUtils.createLogoQRCode(logoUrl, skipUrl, note);
 		InputStream inputStream = null;
 		if(backUrl != null && StringUtils.hasText(backUrl.getFile())) {
@@ -402,7 +407,9 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		}else{
 			inputStream = is;
 		}
-		return inputStream;
+        System.out.println("getInputStream end");
+
+        return inputStream;
 	}
 
 	@Override
@@ -440,6 +447,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 
 	@Override
 	public FileUploadModel resetQrCode(@PathVariable(name="listId", required = true) String listId, @PathVariable(name="id", required = true) String id) {
+        System.out.println("resetQrCode begin");
 		ListModelEntity listModelEntity = listModelService.get(listId);
 		if (listModelEntity == null) {
 			throw new IFormException(404, "列表模型【" + listId + "】不存在");
@@ -452,13 +460,16 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		List<FileUploadModel> fileUploadModels = new ArrayList<>();
 		try {
 			for(FileUploadEntity fileUploadEntity : fileUploadEntityList) {
+                System.out.println("resetQrCode fileUploadEntity begin");
 				InputStream inputStream = getInputStream(qrcodeBaseUrl+"?status=check&listId="+listId+"&formId="+formModel.getId()+"&listRowId="+id, new String(qrcodeName.getBytes("UTF-8"),"UTF-8"));
 				uploadService.resetUploadOneFileByInputstream(fileUploadEntity.getFileKey(), inputStream, "image/png");
 				FileUploadModel fileUploadModel = new FileUploadModel();
 				BeanUtils.copyProperties(fileUploadEntity, fileUploadModel);
 				fileUploadModels.add(fileUploadModel);
+                System.out.println("resetQrCode fileUploadEntity end");
 			}
 			if(fileUploadEntityList == null || fileUploadEntityList.size() < 1) {
+                System.out.println("resetQrCode fileUploadEntity is null");
 				fileUploadModels.add(createDataQrCode(listId, formModel, id));
 			}
 		} catch (Exception e) {
