@@ -359,50 +359,60 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 
 		DataModelEntity dataModel = formModel.getDataModels().get(0);
-		Session session = getSession(dataModel);
-		session.beginTransaction();
-		Map<String, Object> data = new HashMap<String, Object>();
+		String newId = null;
+		Session session = null;
+		try {
+			session = getSession(dataModel);
+			session.beginTransaction();
+			Map<String, Object> data = new HashMap<String, Object>();
 
-		//主表数据
-		setMasterFormItemInstances(formInstance, data, DisplayTimingType.Add);
-		data.put("create_at", new Date());
-		data.put("create_by",  user != null ? user.getId() : "-1");
-		//流程参数
-		data.put("PROCESS_ID", formInstance.getProcessId());
-		data.put("PROCESS_INSTANCE", formInstance.getProcessInstanceId());
-		data.put("ACTIVITY_ID", formInstance.getActivityId());
-		data.put("ACTIVITY_INSTANCE", formInstance.getActivityInstanceId());
+			//主表数据
+			setMasterFormItemInstances(formInstance, data, DisplayTimingType.Add);
+			data.put("create_at", new Date());
+			data.put("create_by",  user != null ? user.getId() : "-1");
+			//流程参数
+			data.put("PROCESS_ID", formInstance.getProcessId());
+			data.put("PROCESS_INSTANCE", formInstance.getProcessInstanceId());
+			data.put("ACTIVITY_ID", formInstance.getActivityId());
+			data.put("ACTIVITY_INSTANCE", formInstance.getActivityInstanceId());
 
-		//设置子表数据
-		setSubFormReferenceData(session, user, formInstance, data, DisplayTimingType.Add);
-		//关联表数据
-		saveReferenceData( user,formInstance, data,  session,  formModelEntity.getDataModels().get(0).getTableName(), formModelService.findAllItems(formModelEntity), DisplayTimingType.Add);
+			//设置子表数据
+			setSubFormReferenceData(session, user, formInstance, data, DisplayTimingType.Add);
+			//关联表数据
+			saveReferenceData( user,formInstance, data,  session,  formModelEntity.getDataModels().get(0).getTableName(), formModelService.findAllItems(formModelEntity), DisplayTimingType.Add);
 
-		String newId = (String) session.save(dataModel.getTableName(), data);
+			newId = (String) session.save(dataModel.getTableName(), data);
 
-		// 启动流程
-		if (formModel.getProcess() != null && formModel.getProcess().getKey() != null) {
-			//跳过第一个流程环节
-			data.put("PASS_THROW_FIRST_USERTASK", true);
-			/*if(dataModel.getTableName().equals("events_mgt") && user != null){
-                data.put("report_name",  user.getUsername());
-                data.put("report_telephone", user.getPhone());
-                data.put("iform1553673917770",  "WORK");
-                if(data.get("event_nature") != null){
-                    DictionaryItemEntity dictionaryItemEntity = dictionaryItemManager.get((String)data.get("event_nature"));
-                    if(dictionaryItemEntity != null && dictionaryItemEntity.getName().equals("无需处理")){
-                        data.put("iform1553673917770",  "DONE");
-                        data.put("handle_name",  user.getUsername());
-                        data.put("handle_telephone", user.getPhone());
-                    }
-                }
-            }*/
-			System.out.println("___"+data.get("event_nature"));
-			String processInstanceId = processInstanceService.startProcess(formModel.getProcess().getKey(), newId, data);
-			updateProcessInfo(formModel, data, processInstanceId);
+			// 启动流程
+			if (formModel.getProcess() != null && formModel.getProcess().getKey() != null) {
+				//跳过第一个流程环节
+				data.put("PASS_THROW_FIRST_USERTASK", true);
+				/*if(dataModel.getTableName().equals("events_mgt") && user != null){
+					data.put("report_name",  user.getUsername());
+					data.put("report_telephone", user.getPhone());
+					data.put("iform1553673917770",  "WORK");
+					if(data.get("event_nature") != null){
+						DictionaryItemEntity dictionaryItemEntity = dictionaryItemManager.get((String)data.get("event_nature"));
+						if(dictionaryItemEntity != null && dictionaryItemEntity.getName().equals("无需处理")){
+							data.put("iform1553673917770",  "DONE");
+							data.put("handle_name",  user.getUsername());
+							data.put("handle_telephone", user.getPhone());
+						}
+					}
+				}*/
+				System.out.println("___"+data.get("event_nature"));
+				String processInstanceId = processInstanceService.startProcess(formModel.getProcess().getKey(), newId, data);
+				updateProcessInfo(formModel, data, processInstanceId);
+			}
+			session.getTransaction().commit();
+
+		} catch (Exception e) {
+			throw e;
+		} finally {
+			if(session != null){
+				session.close();
+			}
 		}
-		session.getTransaction().commit();
-		session.close();
 
 		return newId;
 	}
@@ -1674,7 +1684,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	private void setFormDataItemInstance(boolean isQrCodeFlag, ItemModelEntity itemModel, boolean referenceFlag, Map<String, Object> entity, List<ReferenceDataInstance> referenceDataModelList,
 								 List<SubFormItemInstance> subFormItems, List<ItemInstance> items, FormDataSaveInstance formInstance){
-		System.out.println(itemModel.getId()+"____begin");
 		ColumnModelEntity column = itemModel.getColumnModel();
 		if(column == null && !(itemModel instanceof  ReferenceItemModelEntity) && !(itemModel instanceof  RowItemModelEntity)
 				&& !(itemModel instanceof SubFormItemModelEntity) && !(itemModel instanceof TabsItemModelEntity)){
@@ -1711,7 +1720,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			items.add(itemInstance);
 			formInstance.addData(itemModel.getColumnModel().getId(), itemInstance.getValue());
 		}
-		System.out.println(itemModel.getId()+"____end");
 	}
 
 
