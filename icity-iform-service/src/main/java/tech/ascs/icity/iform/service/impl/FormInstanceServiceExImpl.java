@@ -110,7 +110,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	@SuppressWarnings("unchecked")
 	@Override
 	public List<FormInstance> listFormInstance(ListModelEntity listModel, Map<String, Object> queryParameters) {
-		Criteria criteria = generateCriteria(listModel, queryParameters);
+		Criteria criteria = generateCriteria(listModel.getMasterForm(), queryParameters);
 		addSort(listModel, criteria);
 
 		return wrapList(listModel, criteria.list());
@@ -142,7 +142,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	@SuppressWarnings("unchecked")
 	@Override
 	public Page<FormDataSaveInstance> pageFormInstance(ListModelEntity listModel, int page, int pagesize, Map<String, Object> queryParameters) {
-		Criteria criteria = generateCriteria(listModel, queryParameters);
+		Criteria criteria = generateCriteria(listModel.getMasterForm(), queryParameters);
 		addCreatorCriteria(criteria, listModel);
 		addSort(listModel, criteria);
 
@@ -1241,12 +1241,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				criteria.add(Restrictions.eq("create_by", userId));
 			}
 		}
-	}
-
-	@SuppressWarnings("deprecation")
-	protected Criteria generateCriteria(ListModelEntity listModel, Map<String, Object> queryParameters) {
-		FormModelEntity formModelEntity = listModel.getMasterForm();
-		return generateCriteria(formModelEntity, queryParameters);
 	}
 
 	public Criteria generateCriteria(FormModelEntity formModelEntity, Map<String, Object> queryParameters) {
