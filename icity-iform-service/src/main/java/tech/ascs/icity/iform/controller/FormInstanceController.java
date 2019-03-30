@@ -118,7 +118,6 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		if (listModel == null) {
 			throw new IFormException(404, "列表模型【" + listId + "】不存在");
 		}
-		Map<String, Boolean> instanceIdAndEditMap = new HashMap();
 		Map<String, Object> queryParameters = assemblyQueryParameters(parameters);
 		FormModelEntity formModelEntity = listModel.getMasterForm();
 		if (formModelEntity.getProcess()!=null && StringUtils.hasText(formModelEntity.getProcess().getId()) && StringUtils.hasText(formModelEntity.getProcess().getKey())) {
@@ -207,14 +206,27 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 									}
 								}
 							}
+							// 查工作流
 							Page<ProcessInstance> pageProcess = processInstanceService.page(page, pagesize, formModelEntity.getProcess().getKey(), status, iflowQueryParams);
-							instanceIdAndEditMap = pageProcess.getResults().stream().collect(Collectors.toMap(ProcessInstance::getId, ProcessInstance::isMyTask));
+							Map<String, ProcessInstance> instanceIdAndEditMap = pageProcess.getResults().stream().collect(Collectors.toMap(ProcessInstance::getId, processInstance -> processInstance));
 							String[] formInstanceIds = pageProcess.getResults().stream().map(item->item.getBusinessKey()).toArray(String[]::new);
 							if (formInstanceIds!=null && formInstanceIds.length>0) {
 								Optional<ItemModelEntity> idItemOption = formModelEntity.getItems().stream().filter(item->SystemItemType.ID == item.getSystemItemType()).findFirst();
+								queryParameters = new HashMap<>();
 								if (idItemOption.isPresent()) {
 									queryParameters.put(idItemOption.get().getId(), formInstanceIds);
 								}
+								// 封装ID在iform里面查询
+								Page<FormDataSaveInstance> pageInstance = formInstanceService.pageFormInstance(listModel, 1, 100, queryParameters);
+								for (FormDataSaveInstance instance:pageInstance) {
+									ProcessInstance processInstance = instanceIdAndEditMap.get(instance.getId());
+									if (processInstance.getStatus()==ProcessInstance.Status.Running && processInstance.isMyTask()) {
+										instance.setCanEdit(true);
+									} else {
+										instance.setCanEdit(false);
+									}
+								}
+								return pageInstance;
 							} else { //如果在iflow查出的表单实例为空，直接返回
 								return Page.get(page, pagesize);
 							}
@@ -224,15 +236,15 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			}
 		}
 		Page<FormDataSaveInstance> pageInstance = formInstanceService.pageFormInstance(listModel, page, pagesize, queryParameters);
-		List<FormDataSaveInstance> list = pageInstance.getResults();
-		if (list!=null && list.size()>0) {
-			for (FormDataSaveInstance item:list) {
-				Boolean myTask = instanceIdAndEditMap.get(item.getId());
-				if (myTask!=null) {
-					item.setCanEdit(myTask);
-				}
-			}
-		}
+//		List<FormDataSaveInstance> list = pageInstance.getResults();
+//		if (list!=null && list.size()>0) {
+//			for (FormDataSaveInstance item:list) {
+//				Boolean myTask = instanceIdAndEditMap.get(item.getId());
+//				if (myTask!=null) {
+//					item.setCanEdit(myTask);
+//				}
+//			}
+//		}
 		return pageInstance;
 	}
 
