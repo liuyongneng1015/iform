@@ -1656,7 +1656,10 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			Map<String, ActivityInfo> activityInfos = new HashMap<>();
 			for(Activity activity : activities){
 				ActivityInfo activityInfo = new ActivityInfo();
-				BeanUtils.copyProperties(activity, activityInfo);
+				activityInfo.setId(null);
+				activityInfo.setActivityId(activity.getId());
+				activityInfo.setActivityName(activity.getName());
+				activityInfo.setFormKey(activity.getFormKey());
 				activityInfo.setReadonly(true);
 				activityInfo.setVisible(true);
 				activityInfos.put(activity.getId(), activityInfo);
