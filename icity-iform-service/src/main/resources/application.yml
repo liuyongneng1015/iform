@@ -35,7 +35,7 @@ spring.jpa:
 icity:
   iform:
     qrcode:
-      base-url: 192.168.4.152:8089
+      base-url: https://192.168.4.152:8089
       name: 航天智慧cityworks
 
 spring.redis:

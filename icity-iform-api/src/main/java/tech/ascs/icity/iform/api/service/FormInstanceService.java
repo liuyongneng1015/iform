@@ -235,14 +235,14 @@ public interface FormInstanceService {
 	/**
 	 * 重置表单二维码
 	 *
-	 * @param formId 表单模型ID
+	 * @param listId 列表模型ID
 	 */
 	@ApiOperation(value = "重置表单二维码", position = 6)
 	@ApiImplicitParams({
-			@ApiImplicitParam(paramType = "path", name = "formId", value = "表单模型ID", required = true, dataType = "String"),
+			@ApiImplicitParam(paramType = "path", name = "listId", value = "列表模型ID", required = true, dataType = "String"),
 			@ApiImplicitParam(paramType = "path", name = "id", value = "表单实例ID", required = true, dataType = "String")
 	})
-	@PutMapping("/{formId}/{id}/reset_qrcode")
-	FileUploadModel resetQrCode(@PathVariable(name="formId", required = true) String formId, @PathVariable(name="id", required = true) String id);
+	@PutMapping("/{listId}/{id}/reset_qrcode")
+	FileUploadModel resetQrCode(@PathVariable(name="listId", required = true) String listId, @PathVariable(name="id", required = true) String id);
 
 }

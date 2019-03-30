@@ -377,7 +377,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	private FileUploadModel createDataQrCode(FormModelEntity formModel, String id){
 		FileUploadModel qrCodeFileUploadModel = null;
 		try {
-			InputStream inputStream = getInputStream(qrcodeBaseUrl, new String(qrcodeName.getBytes("UTF-8"),"UTF-8"));
+			InputStream inputStream = getInputStream(qrcodeBaseUrl+"?status=check&formId="+formModel.getId()+"&listRowId="+id, new String(qrcodeName.getBytes("UTF-8"),"UTF-8"));
 			FileUploadModel fileUploadModel = uploadService.uploadOneFileByInputstream(formModel.getName()+"_"+id+".png" ,inputStream,"image/png");
 			fileUploadModel.setUploadType(FileUploadType.FormModel);
 			fileUploadModel.setFromSource(formModel.getId());
@@ -439,16 +439,20 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	}
 
 	@Override
-	public FileUploadModel resetQrCode(@PathVariable(name="formId", required = true) String formId, @PathVariable(name="id", required = true) String id) {
-		FormModelEntity formModel = formModelService.find(formId);
-		if (formModel == null) {
-			throw new IFormException(404, "表单模型【" + formId + "】不存在");
+	public FileUploadModel resetQrCode(@PathVariable(name="listId", required = true) String listId, @PathVariable(name="id", required = true) String id) {
+		ListModelEntity listModelEntity = listModelService.get(listId);
+		if (listModelEntity == null) {
+			throw new IFormException(404, "列表模型【" + listId + "】不存在");
 		}
-		List<FileUploadEntity> fileUploadEntityList = uploadService.getFileUploadEntity(FileUploadType.FormModel, formId, id);
+		FormModelEntity formModel = listModelEntity.getMasterForm();
+		if (formModel == null) {
+			throw new IFormException(404, "表单模型【" + formModel.getId() + "】不存在");
+		}
+		List<FileUploadEntity> fileUploadEntityList = uploadService.getFileUploadEntity(FileUploadType.FormModel, formModel.getId(), id);
 		List<FileUploadModel> fileUploadModels = new ArrayList<>();
 		try {
 			for(FileUploadEntity fileUploadEntity : fileUploadEntityList) {
-				InputStream inputStream = getInputStream("https://"+qrcodeBaseUrl, new String(qrcodeName.getBytes("UTF-8"),"UTF-8"));
+				InputStream inputStream = getInputStream(qrcodeBaseUrl+"?status=check&formId="+formModel.getId()+"&listRowId="+id, new String(qrcodeName.getBytes("UTF-8"),"UTF-8"));
 				uploadService.resetUploadOneFileByInputstream(fileUploadEntity.getFileKey(), inputStream, "image/png");
 				FileUploadModel fileUploadModel = new FileUploadModel();
 				BeanUtils.copyProperties(fileUploadEntity, fileUploadModel);
@@ -459,7 +463,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			throw new IFormException(404, "表单模型【" + formId + "】,生成【" + id + "】二维码失败");
+			throw new IFormException(404, "表单模型【" + formModel.getId() + "】,生成【" + id + "】二维码失败");
 		}
 		return fileUploadModels == null || fileUploadModels.size() < 1 ? null : fileUploadModels.get(0);
 	}
