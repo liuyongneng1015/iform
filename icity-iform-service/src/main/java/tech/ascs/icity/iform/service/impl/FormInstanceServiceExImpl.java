@@ -1810,9 +1810,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 		String itemModelIds = isQrCodeFlag ? toModelEntity.getQrCodeItemModelIds() : toModelEntity.getItemModelIds();
 		List<String> stringList = StringUtils.hasText(itemModelIds) ? Arrays.asList(itemModelIds.split(",")) : new ArrayList<>();
-		if(stringList == null || stringList.size() < 1){
-			return;
-		}
 
 		Map<String, Boolean> keyMap = getReferenceMap( fromItem,  toModelEntity);
 		if(keyMap == null){
@@ -1871,21 +1868,24 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 			for(Map<String, Object> map  : (List<Map<String, Object>>)listMap) {
 				idValues.add(map.get("id"));
-				FormInstance getFormInstance = getFormInstance(toModelEntity, String.valueOf(map.get("id")));
-				List<String> arrayList = new ArrayList<>();
-				Map<String, String> stringMap = new HashMap<>();
-				for(ItemInstance itemInstance : getFormInstance.getItems()){
-					String value = getValue(stringList, itemInstance);
-					if(StringUtils.hasText(value)){
-						stringMap.put(itemInstance.getId(), value);
+				if(stringList != null) {
+					FormInstance getFormInstance = getFormInstance(toModelEntity, String.valueOf(map.get("id")));
+					List<String> arrayList = new ArrayList<>();
+					Map<String, String> stringMap = new HashMap<>();
+					for (ItemInstance itemInstance : getFormInstance.getItems()) {
+						String value = getValue(stringList, itemInstance);
+						if (StringUtils.hasText(value)) {
+							stringMap.put(itemInstance.getId(), value);
+						}
 					}
-				}
-				for(String string : stringList){
-					if( stringMap.get(string) != null && StringUtils.hasText(stringMap.get(string))){
-						arrayList.add(stringMap.get(string));
+
+					for (String string : stringList) {
+						if (stringMap.get(string) != null && StringUtils.hasText(stringMap.get(string))) {
+							arrayList.add(stringMap.get(string));
+						}
 					}
+					values.add(String.join(",", arrayList));
 				}
-				values.add(String.join(",", arrayList));
 			}
 			dataModelInstance.setValue(idValues);
 			dataModelInstance.setDisplayValue(values);
@@ -1947,7 +1947,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	}
 
 	private String getValue(List<String> stringList ,ItemInstance itemInstance){
-		if(!stringList.contains(itemInstance.getId())){
+		if(stringList == null || !stringList.contains(itemInstance.getId())){
 			return null;
 		}
 		if(itemInstance.getDisplayValue() != null && itemInstance.getDisplayValue() != ""){
