@@ -291,10 +291,8 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 
 	@Override
 	public void sync(DataModelEntity dataModel) {
-		Session session = null;
 		try {
-			SessionFactory sessionFactory = sessionFactoryBuilder.getSessionFactory(dataModel, true);
-			session = sessionFactory.getCurrentSession();
+			sessionFactoryBuilder.getSessionFactory(dataModel, true);
 			dataModel.setSynchronized(true);
 			for(DataModelEntity slaverDataModelEntity : dataModel.getSlaverModels()){
 				slaverDataModelEntity.setSynchronized(true);
@@ -302,13 +300,7 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 			save(dataModel);
 		} catch (Exception e) {
 			throw new IFormException("同步数据模型【" + dataModel.getName() + "】失败：" + e.getMessage(), e);
-		} finally {
-			if (session!=null) {
-				session.close();
-				session = null;
-			}
 		}
-		
 	}
 
 	@Override
