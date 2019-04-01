@@ -930,14 +930,16 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	private void wrapFormFunctions(FormModelEntity entity, FormModel formModel) {
 		if(formModel.getSubmitChecks() != null){
 			List<ListFunction> functions = new ArrayList<>();
-			for(FunctionModel model : formModel.getFunctions()){
+			for (int i = 0; i < formModel.getFunctions().size(); i++) {
+			    FunctionModel model = formModel.getFunctions().get(i);
 				ListFunction function =  new ListFunction();
 				BeanUtils.copyProperties(model, function, new String[]{"formModel"});
 				function.setFormModel(entity);
+				function.setOrderNo(i+1);
 				functions.add(function);
 			}
-			List<ListFunction> functionList = functions.size() < 2 ? functions : functions.parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
-			entity.setFunctions(functionList);
+//			List<ListFunction> functionList = functions.size() < 2 ? functions : functions.parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
+			entity.setFunctions(functions);
 		}
 	}
 
@@ -1800,10 +1802,18 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	private void entityToDTO(FormModelEntity entity, Object object, boolean isPCForm){
 		BeanUtils.copyProperties(entity, object, new String[] {"dataModels","items","permissions","submitChecks","functions"});
 		if(entity.getFunctions() != null && entity.getFunctions().size() > 0){
+			List<ListFunction> functions = entity.getFunctions().parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
 			List<FunctionModel> functionModels = new ArrayList<>();
-			for(ListFunction function : entity.getFunctions()){
+			for(ListFunction function : functions){
 				FunctionModel functionModel = new FunctionModel();
 				BeanUtils.copyProperties(function, functionModel, new String[] {"formModel","itemModel"});
+				functionModels.add(functionModel);
+			}
+			if (functionModels.stream().filter(item->item.getAction().equals(DefaultFunctionType.Manage.getValue())).findFirst().isPresent()==false) {
+				FunctionModel functionModel = new FunctionModel();
+				functionModel.setAction(DefaultFunctionType.Manage.getValue());
+				functionModel.setLabel("办理");
+				functionModel.setVisible(false);
 				functionModels.add(functionModel);
 			}
 			if(isPCForm) {
