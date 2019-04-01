@@ -321,13 +321,13 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 				list.addAll(dataModelEntity.getSlaverModels());
 			}
 			for (DataModelEntity modelEntity : list) {
-				dataModelList.add(entityToModel(modelEntity));
+				dataModelList.add(entityToModel(formModelEntity, modelEntity));
 			}
 		}
 		return dataModelList;
 	}
 
-	private DataModel entityToModel(DataModelEntity modelEntity){
+	private DataModel entityToModel(FormModelEntity formModelEntity, DataModelEntity modelEntity){
 		DataModel dataModel = new DataModel();
 		BeanUtils.copyProperties(modelEntity, dataModel, new String[] {"columns","slaverModels","masterModel","parentsModel","childrenModels","indexes"});
 		if(modelEntity.getMasterModel() != null){
@@ -337,12 +337,18 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		}
 		List<ColumnModelEntity> columnModelEntities = modelEntity.getColumns();
 		List<ColumnModel> columnModels = new ArrayList<>();
+		List<ItemModelEntity> itemModelEntityList = formModelService.findAllItems(formModelEntity);
+		Map<String, ItemModelEntity> itemModelEntityMap = new HashMap<>();
+		for(ItemModelEntity itemModelEntity1 : itemModelEntityList){
+			if(itemModelEntity1.getColumnModel() != null){
+				itemModelEntityMap.put(itemModelEntity1.getColumnModel().getId(), itemModelEntity1);
+			}
+		}
 		for(ColumnModelEntity columnModelEntity : columnModelEntities){
-			List<ItemModelEntity> itemModelEntities = itemManager.findByProperty("columnModel.id", columnModelEntity.getId());
 			ColumnModel columnModel = new ColumnModel();
 			BeanUtils.copyProperties(columnModelEntity, columnModel, new String[] {"dataModel","columnReferences"});
 			columnModel.setReferenceTables(columnModelService.getReferenceModel(columnModelEntity));
-			columnModel.setReferenceItem(itemModelEntities == null || itemModelEntities.size() < 1 ? false : true) ;
+			columnModel.setReferenceItem(itemModelEntityMap.get(columnModelEntity.getId()) != null ? true : false) ;
 			if(StringUtils.equals("master_id",columnModel.getColumnName())){
 				columnModel.setReferenceItem(true);
 			}
