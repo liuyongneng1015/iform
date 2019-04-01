@@ -22,6 +22,8 @@ public enum DefaultFunctionType {
 
 	TempStore("tempStore", "暂存"),
 
+	Manage("manage", "办理"),
+
 	BatchDelete("batchDelete", "批量删除");
 
 	private String value;
