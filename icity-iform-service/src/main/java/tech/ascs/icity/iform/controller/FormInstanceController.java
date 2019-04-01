@@ -376,8 +376,9 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 
 	private FileUploadModel createDataQrCode(String listId, FormModelEntity formModel, String id){
 		FileUploadModel qrCodeFileUploadModel = null;
+        String httpHead = qrcodeBaseUrl != null && qrcodeBaseUrl.contains("http") ? qrcodeBaseUrl : "http://"+qrcodeBaseUrl;
 		try {
-			InputStream inputStream = getInputStream(qrcodeBaseUrl+"?status=check&listId="+listId+"&formId="+formModel.getId()+"&listRowId="+id, new String(qrcodeName.getBytes("UTF-8"),"UTF-8"));
+			InputStream inputStream = getInputStream(httpHead+"?status=check&listId="+listId+"&formId="+formModel.getId()+"&listRowId="+id, new String(qrcodeName.getBytes("UTF-8"),"UTF-8"));
             FileUploadModel fileUploadModel = uploadService.uploadOneFileByInputstream(formModel.getName()+"_"+id+".png" ,inputStream,"image/png");
 			fileUploadModel.setUploadType(FileUploadType.FormModel);
 			fileUploadModel.setFromSource(formModel.getId());
@@ -449,9 +450,10 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		}
 		List<FileUploadEntity> fileUploadEntityList = uploadService.getFileUploadEntity(FileUploadType.FormModel, formModel.getId(), id);
 		List<FileUploadModel> fileUploadModels = new ArrayList<>();
+		String httpHead = qrcodeBaseUrl != null && qrcodeBaseUrl.contains("http") ? qrcodeBaseUrl : "http://"+qrcodeBaseUrl;
 		try {
 			for(FileUploadEntity fileUploadEntity : fileUploadEntityList) {
-				InputStream inputStream = getInputStream(qrcodeBaseUrl+"?status=check&listId="+listId+"&formId="+formModel.getId()+"&listRowId="+id, new String(qrcodeName.getBytes("UTF-8"),"UTF-8"));
+				InputStream inputStream = getInputStream(httpHead+"?status=check&listId="+listId+"&formId="+formModel.getId()+"&listRowId="+id, new String(qrcodeName.getBytes("UTF-8"),"UTF-8"));
 				uploadService.resetUploadOneFileByInputstream(fileUploadEntity.getFileKey(), inputStream, "image/png");
 				FileUploadModel fileUploadModel = new FileUploadModel();
 				BeanUtils.copyProperties(fileUploadEntity, fileUploadModel);
