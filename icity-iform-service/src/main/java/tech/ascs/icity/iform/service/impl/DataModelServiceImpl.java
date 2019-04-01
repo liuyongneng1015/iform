@@ -4,6 +4,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -289,8 +291,10 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 
 	@Override
 	public void sync(DataModelEntity dataModel) {
+		Session session = null;
 		try {
-			sessionFactoryBuilder.getSessionFactory(dataModel, true);
+			SessionFactory sessionFactory = sessionFactoryBuilder.getSessionFactory(dataModel, true);
+			session = sessionFactory.getCurrentSession();
 			dataModel.setSynchronized(true);
 			for(DataModelEntity slaverDataModelEntity : dataModel.getSlaverModels()){
 				slaverDataModelEntity.setSynchronized(true);
@@ -298,6 +302,11 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 			save(dataModel);
 		} catch (Exception e) {
 			throw new IFormException("同步数据模型【" + dataModel.getName() + "】失败：" + e.getMessage(), e);
+		} finally {
+			if (session!=null) {
+				session.close();
+				session = null;
+			}
 		}
 		
 	}

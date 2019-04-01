@@ -123,6 +123,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		} finally {
 			if (session!=null) {
 				session.close();
+				session = null;
 			}
 		}
 		return list;
@@ -149,6 +150,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		} finally {
 			if (session!=null) {
 				session.close();
+				session = null;
 			}
 		}
 		return result;
@@ -180,6 +182,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		} finally {
 			if (session!=null) {
 				session.close();
+				session = null;
 			}
 		}
 		return result;
@@ -300,9 +303,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}
 		} catch (Exception e) {
 			throw e;
-		}finally {
+		} finally {
 			if(session != null){
 				session.close();
+				session = null;
 			}
 		}
 		return map;
@@ -311,15 +315,24 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	private Map<String, Object> createDataModel(DataModelEntity dataModel, String instanceId){
 		Session session = getSession(dataModel);
 		Map<String, Object> map = null;
+		try {
+			map = (Map<String, Object>) session.load(dataModel.getTableName(), instanceId);
+			if(map == null || map.keySet() == null) {
+				throw new IFormException("没有查询到【" + dataModel.getTableName() + "】表，id【"+instanceId+"】的数据");
+			}
 
-		map = (Map<String, Object>) session.load(dataModel.getTableName(), instanceId);
-		if(map == null || map.keySet() == null) {
-			throw new IFormException("没有查询到【" + dataModel.getTableName() + "】表，id【"+instanceId+"】的数据");
+			for(String key : map.keySet()){
+				map.put(dataModel.getTableName() + "_" + key, map.get(key));
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			if (session!=null) {
+				session.close();
+				session = null;
+			}
 		}
 
-		for(String key : map.keySet()){
-			map.put(dataModel.getTableName() + "_" + key, map.get(key));
-		}
 		return map;
 	}
 
@@ -430,6 +443,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		} finally {
 			if(session != null){
 				session.close();
+				session = null;
 			}
 		}
 
@@ -1661,7 +1675,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	private void setItemInstance(ItemModelEntity itemModel, boolean referenceFlag, Map<String, Object> entity, List<DataModelInstance> referenceDataModelList,
 								 List<SubFormItemInstance> subFormItems, List<ItemInstance> items, FormInstance formInstance){
-		System.out.println(itemModel.getId()+"____begin");
 		ColumnModelEntity column = itemModel.getColumnModel();
 		if(column == null && !(itemModel instanceof  ReferenceItemModelEntity) && !(itemModel instanceof  RowItemModelEntity) && !(itemModel instanceof SubFormItemModelEntity) && !(itemModel instanceof TabsItemModelEntity)){
 			return;
@@ -1697,7 +1710,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			items.add(itemInstance);
 			formInstance.addData(itemModel.getColumnModel().getId(), itemInstance.getValue());
 		}
-		System.out.println(itemModel.getId()+"____end");
 	}
 
 
@@ -2138,93 +2150,103 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
             return;
         }
 		DataModelEntity subFormDataModel = itemModelEntity.getColumnModel().getDataModel();
-		Session subFormSession  = getSession(subFormDataModel);
-		String key =((SubFormItemModelEntity) itemModel).getTableName()+"_list";
-		List<Map<String, Object>> listMap = (List<Map<String, Object>>)entity.get(key);
-		if( listMap == null || listMap.size() == 0) {
-			return;
-		}
-		SubFormItemInstance subFormItemInstance = new SubFormItemInstance();
-		List<SubFormDataItemInstance> subFormItemInstances = new ArrayList<SubFormDataItemInstance>();
-		subFormItemInstance.setId(itemModelEntity.getId());
-		subFormItemInstance.setItemInstances(subFormItemInstances);
-		subFormItemInstance.setTableName(itemModelEntity.getTableName());
-		List<DataModelInstance> referenceDataModelList = new ArrayList<>();
-		int row = 1;
-		for(Map<String, Object> map : listMap) {
-			SubFormDataItemInstance subFormDataItemInstance = new SubFormDataItemInstance();
-			List<SubFormRowItemInstance> subFormRowItemInstanceList = new ArrayList<>();
-			for (SubFormRowItemModelEntity subFormRowItemModelEntity : itemModelEntity.getItems()) {
-				SubFormRowItemInstance subFormRowItemInstance = new SubFormRowItemInstance();
-				subFormRowItemInstance.setRowNumber(subFormRowItemModelEntity.getRowNumber());
-				subFormRowItemInstance.setId(subFormRowItemModelEntity.getId());
-				List<ItemInstance> instances = new ArrayList<>();
-				subFormRowItemInstance.setItems(instances);
-				for (ItemModelEntity item : subFormRowItemModelEntity.getItems()) {
-					ColumnModelEntity columnModelEntity  = item.getColumnModel();
-					if(columnModelEntity == null && !(item instanceof ReferenceItemModelEntity)){
+		Session subFormSession = getSession(subFormDataModel);
+		try {
+			String key =((SubFormItemModelEntity) itemModel).getTableName()+"_list";
+			List<Map<String, Object>> listMap = (List<Map<String, Object>>)entity.get(key);
+			if( listMap == null || listMap.size() == 0) {
+				return;
+			}
+			SubFormItemInstance subFormItemInstance = new SubFormItemInstance();
+			List<SubFormDataItemInstance> subFormItemInstances = new ArrayList<SubFormDataItemInstance>();
+			subFormItemInstance.setId(itemModelEntity.getId());
+			subFormItemInstance.setItemInstances(subFormItemInstances);
+			subFormItemInstance.setTableName(itemModelEntity.getTableName());
+			List<DataModelInstance> referenceDataModelList = new ArrayList<>();
+			int row = 1;
+			for(Map<String, Object> map : listMap) {
+				SubFormDataItemInstance subFormDataItemInstance = new SubFormDataItemInstance();
+				List<SubFormRowItemInstance> subFormRowItemInstanceList = new ArrayList<>();
+				for (SubFormRowItemModelEntity subFormRowItemModelEntity : itemModelEntity.getItems()) {
+					SubFormRowItemInstance subFormRowItemInstance = new SubFormRowItemInstance();
+					subFormRowItemInstance.setRowNumber(subFormRowItemModelEntity.getRowNumber());
+					subFormRowItemInstance.setId(subFormRowItemModelEntity.getId());
+					List<ItemInstance> instances = new ArrayList<>();
+					subFormRowItemInstance.setItems(instances);
+					for (ItemModelEntity item : subFormRowItemModelEntity.getItems()) {
+						ColumnModelEntity columnModelEntity  = item.getColumnModel();
+						if(columnModelEntity == null && !(item instanceof ReferenceItemModelEntity)){
+							continue;
+						}
+						ItemInstance itemInstance = new ItemInstance();
+						itemInstance.setId(item.getId());
+						itemInstance.setType(item.getType());
+						itemInstance.setSystemItemType(item.getSystemItemType());
+						if(item instanceof ReferenceItemModelEntity) {
+							if(item.getType() == ItemType.ReferenceLabel){
+								itemInstance.setValue(((ReferenceItemModelEntity) item).getReferenceItemId());
+							}else if(map.get("id") != null && map.get("id") != "" && columnModelEntity != null) {
+								Map<String, Object> newMap = (Map<String, Object>) subFormSession.load(subFormDataModel.getTableName(), String.valueOf(map.get("id")));
+
+								FormModelEntity toModelEntity = formModelService.find(((ReferenceItemModelEntity) item).getReferenceFormId());
+								if (toModelEntity == null) {
+									continue;
+								}
+								Map<String, Boolean> keyMap = getReferenceMap((ReferenceItemModelEntity) item, toModelEntity);
+								if (keyMap == null) {
+									continue;
+								}
+								String referenceKey =  new ArrayList<>(keyMap.keySet()).get(0);
+								Boolean flag = keyMap.get(referenceKey);
+
+								List<Object> idList = new ArrayList<>();
+								if(newMap.get(referenceKey) != null) {
+									if (flag) {
+										Map<String, Object> referenceMap = (Map<String, Object>) newMap.get(referenceKey);
+										idList.add(referenceMap.get("id"));
+									} else {
+										for (Map<String, Object> referenceMap : (List<Map<String, Object>>) newMap.get(referenceKey)) {
+											idList.add(referenceMap.get("id"));
+										}
+									}
+								}
+								if (keyMap.get(referenceKey) && idList.size() > 0) {
+									itemInstance.setValue(idList.get(0));
+								} else {
+									itemInstance.setValue(idList);
+								}
+							}
+						}else{
+							 itemInstance = setItemInstance(columnModelEntity.getKey(), item, map.get(columnModelEntity.getColumnName()), activityId);
+						}
+						instances.add(itemInstance);
+					}
+					//这一行没有数据
+					if(instances.size() < 1){
 						continue;
 					}
-					ItemInstance itemInstance = new ItemInstance();
-					itemInstance.setId(item.getId());
-					itemInstance.setType(item.getType());
-					itemInstance.setSystemItemType(item.getSystemItemType());
-					if(item instanceof ReferenceItemModelEntity) {
-						if(item.getType() == ItemType.ReferenceLabel){
-							itemInstance.setValue(((ReferenceItemModelEntity) item).getReferenceItemId());
-						}else if(map.get("id") != null && map.get("id") != "" && columnModelEntity != null) {
-							Map<String, Object> newMap = (Map<String, Object>) subFormSession.load(subFormDataModel.getTableName(), String.valueOf(map.get("id")));
+					//子表主键id
+					ColumnModelEntity subFormColumnModelEntity  = itemModel.getColumnModel();
+					ItemInstance subFomrItemInstance = setItemInstance(subFormColumnModelEntity.getKey(), itemModel, map.get("id"), activityId);
+					instances.add(subFomrItemInstance);
 
-                            FormModelEntity toModelEntity = formModelService.find(((ReferenceItemModelEntity) item).getReferenceFormId());
-                            if (toModelEntity == null) {
-                                continue;
-                            }
-                            Map<String, Boolean> keyMap = getReferenceMap((ReferenceItemModelEntity) item, toModelEntity);
-                            if (keyMap == null) {
-                                continue;
-                            }
-                            String referenceKey =  new ArrayList<>(keyMap.keySet()).get(0);
-                            Boolean flag = keyMap.get(referenceKey);
-
-							List<Object> idList = new ArrayList<>();
-							if(newMap.get(referenceKey) != null) {
-                                if (flag) {
-                                    Map<String, Object> referenceMap = (Map<String, Object>) newMap.get(referenceKey);
-                                    idList.add(referenceMap.get("id"));
-                                } else {
-                                    for (Map<String, Object> referenceMap : (List<Map<String, Object>>) newMap.get(referenceKey)) {
-                                        idList.add(referenceMap.get("id"));
-                                    }
-                                }
-                            }
-							if (keyMap.get(referenceKey) && idList.size() > 0) {
-								itemInstance.setValue(idList.get(0));
-							} else {
-								itemInstance.setValue(idList);
-							}
-						}
-					}else{
-						 itemInstance = setItemInstance(columnModelEntity.getKey(), item, map.get(columnModelEntity.getColumnName()), activityId);
-					}
-					instances.add(itemInstance);
+					subFormRowItemInstance.setItems(instances);
+					subFormRowItemInstanceList.add(subFormRowItemInstance);
 				}
-				//这一行没有数据
-				if(instances.size() < 1){
-					continue;
-				}
-				//子表主键id
-				ColumnModelEntity subFormColumnModelEntity  = itemModel.getColumnModel();
-				ItemInstance subFomrItemInstance = setItemInstance(subFormColumnModelEntity.getKey(), itemModel, map.get("id"), activityId);
-				instances.add(subFomrItemInstance);
-
-				subFormRowItemInstance.setItems(instances);
-				subFormRowItemInstanceList.add(subFormRowItemInstance);
+				subFormDataItemInstance.setRowNumber(row ++);
+				subFormDataItemInstance.setItems(subFormRowItemInstanceList);
+				subFormItemInstances.add(subFormDataItemInstance);
 			}
-			subFormDataItemInstance.setRowNumber(row ++);
-			subFormDataItemInstance.setItems(subFormRowItemInstanceList);
-			subFormItemInstances.add(subFormDataItemInstance);
+			subFormItems.add(subFormItemInstance);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			if (subFormSession!=null) {
+				subFormSession.close();
+				subFormSession = null;
+			}
 		}
-		subFormItems.add(subFormItemInstance);
 	}
 
 	private DataModelInstance setDataModelInstance(FormModelEntity toModelEntity, Map<String, Object> entity, List<Map<String, Object>> listMap){
