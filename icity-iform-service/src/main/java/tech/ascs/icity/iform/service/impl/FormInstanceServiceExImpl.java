@@ -1615,8 +1615,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 		//展示字段
 		List<String> displayIds = new ArrayList<>();
-		if (listModelEntity!=null) {
+		if (!isQrCodeFlag && listModelEntity != null) {
 			displayIds = listModelEntity.getDisplayItems().parallelStream().map(ItemModelEntity::getId).collect(Collectors.toList());
+		}else if(isQrCodeFlag && formModel.getQrCodeItemModelIds() != null){
+			displayIds = Arrays.asList(formModel.getQrCodeItemModelIds().split(","));
 		}
 		List<String> copyDisplayIds = displayIds.stream().collect(Collectors.toList());
 		//所以的字段
@@ -1844,7 +1846,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			throw new IFormException("关联控件【"+fromItem.getName()+"】未找到对应的列表模型");
 		}
 
-		String itemModelIds = isQrCodeFlag ? toModelEntity.getQrCodeItemModelIds() : toModelEntity.getItemModelIds();
+		String itemModelIds = toModelEntity.getItemModelIds();
 		List<String> stringList = StringUtils.hasText(itemModelIds) ? Arrays.asList(itemModelIds.split(",")) : new ArrayList<>();
 
 		Map<String, Boolean> keyMap = getReferenceMap( fromItem,  toModelEntity);
