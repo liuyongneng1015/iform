@@ -8,6 +8,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import tech.ascs.icity.ICityException;
+import tech.ascs.icity.iform.config.Constants;
 import tech.ascs.icity.rbac.feign.model.UserInfo;
 import tech.ascs.icity.rbac.util.Application;
 
@@ -37,7 +38,7 @@ public class CurrentUserUtils implements ApplicationContextAware {
         if (StringUtils.isEmpty(token)) {
             throw new ICityException(401, 401, "未登录");
         }
-        String userTokenKey = "icity-token-get-userInfo-"+token;
+        String userTokenKey = Constants.TOKEN_GET_USERINFO_PREFIX +token;
         UserInfo user = (UserInfo) redisTemplate.opsForValue().get(userTokenKey);
         if (user==null) {
             HttpServletRequest request = Application.getRequest();
@@ -48,7 +49,7 @@ public class CurrentUserUtils implements ApplicationContextAware {
                 UserInfo userInfo = Application.getCurrentUser();
                 if (userInfo != null) {
                     // 用户ID作为缓存的key，通过用户ID可以直接找到token，若后台编辑了用户信息，通过用户ID定位到token，然后通过定位到缓存的用户信息，把缓存的用户信息更改过来
-                    redisTemplate.opsForValue().set("icity-userId-get-token-"+userInfo.getId(), token, 300, TimeUnit.SECONDS);
+                    redisTemplate.opsForValue().set(Constants.USERID_GET_TOKEN_PREFIX+userInfo.getId(), token, 300, TimeUnit.SECONDS);
                     redisTemplate.opsForValue().set(userTokenKey, userInfo, 300, TimeUnit.SECONDS);
                     return userInfo;
                 } else {
