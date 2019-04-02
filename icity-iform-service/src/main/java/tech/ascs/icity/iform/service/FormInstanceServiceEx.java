@@ -10,6 +10,7 @@ import tech.ascs.icity.iform.api.model.ItemInstance;
 import tech.ascs.icity.iform.model.FormModelEntity;
 import tech.ascs.icity.iform.model.ItemModelEntity;
 import tech.ascs.icity.iform.model.ListModelEntity;
+import tech.ascs.icity.iform.model.SelectItemModelEntity;
 import tech.ascs.icity.model.Page;
 
 public interface FormInstanceServiceEx {
@@ -40,4 +41,6 @@ public interface FormInstanceServiceEx {
 	List<User> getUserInfoByIds(List<String> ids);
 
     FormDataSaveInstance getFormDataSaveInstance(FormModelEntity formModel, String id);
+
+    List<String> setSelectItemDisplayValue(SelectItemModelEntity selectItemModelEntity, List<String> list);
 }

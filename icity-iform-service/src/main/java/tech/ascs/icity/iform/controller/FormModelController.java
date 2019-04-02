@@ -68,6 +68,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	@Autowired
 	private ProcessService processService;
 
+	@Autowired
+	private FormInstanceServiceEx formInstanceServiceEx;
+
 	@Override
 	public List<FormModel> list(@RequestParam(name="name", defaultValue="") String name, @RequestParam(name = "applicationId", required = false) String applicationId) {
 		try {
@@ -1949,13 +1952,13 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			}else if(((ReferenceItemModelEntity) entity).getReferenceType() == ReferenceType.OneToOne){
 				itemModel.setMultiple(false);
 			}else if(((ReferenceItemModelEntity) entity).getReferenceType() == ReferenceType.ManyToOne){
-				if(((ReferenceItemModelEntity) entity).getType() == ItemType.ReferenceLabel){
+				if(entity.getType() == ItemType.ReferenceLabel){
 					itemModel.setMultiple(true);
 				}else{
 					itemModel.setMultiple(false);
 				}
 			}else if(((ReferenceItemModelEntity) entity).getReferenceType() == ReferenceType.OneToMany){
-				if(((ReferenceItemModelEntity) entity).getType() != ItemType.ReferenceLabel){
+				if(entity.getType() != ItemType.ReferenceLabel){
 					itemModel.setMultiple(true);
 				}else{
 					itemModel.setMultiple(false);
@@ -1981,20 +1984,28 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 		}else if(entity instanceof SelectItemModelEntity){
 			String defaultValue = ((SelectItemModelEntity) entity).getDefaultReferenceValue();
-			if(defaultValue != null &&  !StringUtils.isEmpty(defaultValue) && (entity.getType() == ItemType.CheckboxGroup
+			if(StringUtils.hasText(defaultValue) && (entity.getType() == ItemType.CheckboxGroup
 					||entity.getType() == ItemType.RadioGroup ||entity.getType() == ItemType.Select)) {
 				itemModel.setDefaultValue(Arrays.asList(defaultValue.split(",")));
-			}else{
-				itemModel.setDefaultValue((String)defaultValue);
+				itemModel.setDefaultValueName(formInstanceServiceEx.setSelectItemDisplayValue((SelectItemModelEntity) entity, Arrays.asList(defaultValue.split(","))));
+			}else if(StringUtils.hasText(defaultValue)){
+				itemModel.setDefaultValue(defaultValue);
+				List<String> list = new ArrayList<>();
+				list.add(defaultValue);
+				itemModel.setDefaultValueName(formInstanceServiceEx.setSelectItemDisplayValue((SelectItemModelEntity) entity, list));
 			}
 			if(entity.getOptions() != null && entity.getOptions().size() > 0){
 				List<String> defaultList = new ArrayList<>();
+				List<String> displayList = new ArrayList<>();
+
 				for(ItemSelectOption option : entity.getOptions()){
 					if(option.getDefaultFlag() != null && option.getDefaultFlag()){
 						defaultList.add(option.getId());
+						displayList.add(option.getLabel());
 					}
 				}
 				itemModel.setDefaultValue(defaultList);
+				itemModel.setDefaultValueName(displayList);
 			}
 
 			itemModel.setReferenceList(getItemModelByEntity(entity));
@@ -2119,10 +2130,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			BeanUtils.copyProperties(entity.getColumnModel(), columnModel, new String[] {"dataModel","columnReferences"});
 			if(entity.getColumnModel().getDataModel() != null){
 				columnModel.setTableName(entity.getColumnModel().getDataModel().getTableName());
-			}
-			if(entity.getColumnModel().getColumnReferences() != null && entity.getColumnModel().getColumnReferences().size() > 0){
-				List<ReferenceModel> referenceModelList = new ArrayList<>();
-				//columnModel.setReferenceTables(referenceModelList);
 			}
 			itemModel.setColumnModel(columnModel);
 		}

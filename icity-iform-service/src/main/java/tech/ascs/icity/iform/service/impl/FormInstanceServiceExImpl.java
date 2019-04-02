@@ -2345,27 +2345,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				setSelectItemValue(itemModel, itemInstance, value);
 				break;
 			case Treeselect:
-
-				String valueStrs = value == null || StringUtils.isEmpty(value) ?  null : String.valueOf(value);
-				String[] strings = valueStrs == null ? new String[]{} : valueStrs.split(",");
-				List<String> ids  = strings == null ? new ArrayList<>() : Arrays.asList(strings);
-				if(((TreeSelectItemModelEntity)itemModel).getMultiple() != null && ((TreeSelectItemModelEntity)itemModel).getMultiple()){
-					itemInstance.setValue(ids);
-				}else {
-					itemInstance.setValue(valueStrs);
-				}
-
-                if(valueStrs != null && valueStrs.length() > 0) {
-                    List<TreeSelectData> list = groupService.getTreeSelectDataSourceByIds(((TreeSelectItemModelEntity) itemModel).getDataSource().getValue(), valueStrs.split(","));
-                    if(list != null && list.size() > 0) {
-						List<String> values = list.parallelStream().map(TreeSelectData::getName).collect(Collectors.toList());
-						if(((TreeSelectItemModelEntity) itemModel).getMultiple() != null && ((TreeSelectItemModelEntity) itemModel).getMultiple()) {
-							itemInstance.setDisplayValue(values);
-						}else{
-							itemInstance.setDisplayValue(values.get(0));
-						}
-                    }
-                }
+				setTreeselectItemValue( itemModel,  itemInstance,  value);
 				break;
 			case Media:
 				setFileItemInstance(value, itemInstance);
@@ -2403,6 +2383,29 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 	}
 
+	private void setTreeselectItemValue(ItemModelEntity itemModel, ItemInstance itemInstance, Object value){
+		String valueStrs = value == null || StringUtils.isEmpty(value) ?  null : String.valueOf(value);
+		String[] strings = valueStrs == null ? new String[]{} : valueStrs.split(",");
+		List<String> ids  = strings == null ? new ArrayList<>() : Arrays.asList(strings);
+		if(((TreeSelectItemModelEntity)itemModel).getMultiple() != null && ((TreeSelectItemModelEntity)itemModel).getMultiple()){
+			itemInstance.setValue(ids);
+		}else {
+			itemInstance.setValue(valueStrs);
+		}
+
+		if(valueStrs != null && valueStrs.length() > 0) {
+			List<TreeSelectData> list = groupService.getTreeSelectDataSourceByIds(((TreeSelectItemModelEntity) itemModel).getDataSource().getValue(), valueStrs.split(","));
+			if(list != null && list.size() > 0) {
+				List<String> values = list.parallelStream().map(TreeSelectData::getName).collect(Collectors.toList());
+				if(((TreeSelectItemModelEntity) itemModel).getMultiple() != null && ((TreeSelectItemModelEntity) itemModel).getMultiple()) {
+					itemInstance.setDisplayValue(values);
+				}else{
+					itemInstance.setDisplayValue(values.get(0));
+				}
+			}
+		}
+	}
+
 	private String getNumberFormat(NumberItemModelEntity numberItemModelEntity){
 		StringBuffer stringBuffer = new StringBuffer();
 		if(numberItemModelEntity.getThousandSeparator() != null && numberItemModelEntity.getThousandSeparator()) {
@@ -2435,33 +2438,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			list = Arrays.asList(values);
 		}
 		itemInstance.setValue(list);
-		List<String> displayValuelist = new ArrayList<>();
 		SelectItemModelEntity selectItemModelEntity = (SelectItemModelEntity)itemModel;
-		if((selectItemModelEntity.getSelectReferenceType() == SelectReferenceType.Dictionary ||
-			selectItemModelEntity.getReferenceDictionaryItemId() != null || checkParentSelectItemHasDictionaryItem(selectItemModelEntity)) && list != null && list.size() > 0){
-			List<DictionaryItemEntity> dictionaryItemEntities = dictionaryItemManager.query().filterIn("id",list).list();
-			if(dictionaryItemEntities != null) {
-				Map<String, String> map = new HashMap<>();
-				for (DictionaryItemEntity dictionaryItemEntity : dictionaryItemEntities) {
-					map.put(dictionaryItemEntity.getId(), dictionaryItemEntity.getName());
-				}
-				for(String str : list){
-					displayValuelist.add(map.get(str));
-				}
-			}
-		}else if(itemModel.getOptions() != null && itemModel.getOptions().size() > 0) {
-			Map<String, String> map = new HashMap<>();
-			for (ItemSelectOption option : itemModel.getOptions()) {
-				if (list.contains(option.getId())) {
-					map.put(option.getId(), option.getLabel());
-				}
-			}
-			for(String str : list){
-				displayValuelist.add(map.get(str));
-			}
-		}else if(StringUtils.hasText(valueString)){
-			displayValuelist.add(valueString);
-		}
+		List<String> displayValuelist = setSelectItemDisplayValue(selectItemModelEntity, list);
 
 		// displayValuelist为空，说明在字典表里面已经删掉该内容，因此value也要设为空
 		if (displayValuelist == null || displayValuelist.size() == 0) {
@@ -2475,6 +2453,39 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				itemInstance.setDisplayValue(displayValuelist.get(0));
 			}
 		}
+	}
+
+	public List<String> setSelectItemDisplayValue(SelectItemModelEntity selectItemModelEntity, List<String> list){
+		if(list == null || list.size() < 1){
+			return null;
+		}
+		List<String> displayValuelist = new ArrayList<>();
+		if((selectItemModelEntity.getSelectReferenceType() == SelectReferenceType.Dictionary ||
+				selectItemModelEntity.getReferenceDictionaryItemId() != null || checkParentSelectItemHasDictionaryItem(selectItemModelEntity)) && list != null && list.size() > 0){
+			List<DictionaryItemEntity> dictionaryItemEntities = dictionaryItemManager.query().filterIn("id",list).list();
+			if(dictionaryItemEntities != null) {
+				Map<String, String> map = new HashMap<>();
+				for (DictionaryItemEntity dictionaryItemEntity : dictionaryItemEntities) {
+					map.put(dictionaryItemEntity.getId(), dictionaryItemEntity.getName());
+				}
+				for(String str : list){
+					displayValuelist.add(map.get(str));
+				}
+			}
+		}else if(selectItemModelEntity.getOptions() != null && selectItemModelEntity.getOptions().size() > 0) {
+			Map<String, String> map = new HashMap<>();
+			for (ItemSelectOption option : selectItemModelEntity.getOptions()) {
+				if (list.contains(option.getId())) {
+					map.put(option.getId(), option.getLabel());
+				}
+			}
+			for(String str : list){
+				displayValuelist.add(map.get(str));
+			}
+		}else if(list != null){
+			displayValuelist.add(String.join(",", list));
+		}
+		return displayValuelist;
 	}
 
 	/**
