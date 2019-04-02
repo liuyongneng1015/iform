@@ -1,7 +1,6 @@
 package tech.ascs.icity.iform.controller;
 
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -9,28 +8,19 @@ import java.util.stream.Collectors;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import io.swagger.annotations.Api;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 import tech.ascs.icity.iflow.api.model.ProcessInstance;
-import tech.ascs.icity.iflow.api.model.TaskInstance;
 import tech.ascs.icity.iflow.client.ProcessInstanceService;
-import tech.ascs.icity.iflow.client.ProcessService;
-import tech.ascs.icity.iflow.client.TaskService;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.*;
-import tech.ascs.icity.iform.service.impl.UploadServiceImpl;
 import tech.ascs.icity.iform.utils.*;
 import tech.ascs.icity.model.IdEntity;
 import tech.ascs.icity.model.Page;
-
-import javax.servlet.http.HttpServletRequest;
 
 @Api(tags = "表单实例服务", description = "包含业务表单数据的增删改查等功能")
 @RestController
@@ -104,7 +94,6 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	private DictionaryService dictionaryService;
 	@Autowired
 	private ProcessInstanceService processInstanceService;
-//	private TaskService taskService;
 
 	// url?param1=value1&param2=value2&param2=value3,value4&param2=value5
 	// @RequestParam Map<String, Object> parameters 有两个问题
@@ -121,7 +110,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		}
 		Map<String, Object> queryParameters = assemblyQueryParameters(parameters);
 		FormModelEntity formModelEntity = listModel.getMasterForm();
-		if (formModelEntity.getProcess()!=null && StringUtils.hasText(formModelEntity.getProcess().getId()) && StringUtils.hasText(formModelEntity.getProcess().getKey())) {
+		if (formModelHasProcess(formModelEntity)) {
 			Set<String> itemIds = queryParameters.keySet();
 			if (itemIds != null && itemIds.size() > 0) {
 				List<ItemModelEntity> items = itemModelService.query().filterIn("id", itemIds).list();
@@ -146,7 +135,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 								status = assemblyProcessStatus(itemSelectOptionOption.get().getValue());
 							}
 						}
-						if (status != -2) {
+						if (status != -2) { // -1表示查所有，0表示查未处理，1表示已处理，若最后status的值还是-2，表示不用查工作流
 							queryParameters.remove(selectItem.getId());
 							Map<String, Object> iflowQueryParams = new HashMap<>();
 							for (ItemModelEntity item : items) {
@@ -158,27 +147,24 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 								if (columnModel == null) {
 									continue;
 								}
-								if (ItemType.Input == item.getType() ||
-										ItemType.DatePicker == item.getType() ||
-										ItemType.DatePicker == item.getType() ||
-										ItemType.Editor == item.getType() ||
-										ItemType.TimePicker == item.getType()) {
+								if (isCommonItemType(item)) {
 									iflowQueryParams.put(columnModel.getColumnName(), value);
 								} else if (item instanceof SelectItemModelEntity) {
+									// 如果是单选框，多选框，下拉框，手动提取对应的中文出来
 									selectItem = (SelectItemModelEntity) item;
 									if (value instanceof String[]) {
 										String[] valueArr = (String[]) value;
 										StringBuffer queryNames = new StringBuffer();
-										for (String valueItem : valueArr) {
+										for (String itemValue : valueArr) {
 											if (SelectReferenceType.Table == selectItem.getSelectReferenceType()) {
 												List<ItemSelectOption> options = selectItem.getOptions();
 												for (ItemSelectOption selectOption : options) {
-													if (selectOption.equals(valueItem)) {
+													if (selectOption.getId().equals(itemValue)) {
 														queryNames.append(selectOption.getLabel() + ",");
 													}
 												}
 											} else if (SelectReferenceType.Dictionary == selectItem.getSelectReferenceType()) {
-												DictionaryItemEntity dictionaryItem = dictionaryService.getDictionaryItemById(valueItem);
+												DictionaryItemEntity dictionaryItem = dictionaryService.getDictionaryItemById(itemValue);
 												if (dictionaryItem != null) {
 													queryNames.append(dictionaryItem.getName() + ",");
 												}
@@ -192,7 +178,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 										if (SelectReferenceType.Table == selectItem.getSelectReferenceType()) {
 											List<ItemSelectOption> options = selectItem.getOptions();
 											for (ItemSelectOption selectOption : options) {
-												if (selectOption.equals(valueStr)) {
+												if (selectOption.getId().equals(valueStr)) {
 													iflowQueryParams.put(columnModel.getColumnName(), selectOption.getLabel());
 												}
 											}
@@ -216,7 +202,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 									queryParameters.put(idItemOption.get().getId(), formInstanceIds);
 								}
 								// 封装ID在iform里面查询
-								Page<FormDataSaveInstance> pageInstance = formInstanceService.pageFormInstance(listModel, 1, 100, queryParameters);
+								Page<FormDataSaveInstance> pageInstance = formInstanceService.pageFormInstance(listModel, page, pagesize, queryParameters);
 								for (FormDataSaveInstance instance:pageInstance) {
 									ProcessInstance processInstance = instanceIdAndEditMap.get(instance.getId());
 									if (processInstance.getStatus()==ProcessInstance.Status.Running && processInstance.isMyTask()) {
@@ -245,6 +231,35 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 //			}
 //		}
 		return pageInstance;
+	}
+
+	/**
+	 * 判断该表单是否绑定了工作流
+	 */
+	public boolean formModelHasProcess(FormModelEntity formModelEntity) {
+		if (formModelEntity.getProcess() != null
+			&& StringUtils.hasText(formModelEntity.getProcess().getId())
+			&& StringUtils.hasText(formModelEntity.getProcess().getKey())) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	/**
+	 * 是否是平常组件
+	 * @param item
+	 * @return
+	 */
+	public boolean isCommonItemType(ItemModelEntity item) {
+		if (ItemType.Input == item.getType() ||
+				ItemType.DatePicker == item.getType() ||
+				ItemType.DatePicker == item.getType() ||
+				ItemType.Editor == item.getType() ||
+				ItemType.TimePicker == item.getType()) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	public int assemblyProcesDictionaryStatus(String valueStr) {
