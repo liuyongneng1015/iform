@@ -136,7 +136,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
             verifyFormModelName(formModel);
             oldEntity = formModelService.saveFormModel(formModel);
         } catch (Exception e) {
-            if(e instanceof IFormException){
+            if(e instanceof ICityException){
                 throw e;
             }
             throw new IFormException(e.getMessage());

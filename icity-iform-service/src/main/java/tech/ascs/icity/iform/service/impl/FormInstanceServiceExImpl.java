@@ -566,7 +566,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			session.getTransaction().commit();
 		} catch (Exception e) {
 			e.printStackTrace();
-			if(e instanceof IFormException){
+			if(e instanceof ICityException){
 				throw e;
 			}
 			throw new IFormException("保存【" + dataModel.getTableName() + "】表，id【"+instanceId+"】的数据失败");
