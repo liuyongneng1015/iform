@@ -148,7 +148,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			e.printStackTrace();
 			new ICityException(e.getLocalizedMessage(), e);
 		} finally {
-			if (session!=null) {
+			if (session != null) {
 				session.close();
 				session = null;
 			}
@@ -1567,7 +1567,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	protected FormDataSaveInstance wrapFormDataEntity(boolean isQrCodeFlag, FormModelEntity formModelEntity, ListModelEntity listModel, Map<String, Object> entity, String instanceId, boolean referenceFlag) {
 		FormDataSaveInstance formInstance = new FormDataSaveInstance();
 		FormModelEntity formModel = null;
-		if (listModel!=null) {
+		if (listModel != null) {
 			formModel = listModel.getMasterForm();
 		} else {
 			formModel = formModelEntity;
@@ -1585,7 +1585,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	}
 
 	protected FormDataSaveInstance wrapQrCodeFormDataEntity(boolean isQrCodeFlag, ListModelEntity listModel, Map<String, Object> entity, String instanceId, boolean referenceFlag) {
-		return wrapFormDataEntity(isQrCodeFlag, null, listModel, entity,String.valueOf(entity.get("id")), true);
+		return wrapFormDataEntity(isQrCodeFlag, listModel.getMasterForm(), listModel, entity,String.valueOf(entity.get("id")), true);
 	}
 
 	private FormInstance setFormInstanceModel(FormInstance formInstance, FormModelEntity fromFormModel, Map<String, Object> entity, boolean referenceFlag){
