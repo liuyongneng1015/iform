@@ -432,7 +432,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 						}
 					}
 				}*/
-				System.out.println("___"+data.get("event_nature"));
+				System.out.println("传给工作流的数据=====>>>>>"+data);
 				String processInstanceId = processInstanceService.startProcess(formModel.getProcess().getKey(), newId, data);
 				updateProcessInfo(formModel, data, processInstanceId);
 			}

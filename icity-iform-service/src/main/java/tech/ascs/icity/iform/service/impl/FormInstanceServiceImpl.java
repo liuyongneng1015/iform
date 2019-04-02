@@ -257,6 +257,7 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 
 		// 启动流程
 		if (formModel.getProcess() != null && formModel.getProcess().getKey() != null) {
+			System.out.println("传给工作流的数据=====>>>>>"+data);
 			String processInstanceId = processInstanceService.startProcess(formModel.getProcess().getKey(), newId, data);
 			updateProcessInfo(formModel, newId, processInstanceId);
 		}
