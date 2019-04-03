@@ -190,6 +190,9 @@ public class ItemModel extends NameEntity {
 	@ApiModelProperty(value = "地图描述", position = 51)
 	private String mapDesc;
 
+	@ApiModelProperty(value = "关联的根节点标识", position = 52)
+	private Boolean referenceRootFlag;
+
 	public ItemType getType() {
 		return type;
 	}
@@ -695,6 +698,14 @@ public class ItemModel extends NameEntity {
 
 	public void setMapDesc(String mapDesc) {
 		this.mapDesc = mapDesc;
+	}
+
+	public Boolean getReferenceRootFlag() {
+		return referenceRootFlag;
+	}
+
+	public void setReferenceRootFlag(Boolean referenceRootFlag) {
+		this.referenceRootFlag = referenceRootFlag;
 	}
 
 	@Override

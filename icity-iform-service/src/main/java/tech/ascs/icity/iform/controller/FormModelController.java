@@ -1804,32 +1804,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		Set<PCFormModel> referenceFormModelList = new HashSet<>();
 		for(ItemModelEntity itemModelEntity : itemModelEntities){
 			if(itemModelEntity instanceof ReferenceItemModelEntity && ((ReferenceItemModelEntity) itemModelEntity).getReferenceList() != null) {
-
-				PCFormModel referencePCFormModel = new PCFormModel();
-				entityToDTO((((ReferenceItemModelEntity) itemModelEntity).getReferenceList().getMasterForm()), referencePCFormModel, true);
-				referenceFormModelList.add(referencePCFormModel);
-
-				List<String> displayColuns = new ArrayList<>();
-				ListModelEntity listModelEntity = ((ReferenceItemModelEntity) itemModelEntity).getReferenceList();
-				if(listModelEntity == null || listModelEntity.getMasterForm() == null){
-					continue;
-				}
-				Map<String, ItemModelEntity> itemModelEntityMap = new HashMap<>();
-				for(ItemModelEntity itemModelEntity1 : listModelEntity.getDisplayItems()){
-					itemModelEntityMap.put(itemModelEntity1.getId(), itemModelEntity1);
-
-				}
-				List<String> idList = new ArrayList<>();
-				if(StringUtils.hasText(((ReferenceItemModelEntity) itemModelEntity).getReferenceList().getDisplayItemsSort())) {
-					idList = Arrays.asList(((ReferenceItemModelEntity) itemModelEntity).getReferenceList().getDisplayItemsSort().split(","));
-				}
-				for(String id : idList){
-					if(itemModelEntityMap.get(id) != null && itemModelEntityMap.get(id).getColumnModel() != null){
-						displayColuns.add(itemModelEntityMap.get(id).getColumnModel().getColumnName());
-					}
-				}
-				columnsMap.put(listModelEntity.getMasterForm().getId(), displayColuns);
-				dataModelEntities.put(listModelEntity.getMasterForm().getId(), listModelEntity.getMasterForm().getDataModels().get(0));
+                setPCReferenceItemModel((ReferenceItemModelEntity)itemModelEntity, referenceFormModelList, dataModelEntities, columnsMap);
 			}
 		}
 		formModel.setReferenceFormModel(new ArrayList<>(referenceFormModelList));
@@ -1852,6 +1827,34 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 		return formModel;
 	}
+
+	private void setPCReferenceItemModel(ReferenceItemModelEntity itemModelEntity, Set<PCFormModel> referenceFormModelList, Map<String, DataModelEntity> dataModelEntities, Map<String, List<String>> columnsMap){
+        PCFormModel referencePCFormModel = new PCFormModel();
+        entityToDTO(itemModelEntity.getReferenceList().getMasterForm(), referencePCFormModel, true);
+        referenceFormModelList.add(referencePCFormModel);
+
+        List<String> displayColuns = new ArrayList<>();
+        ListModelEntity listModelEntity = itemModelEntity.getReferenceList();
+        if(listModelEntity == null || listModelEntity.getMasterForm() == null){
+            return;
+        }
+        Map<String, ItemModelEntity> itemModelEntityMap = new HashMap<>();
+        for(ItemModelEntity itemModelEntity1 : listModelEntity.getDisplayItems()){
+            itemModelEntityMap.put(itemModelEntity1.getId(), itemModelEntity1);
+
+        }
+        List<String> idList = new ArrayList<>();
+        if(StringUtils.hasText(itemModelEntity.getReferenceList().getDisplayItemsSort())) {
+            idList = Arrays.asList(itemModelEntity.getReferenceList().getDisplayItemsSort().split(","));
+        }
+        for(String id : idList){
+            if(itemModelEntityMap.get(id) != null && itemModelEntityMap.get(id).getColumnModel() != null){
+                displayColuns.add(itemModelEntityMap.get(id).getColumnModel().getColumnName());
+            }
+        }
+        columnsMap.put(listModelEntity.getMasterForm().getId(), displayColuns);
+        dataModelEntities.put(listModelEntity.getMasterForm().getId(), listModelEntity.getMasterForm().getDataModels().get(0));
+    }
 
 	private void entityToDTO(FormModelEntity entity, Object object, boolean isPCForm){
 		BeanUtils.copyProperties(entity, object, new String[] {"dataModels","items","permissions","submitChecks","functions"});
@@ -2121,24 +2124,33 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 
 		if(((SelectItemModelEntity) entity).getParentItem() != null){
-			ItemModel parentItemModel = new ItemModel();
-			BeanUtils.copyProperties(((SelectItemModelEntity) entity).getParentItem(), parentItemModel, new String[]{"formModel", "columnModel", "activities", "options", "searchItems", "sortItems", "permissions", "items", "parentItem", "referenceList"});
-			if (((SelectItemModelEntity) entity).getParentItem().getColumnModel() != null) {
-				ColumnModelInfo columnModel = new ColumnModelInfo();
-				BeanUtils.copyProperties(((SelectItemModelEntity) entity).getParentItem().getColumnModel(), columnModel, new String[]{"dataModel", "columnReferences"});
-				if (((SelectItemModelEntity) entity).getParentItem().getColumnModel().getDataModel() != null) {
-					columnModel.setTableName(((SelectItemModelEntity) entity).getParentItem().getColumnModel().getDataModel().getTableName());
-				}
-				parentItemModel.setColumnName(columnModel.getColumnName());
-				parentItemModel.setTableName(columnModel.getTableName());
-			}
-			itemModel.setParentItem(parentItemModel);
-			itemModel.setParentItemId( parentItemModel.getId());
+		    if(!isPCItem) {
+                ItemModel parentItemModel = new ItemModel();
+                BeanUtils.copyProperties(((SelectItemModelEntity) entity).getParentItem(), parentItemModel, new String[]{"formModel", "columnModel", "activities", "options", "searchItems", "sortItems", "permissions", "items", "parentItem", "referenceList"});
+                if (((SelectItemModelEntity) entity).getParentItem().getColumnModel() != null) {
+                    ColumnModelInfo columnModel = new ColumnModelInfo();
+                    BeanUtils.copyProperties(((SelectItemModelEntity) entity).getParentItem().getColumnModel(), columnModel, new String[]{"dataModel", "columnReferences"});
+                    if (((SelectItemModelEntity) entity).getParentItem().getColumnModel().getDataModel() != null) {
+                        columnModel.setTableName(((SelectItemModelEntity) entity).getParentItem().getColumnModel().getDataModel().getTableName());
+                    }
+                    parentItemModel.setColumnName(columnModel.getColumnName());
+                    parentItemModel.setTableName(columnModel.getTableName());
+                }
+                itemModel.setParentItem(parentItemModel);
+                itemModel.setParentItemId(parentItemModel.getId());
+            }else{
+                itemModel.setParentItemId(((SelectItemModelEntity) entity).getParentItem().getId());
+            }
 		}
 
 		//pc表单控件才有下拉子类
 		if(isPCItem && ((SelectItemModelEntity) entity).getItems() != null && ((SelectItemModelEntity) entity).getItems().size() > 0){
-			List<ItemModel> chiildrenItemModel = new ArrayList<>();
+		    if(((SelectItemModelEntity) entity).getParentItem() != null){
+                itemModel.setReferenceRootFlag(false);
+            }else{
+                itemModel.setReferenceRootFlag(true);
+            }
+			/*List<ItemModel> chiildrenItemModel = new ArrayList<>();
 			for(SelectItemModelEntity selectItemModelEntity : ((SelectItemModelEntity) entity).getItems()) {
 				ItemModel chiildItemModel = new ItemModel();
 				BeanUtils.copyProperties(selectItemModelEntity, chiildItemModel, new String[]{"formModel", "columnModel", "activities", "options", "searchItems", "sortItems", "permissions", "items", "parentItem", "referenceList"});
@@ -2152,7 +2164,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				}
 				chiildrenItemModel.add(chiildItemModel);
 			}
-			itemModel.setItems(chiildrenItemModel);
+			itemModel.setItems(chiildrenItemModel);*/
 		}
 	}
 
