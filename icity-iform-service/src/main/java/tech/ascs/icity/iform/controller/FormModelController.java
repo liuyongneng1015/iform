@@ -2154,6 +2154,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			for(SelectItemModelEntity selectItemModelEntity : ((SelectItemModelEntity) entity).getItems()) {
 				ItemModel chiildItemModel = new ItemModel();
 				chiildItemModel.setId(selectItemModelEntity.getId());
+				chiildItemModel.setReferenceDictionaryId(selectItemModelEntity.getReferenceDictionaryId());
 			/*	BeanUtils.copyProperties(selectItemModelEntity, chiildItemModel, new String[]{"formModel", "columnModel", "activities", "options", "searchItems", "sortItems", "permissions", "items", "parentItem", "referenceList"});
 				if (selectItemModelEntity.getColumnModel() != null) {
 					ColumnModelInfo columnModel = new ColumnModelInfo();
