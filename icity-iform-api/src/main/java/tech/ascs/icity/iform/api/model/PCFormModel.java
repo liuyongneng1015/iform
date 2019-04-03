@@ -62,6 +62,9 @@ public class PCFormModel extends NameEntity {
 	@ApiModelProperty(value="关联表单模型集合",position = 11)
 	private List<PCFormModel> referenceFormModel = new ArrayList<PCFormModel>();
 
+	@ApiModelProperty(value="关联关系控件集合",position = 10)
+	private List<ItemModel> relevanceItemModelList = new ArrayList<ItemModel>();
+
 	public PCProceeeModel getProcess() {
 		return process;
 	}
@@ -140,6 +143,14 @@ public class PCFormModel extends NameEntity {
 
 	public void setReferenceFormModel(List<PCFormModel> referenceFormModel) {
 		this.referenceFormModel = referenceFormModel;
+	}
+
+	public List<ItemModel> getRelevanceItemModelList() {
+		return relevanceItemModelList;
+	}
+
+	public void setRelevanceItemModelList(List<ItemModel> relevanceItemModelList) {
+		this.relevanceItemModelList = relevanceItemModelList;
 	}
 
 	@Override

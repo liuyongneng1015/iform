@@ -1908,221 +1908,17 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		BeanUtils.copyProperties(entity, itemModel, new String[]{"formModel", "columnModel", "activities", "options","searchItems","sortItems", "permissions","items","parentItem","referenceList", "defaultValue"});
 
 		if(entity instanceof ReferenceItemModelEntity){
-			if(((ReferenceItemModelEntity) entity).getItemModelIds() != null) {
-				List<String> resultList = new ArrayList<>(Arrays.asList(((ReferenceItemModelEntity) entity).getItemModelIds().split(",")));
-				itemModel.setItemModelList(getItemModelList(resultList));
-			}
-			String referenceItemId = ((ReferenceItemModelEntity) entity).getReferenceItemId();
-			if(referenceItemId != null){
-				ItemModelEntity itemModelEntity = itemModelService.get(referenceItemId);
-				itemModel.setReferenceItemName(itemModelEntity == null ? null : itemModelEntity.getName());
-			}
-			String referenceFormId = ((ReferenceItemModelEntity) entity).getReferenceFormId();
-			if(referenceFormId != null){
-				FormModelEntity formModelEntity = formModelService.get(referenceFormId);
-				itemModel.setReferenceFormName(formModelEntity == null ? null : formModelEntity.getName());
-				if(formModelEntity.getDataModels() != null && formModelEntity.getDataModels().size() > 0) {
-					itemModel.setTableName(formModelEntity.getDataModels().get(0).getTableName());
-				}
-			}
-			if(isPCItem) {
-				if(((ReferenceItemModelEntity) entity).getReferenceList() != null) {
-					itemModel.setReferenceListId(((ReferenceItemModelEntity) entity).getReferenceList().getId());
-				}
-				if(entity.getType() == ItemType.ReferenceLabel) {
-					if (((ReferenceItemModelEntity) entity).getParentItem() == null || ((ReferenceItemModelEntity) entity).getParentItem().getReferenceList() ==null) {
-						itemModel.setReferenceListId(null);
-					} else {
-						itemModel.setReferenceListId(((ReferenceItemModelEntity) entity).getParentItem().getReferenceList().getId());
-					}
-//					itemModel.setReferenceListId(((ReferenceItemModelEntity) entity).getParentItem() == null ? null : ((ReferenceItemModelEntity) entity).getParentItem().getReferenceList().getId());
-				}
-
-			}
-			if(entity.getType() == ItemType.ReferenceLabel && ((ReferenceItemModelEntity) entity).getReferenceItemId() != null){
-				ItemModelEntity itemModelEntity = itemModelService.get(((ReferenceItemModelEntity) entity).getReferenceItemId());
-				if(itemModelEntity != null && itemModelEntity.getColumnModel() != null) {
-					itemModel.setItemTableName(itemModelEntity.getColumnModel().getDataModel().getTableName());
-					itemModel.setItemColunmName(itemModelEntity.getColumnModel().getColumnName());
-				}
-			}
-
-			if(((ReferenceItemModelEntity) entity).getReferenceType() == ReferenceType.ManyToMany){
-				itemModel.setMultiple(true);
-			}else if(((ReferenceItemModelEntity) entity).getReferenceType() == ReferenceType.OneToOne){
-				itemModel.setMultiple(false);
-			}else if(((ReferenceItemModelEntity) entity).getReferenceType() == ReferenceType.ManyToOne){
-				if(entity.getType() == ItemType.ReferenceLabel){
-					itemModel.setMultiple(true);
-				}else{
-					itemModel.setMultiple(false);
-				}
-			}else if(((ReferenceItemModelEntity) entity).getReferenceType() == ReferenceType.OneToMany){
-				if(entity.getType() != ItemType.ReferenceLabel){
-					itemModel.setMultiple(true);
-				}else{
-					itemModel.setMultiple(false);
-				}
-			}
-
-			if(((ReferenceItemModelEntity) entity).getParentItem() != null){
-				ItemModel itemModel1 = new ItemModel();
-				BeanUtils.copyProperties(((ReferenceItemModelEntity) entity).getParentItem(), itemModel1, new String[]{"formModel", "columnModel", "activities", "options","searchItems","sortItems", "permissions","items","parentItem","referenceList"});
-				if(((ReferenceItemModelEntity) entity).getParentItem() != null && ((ReferenceItemModelEntity) entity).getParentItem().getColumnModel()!=null && ((ReferenceItemModelEntity) entity).getParentItem().getColumnModel().getDataModel() != null) {
-					itemModel1.setTableName(((ReferenceItemModelEntity) entity).getParentItem().getColumnModel().getDataModel().getTableName());
-					itemModel1.setColumnName(((ReferenceItemModelEntity) entity).getParentItem().getColumnModel().getColumnName());
-				}
-				itemModel.setParentItem(itemModel1);
-				itemModel.setParentItemId(itemModel1.getId());
-			}
-
-			if(((ReferenceItemModelEntity) entity).getReferenceList() != null){
-				ListModel referenceList = new ListModel();
-				BeanUtils.copyProperties(((ReferenceItemModelEntity) entity).getReferenceList(), referenceList, new String[] {"masterForm", "slaverForms", "sortItems", "searchItems", "functions", "displayItems", "quickSearchItems"});
-				itemModel.setReferenceList(referenceList);
-			}
-
+			setReferenceItemModel( entity, itemModel,  isPCItem);
 		}else if(entity instanceof SelectItemModelEntity){
-			String defaultValue = ((SelectItemModelEntity) entity).getDefaultReferenceValue();
-			if(StringUtils.hasText(defaultValue) && (entity.getType() == ItemType.CheckboxGroup
-					||entity.getType() == ItemType.RadioGroup ||entity.getType() == ItemType.Select)) {
-				itemModel.setDefaultValue(Arrays.asList(defaultValue.split(",")));
-				itemModel.setDefaultValueName(formInstanceServiceEx.setSelectItemDisplayValue((SelectItemModelEntity) entity, Arrays.asList(defaultValue.split(","))));
-			}else if(StringUtils.hasText(defaultValue)){
-				itemModel.setDefaultValue(defaultValue);
-				List<String> list = new ArrayList<>();
-				list.add(defaultValue);
-				itemModel.setDefaultValueName(formInstanceServiceEx.setSelectItemDisplayValue((SelectItemModelEntity) entity, list));
-			}
-			if(entity.getOptions() != null && entity.getOptions().size() > 0){
-				List<String> defaultList = new ArrayList<>();
-				List<String> displayList = new ArrayList<>();
-
-				for(ItemSelectOption option : entity.getOptions()){
-					if(option.getDefaultFlag() != null && option.getDefaultFlag()){
-						defaultList.add(option.getId());
-						displayList.add(option.getLabel());
-					}
-				}
-				itemModel.setDefaultValue(defaultList);
-				itemModel.setDefaultValueName(displayList);
-			}
-
-			itemModel.setReferenceList(getItemModelByEntity(entity));
-
-			if(((SelectItemModelEntity) entity).getReferenceDictionaryId() != null){
-				DictionaryEntity dictionaryEntity = dictionaryService.get(((SelectItemModelEntity) entity).getReferenceDictionaryId());
-				itemModel.setReferenceDictionaryName(dictionaryEntity == null ? null : dictionaryEntity.getName());
-			}
-
-			if(((SelectItemModelEntity) entity).getParentItem() != null){
-				ItemModel parentItemModel = new ItemModel();
-				BeanUtils.copyProperties(((SelectItemModelEntity) entity).getParentItem(), parentItemModel, new String[]{"formModel", "columnModel", "activities", "options","searchItems","sortItems", "permissions","items","parentItem","referenceList"});
-				if(((SelectItemModelEntity) entity).getParentItem().getColumnModel() != null){
-					ColumnModelInfo columnModel = new ColumnModelInfo();
-					BeanUtils.copyProperties(((SelectItemModelEntity) entity).getParentItem().getColumnModel(), columnModel, new String[] {"dataModel","columnReferences"});
-					if(((SelectItemModelEntity) entity).getParentItem().getColumnModel().getDataModel() != null){
-						columnModel.setTableName(((SelectItemModelEntity) entity).getParentItem().getColumnModel().getDataModel().getTableName());
-					}
-					parentItemModel.setColumnName(columnModel.getColumnName());
-                    parentItemModel.setTableName(columnModel.getTableName());
-				}
-				itemModel.setParentItem(parentItemModel);
-				itemModel.setParentItemId(parentItemModel.getId());
-			}
-
-			//pc表单控件才有下拉子类
-			if(isPCItem && ((SelectItemModelEntity) entity).getItems() != null && ((SelectItemModelEntity) entity).getItems().size() > 0){
-				List<ItemModel> chiildrenItemModel = new ArrayList<>();
-				for(SelectItemModelEntity selectItemModelEntity : ((SelectItemModelEntity) entity).getItems()) {
-					ItemModel chiildItemModel = new ItemModel();
-					BeanUtils.copyProperties(selectItemModelEntity, chiildItemModel, new String[]{"formModel", "columnModel", "activities", "options", "searchItems", "sortItems", "permissions", "items", "parentItem", "referenceList"});
-					if (selectItemModelEntity.getColumnModel() != null) {
-						ColumnModelInfo columnModel = new ColumnModelInfo();
-						BeanUtils.copyProperties(selectItemModelEntity.getColumnModel(), columnModel, new String[]{"dataModel", "columnReferences"});
-						if (selectItemModelEntity.getColumnModel().getDataModel() != null) {
-							columnModel.setTableName(selectItemModelEntity.getColumnModel().getDataModel().getTableName());
-						}
-						chiildItemModel.setColumnModel(columnModel);
-					}
-					chiildrenItemModel.add(chiildItemModel);
-				}
-				itemModel.setItems(chiildrenItemModel);
-			}
-
+			setSelectItemModel( entity,  itemModel,  isPCItem);
 		}else if(entity instanceof RowItemModelEntity){
-			List<ItemModel> rows = new ArrayList<>();
-			List<ItemModelEntity> rowList = ((RowItemModelEntity) entity).getItems();
-			List<ItemModelEntity> itemModelEntities = rowList == null || rowList.size() < 2 ? rowList : rowList.parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
-			for(ItemModelEntity itemModelEntity : itemModelEntities) {
-				ItemModel itemModel1 = toDTO(itemModelEntity, isPCItem, tableName);
-				if(itemModel1.getType() == ItemType.ReferenceLabel){
-					itemModel1.setTableName(tableName);
-				}
-				rows.add(itemModel1);
-			}
-			itemModel.setItems(rows);
+			setRowItemModel(entity, itemModel, isPCItem, tableName);
 		}else if(entity instanceof SubFormItemModelEntity){
-			List<ItemModel> subFormRows = new ArrayList<>();
-			List<SubFormRowItemModelEntity> rowItemModelEntities = ((SubFormItemModelEntity) entity).getItems();
-
-			List<SubFormRowItemModelEntity> subFormRowItemModelEntities = rowItemModelEntities == null || rowItemModelEntities.size() < 2 ? rowItemModelEntities : rowItemModelEntities.parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
-
-			for(SubFormRowItemModelEntity rowItemModelEntity : subFormRowItemModelEntities) {
-				ItemModel subFormRowItem = new ItemModel();
-				BeanUtils.copyProperties(rowItemModelEntity, subFormRowItem, new String[]{"formModel", "columnModel", "activities", "options","searchItems","sortItems", "permissions","items","parentItem","referenceList"});
-				List<ItemModel> rows = new ArrayList<>();
-				List<ItemModelEntity> itemModelEntities = rowItemModelEntity.getItems() == null || rowItemModelEntity.getItems().size() < 2 ? rowItemModelEntity.getItems() : rowItemModelEntity.getItems().parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
-				for(ItemModelEntity childrenItem : itemModelEntities) {
-					ItemModel childItem = toDTO(childrenItem, isPCItem, ((SubFormItemModelEntity) entity).getTableName());
-					childItem.setTableName(((SubFormItemModelEntity) entity).getTableName());
-					rows.add(childItem);
-				}
-				subFormRowItem.setTableName(((SubFormItemModelEntity) entity).getTableName());
-				subFormRowItem.setItems(rows);
-				subFormRows.add(subFormRowItem);
-			}
-			itemModel.setItems(subFormRows);
+			setSubFormItemModel(entity, itemModel, isPCItem);
 		}else if(entity instanceof TabsItemModelEntity){
-			List<ItemModel> subFormRows = new ArrayList<>();
-			List<TabPaneItemModelEntity> tabPaneItemModelEntities = ((TabsItemModelEntity) entity).getItems();
-
-			List<TabPaneItemModelEntity> tabPaneItemModelEntityList = tabPaneItemModelEntities == null || tabPaneItemModelEntities.size() < 2 ? tabPaneItemModelEntities : tabPaneItemModelEntities.parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
-			for(TabPaneItemModelEntity tabPaneItemModelEntity : tabPaneItemModelEntityList) {
-				ItemModel itemModel1 = new ItemModel();
-				BeanUtils.copyProperties(tabPaneItemModelEntity, itemModel1, new String[]{"formModel", "columnModel", "activities", "options","searchItems","sortItems", "permissions","items","parentItem","referenceList"});
-				List<ItemModel> children = new ArrayList<>();
-				List<ItemModelEntity> itemModelEntities = tabPaneItemModelEntity.getItems() == null || tabPaneItemModelEntity.getItems().size() < 2 ? tabPaneItemModelEntity.getItems() : tabPaneItemModelEntity.getItems().parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
-				for(ItemModelEntity childrenItem : itemModelEntities) {
-					ItemModel childItem = toDTO(childrenItem, isPCItem, tableName);
-					children.add(childItem);
-				}
-				itemModel1.setItems(children);
-				subFormRows.add(itemModel1);
-			}
-			itemModel.setItems(subFormRows);
+			setTabsItemModel(entity, itemModel, isPCItem, tableName);
 		} else if (entity instanceof TreeSelectItemModelEntity) {
-			TreeSelectItemModelEntity treeSelectItemModelEntity = (TreeSelectItemModelEntity)entity;
-			if (treeSelectItemModelEntity.getMultiple()) {
-				if (!StringUtils.isEmpty(treeSelectItemModelEntity.getDefaultValue())) {
-					itemModel.setDefaultValue(Arrays.asList(treeSelectItemModelEntity.getDefaultValue().split(",")));
-                }
-			} else {
-				if (!StringUtils.isEmpty(treeSelectItemModelEntity.getDefaultValue())) {
-					itemModel.setDefaultValue(treeSelectItemModelEntity.getDefaultValue());
-				}
-            }
-			if (!StringUtils.isEmpty(((TreeSelectItemModelEntity) entity).getDefaultValue())) {
-				List<TreeSelectData> list = groupService.getTreeSelectDataSourceByIds(((TreeSelectItemModelEntity) entity).getDataSource().getValue(), ((TreeSelectItemModelEntity) entity).getDefaultValue().split(","));
-				if(list != null && list.size() > 0) {
-					List<String> defalueVlaues = list.parallelStream().map(TreeSelectData::getName).collect(Collectors.toList());
-					if(treeSelectItemModelEntity.getMultiple() != null && treeSelectItemModelEntity.getMultiple()) {
-						itemModel.setDefaultValueName(defalueVlaues);
-					}else{
-						itemModel.setDefaultValueName(defalueVlaues.get(0));
-					}
-				}
-			}
+			setTreeSelectItemModel(entity, itemModel, isPCItem);
 		}
 
 		if(entity.getColumnModel() != null) {
@@ -2181,6 +1977,233 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 
 		return itemModel;
+	}
+
+	private void setRowItemModel(ItemModelEntity entity, ItemModel itemModel, boolean isPCItem, String tableName){
+		List<ItemModel> rows = new ArrayList<>();
+		List<ItemModelEntity> rowList = ((RowItemModelEntity) entity).getItems();
+		List<ItemModelEntity> itemModelEntities = rowList == null || rowList.size() < 2 ? rowList : rowList.parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
+		for(ItemModelEntity itemModelEntity : itemModelEntities) {
+			ItemModel itemModel1 = toDTO(itemModelEntity, isPCItem, tableName);
+			if(itemModel1.getType() == ItemType.ReferenceLabel){
+				itemModel1.setTableName(tableName);
+			}
+			rows.add(itemModel1);
+		}
+		itemModel.setItems(rows);
+	}
+
+	private void setTabsItemModel(ItemModelEntity entity, ItemModel itemModel, boolean isPCItem, String tableName){
+		List<ItemModel> subFormRows = new ArrayList<>();
+		List<TabPaneItemModelEntity> tabPaneItemModelEntities = ((TabsItemModelEntity) entity).getItems();
+
+		List<TabPaneItemModelEntity> tabPaneItemModelEntityList = tabPaneItemModelEntities == null || tabPaneItemModelEntities.size() < 2 ? tabPaneItemModelEntities : tabPaneItemModelEntities.parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
+		for(TabPaneItemModelEntity tabPaneItemModelEntity : tabPaneItemModelEntityList) {
+			ItemModel itemModel1 = new ItemModel();
+			BeanUtils.copyProperties(tabPaneItemModelEntity, itemModel1, new String[]{"formModel", "columnModel", "activities", "options","searchItems","sortItems", "permissions","items","parentItem","referenceList"});
+			List<ItemModel> children = new ArrayList<>();
+			List<ItemModelEntity> itemModelEntities = tabPaneItemModelEntity.getItems() == null || tabPaneItemModelEntity.getItems().size() < 2 ? tabPaneItemModelEntity.getItems() : tabPaneItemModelEntity.getItems().parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
+			for(ItemModelEntity childrenItem : itemModelEntities) {
+				ItemModel childItem = toDTO(childrenItem, isPCItem, tableName);
+				children.add(childItem);
+			}
+			itemModel1.setItems(children);
+			subFormRows.add(itemModel1);
+		}
+		itemModel.setItems(subFormRows);
+	}
+
+	private void setSubFormItemModel(ItemModelEntity entity, ItemModel itemModel, boolean isPCItem){
+		List<ItemModel> subFormRows = new ArrayList<>();
+		List<SubFormRowItemModelEntity> rowItemModelEntities = ((SubFormItemModelEntity) entity).getItems();
+
+		List<SubFormRowItemModelEntity> subFormRowItemModelEntities = rowItemModelEntities == null || rowItemModelEntities.size() < 2 ? rowItemModelEntities : rowItemModelEntities.parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
+
+		for(SubFormRowItemModelEntity rowItemModelEntity : subFormRowItemModelEntities) {
+			ItemModel subFormRowItem = new ItemModel();
+			BeanUtils.copyProperties(rowItemModelEntity, subFormRowItem, new String[]{"formModel", "columnModel", "activities", "options","searchItems","sortItems", "permissions","items","parentItem","referenceList"});
+			List<ItemModel> rows = new ArrayList<>();
+			List<ItemModelEntity> itemModelEntities = rowItemModelEntity.getItems() == null || rowItemModelEntity.getItems().size() < 2 ? rowItemModelEntity.getItems() : rowItemModelEntity.getItems().parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
+			for(ItemModelEntity childrenItem : itemModelEntities) {
+				ItemModel childItem = toDTO(childrenItem, isPCItem, ((SubFormItemModelEntity) entity).getTableName());
+				childItem.setTableName(((SubFormItemModelEntity) entity).getTableName());
+				rows.add(childItem);
+			}
+			subFormRowItem.setTableName(((SubFormItemModelEntity) entity).getTableName());
+			subFormRowItem.setItems(rows);
+			subFormRows.add(subFormRowItem);
+		}
+		itemModel.setItems(subFormRows);
+	}
+
+	private void setSelectItemModel(ItemModelEntity entity, ItemModel itemModel, boolean isPCItem){
+		String defaultValue = ((SelectItemModelEntity) entity).getDefaultReferenceValue();
+		if(StringUtils.hasText(defaultValue) && (entity.getType() == ItemType.CheckboxGroup
+				||entity.getType() == ItemType.RadioGroup ||entity.getType() == ItemType.Select)) {
+			itemModel.setDefaultValue(Arrays.asList(defaultValue.split(",")));
+			itemModel.setDefaultValueName(formInstanceServiceEx.setSelectItemDisplayValue((SelectItemModelEntity) entity, Arrays.asList(defaultValue.split(","))));
+		}else if(StringUtils.hasText(defaultValue)){
+			itemModel.setDefaultValue(defaultValue);
+			List<String> list = new ArrayList<>();
+			list.add(defaultValue);
+			itemModel.setDefaultValueName(formInstanceServiceEx.setSelectItemDisplayValue((SelectItemModelEntity) entity, list));
+		}
+		if(entity.getOptions() != null && entity.getOptions().size() > 0){
+			List<String> defaultList = new ArrayList<>();
+			List<String> displayList = new ArrayList<>();
+
+			for(ItemSelectOption option : entity.getOptions()){
+				if(option.getDefaultFlag() != null && option.getDefaultFlag()){
+					defaultList.add(option.getId());
+					displayList.add(option.getLabel());
+				}
+			}
+			itemModel.setDefaultValue(defaultList);
+			itemModel.setDefaultValueName(displayList);
+		}
+
+		itemModel.setReferenceList(getItemModelByEntity(entity));
+
+		if(((SelectItemModelEntity) entity).getReferenceDictionaryId() != null){
+			DictionaryEntity dictionaryEntity = dictionaryService.get(((SelectItemModelEntity) entity).getReferenceDictionaryId());
+			itemModel.setReferenceDictionaryName(dictionaryEntity == null ? null : dictionaryEntity.getName());
+		}
+
+		if(((SelectItemModelEntity) entity).getParentItem() != null){
+			ItemModel parentItemModel = new ItemModel();
+			BeanUtils.copyProperties(((SelectItemModelEntity) entity).getParentItem(), parentItemModel, new String[]{"formModel", "columnModel", "activities", "options", "searchItems", "sortItems", "permissions", "items", "parentItem", "referenceList"});
+			if (((SelectItemModelEntity) entity).getParentItem().getColumnModel() != null) {
+				ColumnModelInfo columnModel = new ColumnModelInfo();
+				BeanUtils.copyProperties(((SelectItemModelEntity) entity).getParentItem().getColumnModel(), columnModel, new String[]{"dataModel", "columnReferences"});
+				if (((SelectItemModelEntity) entity).getParentItem().getColumnModel().getDataModel() != null) {
+					columnModel.setTableName(((SelectItemModelEntity) entity).getParentItem().getColumnModel().getDataModel().getTableName());
+				}
+				parentItemModel.setColumnName(columnModel.getColumnName());
+				parentItemModel.setTableName(columnModel.getTableName());
+			}
+			itemModel.setParentItem(parentItemModel);
+			itemModel.setParentItemId( parentItemModel.getId());
+		}
+
+		//pc表单控件才有下拉子类
+		if(isPCItem && ((SelectItemModelEntity) entity).getItems() != null && ((SelectItemModelEntity) entity).getItems().size() > 0){
+			List<ItemModel> chiildrenItemModel = new ArrayList<>();
+			for(SelectItemModelEntity selectItemModelEntity : ((SelectItemModelEntity) entity).getItems()) {
+				ItemModel chiildItemModel = new ItemModel();
+				BeanUtils.copyProperties(selectItemModelEntity, chiildItemModel, new String[]{"formModel", "columnModel", "activities", "options", "searchItems", "sortItems", "permissions", "items", "parentItem", "referenceList"});
+				if (selectItemModelEntity.getColumnModel() != null) {
+					ColumnModelInfo columnModel = new ColumnModelInfo();
+					BeanUtils.copyProperties(selectItemModelEntity.getColumnModel(), columnModel, new String[]{"dataModel", "columnReferences"});
+					if (selectItemModelEntity.getColumnModel().getDataModel() != null) {
+						columnModel.setTableName(selectItemModelEntity.getColumnModel().getDataModel().getTableName());
+					}
+					chiildItemModel.setColumnModel(columnModel);
+				}
+				chiildrenItemModel.add(chiildItemModel);
+			}
+			itemModel.setItems(chiildrenItemModel);
+		}
+	}
+
+
+	private void setTreeSelectItemModel(ItemModelEntity entity, ItemModel itemModel, boolean isPCItem){
+		TreeSelectItemModelEntity treeSelectItemModelEntity = (TreeSelectItemModelEntity)entity;
+		if (treeSelectItemModelEntity.getMultiple()) {
+			if (!StringUtils.isEmpty(treeSelectItemModelEntity.getDefaultValue())) {
+				itemModel.setDefaultValue(Arrays.asList(treeSelectItemModelEntity.getDefaultValue().split(",")));
+			}
+		} else {
+			if (!StringUtils.isEmpty(treeSelectItemModelEntity.getDefaultValue())) {
+				itemModel.setDefaultValue(treeSelectItemModelEntity.getDefaultValue());
+			}
+		}
+		if (!StringUtils.isEmpty(((TreeSelectItemModelEntity) entity).getDefaultValue())) {
+			List<TreeSelectData> list = groupService.getTreeSelectDataSourceByIds(((TreeSelectItemModelEntity) entity).getDataSource().getValue(), ((TreeSelectItemModelEntity) entity).getDefaultValue().split(","));
+			if(list != null && list.size() > 0) {
+				List<String> defalueVlaues = list.parallelStream().map(TreeSelectData::getName).collect(Collectors.toList());
+				if(treeSelectItemModelEntity.getMultiple() != null && treeSelectItemModelEntity.getMultiple()) {
+					itemModel.setDefaultValueName(defalueVlaues);
+				}else{
+					itemModel.setDefaultValueName(defalueVlaues.get(0));
+				}
+			}
+		}
+	}
+
+	private void setReferenceItemModel(ItemModelEntity entity, ItemModel itemModel, boolean isPCItem){
+		if(((ReferenceItemModelEntity) entity).getItemModelIds() != null) {
+			List<String> resultList = new ArrayList<>(Arrays.asList(((ReferenceItemModelEntity) entity).getItemModelIds().split(",")));
+			itemModel.setItemModelList(getItemModelList(resultList));
+		}
+		String referenceItemId = ((ReferenceItemModelEntity) entity).getReferenceItemId();
+		if(referenceItemId != null){
+			ItemModelEntity itemModelEntity = itemModelService.get(referenceItemId);
+			itemModel.setReferenceItemName(itemModelEntity == null ? null : itemModelEntity.getName());
+		}
+		String referenceFormId = ((ReferenceItemModelEntity) entity).getReferenceFormId();
+		if(referenceFormId != null){
+			FormModelEntity formModelEntity = formModelService.get(referenceFormId);
+			itemModel.setReferenceFormName(formModelEntity == null ? null : formModelEntity.getName());
+			if(formModelEntity.getDataModels() != null && formModelEntity.getDataModels().size() > 0) {
+				itemModel.setTableName(formModelEntity.getDataModels().get(0).getTableName());
+			}
+		}
+		if(isPCItem) {
+			if(((ReferenceItemModelEntity) entity).getReferenceList() != null) {
+				itemModel.setReferenceListId(((ReferenceItemModelEntity) entity).getReferenceList().getId());
+			}
+			if(entity.getType() == ItemType.ReferenceLabel) {
+				if (((ReferenceItemModelEntity) entity).getParentItem() == null || ((ReferenceItemModelEntity) entity).getParentItem().getReferenceList() ==null) {
+					itemModel.setReferenceListId(null);
+				} else {
+					itemModel.setReferenceListId(((ReferenceItemModelEntity) entity).getParentItem().getReferenceList().getId());
+				}
+//					itemModel.setReferenceListId(((ReferenceItemModelEntity) entity).getParentItem() == null ? null : ((ReferenceItemModelEntity) entity).getParentItem().getReferenceList().getId());
+			}
+
+		}
+		if(entity.getType() == ItemType.ReferenceLabel && ((ReferenceItemModelEntity) entity).getReferenceItemId() != null){
+			ItemModelEntity itemModelEntity = itemModelService.get(((ReferenceItemModelEntity) entity).getReferenceItemId());
+			if(itemModelEntity != null && itemModelEntity.getColumnModel() != null) {
+				itemModel.setItemTableName(itemModelEntity.getColumnModel().getDataModel().getTableName());
+				itemModel.setItemColunmName(itemModelEntity.getColumnModel().getColumnName());
+			}
+		}
+
+		if(((ReferenceItemModelEntity) entity).getReferenceType() == ReferenceType.ManyToMany){
+			itemModel.setMultiple(true);
+		}else if(((ReferenceItemModelEntity) entity).getReferenceType() == ReferenceType.OneToOne){
+			itemModel.setMultiple(false);
+		}else if(((ReferenceItemModelEntity) entity).getReferenceType() == ReferenceType.ManyToOne){
+			if(entity.getType() == ItemType.ReferenceLabel){
+				itemModel.setMultiple(true);
+			}else{
+				itemModel.setMultiple(false);
+			}
+		}else if(((ReferenceItemModelEntity) entity).getReferenceType() == ReferenceType.OneToMany){
+			if(entity.getType() != ItemType.ReferenceLabel){
+				itemModel.setMultiple(true);
+			}else{
+				itemModel.setMultiple(false);
+			}
+		}
+
+		if(((ReferenceItemModelEntity) entity).getParentItem() != null){
+			ItemModel itemModel1 = new ItemModel();
+			BeanUtils.copyProperties(((ReferenceItemModelEntity) entity).getParentItem(), itemModel1, new String[]{"formModel", "columnModel", "activities", "options","searchItems","sortItems", "permissions","items","parentItem","referenceList"});
+			if(((ReferenceItemModelEntity) entity).getParentItem() != null && ((ReferenceItemModelEntity) entity).getParentItem().getColumnModel()!=null && ((ReferenceItemModelEntity) entity).getParentItem().getColumnModel().getDataModel() != null) {
+				itemModel1.setTableName(((ReferenceItemModelEntity) entity).getParentItem().getColumnModel().getDataModel().getTableName());
+				itemModel1.setColumnName(((ReferenceItemModelEntity) entity).getParentItem().getColumnModel().getColumnName());
+			}
+			itemModel.setParentItem(itemModel1);
+			itemModel.setParentItemId(itemModel1.getId());
+		}
+
+		if(((ReferenceItemModelEntity) entity).getReferenceList() != null){
+			ListModel referenceList = new ListModel();
+			BeanUtils.copyProperties(((ReferenceItemModelEntity) entity).getReferenceList(), referenceList, new String[] {"masterForm", "slaverForms", "sortItems", "searchItems", "functions", "displayItems", "quickSearchItems"});
+			itemModel.setReferenceList(referenceList);
+		}
 	}
 
 	private List<ItemModel> getItemModelList(List<String> idResultList){
