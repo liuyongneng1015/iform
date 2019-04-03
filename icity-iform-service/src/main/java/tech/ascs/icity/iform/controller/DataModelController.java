@@ -234,23 +234,7 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 		if (StringUtils.hasText(dataModel.getId())) {
 			throw new IFormException("数据模型ID不为空，请使用更新操作");
 		}
-		if (StringUtils.isEmpty(dataModel.getTableName())) {
-			throw new IFormException("表名不允许为空");
-		}
-		if (!Pattern.matches(regEx, dataModel.getTableName())) {
-			throw new IFormException("表名必须以字母开头，只能包含数字，字母，下划线，不能包含中文，横杆等特殊字符");
-		}
-		if (dataModel.getColumns()==null || dataModel.getColumns().size()==0) {
-			throw new IFormException("至少包含一个字段");
-		}
-		for (ColumnModel column:dataModel.getColumns()) {
-			if (StringUtils.isEmpty(column.getColumnName())) {
-				throw new IFormException("字段名称不允许为空");
-			}
-			if (Pattern.matches(regEx, column.getColumnName()) == false) {
-				throw new IFormException("字段名称必须以字母开头，只能包含数字，字母，下划线，不能包含中文，横杆等特殊字符");
-			}
-		}
+		verifyDataModel(dataModel);
 		String key = dataModel.getId()+"_"+dataModel.getTableName();
 		try {
 			if(concurrentmap.get(key) != null){
@@ -273,20 +257,7 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 		if (!StringUtils.hasText(dataModel.getId()) || !id.equals(dataModel.getId())) {
 			throw new IFormException("数据模型ID不一致");
 		}
-		if (dataModel.getColumns()==null || dataModel.getColumns().size()==0) {
-			throw new IFormException("至少包含一个字段");
-		}
-		if (dataModel.getColumns()==null || dataModel.getColumns().size()==0) {
-			throw new IFormException("至少包含一个字段");
-		}
-		for (ColumnModel column:dataModel.getColumns()) {
-			if (StringUtils.isEmpty(column.getColumnName())) {
-				throw new IFormException("字段名称不允许为空");
-			}
-			if (Pattern.matches(regEx, column.getColumnName()) == false) {
-				throw new IFormException("字段名称必须以字母开头，只能包含数字，字母，下划线，不能包含中文，横杆等特殊字符");
-			}
-		}
+		verifyDataModel(dataModel);
 		String key = dataModel.getId()+"_"+dataModel.getTableName();
 		try {
 			if(concurrentmap.get(key) != null){
@@ -301,6 +272,35 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 				concurrentmap.remove(key);
 			}
 		}
+	}
+
+	private void verifyDataModel(DataModel dataModel){
+		if (dataModel.getColumns()==null || dataModel.getColumns().size()==0) {
+			throw new IFormException("至少包含一个字段");
+		}
+		if (StringUtils.isEmpty(dataModel.getTableName())) {
+			throw new IFormException("表名不允许为空");
+		}
+		if (!Pattern.matches(regEx, dataModel.getTableName())) {
+			throw new IFormException("表名必须以字母开头，只能包含数字，字母，下划线，不能包含中文，横杆等特殊字符");
+		}
+		if (dataModel.getColumns()==null || dataModel.getColumns().size()==0) {
+			throw new IFormException("至少包含一个字段");
+		}
+		for (ColumnModel column:dataModel.getColumns()) {
+			if (StringUtils.isEmpty(column.getColumnName())) {
+				throw new IFormException("字段名称不允许为空");
+			}
+			if (Pattern.matches(regEx, column.getColumnName()) == false) {
+				throw new IFormException("字段名称必须以字母开头，只能包含数字，字母，下划线，不能包含中文，横杆等特殊字符");
+			}
+		}
+		for (IndexModel indexModel:dataModel.getIndexes()) {
+			if (Pattern.matches(regEx, indexModel.getName()) == false) {
+				throw new IFormException("索引名必须以字母开头，只能包含数字，字母，下划线，不能包含中文，横杆等特殊字符");
+			}
+		}
+
 	}
 
 	@Override

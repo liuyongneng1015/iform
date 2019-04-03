@@ -34,4 +34,7 @@ public interface ColumnModelService extends JPAService<ColumnModelEntity> {
 
     //删除数据库字段索引
     void deleteTableColumnIndex(String tableName, String columnName);
+
+    //更新数据库字段索引
+    void updateColumnModelEntityIndex(ColumnModelEntity columnModelEntity);
 }

@@ -18,11 +18,11 @@ public class IndexModelEntity extends BaseEntity implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	@ManyToOne(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH })
+	@ManyToOne(cascade = {CascadeType.REFRESH })
 	@JoinColumn(name="data_model")
 	private DataModelEntity dataModel;
 
-	@ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH })
+	@ManyToMany(cascade = {CascadeType.REFRESH })
 	@JoinTable(
 		name = "ifm_index_column",
 		joinColumns = @JoinColumn( name="index_info"),

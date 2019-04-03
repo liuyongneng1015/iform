@@ -1059,7 +1059,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		//待删除的行
 		for(int i = 0 ; i <  oldDataModelEntity.getColumns().size() ; i++ ){
 			ColumnModelEntity columnModelEntity = oldDataModelEntity.getColumns().get(i);
-			updateColumnModelEntity(newColumnIds, columnModelEntity, needMasterId, oldDataModelEntity, i, newDataModel);
+			deleteColumnModelEntity(newColumnIds, columnModelEntity, needMasterId, oldDataModelEntity, i, newDataModel);
 		}
 		Map<String, Object> map = new HashMap<>();
 		for(ColumnModel columnModel : newDataModel.getColumns()){
@@ -1071,7 +1071,8 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		oldDataModelEntity.setColumns(saveModelEntities);
 	}
 
-	private void updateColumnModelEntity(List<String> newColumnIds, ColumnModelEntity columnModelEntity, boolean needMasterId, DataModelEntity oldDataModelEntity, int i, DataModel newDataModel){
+	private void deleteColumnModelEntity(List<String> newColumnIds, ColumnModelEntity columnModelEntity, boolean needMasterId, DataModelEntity oldDataModelEntity, int i, DataModel newDataModel){
+		//删除字段索引
 		if(!newColumnIds.contains(columnModelEntity.getId())){
 			List<ColumnReferenceEntity> referenceEntityList = columnModelEntity.getColumnReferences();
 			for(int m = 0 ; m < referenceEntityList.size(); m++ ){
@@ -1112,6 +1113,8 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			}
 			//删除数据库字段
 			columnModelService.deleteTableColumn(newDataModel.getTableName(), columnModelEntity.getColumnName());
+			//更新字段索引
+			columnModelService.updateColumnModelEntityIndex(columnModelEntity);
 			columnModelService.delete(columnModelEntity);
 		}
 	}

@@ -26,6 +26,8 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
 
     private JPAManager<ColumnModelEntity> columnModelManager;
 
+    private JPAManager<IndexModelEntity> indexModelManager;
+
     public ColumnModelServiceImpl() {
         super(ColumnModelEntity.class);
     }
@@ -38,6 +40,7 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
         super.initManager();
         columnReferenceManager = getJPAManagerFactory().getJPAManager(ColumnReferenceEntity.class);
         columnModelManager = getJPAManagerFactory().getJPAManager(ColumnModelEntity.class);
+        indexModelManager = getJPAManagerFactory().getJPAManager(IndexModelEntity.class);
     }
 
     @Override
@@ -263,7 +266,18 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
 		}
 	}
 
-	private List<Map<String, Object>> listIndexBySql(String sql) {
+    @Override
+    public void updateColumnModelEntityIndex(ColumnModelEntity columnModelEntity) {
+        List<IndexModelEntity> list = indexModelManager.query().filterIn("columns.id", columnModelEntity.getId()).list();
+        if(list != null && list.size() > 0){
+            for(IndexModelEntity indexModelEntity : list){
+                indexModelEntity.getColumns().remove(columnModelEntity);
+                indexModelManager.save(indexModelEntity);
+            }
+        }
+    }
+
+    private List<Map<String, Object>> listIndexBySql(String sql) {
         List<Map<String, Object>> list = new ArrayList<>();
         try {
             list = jdbcTemplate.query(sql, new DataRowMapper());
