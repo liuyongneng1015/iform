@@ -2150,10 +2150,11 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
             }else{
                 itemModel.setReferenceRootFlag(true);
             }
-			/*List<ItemModel> chiildrenItemModel = new ArrayList<>();
+			List<ItemModel> chiildrenItemModel = new ArrayList<>();
 			for(SelectItemModelEntity selectItemModelEntity : ((SelectItemModelEntity) entity).getItems()) {
 				ItemModel chiildItemModel = new ItemModel();
-				BeanUtils.copyProperties(selectItemModelEntity, chiildItemModel, new String[]{"formModel", "columnModel", "activities", "options", "searchItems", "sortItems", "permissions", "items", "parentItem", "referenceList"});
+				chiildItemModel.setId(selectItemModelEntity.getId());
+			/*	BeanUtils.copyProperties(selectItemModelEntity, chiildItemModel, new String[]{"formModel", "columnModel", "activities", "options", "searchItems", "sortItems", "permissions", "items", "parentItem", "referenceList"});
 				if (selectItemModelEntity.getColumnModel() != null) {
 					ColumnModelInfo columnModel = new ColumnModelInfo();
 					BeanUtils.copyProperties(selectItemModelEntity.getColumnModel(), columnModel, new String[]{"dataModel", "columnReferences"});
@@ -2161,10 +2162,10 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 						columnModel.setTableName(selectItemModelEntity.getColumnModel().getDataModel().getTableName());
 					}
 					chiildItemModel.setColumnModel(columnModel);
-				}
+				}*/
 				chiildrenItemModel.add(chiildItemModel);
 			}
-			itemModel.setItems(chiildrenItemModel);*/
+			itemModel.setItems(chiildrenItemModel);
 		}
 	}
 
