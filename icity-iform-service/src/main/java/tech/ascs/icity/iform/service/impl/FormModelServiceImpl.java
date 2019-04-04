@@ -1379,13 +1379,13 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 	}
 
 	@Override
-	public List<ItemModel> findAllItemModels(FormModel formModel) {
-		List<ItemModel> itemModels = new ArrayList<>();
-		for(ItemModel itemModel : formModel.getItems()){
-			itemModels.add(itemModel);
-			itemModels.addAll(getChildRenItemModel(itemModel));
+	public List<ItemModel> findAllItemModels(List<ItemModel> itemModels) {
+		List<ItemModel> itemModelList = new ArrayList<>();
+		itemModelList.addAll(itemModels);
+		for(ItemModel itemModel : itemModels){
+			itemModelList.addAll(getChildRenItemModel(itemModel));
 		}
-		return itemModels;
+		return itemModelList;
 	}
 
 	//设置表单功能
