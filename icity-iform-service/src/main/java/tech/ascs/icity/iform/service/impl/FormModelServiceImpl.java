@@ -138,9 +138,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			List<ItemModelEntity> itemModelEntities = new ArrayList<ItemModelEntity>();
 			for(int i = 0; i < entity.getItems().size() ; i++) {
 				ItemModelEntity paramerItemModelEntity = entity.getItems().get(i);
+				paramerItemModelEntity.setOrderNo(i*20);
 				ItemModelEntity newItemModelEntity = getNewItemModelEntity(oldMapItmes, columnModelEntityMap, paramerItemModelEntity);
 				newItemModelEntity.setFormModel(old);
-				newItemModelEntity.setOrderNo(i);
 				//包括所有的item(包括子item)
 				allItems.add(newItemModelEntity);
 				allItems.addAll(getChildRenItemModelEntity(newItemModelEntity));
@@ -799,7 +799,6 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 	//获取item子item
 	private ItemModelEntity getNewItemModelEntity(Map<String, ItemModelEntity> oldMapItmes, Map<String, ColumnModelEntity> modelEntityMap, ItemModelEntity paramerItemModelEntity){
 		ItemModelEntity newModelEntity = getNewItemModel(oldMapItmes, modelEntityMap, paramerItemModelEntity);
-		newModelEntity.setOrderNo(-1);
 		if(paramerItemModelEntity instanceof RowItemModelEntity){
 			RowItemModelEntity rowItemModelEntity = (RowItemModelEntity)paramerItemModelEntity;
 			List<ItemModelEntity> rowItems = new ArrayList<ItemModelEntity>();
@@ -810,7 +809,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				if((newRowItem instanceof ReferenceItemModelEntity) && newRowItem.getType() != ItemType.ReferenceLabel) {
 					verifyReference((ReferenceItemModelEntity)rowItem);
 				}
-				newRowItem.setOrderNo(i);
+				newRowItem.setOrderNo(newModelEntity.getOrderNo() + i);
 				rowItems.add(newRowItem);
 			}
 			rowItemModelEntity.setItems(rowItems);
@@ -822,6 +821,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				SubFormRowItemModelEntity subFormRowItemModelEntity = subFormItemModel.getItems().get(i);
 				SubFormRowItemModelEntity subFormRowItemModel  = (SubFormRowItemModelEntity)getNewSubFormRowItemModel(oldMapItmes, subFormRowItemModelEntity);
 				subFormRowItemModel.setFormModel(null);
+				subFormRowItemModel.setOrderNo(newModelEntity.getOrderNo() + i);
 				List<ItemModelEntity> rowItems = new ArrayList<>();
 				for (int j = 0; j < subFormRowItemModelEntity.getItems().size() ; j ++) {
 					ItemModelEntity childRenItem = subFormRowItemModelEntity.getItems().get(j);
@@ -830,7 +830,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 					if((newRowItem instanceof ReferenceItemModelEntity) && newRowItem.getType() != ItemType.ReferenceLabel) {
 						verifyReference((ReferenceItemModelEntity)newRowItem);
 					}
-					newRowItem.setOrderNo(j);
+					newRowItem.setOrderNo(newModelEntity.getOrderNo() + j);
 					rowItems.add(getNewItemModel(oldMapItmes, modelEntityMap, newRowItem));
 				}
 				subFormRowItemModel.setParentItem((SubFormItemModelEntity)newModelEntity);
@@ -849,12 +849,12 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 					ItemModelEntity itemModelEntity = childRenItem.getItems().get(k);
 					ItemModelEntity itemModelEntity1 = getNewItemModelEntity(oldMapItmes, modelEntityMap, itemModelEntity);
 					itemModelEntity1.setFormModel(null);
-					itemModelEntity1.setOrderNo(k);
+					itemModelEntity1.setOrderNo(newModelEntity.getOrderNo() + k);
 					list.add(itemModelEntity1);
 				}
 				newRowItem.setFormModel(null);
 				newRowItem.setParentItem((TabsItemModelEntity) newModelEntity);
-				newRowItem.setOrderNo(j);
+				newRowItem.setOrderNo(newModelEntity.getOrderNo()+ j);
 				newRowItem.setItems(list);
 				tabPaneItemModelEntities.add(newRowItem);
 			}

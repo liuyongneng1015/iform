@@ -1756,7 +1756,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 	private List<ItemPermissionModel> getItemPermissions(List<ItemModelEntity> items){
 		List<ItemPermissionModel> itemPermissionsList = new ArrayList<>();
-		List<ItemModelEntity> columnItems = getColumnItem(items);
+		List<ItemModelEntity> columnItems = getColumnItem(items).parallelStream().sorted(Comparator.comparing(ItemModelEntity::getOrderNo).reversed()).collect(Collectors.toList());
 		for(ItemModelEntity itemModelEntity1 : columnItems){
 			if(itemModelEntity1.getPermissions() != null && itemModelEntity1.getPermissions().size() > 0){
 				ItemPermissionModel itemPermissionModel = new ItemPermissionModel();
@@ -1840,6 +1840,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				rootItemModel.setId(rootItemModelEntity.getId());
 				rootItemModel.setReferenceDictionaryId(rootItemModelEntity.getReferenceDictionaryId());
 				rootItemModel.setReferenceDictionaryItemId(rootItemModelEntity.getReferenceDictionaryItemId());
+				rootItemModel.setDefaultValue(rootItemModelEntity.getDefaultReferenceValue());
 				getSelectItemChildRenItems(rootItemModel, rootItemModelEntity);
 				linkedItemModelList.add(rootItemModel);
 			}
