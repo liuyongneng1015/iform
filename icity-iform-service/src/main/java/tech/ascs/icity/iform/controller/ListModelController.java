@@ -340,7 +340,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		}
 
 		if (listModel.getSearchItems() != null) {
-			List<ListSearchItem> searchItems = new ArrayList<ListSearchItem>();
+			List<ListSearchItem> searchItems = new ArrayList();
 			for (int i = 0; i < listModel.getSearchItems().size(); i++) {
 				SearchItem searchItem =  listModel.getSearchItems().get(i);
 				if (searchItem==null || StringUtils.isEmpty(searchItem.getId())) {
@@ -529,7 +529,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		}
 
 		if(entity.getFunctions() != null){
-			List<FunctionModel> functions = new ArrayList<FunctionModel>();
+			List<FunctionModel> functions = new ArrayList();
 			for(ListFunction listFunction : entity.getFunctions()) {
 				FunctionModel function = new FunctionModel();
 				BeanUtils.copyProperties(listFunction, function, new String[]{"listModel", "formModel"});
@@ -540,7 +540,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		}
 
 		if (entity.getSortItems().size() > 0) {
-			List<SortItem> sortItems = new ArrayList<SortItem>();
+			List<SortItem> sortItems = new ArrayList();
 			for (ListSortItem sortItemEntity: entity.getSortItems()) {
 				if(sortItemEntity.getItemModel() != null) {
 					if (masterFormItemIds.contains(sortItemEntity.getItemModel().getId())==false) {
@@ -558,7 +558,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		}
 
 		if (entity.getSearchItems().size() > 0) {
-			List<SearchItem> searchItems = new ArrayList<SearchItem>();
+			List<SearchItem> searchItems = new ArrayList();
 			for (ListSearchItem searchItemEntity : entity.getSearchItems()) {
 				ItemModelEntity itemModelEntity = searchItemEntity.getItemModel();
 				if (itemModelEntity != null) {
@@ -630,7 +630,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 						}
 
 						// 在列表建模渲染页面，如果查询条件是连动的下拉选择框，要返回联动的items的信息
-						if(selectItemModelEntity.getItems() != null && selectItemModelEntity.getItems().size() > 0){
+						if(selectItemModelEntity.getItems() != null && selectItemModelEntity.getItems().size() > 0) {
 							List<ItemModel> chiildrenItemModel = new ArrayList<>();
 							for(SelectItemModelEntity childSelectItemModelEntity : selectItemModelEntity.getItems()) {
 								ItemModel chiildItemModel = new ItemModel();
@@ -645,7 +645,17 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 								}
 								chiildrenItemModel.add(chiildItemModel);
 							}
-							searchItem.setItems(chiildrenItemModel);
+
+							ItemModel selectItemModel = new ItemModel();
+							selectItemModel.setId(selectItemModelEntity.getId());
+							selectItemModel.setType(selectItemModelEntity.getType());
+							selectItemModel.setName(selectItemModelEntity.getName());
+							selectItemModel.setProps(selectItemModelEntity.getProps());
+							selectItemModel.setSystemItemType(selectItemModelEntity.getSystemItemType());
+							selectItemModel.setReferenceDictionaryId(selectItemModelEntity.getReferenceDictionaryId());
+							selectItemModel.setReferenceDictionaryItemId(selectItemModelEntity.getReferenceDictionaryItemId());
+							listModel.getRelevanceItemModelList().add(selectItemModel);
+							setChildrenItems(selectItemModel, selectItemModelEntity);
 						}
 					}
 
@@ -720,6 +730,45 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
             listModel.setQuickSearchItems(quickSearches);
         }
 		return listModel;
+	}
+
+	/**
+	 * dictionaryValueType: "Fixed"
+	 * id: "2c928085695709070169571c3e240026"
+	 * multiple: false
+	 * name: "单选框A"
+	 * options: []
+	 * props: "{"props":{},"typeKey":"radioGroup"}"
+	 * referenceDictionaryId: "2c92808667eea6d20167eec0cace0000"
+	 * referenceDictionaryItemId: "ff80808167e302450167e30700150000"
+	 * systemItemType: "RadioGroup"
+	 * type: "RadioGroup"
+	 * uniquene: false
+	 * uuid: "b32e99ee-fddc-4634-ab0c-d87117aaee18"
+	 * @param parentItemModel
+	 * @param parentItemModelEntity
+	 */
+	private void setChildrenItems(ItemModel parentItemModel, ItemModelEntity parentItemModelEntity) {
+		if (parentItemModelEntity instanceof SelectItemModelEntity) {
+			List<ItemModel> list = new ArrayList<>();
+			SelectItemModelEntity selectItemModelEntity = (SelectItemModelEntity)parentItemModelEntity;
+			for (SelectItemModelEntity selectItemSonEntity:selectItemModelEntity.getItems()) {
+				ItemModel selectItemSonModel = new ItemModel();
+				selectItemSonModel.setId(selectItemSonEntity.getId());
+				selectItemSonModel.setType(selectItemSonEntity.getType());
+				selectItemSonModel.setName(selectItemSonEntity.getName());
+				selectItemSonModel.setProps(selectItemSonEntity.getProps());
+//				selectItemSonModel.setOptions(selectItemModelEntity.getOptions());
+				selectItemSonModel.setSystemItemType(selectItemSonEntity.getSystemItemType());
+				selectItemSonModel.setReferenceDictionaryId(selectItemSonEntity.getReferenceDictionaryId());
+				selectItemSonModel.setReferenceDictionaryItemId(selectItemSonEntity.getReferenceDictionaryItemId());
+				list.add(selectItemSonModel);
+				setChildrenItems(selectItemSonModel, selectItemSonEntity);
+			}
+			if (list.size()>0) {
+				parentItemModel.setItems(list);
+			}
+		}
 	}
 
 	private List<ItemModel> getItemModelList(List<String> idResultList){

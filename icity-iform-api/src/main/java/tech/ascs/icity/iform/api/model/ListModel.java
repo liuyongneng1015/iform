@@ -46,25 +46,25 @@ public class ListModel extends NameEntity {
 	private FormModel masterForm;
 
 	@ApiModelProperty(value = "附加表单模型列表", position = 5)
-	private List<FormModel> slaverForms = new ArrayList<FormModel>();
+	private List<FormModel> slaverForms = new ArrayList();
 
 	@ApiModelProperty(value = "排序字段列表", position = 6)
-	private List<SortItem> sortItems = new ArrayList<SortItem>();
+	private List<SortItem> sortItems = new ArrayList();
 
 	@ApiModelProperty(value = "功能列表", position = 7)
-	private List<FunctionModel> functions = new ArrayList<FunctionModel>();
+	private List<FunctionModel> functions = new ArrayList();
 
 	@ApiModelProperty(value = "查询字段列表", position = 8)
-	private List<SearchItem> searchItems = new ArrayList<SearchItem>();
+	private List<SearchItem> searchItems = new ArrayList();
 
 	@ApiModelProperty(value = "显示字段列表", position = 9)
-	private List<ItemModel> displayItems = new ArrayList<ItemModel>();
+	private List<ItemModel> displayItems = new ArrayList();
 
 	@ApiModelProperty(value = "快速筛选", position = 10)
-	private List<QuickSearchItem> quickSearchItems = new ArrayList<QuickSearchItem>();
+	private List<QuickSearchItem> quickSearchItems = new ArrayList();
 
 	@ApiModelProperty(value = "表单绑定的数据模型列表", position = 11)
-	private List<DataModel> dataModels = new ArrayList<DataModel>();
+	private List<DataModel> dataModels = new ArrayList();
 
 	@ApiModelProperty(value = "应用id", position = 12)
 	private String applicationId;
