@@ -6,10 +6,12 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import tech.ascs.icity.iform.api.model.ColumnType;
+import tech.ascs.icity.iform.api.model.IndexType;
 import tech.ascs.icity.iform.api.model.ReferenceModel;
 import tech.ascs.icity.iform.api.model.ReferenceType;
 import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.ColumnModelService;
+import tech.ascs.icity.iform.service.DataModelService;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 
@@ -28,6 +30,8 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
 
     private JPAManager<IndexModelEntity> indexModelManager;
 
+    private JPAManager<ItemModelEntity> itemModeManager;
+
     public ColumnModelServiceImpl() {
         super(ColumnModelEntity.class);
     }
@@ -35,12 +39,16 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
     @Autowired
     JdbcTemplate jdbcTemplate;
 
+    @Autowired
+    DataModelService dataModelService;
+
     @Override
     protected void initManager() {
         super.initManager();
         columnReferenceManager = getJPAManagerFactory().getJPAManager(ColumnReferenceEntity.class);
         columnModelManager = getJPAManagerFactory().getJPAManager(ColumnModelEntity.class);
         indexModelManager = getJPAManagerFactory().getJPAManager(IndexModelEntity.class);
+        itemModeManager = getJPAManagerFactory().getJPAManager(ItemModelEntity.class);
     }
 
     @Override
@@ -269,11 +277,54 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
     @Override
     public void updateColumnModelEntityIndex(ColumnModelEntity columnModelEntity) {
         List<IndexModelEntity> list = indexModelManager.query().filterIn("columns.id", columnModelEntity.getId()).list();
+        String tableName = columnModelEntity.getDataModel().getTableName();
+        List<String> indexNameList = dataModelService.listDataIndexName(tableName);
         if(list != null && list.size() > 0){
             for(IndexModelEntity indexModelEntity : list){
+                if(indexNameList.contains(indexModelEntity.getName())) {
+                    deleteTableIndex(tableName, indexModelEntity.getName());
+                }
                 indexModelEntity.getColumns().remove(columnModelEntity);
                 indexModelManager.save(indexModelEntity);
             }
+        }
+    }
+
+    @Override
+    public void deleteTableIndex(String tableName, String indexName) {
+        try {
+            String deleteIndexSql = "alter table  if_" + tableName + " drop index " + indexName;
+            jdbcTemplate.execute(deleteIndexSql);
+        } catch (DataAccessException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void createTableIndex(String tableName, IndexModelEntity index) {
+        try {
+            if(index.getColumns() == null || index.getColumns().size() < 1){
+                return;
+            }
+            String indexSql = null;
+            StringBuffer sub = new StringBuffer();
+            for(ColumnModelEntity columnModelEntity : index.getColumns()){
+                List<ItemModelEntity> itemModelEntityList = itemModeManager.query().filterIn("columnModel.id", columnModelEntity.getId()).list();
+                if(itemModelEntityList == null || itemModelEntityList.size() < 1 || !(itemModelEntityList.get(0) instanceof ReferenceItemModelEntity)) {
+                    sub.append(",f" + columnModelEntity.getColumnName());
+                }else{
+                    sub.append("," + columnModelEntity.getColumnName());
+                }
+            }
+            String str = sub.toString().substring(1);
+            if(index.getIndexType() == IndexType.Unique) {
+                indexSql = "ALTER TABLE if_"+tableName+" ADD UNIQUE INDEX "+index.getName()+"(" + str+")";
+            }else{
+                indexSql = "ALTER TABLE if_"+tableName+" ADD INDEX "+index.getName()+"(" + str+")";
+            }
+            jdbcTemplate.execute(indexSql);
+        } catch (DataAccessException e) {
+            e.printStackTrace();
         }
     }
 

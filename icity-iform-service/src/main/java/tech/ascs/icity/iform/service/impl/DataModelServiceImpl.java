@@ -1,5 +1,7 @@
 package tech.ascs.icity.iform.service.impl;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -9,6 +11,7 @@ import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.transaction.annotation.Transactional;
 
 import tech.ascs.icity.iform.IFormException;
@@ -126,8 +129,7 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		old.setColumns(columnModelEntities);
 
 		List<IndexModelEntity> indexes = new ArrayList<IndexModelEntity>();
-		List<IndexModelEntity> deleteIndexes = new ArrayList<IndexModelEntity>(); // 用于存放需删除的索引列表
-		setIndex(dataModel,  old,  indexes,  deleteIndexes);
+		List<IndexModelEntity> deleteIndexes = setDeleteIndexs(dataModel,  old,  indexes);// 用于存放需删除的索引列表
 
 		old.setIndexes(indexes);
 
@@ -193,15 +195,24 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 	}
 
 	//设置索引
-	private void setIndex(DataModel dataModel, DataModelEntity old, List<IndexModelEntity> indexes, List<IndexModelEntity> deleteIndexes){
+	private List<IndexModelEntity> setDeleteIndexs(DataModel dataModel, DataModelEntity old, List<IndexModelEntity> indexes){
 		Map<String, IndexModelEntity> indexModelEntityMap = new HashMap<>();
 		for (IndexModelEntity oldIndex : old.getIndexes()) {
 			indexModelEntityMap.put(oldIndex.getId(), oldIndex);
 		}
+		Map<String, Object> map = new HashMap<>();
+		List<String> list = listDataIndexName(old.getTableName());
 		for (IndexModel index : dataModel.getIndexes()) {
+			 if(map.get(index.getName()) != null){
+			 	throw new IFormException("索引名"+index.getName()+"重复了");
+			 }
+			 map.put(index.getName(), System.currentTimeMillis());
 			IndexModelEntity indexEntity = index.isNew() ? new IndexModelEntity() : indexModelEntityMap.remove(index.getId());
 			if(indexEntity == null){
 				indexEntity = new IndexModelEntity();
+			}
+			if(!index.isNew() && !index.getName().equals(indexEntity.getName()) && list.contains(indexEntity.getName())){
+				columnModelService.deleteTableIndex(old.getTableName(), indexEntity.getName());
 			}
 			BeanUtils.copyProperties(index, indexEntity, new String[] {"dataModel", "columns"});
 			indexEntity.setDataModel(old);
@@ -212,7 +223,8 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 			indexEntity.setColumns(indexColumns);
 			indexes.add(indexEntity);
 		}
-		deleteIndexes = new ArrayList<>(indexModelEntityMap.values());
+
+		return new ArrayList<>(indexModelEntityMap.values());
 	}
 
 	//设置主从表
@@ -297,6 +309,7 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 				slaverDataModelEntity.setSynchronized(true);
 			}
 			save(dataModel);
+			updateDataModelIndex(dataModel);
 		} catch (Exception e) {
 			throw new IFormException("同步数据模型【" + dataModel.getName() + "】失败：" + e.getMessage(), e);
 		}
@@ -429,8 +442,57 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		}
 	}
 
+	@Override
+	public void updateDataModelIndex(DataModelEntity modelEntity) {
+		List<String> list = listDataIndexName(modelEntity.getTableName());
+		for(IndexModelEntity indexModelEntity : modelEntity.getIndexes()){
+			if (list.contains(indexModelEntity.getName())) {
+				columnModelService.deleteTableIndex(modelEntity.getTableName(), indexModelEntity.getName());
+			}
+			columnModelService.createTableIndex(modelEntity.getTableName(), indexModelEntity);
+		}
+	}
+
+	@Override
+	public List<String> listDataIndexName(String tableName){
+		String indexSql = "show index from if_"+tableName;
+		List<Map<String, Object>> indexList = listIndexBySql(indexSql);
+		Set<String> list = new HashSet<>();
+		for(Map<String, Object> map : indexList){
+			list.add((String)map.get("Key_name"));
+		}
+		return new ArrayList<>(list);
+	}
+
+	private List<Map<String, Object>> listIndexBySql(String sql) {
+		List<Map<String, Object>> list = new ArrayList<>();
+		try {
+			list = jdbcTemplate.query(sql, new DataModelIndexRowMapper());
+		} catch (DataAccessException e) {
+			e.printStackTrace();
+		}
+		return list;
+	}
+
+	class DataModelIndexRowMapper implements RowMapper {
+
+		@Override
+		//实现mapRow方法
+		public Map<String, Object> mapRow(ResultSet rs, int num) throws SQLException {
+			//对类进行封装
+			Map<String, Object> map = new HashMap<>();
+			map.put("Column_name",rs.getString("Column_name"));
+			map.put("Key_name", rs.getString("Key_name"));
+			return map;
+		}
+	}
+
+
 	@Transactional(readOnly = false)
 	protected DataModelEntity save(DataModelEntity entity, List<ColumnModelEntity> deletedCloumns, List<IndexModelEntity> deletedIndexes) {
+
+		//数据库表所有索引
+		List<String> indexList = listDataIndexName(entity.getTableName());
 
 		//删除索引
 		if (!deletedIndexes.isEmpty()) {
@@ -440,6 +502,9 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 					indexModelEntity.setColumns(null);
 				}
 				indexModelEntity.setDataModel(null);
+				if(indexList.contains(indexModelEntity.getName())) {
+					columnModelService.deleteTableIndex(entity.getTableName(), indexModelEntity.getName());
+				}
 				indexManager.save(indexModelEntity);
 				indexManager.delete(indexModelEntity);
 			}
@@ -462,6 +527,7 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 					ids.add(columnReferenceEntity.getToColumn().getId());
 				}
 				columnModelService.deleteOldColumnReferenceEntity(columnModelEntity, ids, columnReferences);
+				columnModelService.updateColumnModelEntityIndex(columnModelEntity);
 				columnModelService.delete(columnModelEntity);
 				deletedCloumns.remove(columnModelEntity);
 				j--;

@@ -5,6 +5,7 @@ import tech.ascs.icity.iform.api.model.ReferenceType;
 import tech.ascs.icity.iform.model.ColumnModelEntity;
 import tech.ascs.icity.iform.model.ColumnReferenceEntity;
 import tech.ascs.icity.iform.model.DataModelEntity;
+import tech.ascs.icity.iform.model.IndexModelEntity;
 import tech.ascs.icity.jpa.service.JPAService;
 
 import java.util.List;
@@ -37,4 +38,10 @@ public interface ColumnModelService extends JPAService<ColumnModelEntity> {
 
     //更新数据库字段索引
     void updateColumnModelEntityIndex(ColumnModelEntity columnModelEntity);
+
+    //删除数据库索引
+    void deleteTableIndex(String tableName, String indexName);
+
+    //创建数据库索引
+    void createTableIndex(String tableName, IndexModelEntity index);
 }

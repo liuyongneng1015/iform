@@ -146,5 +146,4 @@
                 </#list>
             </class>
     </#list>
-
 </hibernate-mapping>
