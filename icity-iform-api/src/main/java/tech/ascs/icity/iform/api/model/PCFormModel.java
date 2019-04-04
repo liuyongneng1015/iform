@@ -62,8 +62,8 @@ public class PCFormModel extends NameEntity {
 	@ApiModelProperty(value="关联表单模型集合",position = 11)
 	private List<PCFormModel> referenceFormModel = new ArrayList<PCFormModel>();
 
-	@ApiModelProperty(value="关联关系控件集合",position = 10)
-	private List<ItemModel> relevanceItemModelList = new ArrayList<ItemModel>();
+	@ApiModelProperty(value="联动控件集合",position = 12)
+	private List<ItemModel> linkedItemModelList;
 
 	public PCProceeeModel getProcess() {
 		return process;
@@ -145,15 +145,15 @@ public class PCFormModel extends NameEntity {
 		this.referenceFormModel = referenceFormModel;
 	}
 
-	public List<ItemModel> getRelevanceItemModelList() {
-		return relevanceItemModelList;
-	}
+    public List<ItemModel> getLinkedItemModelList() {
+        return linkedItemModelList;
+    }
 
-	public void setRelevanceItemModelList(List<ItemModel> relevanceItemModelList) {
-		this.relevanceItemModelList = relevanceItemModelList;
-	}
+    public void setLinkedItemModelList(List<ItemModel> linkedItemModelList) {
+        this.linkedItemModelList = linkedItemModelList;
+    }
 
-	@Override
+    @Override
     public String getId() {
         String id = super.getId();
         if(StringUtils.isBlank(id)){
