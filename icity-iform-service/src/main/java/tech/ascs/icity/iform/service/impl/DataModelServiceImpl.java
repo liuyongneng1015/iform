@@ -206,6 +206,7 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 			 if(map.get(index.getName()) != null){
 			 	throw new IFormException("索引名"+index.getName()+"重复了");
 			 }
+			 map.put(index.getName(), System.currentTimeMillis());
 			IndexModelEntity indexEntity = index.isNew() ? new IndexModelEntity() : indexModelEntityMap.remove(index.getId());
 			if(indexEntity == null){
 				indexEntity = new IndexModelEntity();
