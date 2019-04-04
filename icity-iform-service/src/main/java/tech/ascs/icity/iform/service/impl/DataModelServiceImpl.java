@@ -444,7 +444,8 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		}
 	}
 
-	private List<String> listDataIndexName(String tableName){
+	@Override
+	public List<String> listDataIndexName(String tableName){
 		String foreignIndexSql =" select  CONSTRAINT_NAME, COLUMN_NAME   from INFORMATION_SCHEMA.KEY_COLUMN_USAGE  where TABLE_NAME = 'if_"+tableName+"'";
 		List<Map<String, Object>> mapList = listDataModelIndexBySql(foreignIndexSql);
 		List<String> list = new ArrayList<>();
@@ -481,7 +482,8 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 	@Transactional(readOnly = false)
 	protected DataModelEntity save(DataModelEntity entity, List<ColumnModelEntity> deletedCloumns, List<IndexModelEntity> deletedIndexes) {
 
-		List<String> list = listDataIndexName(entity.getTableName());
+		//数据库表所有索引
+		List<String> indexList = listDataIndexName(entity.getTableName());
 
 		//删除索引
 		if (!deletedIndexes.isEmpty()) {
@@ -491,7 +493,7 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 					indexModelEntity.setColumns(null);
 				}
 				indexModelEntity.setDataModel(null);
-				if(list.contains(indexModelEntity.getName())) {
+				if(indexList.contains(indexModelEntity.getName())) {
 					columnModelService.deleteTableIndex(entity.getTableName(), indexModelEntity.getName());
 				}
 				indexManager.save(indexModelEntity);
@@ -516,6 +518,7 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 					ids.add(columnReferenceEntity.getToColumn().getId());
 				}
 				columnModelService.deleteOldColumnReferenceEntity(columnModelEntity, ids, columnReferences);
+				columnModelService.updateColumnModelEntityIndex(columnModelEntity);
 				columnModelService.delete(columnModelEntity);
 				deletedCloumns.remove(columnModelEntity);
 				j--;

@@ -28,4 +28,7 @@ public interface DataModelService extends JPAService<DataModelEntity> {
 
 	//更新索引
 	void updateDataModelIndex(DataModelEntity modelEntity);
+
+	//查询表单所有索引
+	List<String> listDataIndexName(String tableName);
 }

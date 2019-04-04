@@ -11,6 +11,7 @@ import tech.ascs.icity.iform.api.model.ReferenceModel;
 import tech.ascs.icity.iform.api.model.ReferenceType;
 import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.ColumnModelService;
+import tech.ascs.icity.iform.service.DataModelService;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 
@@ -35,6 +36,9 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
 
     @Autowired
     JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    DataModelService dataModelService;
 
     @Override
     protected void initManager() {
@@ -270,8 +274,13 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
     @Override
     public void updateColumnModelEntityIndex(ColumnModelEntity columnModelEntity) {
         List<IndexModelEntity> list = indexModelManager.query().filterIn("columns.id", columnModelEntity.getId()).list();
+        String tableName = columnModelEntity.getDataModel().getTableName();
+        List<String> indexNameList = dataModelService.listDataIndexName(tableName);
         if(list != null && list.size() > 0){
             for(IndexModelEntity indexModelEntity : list){
+                if(indexNameList.contains(indexModelEntity.getName())) {
+                    deleteTableIndex(tableName, indexModelEntity.getName());
+                }
                 indexModelEntity.getColumns().remove(columnModelEntity);
                 indexModelManager.save(indexModelEntity);
             }
