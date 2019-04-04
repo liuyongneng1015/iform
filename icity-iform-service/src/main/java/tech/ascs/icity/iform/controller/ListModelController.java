@@ -52,19 +52,6 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 	public List<ListModel> list(@RequestParam(name = "name", defaultValue = "") String name,
 								@RequestParam(name = "applicationId", required = false) String applicationId) {
 		return listModelService.findListModelSimpleInfo(name, applicationId, null);
-//		try {
-//			Query<ListModelEntity, ListModelEntity> query = listModelService.query();
-//			if (StringUtils.hasText(name)) {
-//				query.filterLike("name", "%" + name + "%");
-//			}
-//			if (StringUtils.hasText(applicationId)) {
-//				query.filterEqual("applicationId", applicationId);
-//			}
-//			List<ListModelEntity> entities = query.sort(Sort.desc("id")).list();
-//			return toDTO(entities);
-//		} catch (Exception e) {
-//			throw new IFormException("获取列表模型列表失败：" + e.getMessage(), e);
-//		}
 	}
 
 	@Override
@@ -73,19 +60,6 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 								@RequestParam(name = "pagesize", defaultValue="10") int pagesize,
 								@RequestParam(name = "applicationId", required = false) String applicationId) {
 		return listModelService.findListModelSimplePageInfo(name, applicationId, page, pagesize);
-//		try {
-//			Query<ListModelEntity, ListModelEntity> query = listModelService.query();
-//			if (StringUtils.hasText(name)) {
-//				query.filterLike("name", "%" + name + "%");
-//			}
-//			if (StringUtils.hasText(applicationId)) {
-//				query.filterEqual("applicationId", applicationId);
-//			}
-//			Page<ListModelEntity> entities = query.sort(Sort.desc("id")).page(page, pagesize).page();
-//			return toDTO(entities);
-//		} catch (Exception e) {
-//			throw new IFormException("获取列表模型列表失败：" + e.getMessage(), e);
-//		}
 	}
 
 	@Override
@@ -317,7 +291,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		verfyListName(listModel);
 
 		ListModelEntity entity =  new ListModelEntity() ;
-		BeanUtils.copyProperties(listModel, entity, new String[] {"dataModels", "masterForm","slaverForms","sortItems", "searchItems","functions","displayItems", "quickSearchItems"});
+		BeanUtils.copyProperties(listModel, entity, new String[] {"dataModels", "masterForm","slaverForms","sortItems", "searchItems","functions","displayItems", "quickSearchItems", "relevanceItemModelList"});
 
 		if(listModel.getMasterForm() != null && !listModel.getMasterForm().isNew()) {
 			FormModelEntity formModelEntity = new FormModelEntity();
@@ -593,18 +567,14 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 					}
 					SearchItem searchItem = new SearchItem();
 					if(itemModelEntity instanceof ReferenceItemModelEntity) {
-						if (((ReferenceItemModelEntity) itemModelEntity).getReferenceType() == ReferenceType.ManyToMany) {
+						ReferenceItemModelEntity referenceItemModelEntity = (ReferenceItemModelEntity)itemModelEntity;
+						if (referenceItemModelEntity.getReferenceType() == ReferenceType.ManyToMany) {
 							searchItem.setMultiple(true);
-						} else if (((ReferenceItemModelEntity) itemModelEntity).getReferenceType() == ReferenceType.OneToOne) {
+						} else if (referenceItemModelEntity.getReferenceType() == ReferenceType.OneToOne) {
 							searchItem.setMultiple(false);
-						} else if (((ReferenceItemModelEntity) itemModelEntity).getReferenceType() == ReferenceType.ManyToOne) {
-							if (((ReferenceItemModelEntity) itemModelEntity).getType() == ItemType.ReferenceLabel) {
-								searchItem.setMultiple(true);
-							} else {
-								searchItem.setMultiple(false);
-							}
-						} else if (((ReferenceItemModelEntity) itemModelEntity).getReferenceType() == ReferenceType.OneToMany) {
-							if (((ReferenceItemModelEntity) itemModelEntity).getType() != ItemType.ReferenceLabel) {
+						} else if (referenceItemModelEntity.getReferenceType() == ReferenceType.ManyToOne ||
+								   referenceItemModelEntity.getReferenceType() == ReferenceType.OneToMany) {
+							if (itemModelEntity.getType() == ItemType.ReferenceLabel) {
 								searchItem.setMultiple(true);
 							} else {
 								searchItem.setMultiple(false);
