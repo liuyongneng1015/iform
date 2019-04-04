@@ -3,6 +3,7 @@ package tech.ascs.icity.iform.api.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import org.apache.commons.lang3.StringUtils;
@@ -70,6 +71,10 @@ public class ListModel extends NameEntity {
 
 	@ApiModelProperty(value = "数据权限", position = 13)
 	private DataPermissionsType dataPermissions;
+
+	@ApiModelProperty(value="关联关系控件集合",position = 10)
+	@JsonInclude(JsonInclude.Include.NON_EMPTY)
+	private List<ItemModel> relevanceItemModelList = new ArrayList();
 
 	public String getDescription() {
 		return description;
@@ -165,6 +170,14 @@ public class ListModel extends NameEntity {
 
 	public void setDataPermissions(DataPermissionsType dataPermissions) {
 		this.dataPermissions = dataPermissions;
+	}
+
+	public List<ItemModel> getRelevanceItemModelList() {
+		return relevanceItemModelList;
+	}
+
+	public void setRelevanceItemModelList(List<ItemModel> relevanceItemModelList) {
+		this.relevanceItemModelList = relevanceItemModelList;
 	}
 
 	@Override
