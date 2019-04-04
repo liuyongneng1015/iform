@@ -1830,15 +1830,17 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			formModel.setItems(items);
 		}
 		//联动控件
-		List<ItemModel> linkedItemModelList = new ArrayList<>();
+		List<LinkedItemModel> linkedItemModelList = new ArrayList<>();
 		List<ItemModel> itemModels = formModelService.findAllItemModels(formModel.getItems());
 		for(ItemModel itemModel : itemModels){
 			if((itemModel.getType() == ItemType.Select || itemModel.getType() == ItemType.RadioGroup || itemModel.getType() == ItemType.CheckboxGroup) &&
 					(itemModel.getReferenceRootFlag() != null && itemModel.getReferenceRootFlag())){
 				SelectItemModelEntity rootItemModelEntity = (SelectItemModelEntity) itemModelService.get(itemModel.getId());
-				ItemModel rootItemModel = new ItemModel();
-				BeanUtils.copyProperties(rootItemModelEntity, rootItemModel, new String[]{"formModel", "columnModel", "activities", "options", "searchItems", "sortItems", "permissions", "items", "parentItem", "referenceList"});
-				getSelectItemChildRenItems(rootItemModel);
+				LinkedItemModel rootItemModel = new LinkedItemModel();
+				rootItemModel.setId(rootItemModelEntity.getId());
+				rootItemModel.setReferenceDictionaryId(rootItemModelEntity.getReferenceDictionaryId());
+				rootItemModel.setReferenceDictionaryItemId(rootItemModelEntity.getReferenceDictionaryItemId());
+				getSelectItemChildRenItems(rootItemModel, rootItemModelEntity);
 				linkedItemModelList.add(rootItemModel);
 			}
 		}
@@ -1846,20 +1848,17 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		return formModel;
 	}
 
-	private void getSelectItemChildRenItems(ItemModel itemModel){
-		List<ItemModel> chiildrenItemModel = new ArrayList<>();
-		if(itemModel.getType() == ItemType.Select || itemModel.getType() == ItemType.RadioGroup || itemModel.getType() == ItemType.CheckboxGroup) {
-			SelectItemModelEntity rootItemModelEntity = (SelectItemModelEntity) itemModelService.get(itemModel.getId());
-			for (SelectItemModelEntity selectItemModelEntity : rootItemModelEntity.getItems()) {
-				ItemModel chiildItemModel = new ItemModel();
-				chiildItemModel.setId(selectItemModelEntity.getId());
-				chiildItemModel.setParentItemId(rootItemModelEntity.getId());
-				chiildItemModel.setReferenceDictionaryId(selectItemModelEntity.getReferenceDictionaryId());
-				getSelectItemChildRenItems(chiildItemModel);
-				chiildrenItemModel.add(chiildItemModel);
-			}
-			itemModel.setItems(chiildrenItemModel);
+	private void getSelectItemChildRenItems(LinkedItemModel itemModel,SelectItemModelEntity itemModelEntity){
+		List<LinkedItemModel> chiildrenItemModel = new ArrayList<>();
+		for (SelectItemModelEntity selectItemModelEntity : itemModelEntity.getItems()) {
+			LinkedItemModel chiildItemModel = new LinkedItemModel();
+			chiildItemModel.setId(selectItemModelEntity.getId());
+			chiildItemModel.setParentItemId(itemModelEntity.getId());
+			chiildItemModel.setReferenceDictionaryId(selectItemModelEntity.getReferenceDictionaryId());
+			getSelectItemChildRenItems(chiildItemModel, selectItemModelEntity);
+			chiildrenItemModel.add(chiildItemModel);
 		}
+		itemModel.setItems(chiildrenItemModel.size() > 0 ? chiildrenItemModel : null);
 	}
 
 	private void setPCReferenceItemModel(ReferenceItemModelEntity itemModelEntity, Set<PCFormModel> referenceFormModelList, Map<String, DataModelEntity> dataModelEntities, Map<String, List<String>> columnsMap){

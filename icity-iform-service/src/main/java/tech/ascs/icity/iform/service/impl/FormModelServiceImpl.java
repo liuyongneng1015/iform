@@ -1383,7 +1383,6 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		List<ItemModel> itemModelList = new ArrayList<>();
 		itemModelList.addAll(itemModels);
 		for(ItemModel itemModel : itemModels){
-			itemModelList.add(itemModel);
 			itemModelList.addAll(getChildRenItemModel(itemModel));
 		}
 		return itemModelList;

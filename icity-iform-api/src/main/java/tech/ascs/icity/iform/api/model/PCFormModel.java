@@ -63,7 +63,7 @@ public class PCFormModel extends NameEntity {
 	private List<PCFormModel> referenceFormModel = new ArrayList<PCFormModel>();
 
 	@ApiModelProperty(value="联动控件集合",position = 12)
-	private List<ItemModel> linkedItemModelList;
+	private List<LinkedItemModel> linkedItemModelList;
 
 	public PCProceeeModel getProcess() {
 		return process;
@@ -145,11 +145,11 @@ public class PCFormModel extends NameEntity {
 		this.referenceFormModel = referenceFormModel;
 	}
 
-    public List<ItemModel> getLinkedItemModelList() {
+    public List<LinkedItemModel> getLinkedItemModelList() {
         return linkedItemModelList;
     }
 
-    public void setLinkedItemModelList(List<ItemModel> linkedItemModelList) {
+    public void setLinkedItemModelList(List<LinkedItemModel> linkedItemModelList) {
         this.linkedItemModelList = linkedItemModelList;
     }
 
