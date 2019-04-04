@@ -733,18 +733,6 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 	}
 
 	/**
-	 * dictionaryValueType: "Fixed"
-	 * id: "2c928085695709070169571c3e240026"
-	 * multiple: false
-	 * name: "单选框A"
-	 * options: []
-	 * props: "{"props":{},"typeKey":"radioGroup"}"
-	 * referenceDictionaryId: "2c92808667eea6d20167eec0cace0000"
-	 * referenceDictionaryItemId: "ff80808167e302450167e30700150000"
-	 * systemItemType: "RadioGroup"
-	 * type: "RadioGroup"
-	 * uniquene: false
-	 * uuid: "b32e99ee-fddc-4634-ab0c-d87117aaee18"
 	 * @param parentItemModel
 	 * @param parentItemModelEntity
 	 */
@@ -758,7 +746,6 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				selectItemSonModel.setType(selectItemSonEntity.getType());
 				selectItemSonModel.setName(selectItemSonEntity.getName());
 				selectItemSonModel.setProps(selectItemSonEntity.getProps());
-//				selectItemSonModel.setOptions(selectItemModelEntity.getOptions());
 				selectItemSonModel.setSystemItemType(selectItemSonEntity.getSystemItemType());
 				selectItemSonModel.setReferenceDictionaryId(selectItemSonEntity.getReferenceDictionaryId());
 				selectItemSonModel.setReferenceDictionaryItemId(selectItemSonEntity.getReferenceDictionaryItemId());
