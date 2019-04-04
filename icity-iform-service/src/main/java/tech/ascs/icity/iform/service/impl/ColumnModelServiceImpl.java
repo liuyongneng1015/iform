@@ -6,6 +6,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import tech.ascs.icity.iform.api.model.ColumnType;
+import tech.ascs.icity.iform.api.model.IndexType;
 import tech.ascs.icity.iform.api.model.ReferenceModel;
 import tech.ascs.icity.iform.api.model.ReferenceType;
 import tech.ascs.icity.iform.model.*;
@@ -274,6 +275,39 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
                 indexModelEntity.getColumns().remove(columnModelEntity);
                 indexModelManager.save(indexModelEntity);
             }
+        }
+    }
+
+    @Override
+    public void deleteTableIndex(String tableName, String indexName) {
+        try {
+            String deleteIndexSql = "alter table  if_" + tableName + " drop index " + indexName;
+            jdbcTemplate.execute(deleteIndexSql);
+        } catch (DataAccessException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void createTableIndex(String tableName, IndexModelEntity index) {
+        try {
+            if(index.getColumns() == null || index.getColumns().size() < 1){
+                return;
+            }
+            String deleteIndexSql = null;
+            StringBuffer sub = new StringBuffer();
+            for(ColumnModelEntity columnModelEntity : index.getColumns()){
+                sub.append(",f"+columnModelEntity.getColumnName());
+            }
+            String str = sub.toString().substring(1);
+            if(index.getIndexType() == IndexType.Unique) {
+                 deleteIndexSql = " CREATE UNIQUE INDEX "+index.getName()+" ON if_" + tableName + "(" + str+")";
+            }else{
+                deleteIndexSql = " CREATE INDEX "+index.getName()+" ON if_" + tableName + "(" + str+")";
+            }
+            jdbcTemplate.execute(deleteIndexSql);
+        } catch (DataAccessException e) {
+            e.printStackTrace();
         }
     }
 

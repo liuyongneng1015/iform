@@ -25,4 +25,7 @@ public interface DataModelService extends JPAService<DataModelEntity> {
 
 	// 单个删除或者批量删除时，校验模型是否被关联
 	void checkDataModelIsReference(List<DataModelEntity> list);
+
+	//更新索引
+	void updateDataModelIndex(DataModelEntity modelEntity);
 }

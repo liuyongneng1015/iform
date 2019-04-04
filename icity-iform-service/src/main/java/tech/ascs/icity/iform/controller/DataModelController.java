@@ -450,6 +450,15 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 	private IndexModel toDTO(IndexModelEntity entity) {
 		IndexModel indexModel = new IndexModel();
 		BeanUtils.copyProperties(entity, indexModel, new String[] {"dataModel","columns"});
+		if(entity.getColumns() != null && entity.getColumns().size() > 0){
+			List<ColumnModelInfo> columnModels = new ArrayList<>();
+			for(ColumnModelEntity columnModelEntity : entity.getColumns()){
+				ColumnModelInfo columnModelInfo = new ColumnModelInfo();
+				BeanUtils.copyProperties(columnModelEntity, columnModelInfo, new String[] {"dataModel","columnReferences"});
+				columnModels.add(columnModelInfo);
+			}
+			indexModel.setColumns(columnModels);
+		}
 		return indexModel;
 	}
 }

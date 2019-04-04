@@ -1,5 +1,7 @@
 package tech.ascs.icity.iform.service.impl;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -9,6 +11,7 @@ import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.transaction.annotation.Transactional;
 
 import tech.ascs.icity.iform.IFormException;
@@ -296,6 +299,7 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 			for(DataModelEntity slaverDataModelEntity : dataModel.getSlaverModels()){
 				slaverDataModelEntity.setSynchronized(true);
 			}
+			updateDataModelIndex(dataModel);
 			save(dataModel);
 		} catch (Exception e) {
 			throw new IFormException("同步数据模型【" + dataModel.getName() + "】失败：" + e.getMessage(), e);
@@ -429,8 +433,55 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		}
 	}
 
+	@Override
+	public void updateDataModelIndex(DataModelEntity modelEntity) {
+		List<String> list = listDataIndexName(modelEntity.getTableName());
+		for(IndexModelEntity indexModelEntity : modelEntity.getIndexes()){
+			if (list.contains(indexModelEntity.getName())) {
+				columnModelService.deleteTableIndex(modelEntity.getTableName(), indexModelEntity.getName());
+			}
+			columnModelService.createTableIndex(modelEntity.getTableName(), indexModelEntity);
+		}
+	}
+
+	private List<String> listDataIndexName(String tableName){
+		String foreignIndexSql =" select  CONSTRAINT_NAME, COLUMN_NAME   from INFORMATION_SCHEMA.KEY_COLUMN_USAGE  where TABLE_NAME = 'if_"+tableName+"'";
+		List<Map<String, Object>> mapList = listDataModelIndexBySql(foreignIndexSql);
+		List<String> list = new ArrayList<>();
+		for(Map<String, Object> map : mapList){
+			list.add((String)map.get("CONSTRAINT_NAME"));
+		}
+		return list;
+	}
+
+	private List<Map<String, Object>> listDataModelIndexBySql(String sql) {
+		List<Map<String, Object>> list = new ArrayList<>();
+		try {
+			list = jdbcTemplate.query(sql, new DataModelIndexRowMapper());
+		} catch (DataAccessException e) {
+			e.printStackTrace();
+		}
+		return list;
+	}
+
+	class DataModelIndexRowMapper implements RowMapper {
+
+		@Override
+		//实现mapRow方法
+		public Map<String, Object> mapRow(ResultSet rs, int num) throws SQLException {
+			//对类进行封装
+			Map<String, Object> map = new HashMap<>();
+			map.put("CONSTRAINT_NAME",rs.getString("CONSTRAINT_NAME"));
+			map.put("COLUMN_NAME", rs.getString("COLUMN_NAME"));
+			return map;
+		}
+	}
+
+
 	@Transactional(readOnly = false)
 	protected DataModelEntity save(DataModelEntity entity, List<ColumnModelEntity> deletedCloumns, List<IndexModelEntity> deletedIndexes) {
+
+		List<String> list = listDataIndexName(entity.getTableName());
 
 		//删除索引
 		if (!deletedIndexes.isEmpty()) {
@@ -440,6 +491,9 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 					indexModelEntity.setColumns(null);
 				}
 				indexModelEntity.setDataModel(null);
+				if(list.contains(indexModelEntity.getName())) {
+					columnModelService.deleteTableIndex(entity.getTableName(), indexModelEntity.getName());
+				}
 				indexManager.save(indexModelEntity);
 				indexManager.delete(indexModelEntity);
 			}
