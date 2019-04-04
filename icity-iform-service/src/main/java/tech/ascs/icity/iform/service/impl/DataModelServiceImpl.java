@@ -200,10 +200,18 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		for (IndexModelEntity oldIndex : old.getIndexes()) {
 			indexModelEntityMap.put(oldIndex.getId(), oldIndex);
 		}
+		Map<String, Object> map = new HashMap<>();
+		List<String> list = listDataIndexName(old.getTableName());
 		for (IndexModel index : dataModel.getIndexes()) {
+			 if(map.get(index.getName()) != null){
+			 	throw new IFormException("索引名"+index.getName()+"重复了");
+			 }
 			IndexModelEntity indexEntity = index.isNew() ? new IndexModelEntity() : indexModelEntityMap.remove(index.getId());
 			if(indexEntity == null){
 				indexEntity = new IndexModelEntity();
+			}
+			if(!index.isNew() && !index.getName().equals(indexEntity.getName()) && list.contains(indexEntity.getName())){
+				columnModelService.deleteTableIndex(old.getTableName(), indexEntity.getName());
 			}
 			BeanUtils.copyProperties(index, indexEntity, new String[] {"dataModel", "columns"});
 			indexEntity.setDataModel(old);
