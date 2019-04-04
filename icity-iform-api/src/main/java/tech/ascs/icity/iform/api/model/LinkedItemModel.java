@@ -11,17 +11,29 @@ import java.util.List;
 @ApiModel("表单联动控件模型ItemModel")
 public class LinkedItemModel extends NameEntity {
 
-	@ApiModelProperty(value = "关联字典分类ID", position = 13)
+	@ApiModelProperty(value = "默认值", position = 3)
+	private String defaultValue;
+
+	@ApiModelProperty(value = "关联字典分类ID", position = 4)
 	private String referenceDictionaryId;
 
-	@ApiModelProperty(value = " 关联字典联动目标id", position = 13)
+	@ApiModelProperty(value = " 关联字典联动目标id", position = 5)
 	private String referenceDictionaryItemId;
 
-	@ApiModelProperty(value="上级关联控件模型id",position = 22)
+	@ApiModelProperty(value="上级关联控件模型id",position = 6)
 	private String parentItemId ;
 
-	@ApiModelProperty(value="组件子项（由组和字段构成） ",position = 26)
+	@ApiModelProperty(value="组件子项（由组和字段构成） ",position = 7)
 	private List<LinkedItemModel> items;
+
+
+	public String getDefaultValue() {
+		return defaultValue;
+	}
+
+	public void setDefaultValue(String defaultValue) {
+		this.defaultValue = defaultValue;
+	}
 
 	public String getReferenceDictionaryId() {
 		return referenceDictionaryId;

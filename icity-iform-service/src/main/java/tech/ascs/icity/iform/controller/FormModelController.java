@@ -1840,6 +1840,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				rootItemModel.setId(rootItemModelEntity.getId());
 				rootItemModel.setReferenceDictionaryId(rootItemModelEntity.getReferenceDictionaryId());
 				rootItemModel.setReferenceDictionaryItemId(rootItemModelEntity.getReferenceDictionaryItemId());
+				rootItemModel.setDefaultValue(rootItemModelEntity.getDefaultReferenceValue());
 				getSelectItemChildRenItems(rootItemModel, rootItemModelEntity);
 				linkedItemModelList.add(rootItemModel);
 			}
