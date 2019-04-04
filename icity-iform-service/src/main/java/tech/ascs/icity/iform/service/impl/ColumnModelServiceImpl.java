@@ -30,6 +30,8 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
 
     private JPAManager<IndexModelEntity> indexModelManager;
 
+    private JPAManager<ItemModelEntity> itemModeManager;
+
     public ColumnModelServiceImpl() {
         super(ColumnModelEntity.class);
     }
@@ -46,6 +48,7 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
         columnReferenceManager = getJPAManagerFactory().getJPAManager(ColumnReferenceEntity.class);
         columnModelManager = getJPAManagerFactory().getJPAManager(ColumnModelEntity.class);
         indexModelManager = getJPAManagerFactory().getJPAManager(IndexModelEntity.class);
+        itemModeManager = getJPAManagerFactory().getJPAManager(ItemModelEntity.class);
     }
 
     @Override
@@ -303,18 +306,23 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
             if(index.getColumns() == null || index.getColumns().size() < 1){
                 return;
             }
-            String deleteIndexSql = null;
+            String indexSql = null;
             StringBuffer sub = new StringBuffer();
             for(ColumnModelEntity columnModelEntity : index.getColumns()){
-                sub.append(",f"+columnModelEntity.getColumnName());
+                List<ItemModelEntity> itemModelEntityList = itemModeManager.query().filterIn("columnModel.id", columnModelEntity.getId()).list();
+                if(itemModelEntityList == null || itemModelEntityList.size() < 1 || !(itemModelEntityList.get(0) instanceof ReferenceItemModelEntity)) {
+                    sub.append(",f" + columnModelEntity.getColumnName());
+                }else{
+                    sub.append("," + columnModelEntity.getColumnName());
+                }
             }
             String str = sub.toString().substring(1);
             if(index.getIndexType() == IndexType.Unique) {
-                 deleteIndexSql = " CREATE UNIQUE INDEX "+index.getName()+" ON if_" + tableName + "(" + str+")";
+                indexSql = "ALTER TABLE if_"+tableName+" ADD UNIQUE INDEX "+index.getName()+"(" + str+")";
             }else{
-                deleteIndexSql = " CREATE INDEX "+index.getName()+" ON if_" + tableName + "(" + str+")";
+                indexSql = "ALTER TABLE if_"+tableName+" ADD INDEX "+index.getName()+"(" + str+")";
             }
-            jdbcTemplate.execute(deleteIndexSql);
+            jdbcTemplate.execute(indexSql);
         } catch (DataAccessException e) {
             e.printStackTrace();
         }
