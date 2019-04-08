@@ -22,7 +22,7 @@ public class IndexModelEntity extends BaseEntity implements Serializable {
 	@JoinColumn(name="data_model")
 	private DataModelEntity dataModel;
 
-	@ManyToMany(cascade = {CascadeType.REFRESH })
+	@ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.DETACH, CascadeType.REFRESH })
 	@JoinTable(
 		name = "ifm_index_column",
 		joinColumns = @JoinColumn( name="index_info"),

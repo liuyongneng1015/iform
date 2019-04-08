@@ -291,12 +291,12 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 			if (StringUtils.isEmpty(column.getColumnName())) {
 				throw new IFormException("字段名称不允许为空");
 			}
-			if (Pattern.matches(regEx, column.getColumnName()) == false) {
+			if (column.getColumnName() == null || Pattern.matches(regEx, column.getColumnName()) == false) {
 				throw new IFormException("字段名称必须以字母开头，只能包含数字，字母，下划线，不能包含中文，横杆等特殊字符");
 			}
 		}
 		for (IndexModel indexModel:dataModel.getIndexes()) {
-			if (Pattern.matches(regEx, indexModel.getName()) == false) {
+			if (indexModel.getName() == null || Pattern.matches(regEx, indexModel.getName()) == false) {
 				throw new IFormException("索引名必须以字母开头，只能包含数字，字母，下划线，不能包含中文，横杆等特殊字符");
 			}
 		}

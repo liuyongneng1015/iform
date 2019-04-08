@@ -276,7 +276,11 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
 
     @Override
     public void updateColumnModelEntityIndex(ColumnModelEntity columnModelEntity) {
-        List<IndexModelEntity> list = indexModelManager.query().filterIn("columns.id", columnModelEntity.getId()).list();
+        List<String> idlist = jdbcTemplate.queryForList("select i.index_info  from ifm_index_column as i  where i.column_model='"+columnModelEntity.getId()+"'", String.class);
+        if(idlist == null || idlist.size() < 1){
+            return;
+        }
+        List<IndexModelEntity> list = indexModelManager.query().filterIn("id", idlist).list();
         String tableName = columnModelEntity.getDataModel().getTableName();
         List<String> indexNameList = dataModelService.listDataIndexName(tableName);
         if(list != null && list.size() > 0){

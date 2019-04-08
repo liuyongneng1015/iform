@@ -36,7 +36,7 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 
 	private JPAManager<ReferenceItemModelEntity> referenceItemModelEntityManager;
 
-	private JPAManager<SelectItemModelEntity> selectItemModelEntityManager;
+	private JPAManager<ColumnModelEntity> columnModelManager;
 
 	private JPAManager<QuickSearchEntity> quickSearchEntityManager;
 
@@ -70,7 +70,7 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 		searchItemManager = getJPAManagerFactory().getJPAManager(ListSearchItem.class);
 		listFunctionManager = getJPAManagerFactory().getJPAManager(ListFunction.class);
 		quickSearchEntityManager = getJPAManagerFactory().getJPAManager(QuickSearchEntity.class);
-		selectItemModelEntityManager = getJPAManagerFactory().getJPAManager(SelectItemModelEntity.class);
+		columnModelManager = getJPAManagerFactory().getJPAManager(ColumnModelEntity.class);
 		referenceItemModelEntityManager = getJPAManagerFactory().getJPAManager(ReferenceItemModelEntity.class);
 		formModelEntityJPAManager = getJPAManagerFactory().getJPAManager(FormModelEntity.class);
 		dataModelEntityJPAManager = getJPAManagerFactory().getJPAManager(DataModelEntity.class);
@@ -544,9 +544,15 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 		if(!StringUtils.hasText(tableName)){
 			throw new IFormException("请求参数【"+tableName+"】为空了");
 		}
-
-		List<ListModelEntity> listModelEntities = query().filterEqual("masterForm.dataModels.tableName", tableName).list();
-
+		ColumnModelEntity columnModelEntity = columnModelManager.query().filterEqual("tableName", tableName).first();
+		if(columnModelEntity == null){
+			throw new IFormException("未找到【"+tableName+"】对应的表");
+		}
+		List<String> idlist = jdbcTemplate.queryForList("select i.index_info  from ifm_index_column as i  where i.column_model='"+columnModelEntity.getId()+"'", String.class);
+		if(idlist == null || idlist.size() < 1){
+			throw new IFormException("未找到【"+tableName+"】对应的表单");
+		}
+		List<ListModelEntity> listModelEntities = query().filterEqual("masterForm.id", idlist).list();
 		if(listModelEntities == null || listModelEntities.size() < 1 ){
 			throw new IFormException("未找到【"+tableName+"】对应的列表模型");
 		}

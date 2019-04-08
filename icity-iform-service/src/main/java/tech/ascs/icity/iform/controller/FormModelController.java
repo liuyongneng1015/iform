@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import com.googlecode.genericdao.search.Sort;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -70,6 +71,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 	@Autowired
 	private FormInstanceServiceEx formInstanceServiceEx;
+
+	@Autowired
+	private JdbcTemplate jdbcTemplate;
 
 	@Override
 	public List<FormModel> list(@RequestParam(name="name", defaultValue="") String name, @RequestParam(name = "applicationId", required = false) String applicationId) {
@@ -328,8 +332,18 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		if (StringUtils.isEmpty(tableName)) {
 			return null;
 		}
+
+		ColumnModelEntity columnModelEntity = columnModelService.query().filterEqual("tableName", tableName).first();
+		if(columnModelEntity == null){
+			throw new IFormException("未找到【"+tableName+"】对应的表");
+		}
+		List<String> idlist = jdbcTemplate.queryForList("select i.index_info  from ifm_index_column as i  where i.column_model='"+columnModelEntity.getId()+"'", String.class);
+		if(idlist == null || idlist.size() < 1){
+			throw new IFormException("未找到【"+tableName+"】对应的表单");
+		}
 		Query<FormModelEntity, FormModelEntity> query = formModelService.query();
-		query.filterEqual("dataModels.tableName", tableName);
+
+		query.filterIn("id", idlist);
 		FormModelEntity entitiy = query.sort(Sort.desc("id")).first();
 		if (entitiy!=null) {
 			IdEntity idEntity = new IdEntity();
