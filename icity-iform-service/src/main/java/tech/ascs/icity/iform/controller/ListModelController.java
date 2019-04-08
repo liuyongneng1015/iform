@@ -646,12 +646,13 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 								chiildrenItemModel.add(chiildItemModel);
 							}
 
+							// 设置联动控件
 							ItemModel selectItemModel = new ItemModel();
 							selectItemModel.setId(selectItemModelEntity.getId());
-							selectItemModel.setType(selectItemModelEntity.getType());
-							selectItemModel.setName(selectItemModelEntity.getName());
-							selectItemModel.setProps(selectItemModelEntity.getProps());
-							selectItemModel.setSystemItemType(selectItemModelEntity.getSystemItemType());
+//							selectItemModel.setType(selectItemModelEntity.getType());
+//							selectItemModel.setName(selectItemModelEntity.getName());
+//							selectItemModel.setProps(selectItemModelEntity.getProps());
+//							selectItemModel.setSystemItemType(selectItemModelEntity.getSystemItemType());
 							selectItemModel.setReferenceDictionaryId(selectItemModelEntity.getReferenceDictionaryId());
 							selectItemModel.setReferenceDictionaryItemId(selectItemModelEntity.getReferenceDictionaryItemId());
 							listModel.getRelevanceItemModelList().add(selectItemModel);
@@ -743,12 +744,13 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			for (SelectItemModelEntity selectItemSonEntity:selectItemModelEntity.getItems()) {
 				ItemModel selectItemSonModel = new ItemModel();
 				selectItemSonModel.setId(selectItemSonEntity.getId());
-				selectItemSonModel.setType(selectItemSonEntity.getType());
-				selectItemSonModel.setName(selectItemSonEntity.getName());
-				selectItemSonModel.setProps(selectItemSonEntity.getProps());
-				selectItemSonModel.setSystemItemType(selectItemSonEntity.getSystemItemType());
-				selectItemSonModel.setReferenceDictionaryId(selectItemSonEntity.getReferenceDictionaryId());
-				selectItemSonModel.setReferenceDictionaryItemId(selectItemSonEntity.getReferenceDictionaryItemId());
+//				selectItemSonModel.setType(selectItemSonEntity.getType());
+//				selectItemSonModel.setName(selectItemSonEntity.getName());
+//				selectItemSonModel.setProps(selectItemSonEntity.getProps());
+				selectItemSonModel.setParentItemId(parentItemModelEntity.getId());
+//				selectItemSonModel.setSystemItemType(selectItemSonEntity.getSystemItemType());
+//				selectItemSonModel.setReferenceDictionaryId(selectItemSonEntity.getReferenceDictionaryId());
+//				selectItemSonModel.setReferenceDictionaryItemId(selectItemSonEntity.getReferenceDictionaryItemId());
 				list.add(selectItemSonModel);
 				setChildrenItems(selectItemSonModel, selectItemSonEntity);
 			}
@@ -786,9 +788,8 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 	}
 
 	/**
-	 * 过滤 子表
 	 *
-	 * 获取主表单包含的普通控件item的id集合
+	 * 获取主表单包含的普通控件item集合
 	 * @param masterForm
 	 * @return
 	 */
@@ -796,25 +797,10 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		Set<ItemModelEntity> items = new HashSet<>();
 		if (masterForm!=null && masterForm.getItems()!=null) {
 			for (ItemModelEntity item:masterForm.getItems()) {
-				if (item.getType()!=null && item.getType()!=ItemType.SubForm) {
+				if (item.getType()!=null) {
 					items.add(item);
 					items.addAll(getItemsInItem(item));
-//					if (item.getType()!=ItemType.SubForm && item.getType()!=ItemType.ReferenceList) {
-//						// 过滤标签页这个外层的控件，遍历进去获取里面的控件
-//						if (item instanceof TabPaneItemModelEntity) {
-//							TabsItemModelEntity tabsItemModelEntity = (TabsItemModelEntity) item;
-//							items.addAll(getTabsInsideItems(tabsItemModelEntity));
-//						} else {
-//							items.add(item);
-//						}
-//					}
-//					ids.addAll(getItemsInItem(item));
 				}
-//				if (item.getType()!=null && item.getType()!=ItemType.Row &&
-//						item.getType()!=ItemType.SubForm && item.getType()!=ItemType.RowItem &&
-//						item.getType()!=ItemType.ReferenceList) {
-//					ids.addAll(getItemsInItem(item));
-//				}
 			}
 		}
 		return items;
