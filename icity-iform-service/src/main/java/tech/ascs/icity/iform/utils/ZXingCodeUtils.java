@@ -47,7 +47,7 @@ public class ZXingCodeUtils {
         }
     };
 
-        public static void main(String[] args) throws Exception {
+        public static void test(String[] args) throws Exception {
             File logoFile = new File("E:/lyn/qrcode/back.jpg");
             File QrCodeFile = new File("E:/lyn/qrcode/lyn.jpg");
             String url = "http://www.baidu.com";
