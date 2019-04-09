@@ -2354,9 +2354,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				break;
 			case ReferenceLabel:
 				ReferenceItemModelEntity referenceItemModelEntity = (ReferenceItemModelEntity)itemModel;
-				ItemModelEntity referenceItem = itemModelManager.find(referenceItemModelEntity.getReferenceItemId());
-				if (referenceItem!=null) {
-					updateValue(referenceItem, itemInstance, value);
+				if (StringUtils.hasText(referenceItemModelEntity.getReferenceItemId())) {
+					ItemModelEntity referenceItem = itemModelManager.find(referenceItemModelEntity.getReferenceItemId());
+					if (referenceItem != null) {
+						updateValue(referenceItem, itemInstance, value);
+					}
 				}
 				break;
 			case ReferenceList:
