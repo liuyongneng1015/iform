@@ -697,7 +697,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 
 		for(String key : oldMasterDataModelMap.keySet()){
-			dataModelService.deleteById(key);
+			updateSalverDataModel(oldMasterDataModelMap.get(key));
 		}
 
 		//数据标识对应的字段
@@ -725,6 +725,19 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		dataModelService.save(masterDataModelEntity);
 
 		return entity;
+	}
+
+	//更新表单建模
+	private void updateSalverDataModel(DataModelEntity dataModelEntity){
+		dataModelEntity.setMasterModel(null);
+		for(ColumnModelEntity columnModelEntity : dataModelEntity.getColumns()){
+			List<ItemModelEntity> itemModelEntityList = itemModelService.query().filterIn("columnModel.id", columnModelEntity.getId()).list();
+			for(ItemModelEntity itemModelEntity : itemModelEntityList){
+				itemModelEntity.setColumnModel(null);
+				itemModelService.save(itemModelEntity);
+			}
+		}
+		dataModelService.save(dataModelEntity);
 	}
 
 	private void setMasterDataModelEntity(DataModelEntity masterDataModelEntity, DataModel masterDataModel, FormModel formModel, Map<String, DataModelEntity> oldMasterDataModelMap){
@@ -1249,6 +1262,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 		//设置控件字段
 		setColumnModel(entity, itemModel);
+		entity.setSourceFormModelId(sourceFormModelId);
 
 		if(!(entity instanceof RowItemModelEntity) && !(entity instanceof TabsItemModelEntity)
 				&& !(entity instanceof SubFormItemModelEntity) && !(entity instanceof SubFormRowItemModelEntity)

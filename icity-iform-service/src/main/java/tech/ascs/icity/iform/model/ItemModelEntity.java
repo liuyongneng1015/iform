@@ -67,6 +67,9 @@ public class ItemModelEntity extends  BaseEntity implements Serializable {
 	@Column(name="uniquene") // 是否唯一
 	private Boolean uniquene = false;
 
+	@Column(name="source_form_model_id") // 属于哪个表单控件
+	private String sourceFormModelId;
+
 	public FormModelEntity getFormModel() {
 		return formModel;
 	}
@@ -171,4 +174,11 @@ public class ItemModelEntity extends  BaseEntity implements Serializable {
 		this.uniquene = uniquene;
 	}
 
+	public String getSourceFormModelId() {
+		return sourceFormModelId;
+	}
+
+	public void setSourceFormModelId(String sourceFormModelId) {
+		this.sourceFormModelId = sourceFormModelId;
+	}
 }

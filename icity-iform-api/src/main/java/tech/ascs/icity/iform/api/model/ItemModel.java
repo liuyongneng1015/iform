@@ -193,6 +193,9 @@ public class ItemModel extends NameEntity {
 	@ApiModelProperty(value = "关联的根节点标识", position = 52)
 	private Boolean referenceRootFlag;
 
+	@ApiModelProperty(value = "来源的表单建模id", position = 53)
+	private String sourceFormModelId;
+
 	public ItemType getType() {
 		return type;
 	}
@@ -706,6 +709,14 @@ public class ItemModel extends NameEntity {
 
 	public void setReferenceRootFlag(Boolean referenceRootFlag) {
 		this.referenceRootFlag = referenceRootFlag;
+	}
+
+	public String getSourceFormModelId() {
+		return sourceFormModelId;
+	}
+
+	public void setSourceFormModelId(String sourceFormModelId) {
+		this.sourceFormModelId = sourceFormModelId;
 	}
 
 	@Override
