@@ -1650,6 +1650,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				idVlaue = itemInstance.getValue();
 			}
 		}
+		// referenceDataModelList的数据对应的是关联表单的数据标识的item的数据
 		for (ReferenceDataInstance referenceDataInstance : referenceDataModelList) {
 			if(copyDisplayIds.contains(referenceDataInstance.getId())){
 				ItemModelEntity itemModelEntity = itemModelManager.get(referenceDataInstance.getId());
@@ -2350,6 +2351,13 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				break;
 			case Map:
 				setMapItemInstance(value, itemInstance);
+				break;
+			case ReferenceLabel:
+				ReferenceItemModelEntity referenceItemModelEntity = (ReferenceItemModelEntity)itemModel;
+				ItemModelEntity referenceItem = itemModelManager.find(referenceItemModelEntity.getReferenceItemId());
+				if (referenceItem!=null) {
+					updateValue(referenceItem, itemInstance, value);
+				}
 				break;
 			default:
                 String valueStr = value == null || StringUtils.isEmpty(value) ?  null : String.valueOf(value);
