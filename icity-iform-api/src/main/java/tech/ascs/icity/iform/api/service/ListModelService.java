@@ -7,10 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
-import tech.ascs.icity.iform.api.model.AppListForm;
-import tech.ascs.icity.iform.api.model.ApplicationModel;
-import tech.ascs.icity.iform.api.model.ListFormBtnPermission;
-import tech.ascs.icity.iform.api.model.ListModel;
+import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.model.IdEntity;
 import tech.ascs.icity.model.Page;
 
@@ -121,13 +118,14 @@ public interface ListModelService {
 	 * 查询列表应用模型
 	 *
 	 */
-	@ApiOperation(value = "查询列表应用模型", position = 6)
+	@ApiOperation(value = "查询列表应用模型，按应用分类返回", position = 6)
 	@ApiImplicitParams({
-			@ApiImplicitParam(paramType = "query", name = "formId", value = "表单ID", required = false, dataType = "String"),
-			@ApiImplicitParam(paramType = "query", name = "applicationId", value = "应用id", required = true, dataType = "String")
+		@ApiImplicitParam(paramType = "query", name = "formId", value = "表单ID", required = false, dataType = "String"),
+		@ApiImplicitParam(paramType = "query", name = "functionType", value = "功能类型", required = false, dataType = "String"),
 	})
 	@GetMapping("/application")
 	List<ApplicationModel> findListApplicationModel(@RequestParam(name = "formId", required = false) String formId,
+													@RequestParam(name = "functionType", required = false) FunctionType functionType,
 													@RequestParam(name="applicationId", required = true) String applicationId);
 
 	/**

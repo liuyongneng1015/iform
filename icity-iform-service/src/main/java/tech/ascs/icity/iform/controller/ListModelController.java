@@ -51,7 +51,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 	@Override
 	public List<ListModel> list(@RequestParam(name = "name", defaultValue = "") String name,
 								@RequestParam(name = "applicationId", required = false) String applicationId) {
-		return listModelService.findListModelSimpleInfo(name, applicationId, null);
+		return listModelService.findListModelSimpleInfo(name, applicationId, null, false);
 	}
 
 	@Override
@@ -177,8 +177,9 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 
 	@Override
 	public List<ApplicationModel> findListApplicationModel(@RequestParam(name = "formId", required = false) String formId,
+														   @RequestParam(name = "functionType", required = false) FunctionType functionType,
 														   @RequestParam(name="applicationId", required = true) String applicationId) {
-		return list(applicationId, listModelService.findListModelSimpleInfo(null, null, formId));
+		return list(applicationId, listModelService.findListModelSimpleInfo(null, null, formId, FunctionType.activitiList==functionType));
 	}
 
 	@Override
