@@ -739,14 +739,10 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		BeanUtils.copyProperties(masterDataModel, masterDataModelEntity, new String[]{"masterModel", "slaverModels", "columns", "indexes" });
 
 		//创建获取主键未持久化到数据库
-		ColumnModelEntity masterIdColumnEntity = columnModelService.saveColumnModelEntity(masterDataModelEntity, "id");
 		columnModelService.saveColumnModelEntity(masterDataModelEntity, "create_at");
 		columnModelService.saveColumnModelEntity(masterDataModelEntity, "update_at");
 		columnModelService.saveColumnModelEntity(masterDataModelEntity, "create_by");
 		columnModelService.saveColumnModelEntity(masterDataModelEntity, "update_by");
-
-		//创建获取关联字段未持久化到数据库
-		setMasterIdColumnEntity(masterDataModelEntity);
 
 		if(masterDataModelEntity.getModelType() == DataModelType.Single && formModel.getDataModels().size() > 1) {
 			masterDataModelEntity.setModelType(DataModelType.Master);
@@ -754,12 +750,13 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		masterDataModelEntity.setSynchronized(false);
 
 		List<DataModelEntity> slaverDataModelEntities = new ArrayList<>();
-		for(DataModel dataModel : formModel.getDataModels()) {
+		for(int i = 1; i < formModel.getDataModels().size(); i++) {//第一个是主表
+			DataModel dataModel = formModel.getDataModels().get(i);
 			if (dataModel.getMasterModel() == null) {
-				continue;
+				setSlaverDataModel(dataModel, oldMasterDataModelMap, null, slaverDataModelEntities);
+			}else {
+				setSlaverDataModel(dataModel, oldMasterDataModelMap, masterDataModelEntity, slaverDataModelEntities);
 			}
-			setslaverDataModel(dataModel, oldMasterDataModelMap, masterDataModelEntity,
-					masterIdColumnEntity, slaverDataModelEntities);
 		}
 		masterDataModelEntity.setSlaverModels(slaverDataModelEntities);
 	}
@@ -818,29 +815,36 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	}
 
 
-	private void setslaverDataModel(DataModel dataModel, Map<String, DataModelEntity> oldMasterDataModelMap, DataModelEntity masterDataModelEntity,
-					ColumnModelEntity masterIdColumnEntity, List<DataModelEntity> slaverDataModelEntities){
+	private void setSlaverDataModel(DataModel dataModel, Map<String, DataModelEntity> oldMasterDataModelMap, DataModelEntity masterDataModelEntity,
+									List<DataModelEntity> slaverDataModelEntities){
 		//创建关联字段
-		DataModelEntity slaverDataModelEntity = dataModel.isNew() ? new DataModelEntity() :  oldMasterDataModelMap.remove(dataModel.getId());
+		DataModelEntity dataModelEntity = dataModel.isNew() ? new DataModelEntity() :  oldMasterDataModelMap.remove(dataModel.getId());
 
-		slaverDataModelEntity.setModelType(DataModelType.Slaver);
-		slaverDataModelEntity.setSynchronized(false);
-		slaverDataModelEntity.setMasterModel(masterDataModelEntity);
-		BeanUtils.copyProperties(dataModel, slaverDataModelEntity, new String[]{"masterModel","slaverModels","columns","indexes"});
+
+		BeanUtils.copyProperties(dataModel, dataModelEntity, new String[]{"masterModel","slaverModels","columns","indexes"});
+		dataModelEntity.setSynchronized(false);
+		if(masterDataModelEntity != null){
+			dataModelEntity.setModelType(DataModelType.Slaver);
+			dataModelEntity.setMasterModel(masterDataModelEntity);
+		}else{
+			dataModelEntity.setMasterModel(null);
+		}
+
 
 		//设置数据模型行
-		setDataModelEntityColumns(dataModel, slaverDataModelEntity, true);
+		setDataModelEntityColumns(dataModel, dataModelEntity, true);
 
 		//获取主键未持久化到数据库
-		columnModelService.saveColumnModelEntity(slaverDataModelEntity, "id");
-		columnModelService.saveColumnModelEntity(slaverDataModelEntity, "create_at");
-		columnModelService.saveColumnModelEntity(slaverDataModelEntity, "update_at");
-		columnModelService.saveColumnModelEntity(slaverDataModelEntity, "create_by");
-		columnModelService.saveColumnModelEntity(slaverDataModelEntity, "update_by");
-		//子表不需要关联
-		setMasterIdColunm(slaverDataModelEntity, masterIdColumnEntity);
-
-		slaverDataModelEntities.add(slaverDataModelEntity);
+		columnModelService.saveColumnModelEntity(dataModelEntity, "id");
+		columnModelService.saveColumnModelEntity(dataModelEntity, "create_at");
+		columnModelService.saveColumnModelEntity(dataModelEntity, "update_at");
+		columnModelService.saveColumnModelEntity(dataModelEntity, "create_by");
+		columnModelService.saveColumnModelEntity(dataModelEntity, "update_by");
+		if(masterDataModelEntity != null) {
+			slaverDataModelEntities.add(dataModelEntity);
+		}else{
+			dataModelService.save(dataModelEntity);
+		}
 	}
 
 	/**
@@ -986,37 +990,8 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				function.setOrderNo(i+1);
 				functions.add(function);
 			}
-//			List<ListFunction> functionList = functions.size() < 2 ? functions : functions.parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
 			entity.setFunctions(functions);
 		}
-	}
-
-	//设计子表关联字段
-	private void setMasterIdColumnEntity(DataModelEntity dataModelEntity){
-		if(dataModelEntity.getMasterModel() == null || dataModelEntity.getMasterModel().getId() == null) {
-			return;
-		}
-		DataModelEntity modelEntity = dataModelService.get(dataModelEntity.getMasterModel().getId());
-		if(modelEntity == null){
-			return;
-		}
-		List<ColumnModelEntity> columnModelEntities = modelEntity.getColumns();
-		ColumnModelEntity parentIdColumnEntity = null;
-		for(ColumnModelEntity columnModelEntity : columnModelEntities){
-			if(columnModelEntity.getColumnName().equals("id")){
-				parentIdColumnEntity = columnModelEntity;
-				break;
-			}
-		}
-		if(parentIdColumnEntity != null){
-			setMasterIdColunm(dataModelEntity, parentIdColumnEntity);
-		}
-	}
-	private void setMasterIdColunm(DataModelEntity dataModelEntity, ColumnModelEntity parentIdColumnEntity){
-		//创建一个关联字段
-		//ColumnModelEntity masterIdColumn = columnModelService.saveColumnModelEntity(dataModelEntity, "master_id");
-		//关联关系未持久化到数据库
-		//columnModelService.saveColumnReferenceEntity(parentIdColumnEntity, masterIdColumn, ReferenceType.OneToMany);
 	}
 
 	private String regEx = "[a-zA-Z]{1,}[a-zA-Z0-9_]{0,}";

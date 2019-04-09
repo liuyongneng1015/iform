@@ -33,7 +33,7 @@ public class DataModelEntity extends BaseEntity implements Serializable {
 	@Column(name = "application_id")
 	private String applicationId;//应用id
 
-	@ManyToOne(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH })
+	@ManyToOne(cascade = {CascadeType.REFRESH })
 	@JoinColumn(name = "master_model")
 	private DataModelEntity masterModel;
 
