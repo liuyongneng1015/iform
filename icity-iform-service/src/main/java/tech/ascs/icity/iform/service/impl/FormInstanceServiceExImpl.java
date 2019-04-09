@@ -2359,6 +2359,18 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					updateValue(referenceItem, itemInstance, value);
 				}
 				break;
+			case ReferenceList:
+				ReferenceItemModelEntity referenceItemModel = (ReferenceItemModelEntity)itemModel;
+				FormModelEntity toModelEntity = referenceItemModel.getReferenceList() == null ?  null : referenceItemModel.getReferenceList().getMasterForm();
+				List<String> stringList = Arrays.asList(referenceItemModel.getReferenceList().getDisplayItemsSort().split(","));
+				if (toModelEntity!=null) {
+					ReferenceDataInstance referenceDataInstance = createDataModelInstance(false, referenceItemModel, toModelEntity, String.valueOf(((Map<String, Object>) value).get("id")), stringList, false);
+					itemInstance.setValue(referenceDataInstance.getValue());
+					List<Object> displayList = new ArrayList<>();
+					displayList.add(referenceDataInstance.getDisplayValue());
+					itemInstance.setDisplayValue(displayList);
+				}
+				break;
 			default:
                 String valueStr = value == null || StringUtils.isEmpty(value) ?  null : String.valueOf(value);
                 itemInstance.setValue(value);
