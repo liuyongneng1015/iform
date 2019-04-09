@@ -730,13 +730,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	//更新表单建模
 	private void updateSalverDataModel(DataModelEntity dataModelEntity){
 		dataModelEntity.setMasterModel(null);
-		for(ColumnModelEntity columnModelEntity : dataModelEntity.getColumns()){
-			List<ItemModelEntity> itemModelEntityList = itemModelService.query().filterIn("columnModel.id", columnModelEntity.getId()).list();
-			for(ItemModelEntity itemModelEntity : itemModelEntityList){
-				itemModelEntity.setColumnModel(null);
-				itemModelService.save(itemModelEntity);
-			}
-		}
 		dataModelService.save(dataModelEntity);
 	}
 
@@ -1206,34 +1199,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			oldColumnModelEntity.setDataModel(dataModelEntity);
 		}
 		return oldColumnModelEntity;
-	}
-
-	private List<ColumnModelEntity>  saveColumnModelEntity(DataModelEntity dataModelEntity, DataModel dataModel){
-		List<ColumnModelEntity> columnlist = new ArrayList<>();
-		for(ColumnModel columnModel : dataModel.getColumns()){
-			if("id".equals(columnModel.getColumnName()) || "master_id".equals(columnModel.getColumnName())){
-				continue;
-			}
-			ColumnModelEntity columnModelEntity = new ColumnModelEntity();
-			if (!columnModel.isNew()) {
-				columnModelEntity = columnModelService.find(columnModel.getId());
-			}
-			BeanUtils.copyProperties(columnModel, columnModelEntity, new String[]{"dataModel","slaverModels","columns","indexes"});
-			columnModelEntity.setDataModel(dataModelEntity);
-			columnlist.add(columnModelEntity);
-		}
-		return columnlist;
-	}
-
-
-	//获取主的数据模型
-	private DataModelEntity getMasterDataModelEntity(List<DataModelEntity> dataModelEntities){
-		for(DataModelEntity modelEntity : dataModelEntities){
-			if(modelEntity.getModelType() == DataModelType.Master || modelEntity.getModelType() == DataModelType.Single){
-				return modelEntity;
-			}
-		}
-		return null;
 	}
 
 	private ItemModelEntity wrap(String sourceFormModelId, ItemModel itemModel, Map<String, ItemModelEntity> map) {
