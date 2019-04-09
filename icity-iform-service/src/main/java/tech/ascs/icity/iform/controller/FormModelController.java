@@ -825,7 +825,12 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 									List<DataModelEntity> slaverDataModelEntities){
 		//创建关联字段
 		DataModelEntity dataModelEntity = dataModel.isNew() ? new DataModelEntity() :  oldMasterDataModelMap.remove(dataModel.getId());
-
+		if(dataModelEntity == null && !dataModel.isNew()){
+			dataModelEntity = dataModelService.get(dataModel.getId());
+		}
+		if(dataModelEntity == null){
+			throw  new IFormException("未找到"+dataModel.getTableName()+"对应的数据模型");
+		}
 
 		BeanUtils.copyProperties(dataModel, dataModelEntity, new String[]{"masterModel","slaverModels","columns","indexes"});
 		dataModelEntity.setSynchronized(false);
