@@ -27,6 +27,12 @@ public class FunctionModel extends NameEntity implements Comparable<FunctionMode
 	private Integer orderNo = 0;
 	@ApiModelProperty(value ="显示时机", position = 6)
 	private DisplayTimingType displayTiming;
+    @ApiModelProperty(value ="按钮icon图标", position = 6)
+    private String icon;
+	@ApiModelProperty(value ="背景颜色", position = 6)
+	private String backgroundColor;
+	@ApiModelProperty(value ="参数条件", position = 6)
+	private ParamCondition paramCondition;
 
 	public String getLabel() {
 		return label;
@@ -90,6 +96,30 @@ public class FunctionModel extends NameEntity implements Comparable<FunctionMode
 
 	public void setDisplayTiming(DisplayTimingType displayTiming) {
 		this.displayTiming = displayTiming;
+	}
+
+	public String getIcon() {
+		return icon;
+	}
+
+	public void setIcon(String icon) {
+		this.icon = icon;
+	}
+
+	public String getBackgroundColor() {
+		return backgroundColor;
+	}
+
+	public void setBackgroundColor(String backgroundColor) {
+		this.backgroundColor = backgroundColor;
+	}
+
+	public ParamCondition getParamCondition() {
+		return paramCondition;
+	}
+
+	public void setParamCondition(ParamCondition paramCondition) {
+		this.paramCondition = paramCondition;
 	}
 
 	@Override
