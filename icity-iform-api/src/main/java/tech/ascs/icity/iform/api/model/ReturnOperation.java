@@ -1,15 +1,21 @@
 package tech.ascs.icity.iform.api.model;
 
-public enum ParamCondition {
-    //选中记录
-    SelectRecords("SelectRecords"),
+/**
+ * 返回操作
+ */
+public enum ReturnOperation {
+    // 刷新
+    Refresh("Refresh"),
 
-    //查询条件
-    QueryConditions("QueryConditions");
+    // 不刷新
+    NoRefresh("NoRefresh"),
+
+    // 跳转新URL
+    jumpNewURL("jumpNewURL");
 
     private String value;
 
-    ParamCondition(String value) {
+    ReturnOperation(String value) {
         this.value = value;
     }
 
