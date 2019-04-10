@@ -15,6 +15,8 @@ import tech.ascs.icity.iform.api.model.FormInstance;
 import tech.ascs.icity.model.IdEntity;
 import tech.ascs.icity.model.Page;
 
+import javax.servlet.http.HttpServletResponse;
+
 @RestController
 @RequestMapping("/form-instances")
 public interface FormInstanceService {
@@ -70,6 +72,21 @@ public interface FormInstanceService {
 			@RequestParam(name = "page", defaultValue = "1") int page,
 			@RequestParam(name="pagesize", defaultValue = "10") int pagesize,
 			@RequestParam Map<String, Object> parameters);
+
+	/**
+	 * 导出表单实例数据
+	 * @param listId 列表模型ID
+	 * @return
+	 */
+	@ApiOperation(value = "导出表单实例数据", position = 1)
+	@ApiImplicitParams({
+		@ApiImplicitParam(paramType = "path", name = "listId", value = "列表模型ID", required = true, dataType = "String"),
+		@ApiImplicitParam(paramType = "query", name = "parameters", value = "查询参数", required = false)
+	})
+	@GetMapping("/{listId}/export")
+	void export(HttpServletResponse response,
+				@PathVariable(name="listId") String listId,
+				@RequestParam Map<String, Object> parameters);
 
 	/**
 	 * 通过表单ID和条件分页查询表单实例数据
