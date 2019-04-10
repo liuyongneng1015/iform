@@ -293,7 +293,8 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 				List<ItemModelEntity> itemModelEntity = itemManager.findByProperty("columnModel.id", entity.getId());
 				if(itemModelEntity != null && itemModelEntity.size() > 0) {
 					for (ItemModelEntity itemModel : itemModelEntity) {
-						throw new IFormException(CommonUtils.exceptionCode, entity.getColumnName() + "字段被" + itemModel.getFormModel().getName() + "表单" + itemModel.getName() + "控件关联");
+						FormModelEntity formModelEntity  = itemModel.getFormModel() == null ? formModelService.get(itemModel.getSourceFormModelId()) : itemModel.getFormModel() ;
+						throw new IFormException(CommonUtils.exceptionCode, entity.getColumnName() + "字段被" + formModelEntity == null ? "" : formModelEntity.getName() + "表单" + itemModel.getName() + "控件关联");
 					}
 				}
 			}
@@ -416,6 +417,14 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 				deleteColumnReferenceEntity(columnModelEntity);
 			}
 			columnModelService.deleteTableColumn(columnModelEntity.getDataModel().getTableName(), columnModelEntity.getColumnName());
+			List<ItemModelEntity> itemModelEntityList = itemManager.query().filterIn("columnModel.id", columnModelEntity.getId()).list();
+			if(itemModelEntityList != null && itemModelEntityList.size() > 0){
+				for(ItemModelEntity itemModelEntity : itemModelEntityList){
+					FormModelEntity formModelEntity  = itemModelEntity.getFormModel() == null ? formModelService.get(itemModelEntity.getSourceFormModelId()) : itemModelEntity.getFormModel() ;
+					throw new IFormException(CommonUtils.exceptionCode, columnModelEntity.getColumnName() + "字段被" + (formModelEntity == null ? "":formModelEntity.getName()) + "表单" + itemModelEntity.getName() + "控件关联");
+				}
+			}
+
 		}
 		delete(modelEntity);
 		String tableName = modelEntity.getTableName();

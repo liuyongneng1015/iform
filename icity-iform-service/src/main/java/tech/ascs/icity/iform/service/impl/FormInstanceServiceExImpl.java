@@ -782,6 +782,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			if (referenceItemModelEntity.getReferenceType() == ReferenceType.ManyToOne
 					|| referenceItemModelEntity.getReferenceType() == ReferenceType.OneToOne) {
 				toReferenceKey = referenceItemModelEntity.getColumnModel().getDataModel().getTableName()+"_"+referenceItemModelEntity.getColumnModel().getColumnName() + "_list";
+				if(referenceItemModelEntity.getReferenceType() == ReferenceType.OneToOne){
+					toFlag = true;
+				}
 			} else{
 				toReferenceKey = masterFormModelEntity.getDataModels().get(0).getTableName() + "_list";
 			}
