@@ -122,6 +122,7 @@ public interface ListModelService {
 	@ApiImplicitParams({
 		@ApiImplicitParam(paramType = "query", name = "formId", value = "表单ID", required = false, dataType = "String"),
 		@ApiImplicitParam(paramType = "query", name = "functionType", value = "功能类型", required = false, dataType = "String"),
+		@ApiImplicitParam(paramType = "query", name = "applicationId", value = "应用ID", required = false, dataType = "String")
 	})
 	@GetMapping("/application")
 	List<ApplicationModel> findListApplicationModel(@RequestParam(name = "formId", required = false) String formId,
