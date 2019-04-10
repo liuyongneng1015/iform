@@ -1,15 +1,18 @@
 package tech.ascs.icity.iform.api.model;
 
-public enum ParamCondition {
-    //选中记录
-    SelectRecords("SelectRecords"),
+/**
+ * 列表建模的功能类型
+ */
+public enum ListFunctionType {
+    // 请求服务
+    RequestService("请求服务"),
 
-    //查询条件
-    QueryConditions("QueryConditions");
+    // 跳转URL
+    JumpURL("JumpURL");
 
     private String value;
 
-    ParamCondition(String value) {
+    ListFunctionType(String value) {
         this.value = value;
     }
 
