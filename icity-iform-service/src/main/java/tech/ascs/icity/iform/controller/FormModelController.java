@@ -1657,7 +1657,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 			//设置控件权限
 			List<ItemPermissionModel> itemPermissionModels = getItemPermissions(formModelService.findAllItems(entity));
-			formModel.setPermissions(itemPermissionModels.size() > 0 ? itemPermissionModels : null);
+			formModel.setPermissions(itemPermissionModels);
 			String tableName = entity.getDataModels() == null || entity.getDataModels().size() < 1 ? null :  entity.getDataModels().get(0).getTableName();
 			for (ItemModelEntity itemModelEntity : itemModelEntities) {
 				ItemModel itemModel = toDTO(itemModelEntity, false, tableName);
