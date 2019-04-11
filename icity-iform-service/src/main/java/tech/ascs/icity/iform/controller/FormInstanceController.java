@@ -428,6 +428,19 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			for (SubFormRowItemInstance rowItemInstance:itemInstance.getItems()) {
 				for (ItemInstance item:rowItemInstance.getItems()) {
 					map.put(item.getColumnModelName(), item);
+					item.setDisplayObject(null);
+					if (item.getDisplayObject()!=null && item.getDisplayObject() instanceof ItemModel) {
+						ItemModel itemModel = (ItemModel)item.getDisplayObject();
+						if (itemModel.getOptions()!=null && itemModel.getOptions().size()>0 && item.getValue()!=null && item.getValue() instanceof List) {
+//							List optionItemList = (List)item.getValue();
+//							if (true == itemModel.getMultiple()) {
+//
+//							} else if (false == itemModel.getMultiple()) {
+//
+//							}
+//							map.put("options", itemModel.getOptions());
+						}
+					}
 				}
 			}
 			list.add(map);
