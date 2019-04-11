@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 import javax.persistence.*;
 
+import io.swagger.annotations.ApiModelProperty;
 import tech.ascs.icity.iform.api.model.DisplayTimingType;
 import tech.ascs.icity.iform.api.model.ListFunctionType;
 import tech.ascs.icity.iform.api.model.ParamCondition;
@@ -55,6 +56,14 @@ public class ListFunction extends JPAEntity implements Serializable {
 	private ReturnOperation returnOperation;
 
 	private String jumpNewUrl;
+
+	private Boolean listActionBarVisible;
+
+	private Boolean viewPageVisible;
+
+	private Boolean addPageVisible;
+
+	private Boolean editPageVisible;
 
 	@Column(name="order_no",columnDefinition = "int default 0")//排序号
 	private Integer orderNo = 0;
@@ -182,6 +191,38 @@ public class ListFunction extends JPAEntity implements Serializable {
 
 	public void setJumpNewUrl(String jumpNewUrl) {
 		this.jumpNewUrl = jumpNewUrl;
+	}
+
+	public Boolean getListActionBarVisible() {
+		return listActionBarVisible;
+	}
+
+	public void setListActionBarVisible(Boolean listActionBarVisible) {
+		this.listActionBarVisible = listActionBarVisible;
+	}
+
+	public Boolean getViewPageVisible() {
+		return viewPageVisible;
+	}
+
+	public void setViewPageVisible(Boolean viewPageVisible) {
+		this.viewPageVisible = viewPageVisible;
+	}
+
+	public Boolean getAddPageVisible() {
+		return addPageVisible;
+	}
+
+	public void setAddPageVisible(Boolean addPageVisible) {
+		this.addPageVisible = addPageVisible;
+	}
+
+	public Boolean getEditPageVisible() {
+		return editPageVisible;
+	}
+
+	public void setEditPageVisible(Boolean editPageVisible) {
+		this.editPageVisible = editPageVisible;
 	}
 
 	public Integer getOrderNo() {
