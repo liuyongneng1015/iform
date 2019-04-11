@@ -1810,7 +1810,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			}
 			formModel.setItems(items);
 		}
-		//联动控件
+		/*//联动控件
 		List<LinkedItemModel> linkedItemModelList = new ArrayList<>();
 		List<ItemModel> itemModels = formModelService.findAllItemModels(formModel.getItems());
 		for(ItemModel itemModel : itemModels){
@@ -1826,7 +1826,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				linkedItemModelList.add(rootItemModel);
 			}
 		}
-		formModel.setLinkedItemModelList(linkedItemModelList.size() > 0 ? linkedItemModelList : null);
+		formModel.setLinkedItemModelList(linkedItemModelList.size() > 0 ? linkedItemModelList : null);*/
 		return formModel;
 	}
 
