@@ -196,6 +196,12 @@ public class ItemModel extends NameEntity {
 	@ApiModelProperty(value = "来源的表单建模id", position = 53)
 	private String sourceFormModelId;
 
+	@ApiModelProperty(value = "关联控件的唯一标识", position = 53)
+	private String itemUuids;
+
+	@ApiModelProperty(value = "前端用的控件类型key", position = 53)
+	private String typeKey;
+
 	public ItemType getType() {
 		return type;
 	}
@@ -717,6 +723,22 @@ public class ItemModel extends NameEntity {
 
 	public void setSourceFormModelId(String sourceFormModelId) {
 		this.sourceFormModelId = sourceFormModelId;
+	}
+
+	public String getItemUuids() {
+		return itemUuids;
+	}
+
+	public void setItemUuids(String itemUuids) {
+		this.itemUuids = itemUuids;
+	}
+
+	public String getTypeKey() {
+		return typeKey;
+	}
+
+	public void setTypeKey(String typeKey) {
+		this.typeKey = typeKey;
 	}
 
 	@Override

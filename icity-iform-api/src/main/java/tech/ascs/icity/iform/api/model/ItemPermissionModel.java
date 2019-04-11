@@ -11,8 +11,14 @@ import java.util.List;
 @ApiModel("表单模型权限集合")
 public class ItemPermissionModel extends NameEntity {
 
-	@ApiModelProperty(value = "控件模型", position = 4)
-	private ItemModel itemModel;
+	@ApiModelProperty(value = "控件模型唯一标识", position = 4)
+	private String uuid;
+
+	@ApiModelProperty(value = "控件模型表名", position = 4)
+	private String tableName;
+
+	@ApiModelProperty(value = "控件模型字段名", position = 4)
+	private String columnName;
 
 	@ApiModelProperty(value = "新增时控件权限", position = 7)
 	private ItemPermissionInfoModel addPermissions ;
@@ -23,13 +29,28 @@ public class ItemPermissionModel extends NameEntity {
 	@ApiModelProperty(value = "查看时控件权限", position = 7)
 	private ItemPermissionInfoModel checkPermissions;
 
-
-	public ItemModel getItemModel() {
-		return itemModel;
+	public String getUuid() {
+		return uuid;
 	}
 
-	public void setItemModel(ItemModel itemModel) {
-		this.itemModel = itemModel;
+	public void setUuid(String uuid) {
+		this.uuid = uuid;
+	}
+
+	public String getTableName() {
+		return tableName;
+	}
+
+	public void setTableName(String tableName) {
+		this.tableName = tableName;
+	}
+
+	public String getColumnName() {
+		return columnName;
+	}
+
+	public void setColumnName(String columnName) {
+		this.columnName = columnName;
 	}
 
 	public ItemPermissionInfoModel getAddPermissions() {

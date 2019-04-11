@@ -70,6 +70,9 @@ public class ItemModelEntity extends  BaseEntity implements Serializable {
 	@Column(name="source_form_model_id") // 属于哪个表单控件
 	private String sourceFormModelId;
 
+	@Column(name="type_key") // 前端用的控件类型key
+	private String typeKey;
+
 	public FormModelEntity getFormModel() {
 		return formModel;
 	}
@@ -180,5 +183,13 @@ public class ItemModelEntity extends  BaseEntity implements Serializable {
 
 	public void setSourceFormModelId(String sourceFormModelId) {
 		this.sourceFormModelId = sourceFormModelId;
+	}
+
+	public String getTypeKey() {
+		return typeKey;
+	}
+
+	public void setTypeKey(String typeKey) {
+		this.typeKey = typeKey;
 	}
 }

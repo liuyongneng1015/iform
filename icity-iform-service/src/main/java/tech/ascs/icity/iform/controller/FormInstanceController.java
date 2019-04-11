@@ -63,7 +63,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		}
 		ItemModelEntity itemModelEntity = itemModelService.get(itemId);
 		List<DataInstance> dataInstances = new ArrayList<>();
-		if(itemModelEntity != null && itemModelEntity instanceof ReferenceItemModelEntity && ((ReferenceItemModelEntity) itemModelEntity).getItemTableColunmName() != null){
+		if(itemModelEntity != null && itemModelEntity instanceof ReferenceItemModelEntity){
 			List<FormInstance> list = formInstanceService.listFormInstance(listModel, parameters);
 			List<ItemModelEntity> itemModelEntities = formModelService.getReferenceItemModelList((ReferenceItemModelEntity)itemModelEntity);
 			if(itemModelEntities != null && itemModelEntities.size() > 0){

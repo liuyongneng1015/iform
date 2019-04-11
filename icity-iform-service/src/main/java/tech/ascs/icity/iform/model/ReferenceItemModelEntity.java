@@ -51,8 +51,8 @@ public class ReferenceItemModelEntity extends ItemModelEntity  {
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "parentItem")
 	private List<ReferenceItemModelEntity> items = new ArrayList<ReferenceItemModelEntity>();
 
-	@Column(name="item_table_colunm_name", length = 2048) // 关联数据标识：控件对应的表名和字段名
-	private String itemTableColunmName;
+	@Column(name="item_uuids", length = 2048) // 关联数据标识：控件对应的唯一标识
+	private String itemUuids;
 
 	public ReferenceType getReferenceType() {
 		return referenceType;
@@ -126,12 +126,11 @@ public class ReferenceItemModelEntity extends ItemModelEntity  {
 		this.items = items;
 	}
 
-	public String getItemTableColunmName() {
-		return itemTableColunmName;
+	public String getItemUuids() {
+		return itemUuids;
 	}
 
-	public void setItemTableColunmName(String itemTableColunmName) {
-		this.itemTableColunmName = itemTableColunmName;
+	public void setItemUuids(String itemUuids) {
+		this.itemUuids = itemUuids;
 	}
-
 }

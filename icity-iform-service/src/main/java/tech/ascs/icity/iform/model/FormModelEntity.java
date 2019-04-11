@@ -45,14 +45,14 @@ public class FormModelEntity extends BaseEntity implements Serializable {
 	@Column(name="item_model_ids", length = 2048) // 数据标识：控件id集合
 	private String itemModelIds;
 
-	@Column(name="item_table_colunm_name", length = 2048) // 数据标识：控件对应的表名和字段名
-	private String itemTableColunmName;
+	@Column(name="item_uuids", length = 2048) // 数据标识：控件对应的唯一标识
+	private String itemUuids;
 
 	@Column(name="qrcode_item_model_ids", length = 2048) // 二维码数据标识：控件id集合
 	private String qrCodeItemModelIds;
 
-	@Column(name="qrcode_item_table_colunm_name", length = 2048) // 二维码数据标识：控件对应的表名和字段名
-	private String qrCodeItemTableColunmName;
+	@Column(name="qrcode_item_uuids", length = 2048) // 二维码数据标识：控件对应的唯一标识
+	private String qrCodeItemUuids;
 
 	public String getDescription() {
 		return description;
@@ -118,12 +118,12 @@ public class FormModelEntity extends BaseEntity implements Serializable {
 		this.itemModelIds = itemModelIds;
 	}
 
-	public String getItemTableColunmName() {
-		return itemTableColunmName;
+	public String getItemUuids() {
+		return itemUuids;
 	}
 
-	public void setItemTableColunmName(String itemTableColunmName) {
-		this.itemTableColunmName = itemTableColunmName;
+	public void setItemUuids(String itemUuids) {
+		this.itemUuids = itemUuids;
 	}
 
 	public String getQrCodeItemModelIds() {
@@ -134,11 +134,11 @@ public class FormModelEntity extends BaseEntity implements Serializable {
 		this.qrCodeItemModelIds = qrCodeItemModelIds;
 	}
 
-	public String getQrCodeItemTableColunmName() {
-		return qrCodeItemTableColunmName;
+	public String getQrCodeItemUuids() {
+		return qrCodeItemUuids;
 	}
 
-	public void setQrCodeItemTableColunmName(String qrCodeItemTableColunmName) {
-		this.qrCodeItemTableColunmName = qrCodeItemTableColunmName;
+	public void setQrCodeItemUuids(String qrCodeItemUuids) {
+		this.qrCodeItemUuids = qrCodeItemUuids;
 	}
 }

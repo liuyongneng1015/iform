@@ -645,13 +645,11 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 
 		List<ItemModelEntity> items = new ArrayList<ItemModelEntity>();
-		Map<String, ItemModelEntity> map = new HashMap<>();
 		List<ItemModelEntity> itemModelEntityList = new ArrayList<>();
 		//为了设置关联
 		Map<String, List<ItemModelEntity>> formMap = new HashMap<>();
 		for (ItemModel itemModel : formModel.getItems()) {
-			setItemModelEntity(formModel, itemModel, map, entity, items,
-					itemModelEntityList,  formMap);
+			setItemModelEntity(formModel, itemModel, entity, items,	itemModelEntityList,  formMap);
 		}
 		formMap.put(masterDataModel.getTableName(), itemModelEntityList);
 
@@ -673,10 +671,10 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		entity.setDataModels(dataModelEntities);
 		entity.setItems(items);
 
-		Map<String, ItemModelEntity> stringItemModelEntityMap = new HashMap<>();
+		Map<String, ItemModelEntity> uuidItemModelEntityMap = new HashMap<>();
 		for(ItemModelEntity itemModelEntity : formModelService.findAllItems(entity)){
-			if(itemModelEntity.getUuid() != null) {
-				stringItemModelEntityMap.put(itemModelEntity.getUuid(), itemModelEntity);
+			if(StringUtils.hasText(itemModelEntity.getUuid())) {
+				uuidItemModelEntityMap.put(itemModelEntity.getUuid(), itemModelEntity);
 			}
 		}
 		//设置控件权限
@@ -684,7 +682,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			List<ItemPermissionModel> itemPermissionModels = formModel.getPermissions();
 			for(int i = 0 ;i < itemPermissionModels.size() ; i++) {
 				ItemPermissionModel itemPermissionModel = itemPermissionModels.get(i);
-				setItemPermissions(itemPermissionModel, stringItemModelEntityMap, map);
+				setItemPermissions(itemPermissionModel, uuidItemModelEntityMap);
 			}
 		}
 
@@ -704,22 +702,24 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		if(formModel.getItemModelList() != null && formModel.getItemModelList().size() > 0) {
 			List<String> list = new ArrayList<>();
 			for(ItemModel itemModel1 : formModel.getItemModelList()) {
-				list.add(itemModel1.getTableName()+"_"+itemModel1.getColumnName());
+				list.add(itemModel1.getUuid());
 			}
-			entity.setItemTableColunmName(String.join(",", list));
+			entity.setItemUuids(String.join(",", list));
 		}else{
-			entity.setItemTableColunmName(null);
+			entity.setItemUuids(null);
 		}
 
 		//二维码数据标识对应的字段
 		if(formModel.getQrCodeItemModelList() != null && formModel.getQrCodeItemModelList().size() > 0) {
 			List<String> list = new ArrayList<>();
 			for(ItemModel itemModel1 : formModel.getQrCodeItemModelList()) {
-				list.add(itemModel1.getTableName()+"_"+itemModel1.getColumnName());
+				if(StringUtils.hasText(itemModel1.getUuid())) {
+					list.add(itemModel1.getUuid());
+				}
 			}
-			entity.setQrCodeItemTableColunmName(String.join(",", list));
+			entity.setQrCodeItemUuids(String.join(",", list));
 		}else{
-			entity.setQrCodeItemTableColunmName(null);
+			entity.setQrCodeItemUuids(null);
 		}
 		//保存数据模型
 		dataModelService.save(masterDataModelEntity);
@@ -796,9 +796,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 	}
 
-	private void setItemModelEntity(FormModel formModel, ItemModel itemModel, Map<String, ItemModelEntity> map, FormModelEntity entity, List<ItemModelEntity> items,
+	private void setItemModelEntity(FormModel formModel, ItemModel itemModel, FormModelEntity entity, List<ItemModelEntity> items,
 					List<ItemModelEntity> itemModelEntityList, Map<String, List<ItemModelEntity>> formMap){
-		ItemModelEntity itemModelEntity = wrap(formModel.getId(), itemModel, map);
+		ItemModelEntity itemModelEntity = wrap(formModel.getId(), itemModel);
 		itemModelEntity.setFormModel(entity);
 		items.add(itemModelEntity);
 		itemModelEntityList.add(itemModelEntity);
@@ -1206,7 +1206,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		return oldColumnModelEntity;
 	}
 
-	private ItemModelEntity wrap(String sourceFormModelId, ItemModel itemModel, Map<String, ItemModelEntity> map) {
+	private ItemModelEntity wrap(String sourceFormModelId, ItemModel itemModel) {
 		if(itemModel.getType() == ItemType.ReferenceLabel){
 			itemModel.setSelectMode(SelectMode.Attribute);
 		}
@@ -1239,11 +1239,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				&& !(entity instanceof ReferenceItemModelEntity) && !(entity instanceof TabPaneItemModelEntity) && entity.getColumnModel() == null){
 			throw  new IFormException("控件"+entity.getName()+"没有对应字段");
 		}
-
-		if(entity.getColumnModel() != null){
-			map.put(entity.getColumnModel().getDataModel().getTableName()+"_"+entity.getColumnModel().getColumnName(), entity);
-		}
-
+		
 		if(entity instanceof ReferenceItemModelEntity){
 			setReferenceItemModel((ReferenceItemModelEntity)entity, sourceFormModelId, itemModel);
 		}else if(entity instanceof SelectItemModelEntity){
@@ -1251,15 +1247,15 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}else if(entity instanceof RowItemModelEntity){
 			List<ItemModelEntity> rowList = new ArrayList<>() ;
 			for(ItemModel rowItemModel : itemModel.getItems()) {
-                ItemModelEntity itemModelEntity1 = wrap(sourceFormModelId, rowItemModel, map);
+                ItemModelEntity itemModelEntity1 = wrap(sourceFormModelId, rowItemModel);
                 itemModelEntity1.setFormModel(null);
 				rowList.add(itemModelEntity1);
 			}
 			((RowItemModelEntity) entity).setItems(rowList);
 		}else if(entity instanceof SubFormItemModelEntity){
-			setSubFormItemModel(itemModel, sourceFormModelId, map, (SubFormItemModelEntity) entity);
+			setSubFormItemModelEntity(itemModel, sourceFormModelId, (SubFormItemModelEntity) entity);
 		}else if(entity instanceof TabsItemModelEntity){
-			setTabsItemModel( itemModel, sourceFormModelId, map, (TabsItemModelEntity)entity);
+			setTabsItemModelEntity( itemModel, sourceFormModelId, (TabsItemModelEntity)entity);
 		} else if (entity instanceof TreeSelectItemModelEntity) {
 			setTreeSelectItemModel(itemModel,  (TreeSelectItemModelEntity)entity);
 		}
@@ -1325,7 +1321,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 	}
 
-	private void setTabsItemModel(ItemModel itemModel, String sourceFormModelId, Map<String, ItemModelEntity> map, TabsItemModelEntity entity){
+	private void setTabsItemModelEntity(ItemModel itemModel, String sourceFormModelId, TabsItemModelEntity entity){
 		List<ItemModel> tabsItemModels = itemModel.getItems();
 		List<TabPaneItemModelEntity> list = new ArrayList<>();
 		if(tabsItemModels != null) {
@@ -1335,7 +1331,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				List<ItemModelEntity> rowItemList = new ArrayList<>();
 				if(itemModel1.getItems() != null) {
 					for (ItemModel childrenItem : itemModel1.getItems()) {
-						ItemModelEntity itemModelEntity1 = wrap(sourceFormModelId, childrenItem, map);
+						ItemModelEntity itemModelEntity1 = wrap(sourceFormModelId, childrenItem);
 						itemModelEntity1.setFormModel(null);
 						rowItemList.add(itemModelEntity1);
 					}
@@ -1349,7 +1345,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 	}
 
-	private void setSubFormItemModel(ItemModel itemModel, String sourceFormModelId, Map<String, ItemModelEntity> map, SubFormItemModelEntity entity){
+	private void setSubFormItemModelEntity(ItemModel itemModel, String sourceFormModelId, SubFormItemModelEntity entity){
 		List<ItemModel> rowItemModels = itemModel.getItems();
 		List<SubFormRowItemModelEntity> rowItemModelEntities = new ArrayList<>();
 		for(ItemModel rowItemModelEntity : rowItemModels) {
@@ -1357,7 +1353,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			BeanUtils.copyProperties(rowItemModelEntity, subFormRowItemModelEntity, new String[] {"searchItems","sortItems","items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});
 			List<ItemModelEntity> rowItemList = new ArrayList<>();
 			for(ItemModel childrenItem : rowItemModelEntity.getItems()) {
-				ItemModelEntity itemModelEntity1 = wrap(sourceFormModelId, childrenItem, map);
+				ItemModelEntity itemModelEntity1 = wrap(sourceFormModelId, childrenItem);
 				itemModelEntity1.setFormModel(null);
 				rowItemList.add(itemModelEntity1);
 			}
@@ -1447,33 +1443,34 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			parentItemModel.setType(ItemType.ReferenceList);
 			entity.setParentItem((ReferenceItemModelEntity) getParentItemModel(parentItemModel));
 		}
+
+		//关联控件数据标识
 		if(itemModel.getItemModelList() != null && itemModel.getItemModelList().size() > 0) {
 			List<String> list = new ArrayList<>();
 			for(ItemModel itemModel1 : itemModel.getItemModelList()) {
-				list.add(itemModel1.getTableName()+"_"+itemModel1.getColumnName());
+				list.add(itemModel1.getUuid());
 			}
-			entity.setItemTableColunmName(String.join(",", list));
+			entity.setItemUuids(String.join(",", list));
 		}else{
-			entity.setItemTableColunmName(null);
+			entity.setItemUuids(null);
 		}
+
+		//关联属性关联的控件
 		if(itemModel.getType() == ItemType.ReferenceLabel){
-			if(StringUtils.hasText(itemModel.getItemTableName())) {
-				entity.setItemTableColunmName(itemModel.getItemTableName() + "_" + itemModel.getItemColunmName());
+			if(StringUtils.hasText(itemModel.getItemUuids())) {
+				entity.setItemUuids(itemModel.getItemUuids());
 			}else{
-				entity.setItemTableColunmName(null);
+				entity.setItemUuids(null);
 			}
 		}
 		entity.setReferenceList(setItemModelByListModel(itemModel));
 	}
 
 	//控件权限
-	private void setItemPermissions(ItemPermissionModel itemPermissionModel, Map<String, ItemModelEntity> uuidItemModelEntityMap, Map<String, ItemModelEntity> tableColumnItemModelEntityMap){
+	private void setItemPermissions(ItemPermissionModel itemPermissionModel, Map<String, ItemModelEntity> uuidItemModelEntityMap){
 		List<ItemPermissionInfo> itemPermissionInfos = new ArrayList<>();
-		ItemModelEntity entity = uuidItemModelEntityMap.get(itemPermissionModel.getItemModel().getUuid());
-		if(entity == null){
-			entity = tableColumnItemModelEntityMap.get(itemPermissionModel.getItemModel().getTableName()+"_"+itemPermissionModel.getItemModel().getColumnName());
-		}
-		if(entity == null || entity.getSystemItemType() == SystemItemType.ID || "id".equals(itemPermissionModel.getItemModel().getColumnName()) ){
+		ItemModelEntity entity = uuidItemModelEntityMap.get(itemPermissionModel.getUuid());
+		if(entity == null || entity.getSystemItemType() == SystemItemType.ID || "id".equals(itemPermissionModel.getColumnName()) ){
 			return;
 		}
 		if(itemPermissionModel.getAddPermissions() != null){
@@ -1750,12 +1747,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				ItemPermissionModel itemPermissionModel = new ItemPermissionModel();
 				itemPermissionModel.setId(itemModelEntity1.getId());
 				itemPermissionModel.setName(itemModelEntity1.getName());
-				ItemModel itemModel = new ItemModel();
-				itemModel.setId(itemModelEntity1.getId());
-				itemModel.setName(itemModelEntity1.getName());
-				itemModel.setTableName(itemModelEntity1.getColumnModel().getDataModel().getTableName());
-				itemModel.setColumnName(itemModelEntity1.getColumnModel().getColumnName());
-				itemPermissionModel.setItemModel(itemModel);
+				itemPermissionModel.setUuid(itemModelEntity1.getUuid());
 				for(ItemPermissionInfo itemPermissionInfo : itemModelEntity1.getPermissions()) {
 					ItemPermissionInfoModel itemPermissionInfoModel = new ItemPermissionInfoModel();
 					BeanUtils.copyProperties(itemPermissionInfo, itemPermissionInfoModel, new String[]{"itemModel"});
@@ -1994,7 +1986,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}else if(entity instanceof RowItemModelEntity){
 			setRowItemModel(entity, itemModel, isPCItem, tableName);
 		}else if(entity instanceof SubFormItemModelEntity){
-			setSubFormItemModel(entity, itemModel, isPCItem);
+			setSubFormItemModelEntity(entity, itemModel, isPCItem);
 		}else if(entity instanceof TabsItemModelEntity){
 			setTabsItemModel(entity, itemModel, isPCItem, tableName);
 		} else if (entity instanceof TreeSelectItemModelEntity) {
@@ -2093,7 +2085,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		itemModel.setItems(subFormRows);
 	}
 
-	private void setSubFormItemModel(ItemModelEntity entity, ItemModel itemModel, boolean isPCItem){
+	private void setSubFormItemModelEntity(ItemModelEntity entity, ItemModel itemModel, boolean isPCItem){
 		List<ItemModel> subFormRows = new ArrayList<>();
 		List<SubFormRowItemModelEntity> rowItemModelEntities = ((SubFormItemModelEntity) entity).getItems();
 
@@ -2252,7 +2244,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				} else {
 					itemModel.setReferenceListId(((ReferenceItemModelEntity) entity).getParentItem().getReferenceList().getId());
 				}
-//					itemModel.setReferenceListId(((ReferenceItemModelEntity) entity).getParentItem() == null ? null : ((ReferenceItemModelEntity) entity).getParentItem().getReferenceList().getId());
 			}
 
 		}
@@ -2314,6 +2305,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			ItemModel itemModel = new ItemModel();
 			itemModel.setId(itemModelEntity.getId());
 			itemModel.setName(itemModelEntity.getName());
+			itemModel.setUuid(itemModelEntity.getUuid());
 			if(itemModelEntity.getColumnModel() != null) {
 				itemModel.setTableName(itemModelEntity.getColumnModel().getDataModel().getTableName());
 				itemModel.setColumnName(itemModelEntity.getColumnModel().getColumnName());
