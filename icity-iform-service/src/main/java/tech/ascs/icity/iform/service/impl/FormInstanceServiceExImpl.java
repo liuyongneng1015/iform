@@ -2517,8 +2517,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		//设置控件的显示对象
 		if(itemInstance != null) {
 			itemInstance.setDisplayObject(displayObjectList);
-		}else{
-			displayObjectList = null;
 		}
 
 		return displayValuelist;
