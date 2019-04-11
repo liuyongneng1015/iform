@@ -24,6 +24,8 @@ public enum DefaultFunctionType {
 
 	Manage("manage", "办理"),
 
+	Download("download", "下载"),
+
 	BatchDelete("batchDelete", "批量删除");
 
 	private String value;
