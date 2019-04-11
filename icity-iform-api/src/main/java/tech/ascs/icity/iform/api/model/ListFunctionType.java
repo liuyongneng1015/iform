@@ -4,11 +4,11 @@ package tech.ascs.icity.iform.api.model;
  * 列表建模的功能类型
  */
 public enum ListFunctionType {
-    // 请求服务
-    RequestService("请求服务"),
+    // 调用服务
+    InvokeService("InvokeService"),
 
-    // 跳转URL
-    JumpURL("JumpURL");
+    // 跳转Url
+    JumpUrl("JumpUrl");
 
     private String value;
 

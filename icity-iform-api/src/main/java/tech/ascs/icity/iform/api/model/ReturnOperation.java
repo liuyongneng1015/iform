@@ -10,8 +10,11 @@ public enum ReturnOperation {
     // 不刷新
     NoRefresh("NoRefresh"),
 
-    // 跳转新URL
-    jumpNewURL("jumpNewURL");
+    // 跳转新url
+    JumpNewUrl("JumpNewUrl"),
+
+    // 关闭当前页
+    CloseCurrentPage("CloseCurrentPage");
 
     private String value;
 

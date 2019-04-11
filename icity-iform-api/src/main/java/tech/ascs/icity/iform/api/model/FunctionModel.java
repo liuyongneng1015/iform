@@ -5,9 +5,6 @@ import io.swagger.annotations.ApiModelProperty;
 import org.apache.commons.lang3.StringUtils;
 import tech.ascs.icity.model.NameEntity;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @ApiModel("功能模型")
 public class FunctionModel extends NameEntity implements Comparable<FunctionModel> {
 
@@ -35,14 +32,12 @@ public class FunctionModel extends NameEntity implements Comparable<FunctionMode
 	private ParamCondition paramCondition;
 	@ApiModelProperty(value ="功能类型", position = 11)
 	private ListFunctionType functionType;
-	@ApiModelProperty(value ="功能类型跳转URL", position = 12)
-	private String jumpURL;
-	@ApiModelProperty(value ="确认框", position = 13)
+	@ApiModelProperty(value ="确认框", position = 12)
 	private String confirmForm;
-	@ApiModelProperty(value ="返回操作", position = 14)
+	@ApiModelProperty(value ="返回操作", position = 13)
 	private ReturnOperation returnOperation;
-	@ApiModelProperty(value ="跳转新url", position = 15)
-	private String jumpNewURL;
+	@ApiModelProperty(value ="跳转新url", position = 14)
+	private String jumpNewUrl;
 
 	public String getLabel() {
 		return label;
@@ -140,14 +135,6 @@ public class FunctionModel extends NameEntity implements Comparable<FunctionMode
 		this.functionType = functionType;
 	}
 
-	public String getJumpURL() {
-		return jumpURL;
-	}
-
-	public void setJumpURL(String jumpURL) {
-		this.jumpURL = jumpURL;
-	}
-
 	public String getConfirmForm() {
 		return confirmForm;
 	}
@@ -164,12 +151,12 @@ public class FunctionModel extends NameEntity implements Comparable<FunctionMode
 		this.returnOperation = returnOperation;
 	}
 
-	public String getJumpNewURL() {
-		return jumpNewURL;
+	public String getJumpNewUrl() {
+		return jumpNewUrl;
 	}
 
-	public void setJumpNewURL(String jumpNewURL) {
-		this.jumpNewURL = jumpNewURL;
+	public void setJumpNewUrl(String jumpNewUrl) {
+		this.jumpNewUrl = jumpNewUrl;
 	}
 
 	@Override
