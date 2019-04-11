@@ -667,6 +667,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			if(displayTimingType == DisplayTimingType.Add){
 				map.put("create_at", new Date());
 				map.put("create_by", user != null ? user.getId() : "-1" );
+				map.put("update_at", new Date());
+				map.put("update_by", user != null ? user.getId() : "-1");
 			}else{
 				map.put("update_at", new Date());
 				map.put("update_by", user != null ? user.getId() : "-1");
