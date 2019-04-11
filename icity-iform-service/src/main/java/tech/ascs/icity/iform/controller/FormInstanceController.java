@@ -5,6 +5,9 @@ import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
@@ -401,6 +404,35 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		}
 		//return formInstanceService.getFormInstance(formModel, id);
 		return formInstanceService.getFormDataSaveInstance(formModel, id);
+	}
+
+	/** 根据表单实例ID获取表单column列的name和value */
+	@Override
+	public Map getColumnNameValue(@PathVariable(name="formId") String formId, @PathVariable(name="id") String id) {
+		FormModelEntity formModel = formModelService.find(formId);
+		FormDataSaveInstance formDataSaveInstance = formInstanceService.getFormDataSaveInstance(formModel, id);
+		Map map = new HashMap();
+		for (ItemInstance item:formDataSaveInstance.getItems()) {
+			map.put(item.getColumnModelName(), item);
+		}
+		for (SubFormItemInstance sumForm:formDataSaveInstance.getSubFormData()) {
+			map.put(sumForm.getTableName(), getSubFormItemInstance(sumForm));
+		}
+		return map;
+	}
+
+	public List<Map> getSubFormItemInstance(SubFormItemInstance sumForm) {
+		List<Map> list = new ArrayList<>();
+		for (SubFormDataItemInstance itemInstance:sumForm.getItemInstances()) {
+			Map map = new HashMap();
+			for (SubFormRowItemInstance rowItemInstance:itemInstance.getItems()) {
+				for (ItemInstance item:rowItemInstance.getItems()) {
+					map.put(item.getColumnModelName(), item);
+				}
+			}
+			list.add(map);
+		}
+		return list;
 	}
 
 	@Override

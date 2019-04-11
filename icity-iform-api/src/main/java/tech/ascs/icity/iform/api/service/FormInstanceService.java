@@ -161,7 +161,24 @@ public interface FormInstanceService {
     FormDataSaveInstance get(@PathVariable(name="formId") String formId, @PathVariable(name="id") String id);
 
 
-    /**
+	/**
+	 * 根据表单实例ID获取表单column列的name和value
+	 *
+	 * @param formId 表单模型ID
+	 * @param id 表单实例ID
+	 * @return
+	 */
+	@ApiOperation(value = "根据表单实例ID获取表单column列的name和value", position = 2)
+	@ApiImplicitParams({
+		@ApiImplicitParam(paramType = "path", name = "formId", value = "表单模型ID", required = true, dataType = "String"),
+		@ApiImplicitParam(paramType = "path", name = "id", value = "表单实例ID", required = true, dataType = "String")
+	})
+	@GetMapping("/{formId}/{id}/column-name-value")
+	Map getColumnNameValue(@PathVariable(name="formId") String formId, @PathVariable(name="id") String id);
+
+
+
+	/**
      * 根据表单实例ID获取表单实例对象
      *
      * @param listId 表单模型ID
