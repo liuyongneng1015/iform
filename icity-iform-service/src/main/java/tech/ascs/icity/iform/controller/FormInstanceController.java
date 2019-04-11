@@ -126,32 +126,17 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 					ItemModelEntity statusItem = optional.get();
 					String valueId = queryParameters.get(statusItem.getId()) != null ? queryParameters.get(statusItem.getId()).toString() : null;
 					if (StringUtils.hasText(valueId)) {
-						int status = -2; // -1表示查所有，0表示查未处理，1表示已处理，若最后status的值还是-2，表示不用查工作流
 						SelectItemModelEntity selectItem = (SelectItemModelEntity) statusItem;
-						if (SelectReferenceType.Dictionary == selectItem.getSelectReferenceType()) {
-							DictionaryItemEntity dictionaryItem = dictionaryService.getDictionaryItemById(valueId);
-							if (dictionaryItem != null) {
-								status = assemblyProcesDictionaryStatus(dictionaryItem.getName());
-							}
-						} else {
-							List<ItemSelectOption> options = selectItem.getOptions();
-							Optional<ItemSelectOption> itemSelectOptionOption = options.stream().filter(item->valueId.equals(item.getId())).findFirst();
-							if (itemSelectOptionOption.isPresent()) {
-								status = assemblyProcessStatus(itemSelectOptionOption.get().getValue());
-							}
-						}
+						int status = assemblyActivitiStatus(selectItem, valueId);
 						if (status != -2) { // -1表示查所有，0表示查未处理，1表示已处理，若最后status的值还是-2，表示不用查工作流
 							queryParameters.remove(selectItem.getId());
 							Map<String, Object> iflowQueryParams = new HashMap<>();
 							for (ItemModelEntity item : items) {
 								Object value = queryParameters.get(item.getId());
-								if (value == null) {
+								if (value == null || item.getColumnModel() == null) {
 									continue;
 								}
 								ColumnModelEntity columnModel = item.getColumnModel();
-								if (columnModel == null) {
-									continue;
-								}
 								if (isCommonItemType(item)) {
 									iflowQueryParams.put(columnModel.getColumnName(), value);
 								} else if (item instanceof SelectItemModelEntity) {
@@ -225,8 +210,24 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 				}
 			}
 		}
-		Page<FormDataSaveInstance> pageInstance = formInstanceService.pageFormInstance(listModel, page, pagesize, queryParameters);
-		return pageInstance;
+		return formInstanceService.pageFormInstance(listModel, page, pagesize, queryParameters);
+	}
+
+	public int assemblyActivitiStatus(SelectItemModelEntity selectItem, String valueId) {
+		int status = -2; // -1表示查所有，0表示查未处理，1表示已处理，若最后status的值还是-2，表示不用查工作流
+		if (SelectReferenceType.Dictionary == selectItem.getSelectReferenceType()) {
+			DictionaryItemEntity dictionaryItem = dictionaryService.getDictionaryItemById(valueId);
+			if (dictionaryItem != null) {
+				status = assemblyProcesDictionaryStatus(dictionaryItem.getName());
+			}
+		} else {
+			List<ItemSelectOption> options = selectItem.getOptions();
+			Optional<ItemSelectOption> itemSelectOptionOption = options.stream().filter(item->valueId.equals(item.getId())).findFirst();
+			if (itemSelectOptionOption.isPresent()) {
+				status = assemblyProcessStatus(itemSelectOptionOption.get().getValue());
+			}
+		}
+		return status;
 	}
 
 	@Override
@@ -256,8 +257,8 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			XSSFWorkbook wb = new XSSFWorkbook();
 			XSSFSheet sheet = wb.createSheet(listModel.getName());
 			response.setContentType("application/vnd.ms-excel");
-
-			String filename = new String((listModel.getName()+CommonUtils.date2Str(new Date(), "-yyyy年MM月dd日-HHmmss")+".xlsx").getBytes("utf-8"), "ISO8859-1");
+			String filename = listModel.getName()+CommonUtils.currentTimeStr("-yyyy年MM月dd日-HHmmss")+".xlsx";
+			filename = new String(filename.getBytes("utf-8"), "ISO8859-1");
 			ExportUtils.outputHeaders(sortList.stream().map(ItemModelEntity::getName).toArray(String[]::new), sheet);
 			response.setHeader("Content-Disposition", "attachment;filename="+filename);
 			if (data!=null && data.size()>0) {

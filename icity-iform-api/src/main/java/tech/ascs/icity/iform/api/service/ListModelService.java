@@ -130,9 +130,9 @@ public interface ListModelService {
 													@RequestParam(name="applicationId", required = true) String applicationId);
 
 	/**
-	 * 查询应用关联的列表建模和表单建模
+	 * 查询应用绑定的列表建模和表单建模，如果应用在iform有与列表建模和表单建模绑定，不能删除应用
 	 */
-	@ApiOperation(value = "查询应用关联的列表建模和表单建模", position = 6)
+	@ApiOperation(value = "查询应用绑定的列表建模和表单建模，如果应用在iform有与列表建模和表单建模绑定，不能删除应用", position = 6)
 	@ApiImplicitParams({
 		@ApiImplicitParam(paramType = "query", name = "applicationId", value = "应用id", required = true, dataType = "String")
 	})

@@ -38,6 +38,14 @@ public class FunctionModel extends NameEntity implements Comparable<FunctionMode
 	private ReturnOperation returnOperation;
 	@ApiModelProperty(value ="跳转新url", position = 14)
 	private String jumpNewUrl;
+	@ApiModelProperty(value ="列表操作栏", position = 15)
+	private Boolean listActionBarVisible = false;
+	@ApiModelProperty(value ="查看页", position = 16)
+	private Boolean viewPageVisible = false;
+	@ApiModelProperty(value ="新增页", position = 17)
+	private Boolean addPageVisible = false;
+	@ApiModelProperty(value ="编辑页", position = 18)
+	private Boolean editPageVisible = false;
 
 	public String getLabel() {
 		return label;
@@ -157,6 +165,38 @@ public class FunctionModel extends NameEntity implements Comparable<FunctionMode
 
 	public void setJumpNewUrl(String jumpNewUrl) {
 		this.jumpNewUrl = jumpNewUrl;
+	}
+
+	public Boolean getListActionBarVisible() {
+		return listActionBarVisible;
+	}
+
+	public void setListActionBarVisible(Boolean listActionBarVisible) {
+		this.listActionBarVisible = listActionBarVisible;
+	}
+
+	public Boolean getViewPageVisible() {
+		return viewPageVisible;
+	}
+
+	public void setViewPageVisible(Boolean viewPageVisible) {
+		this.viewPageVisible = viewPageVisible;
+	}
+
+	public Boolean getAddPageVisible() {
+		return addPageVisible;
+	}
+
+	public void setAddPageVisible(Boolean addPageVisible) {
+		this.addPageVisible = addPageVisible;
+	}
+
+	public Boolean getEditPageVisible() {
+		return editPageVisible;
+	}
+
+	public void setEditPageVisible(Boolean editPageVisible) {
+		this.editPageVisible = editPageVisible;
 	}
 
 	@Override

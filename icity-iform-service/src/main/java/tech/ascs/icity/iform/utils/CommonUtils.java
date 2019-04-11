@@ -17,6 +17,11 @@ public class CommonUtils {
         SimpleDateFormat format = new SimpleDateFormat(dateFormat);
         return format.format(date);
     }
+
+    public static String currentTimeStr(String dateFormat){
+        return date2Str(new Date(), dateFormat);
+    }
+
     //异常编码
     public static int exceptionCode = 404;
 }
