@@ -1470,7 +1470,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	private void setItemPermissions(ItemPermissionModel itemPermissionModel, Map<String, ItemModelEntity> uuidItemModelEntityMap){
 		List<ItemPermissionInfo> itemPermissionInfos = new ArrayList<>();
 		ItemModelEntity entity = uuidItemModelEntityMap.get(itemPermissionModel.getUuid());
-		if(entity == null || entity.getSystemItemType() == SystemItemType.ID || "id".equals(itemPermissionModel.getColumnName()) ){
+		if(entity == null || entity.getSystemItemType() == SystemItemType.ID ){
 			return;
 		}
 		if(itemPermissionModel.getAddPermissions() != null){
@@ -1748,6 +1748,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				itemPermissionModel.setId(itemModelEntity1.getId());
 				itemPermissionModel.setName(itemModelEntity1.getName());
 				itemPermissionModel.setUuid(itemModelEntity1.getUuid());
+				itemPermissionModel.setTypeKey(itemModelEntity1.getTypeKey());
 				for(ItemPermissionInfo itemPermissionInfo : itemModelEntity1.getPermissions()) {
 					ItemPermissionInfoModel itemPermissionInfoModel = new ItemPermissionInfoModel();
 					BeanUtils.copyProperties(itemPermissionInfo, itemPermissionInfoModel, new String[]{"itemModel"});
@@ -2143,7 +2144,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 
 		if(((SelectItemModelEntity) entity).getParentItem() != null){
-		   // if(!isPCItem) {
 			ItemModel parentItemModel = new ItemModel();
 			BeanUtils.copyProperties(((SelectItemModelEntity) entity).getParentItem(), parentItemModel, new String[]{"formModel", "columnModel", "activities", "options", "searchItems", "sortItems", "permissions", "items", "parentItem", "referenceList"});
 			if (((SelectItemModelEntity) entity).getParentItem().getColumnModel() != null) {
@@ -2157,9 +2157,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			}
 			itemModel.setParentItem(parentItemModel);
 			itemModel.setParentItemId(parentItemModel.getId());
-           /* }else{
-                //itemModel.setParentItemId(((SelectItemModelEntity) entity).getParentItem().getId());
-            }*/
 		}
 
 		//pc表单控件才有下拉子类
@@ -2187,7 +2184,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				chiildrenItemModel.add(chiildItemModel);
 			}
 			itemModel.setItems(chiildrenItemModel);
-
 		}
 	}
 
@@ -2306,6 +2302,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			itemModel.setId(itemModelEntity.getId());
 			itemModel.setName(itemModelEntity.getName());
 			itemModel.setUuid(itemModelEntity.getUuid());
+			itemModel.setTypeKey(itemModelEntity.getTypeKey());
 			if(itemModelEntity.getColumnModel() != null) {
 				itemModel.setTableName(itemModelEntity.getColumnModel().getDataModel().getTableName());
 				itemModel.setColumnName(itemModelEntity.getColumnModel().getColumnName());
