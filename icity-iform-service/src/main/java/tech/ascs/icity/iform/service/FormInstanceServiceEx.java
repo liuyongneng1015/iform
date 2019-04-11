@@ -42,5 +42,5 @@ public interface FormInstanceServiceEx {
 
     FormDataSaveInstance getFormDataSaveInstance(FormModelEntity formModel, String id);
 
-    List<String> setSelectItemDisplayValue(SelectItemModelEntity selectItemModelEntity, List<String> list);
+    List<String> setSelectItemDisplayValue(ItemInstance itemInstance, SelectItemModelEntity selectItemModelEntity, List<String> list);
 }

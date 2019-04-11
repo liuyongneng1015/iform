@@ -2115,12 +2115,12 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		if(StringUtils.hasText(defaultValue) && (entity.getType() == ItemType.CheckboxGroup
 				||entity.getType() == ItemType.RadioGroup ||entity.getType() == ItemType.Select)) {
 			itemModel.setDefaultValue(Arrays.asList(defaultValue.split(",")));
-			itemModel.setDefaultValueName(formInstanceServiceEx.setSelectItemDisplayValue((SelectItemModelEntity) entity, Arrays.asList(defaultValue.split(","))));
+			itemModel.setDefaultValueName(formInstanceServiceEx.setSelectItemDisplayValue(null, (SelectItemModelEntity) entity, Arrays.asList(defaultValue.split(","))));
 		}else if(StringUtils.hasText(defaultValue)){
 			itemModel.setDefaultValue(defaultValue);
 			List<String> list = new ArrayList<>();
 			list.add(defaultValue);
-			itemModel.setDefaultValueName(formInstanceServiceEx.setSelectItemDisplayValue((SelectItemModelEntity) entity, list));
+			itemModel.setDefaultValueName(formInstanceServiceEx.setSelectItemDisplayValue(null, (SelectItemModelEntity) entity, list));
 		}
 		if(entity.getOptions() != null && entity.getOptions().size() > 0){
 			List<String> defaultList = new ArrayList<>();
