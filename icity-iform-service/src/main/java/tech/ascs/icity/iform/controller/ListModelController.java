@@ -83,7 +83,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 	private String[] functionDefaultLabels = new String[]{"新增", "批量删除", "导入"};
 	private String[] functionDefaultIcons = new String[]{null, "icon-xuanzhong", null};
 	private String[] functionDefaultMethods = new String[]{"POST", "DELETE", "GET"};
-	private boolean[] functionVisibles = new boolean[]{true, false, false};
+	private Boolean[] functionVisibles = {true, false, false};
 
 	@Override
 	public IdEntity createListModel(@RequestBody ListModel ListModel) {
