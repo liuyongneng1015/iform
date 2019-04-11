@@ -78,10 +78,12 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		}
 	}
 
-	// 新增列表的时候，自动创建新增、导出、导入、删除、二维码，为系统自带功能
-	private DefaultFunctionType[] functionDefaultActions = {DefaultFunctionType.Add};
-	private String[] functionDefaultMethods = new String[]{"POST"};
-	private boolean[] functionVisibles = new boolean[]{true};
+	// 新增列表的时候，自动创建新增、导入、批量删除，为系统自带功能
+	private DefaultFunctionType[] functionDefaultActions = {DefaultFunctionType.Add, DefaultFunctionType.BatchDelete, DefaultFunctionType.Export};
+	private String[] functionDefaultLabels = new String[]{"新增", "批量删除", "导入"};
+	private String[] functionDefaultIcons = new String[]{null, "icon-xuanzhong", null};
+	private String[] functionDefaultMethods = new String[]{"POST", "DELETE", "GET"};
+	private boolean[] functionVisibles = new boolean[]{true, false, false};
 
 	@Override
 	public IdEntity createListModel(@RequestBody ListModel ListModel) {
@@ -102,6 +104,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				function.setLabel(functionDefaultActions[i].getDesc());
 				function.setMethod(functionDefaultMethods[i]);
                 function.setVisible(functionVisibles[i]);
+                function.setIcon(functionDefaultIcons[i]);
 				function.setOrderNo(i+1);
 				function.setListModel(entity);
 				functions.add(function);
@@ -123,7 +126,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			throw new IFormException("关联表单的ID不能为空");
 		}
 		// 校验默认的功能按钮是否被删除
-		// checkDefaultFuncExists(ListModel);
+		checkDefaultFuncExists(ListModel);
 		try {
 			ListModelEntity entity = wrap(ListModel);
 			listModelService.save(entity);
@@ -136,7 +139,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 	private void checkDefaultFuncExists(ListModel listModel) {
 		List<FunctionModel> functions = listModel.getFunctions();
 		if (functions==null || functions.size()==0) {
-			throw new IFormException("系统自带的功能按钮不允许删除");
+			throw new IFormException("系统自带的功能按钮允许不启用，但不允许删除");
 		}
 		// 校验功能按钮的编码不允许为空和同名
 		if (functions.stream().filter(item->item.getAction()!=null).map(item->item.getAction()).collect(Collectors.toSet()).size()<functions.size()) {
@@ -154,7 +157,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 																				action.equals(item.getAction()) &&
 																				label.equals(item.getLabel())).findFirst();
 			if (optional.isPresent()==false) {
-				throw new IFormException("系统自带的功能按钮不允许删除和编辑");
+				throw new IFormException("系统自带的功能按钮 "+functionDefaultLabels[i]+" 不允许删除，改名，或者修改功能编码");
 			}
 		}
 	}

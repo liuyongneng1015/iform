@@ -5,6 +5,9 @@ import java.io.Serializable;
 import javax.persistence.*;
 
 import tech.ascs.icity.iform.api.model.DisplayTimingType;
+import tech.ascs.icity.iform.api.model.ListFunctionType;
+import tech.ascs.icity.iform.api.model.ParamCondition;
+import tech.ascs.icity.iform.api.model.ReturnOperation;
 import tech.ascs.icity.jpa.dao.model.JPAEntity;
 
 /**
@@ -37,8 +40,21 @@ public class ListFunction extends JPAEntity implements Serializable {
 
 	private String url;
 
-
 	private String method;
+
+	private String icon;
+
+	private String backgroundColor;
+
+	private ParamCondition paramCondition;
+
+	private ListFunctionType functionType;
+
+	private String confirmForm;
+
+	private ReturnOperation returnOperation;
+
+	private String jumpNewUrl;
 
 	@Column(name="order_no",columnDefinition = "int default 0")//排序号
 	private Integer orderNo = 0;
@@ -110,6 +126,62 @@ public class ListFunction extends JPAEntity implements Serializable {
 
 	public void setMethod(String method) {
 		this.method = method;
+	}
+
+	public String getIcon() {
+		return icon;
+	}
+
+	public void setIcon(String icon) {
+		this.icon = icon;
+	}
+
+	public String getBackgroundColor() {
+		return backgroundColor;
+	}
+
+	public void setBackgroundColor(String backgroundColor) {
+		this.backgroundColor = backgroundColor;
+	}
+
+	public ParamCondition getParamCondition() {
+		return paramCondition;
+	}
+
+	public void setParamCondition(ParamCondition paramCondition) {
+		this.paramCondition = paramCondition;
+	}
+
+	public ListFunctionType getFunctionType() {
+		return functionType;
+	}
+
+	public void setFunctionType(ListFunctionType functionType) {
+		this.functionType = functionType;
+	}
+
+	public String getConfirmForm() {
+		return confirmForm;
+	}
+
+	public void setConfirmForm(String confirmForm) {
+		this.confirmForm = confirmForm;
+	}
+
+	public ReturnOperation getReturnOperation() {
+		return returnOperation;
+	}
+
+	public void setReturnOperation(ReturnOperation returnOperation) {
+		this.returnOperation = returnOperation;
+	}
+
+	public String getJumpNewUrl() {
+		return jumpNewUrl;
+	}
+
+	public void setJumpNewUrl(String jumpNewUrl) {
+		this.jumpNewUrl = jumpNewUrl;
 	}
 
 	public Integer getOrderNo() {
