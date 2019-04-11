@@ -638,7 +638,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					if(itemModel.getUniquene() != null && itemModel.getUniquene()){
 						List<String> list = listByTableName(itemModelService.getType(), dataModelEntity.getTableName(), "f" + itemModel.getColumnModel().getColumnName(), itemModelService.getValue());
 						if(list != null && list.size() > 0) {
-							stringListMap.put(itemModelService.getId()+"_"+itemModelService.getItemName(), list);
+							stringListMap.put(itemModel.getId()+"_"+itemModel.getName(), list);
 						}
 					}
 					if(itemModel instanceof ReferenceItemModelEntity && itemModel.getType() != ItemType.ReferenceLabel){
