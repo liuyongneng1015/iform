@@ -25,8 +25,24 @@ public class FunctionModel extends NameEntity implements Comparable<FunctionMode
 	private String method;
 	@ApiModelProperty(value ="排序号", position = 6)
 	private Integer orderNo = 0;
-	@ApiModelProperty(value ="显示时机", position = 6)
+	@ApiModelProperty(value ="显示时机", position = 7)
 	private DisplayTimingType displayTiming;
+    @ApiModelProperty(value ="按钮icon图标", position = 8)
+    private String icon;
+	@ApiModelProperty(value ="背景颜色", position = 9)
+	private String backgroundColor;
+	@ApiModelProperty(value ="参数条件", position = 10)
+	private ParamCondition paramCondition;
+	@ApiModelProperty(value ="功能类型", position = 11)
+	private ListFunctionType functionType;
+	@ApiModelProperty(value ="功能类型跳转URL", position = 12)
+	private String jumpURL;
+	@ApiModelProperty(value ="确认框", position = 13)
+	private String confirmForm;
+	@ApiModelProperty(value ="返回操作", position = 14)
+	private ReturnOperation returnOperation;
+	@ApiModelProperty(value ="跳转新url", position = 15)
+	private String jumpNewURL;
 
 	public String getLabel() {
 		return label;
@@ -90,6 +106,70 @@ public class FunctionModel extends NameEntity implements Comparable<FunctionMode
 
 	public void setDisplayTiming(DisplayTimingType displayTiming) {
 		this.displayTiming = displayTiming;
+	}
+
+	public String getIcon() {
+		return icon;
+	}
+
+	public void setIcon(String icon) {
+		this.icon = icon;
+	}
+
+	public String getBackgroundColor() {
+		return backgroundColor;
+	}
+
+	public void setBackgroundColor(String backgroundColor) {
+		this.backgroundColor = backgroundColor;
+	}
+
+	public ParamCondition getParamCondition() {
+		return paramCondition;
+	}
+
+	public void setParamCondition(ParamCondition paramCondition) {
+		this.paramCondition = paramCondition;
+	}
+
+	public ListFunctionType getFunctionType() {
+		return functionType;
+	}
+
+	public void setFunctionType(ListFunctionType functionType) {
+		this.functionType = functionType;
+	}
+
+	public String getJumpURL() {
+		return jumpURL;
+	}
+
+	public void setJumpURL(String jumpURL) {
+		this.jumpURL = jumpURL;
+	}
+
+	public String getConfirmForm() {
+		return confirmForm;
+	}
+
+	public void setConfirmForm(String confirmForm) {
+		this.confirmForm = confirmForm;
+	}
+
+	public ReturnOperation getReturnOperation() {
+		return returnOperation;
+	}
+
+	public void setReturnOperation(ReturnOperation returnOperation) {
+		this.returnOperation = returnOperation;
+	}
+
+	public String getJumpNewURL() {
+		return jumpNewURL;
+	}
+
+	public void setJumpNewURL(String jumpNewURL) {
+		this.jumpNewURL = jumpNewURL;
 	}
 
 	@Override

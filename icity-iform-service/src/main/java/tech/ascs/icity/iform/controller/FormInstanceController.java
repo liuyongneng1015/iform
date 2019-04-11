@@ -5,6 +5,8 @@ import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,6 +23,9 @@ import tech.ascs.icity.iform.service.*;
 import tech.ascs.icity.iform.utils.*;
 import tech.ascs.icity.model.IdEntity;
 import tech.ascs.icity.model.Page;
+
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
 
 @Api(tags = "表单实例服务", description = "包含业务表单数据的增删改查等功能")
 @RestController
@@ -221,16 +226,64 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			}
 		}
 		Page<FormDataSaveInstance> pageInstance = formInstanceService.pageFormInstance(listModel, page, pagesize, queryParameters);
-//		List<FormDataSaveInstance> list = pageInstance.getResults();
-//		if (list!=null && list.size()>0) {
-//			for (FormDataSaveInstance item:list) {
-//				Boolean myTask = instanceIdAndEditMap.get(item.getId());
-//				if (myTask!=null) {
-//					item.setCanEdit(myTask);
-//				}
-//			}
-//		}
 		return pageInstance;
+	}
+
+	@Override
+	public void export(HttpServletResponse response,
+					   @PathVariable(name="listId") String listId,
+					   @RequestParam Map<String, Object> parameters) {
+		ListModelEntity listModel = listModelService.find(listId);
+		if (listModel==null || listModel.getMasterForm()==null || StringUtils.isEmpty(listModel.getDisplayItemsSort())) {
+			return;
+		}
+		List<String> ids = Arrays.asList(listModel.getDisplayItemsSort().split(","));
+		List<ItemModelEntity> items = listModel.getDisplayItems();
+		List<ItemModelEntity> sortList = new ArrayList<>();
+		for (String id:ids) {
+			Optional<ItemModelEntity> optional = items.stream().filter(item->id.equals(item.getId())).findFirst();
+			if (optional.isPresent()) {
+				sortList.add(optional.get());
+			}
+		}
+		if (sortList==null || sortList.size()==0) {
+			return;
+		}
+		ids = sortList.stream().map(ItemModelEntity::getId).collect(Collectors.toList());
+		List<FormDataSaveInstance> data = page(listId, 1, 10000, parameters).getResults();
+
+		try {
+			XSSFWorkbook wb = new XSSFWorkbook();
+			XSSFSheet sheet = wb.createSheet(listModel.getName());
+			response.setContentType("application/vnd.ms-excel");
+
+			String filename = new String((listModel.getName()+CommonUtils.date2Str(new Date(), "-yyyy年MM月dd日-HHmmss")+".xlsx").getBytes("utf-8"), "ISO8859-1");
+			ExportUtils.outputHeaders(sortList.stream().map(ItemModelEntity::getName).toArray(String[]::new), sheet);
+			response.setHeader("Content-Disposition", "attachment;filename="+filename);
+			if (data!=null && data.size()>0) {
+				List<List<Object>> listData = new ArrayList<>();
+				for (FormDataSaveInstance dataInstance:data) {
+					List<ItemInstance> itemInstances = dataInstance.getItems();
+					List<Object> lineList = new ArrayList<>();
+					for (String id:ids) {
+						Optional<ItemInstance> optional = itemInstances.stream().filter(item->id.equals(item.getId())).findFirst();
+						if (optional.isPresent()) {
+							lineList.add(optional.get().getDisplayValue());
+						} else {
+							lineList.add(null);
+						}
+					}
+					listData.add(lineList);
+				}
+				ExportUtils.outputColumn(listData, sheet, 1);
+			}
+			ServletOutputStream out = response.getOutputStream();
+			wb.write(out);
+			out.flush();
+			out.close();
+		} catch (Exception e){
+			e.printStackTrace();
+		}
 	}
 
 	/**
