@@ -413,12 +413,12 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		FormDataSaveInstance formDataSaveInstance = formInstanceService.getFormDataSaveInstance(formModel, id);
 		Map map = new HashMap();
 		for (ItemInstance item:formDataSaveInstance.getItems()) {
+			map.put(item.getColumnModelName(), item);
 			item.setId(null);
 			item.setColumnModelId(null);
 			item.setColumnModelName(null);
 			item.setReadonly(null);
 			item.setVisible(null);
-			map.put(item.getColumnModelName(), item);
 		}
 		for (SubFormItemInstance sumForm:formDataSaveInstance.getSubFormData()) {
 			map.put(sumForm.getTableName(), getSubFormItemInstance(sumForm));
@@ -432,13 +432,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			Map map = new HashMap();
 			for (SubFormRowItemInstance rowItemInstance:itemInstance.getItems()) {
 				for (ItemInstance item:rowItemInstance.getItems()) {
-					item.setId(null);
-					item.setColumnModelId(null);
-					item.setColumnModelName(null);
-					item.setReadonly(null);
-					item.setVisible(null);
 					map.put(item.getColumnModelName(), item);
-					item.setDisplayObject(null);
 					if (item.getDisplayObject()!=null && item.getDisplayObject() instanceof ItemModel) {
 						ItemModel itemModel = (ItemModel)item.getDisplayObject();
 						if (itemModel.getOptions()!=null && itemModel.getOptions().size()>0 && item.getValue()!=null && item.getValue() instanceof List) {
@@ -451,6 +445,12 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 //							map.put("options", itemModel.getOptions());
 						}
 					}
+					item.setDisplayObject(null);
+					item.setId(null);
+					item.setColumnModelId(null);
+					item.setColumnModelName(null);
+					item.setReadonly(null);
+					item.setVisible(null);
 				}
 			}
 			list.add(map);
