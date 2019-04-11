@@ -47,7 +47,6 @@ import tech.ascs.icity.rbac.feign.model.UserInfo;
 @Service
 public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity> implements FormInstanceServiceEx {
 
-	private static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 	private static final Random random = new Random();
 
 	@Autowired
@@ -2459,7 +2458,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 		itemInstance.setValue(list);
 		SelectItemModelEntity selectItemModelEntity = (SelectItemModelEntity)itemModel;
-		List<String> displayValuelist = setSelectItemDisplayValue(selectItemModelEntity, list);
+		List<String> displayValuelist = setSelectItemDisplayValue(itemInstance, selectItemModelEntity, list);
 
 		// displayValuelist为空，说明在字典表里面已经删掉该内容，因此value也要设为空
 		if (displayValuelist == null || displayValuelist.size() == 0) {
@@ -2475,36 +2474,53 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 	}
 
-	public List<String> setSelectItemDisplayValue(SelectItemModelEntity selectItemModelEntity, List<String> list){
+	public List<String> setSelectItemDisplayValue(ItemInstance itemInstance, SelectItemModelEntity selectItemModelEntity, List<String> list){
 		if(list == null || list.size() < 1){
 			return null;
 		}
 		List<String> displayValuelist = new ArrayList<>();
+		List<Object> displayObjectList = new ArrayList<>();
 		if((selectItemModelEntity.getSelectReferenceType() == SelectReferenceType.Dictionary ||
 				selectItemModelEntity.getReferenceDictionaryItemId() != null || checkParentSelectItemHasDictionaryItem(selectItemModelEntity)) && list != null && list.size() > 0){
 			List<DictionaryItemEntity> dictionaryItemEntities = dictionaryItemManager.query().filterIn("id",list).list();
 			if(dictionaryItemEntities != null) {
-				Map<String, String> map = new HashMap<>();
+				Map<String, DictionaryItemEntity> map = new HashMap<>();
 				for (DictionaryItemEntity dictionaryItemEntity : dictionaryItemEntities) {
-					map.put(dictionaryItemEntity.getId(), dictionaryItemEntity.getName());
+					map.put(dictionaryItemEntity.getId(), dictionaryItemEntity);
 				}
 				for(String str : list){
-					displayValuelist.add(map.get(str));
+					DictionaryItemEntity dictionaryItemEntity = map.get(str);
+					if(dictionaryItemEntity != null) {
+						displayObjectList.add(dictionaryItemEntity);
+						displayValuelist.add(dictionaryItemEntity.getName());
+					}
 				}
 			}
 		}else if(selectItemModelEntity.getOptions() != null && selectItemModelEntity.getOptions().size() > 0) {
-			Map<String, String> map = new HashMap<>();
+			Map<String, ItemSelectOption> map = new HashMap<>();
 			for (ItemSelectOption option : selectItemModelEntity.getOptions()) {
 				if (list.contains(option.getId())) {
-					map.put(option.getId(), option.getLabel());
+					map.put(option.getId(), option);
 				}
 			}
 			for(String str : list){
-				displayValuelist.add(map.get(str));
+				ItemSelectOption itemSelectOption = map.get(str);
+				if(itemSelectOption != null) {
+					displayObjectList.add(itemSelectOption);
+					displayValuelist.add(itemSelectOption.getLabel());
+				}
 			}
 		}else if(list != null){
 			displayValuelist.add(String.join(",", list));
 		}
+
+		//设置控件的显示对象
+		if(itemInstance != null) {
+			itemInstance.setDisplayObject(displayObjectList);
+		}else{
+			displayObjectList = null;
+		}
+
 		return displayValuelist;
 	}
 
