@@ -22,7 +22,7 @@ public class ItemInstance extends IdEntity {
 	private Object displayObject;
 
 	@ApiModelProperty(value = "是否可见", position = 3)
-	private boolean visible = true;
+	private Boolean visible = true;
 
 	@ApiModelProperty(value = "是否只读", position = 4)
 	private Boolean readonly = false;
@@ -79,7 +79,7 @@ public class ItemInstance extends IdEntity {
 		this.displayObject = displayObject;
 	}
 
-	public boolean isVisible() {
+	public Boolean isVisible() {
 		return visible;
 	}
 
