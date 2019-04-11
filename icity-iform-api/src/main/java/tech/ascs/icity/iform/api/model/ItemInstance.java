@@ -22,10 +22,10 @@ public class ItemInstance extends IdEntity {
 	private Object displayObject;
 
 	@ApiModelProperty(value = "是否可见", position = 3)
-	private Boolean visible = true;
+	private boolean visible = true;
 
 	@ApiModelProperty(value = "是否只读", position = 4)
-	private Boolean readonly = false;
+	private boolean readonly = false;
 
 	@ApiModelProperty(value = "对应数据模型字段id", position = 5)
 	private String columnModelId;
@@ -63,13 +63,13 @@ public class ItemInstance extends IdEntity {
 		this.value = value;
 	}
 
-    public Object getDisplayValue() {
-        return displayValue;
-    }
+	public Object getDisplayValue() {
+		return displayValue;
+	}
 
-    public void setDisplayValue(Object displayValue) {
-        this.displayValue = displayValue;
-    }
+	public void setDisplayValue(Object displayValue) {
+		this.displayValue = displayValue;
+	}
 
 	public Object getDisplayObject() {
 		return displayObject;
@@ -79,11 +79,11 @@ public class ItemInstance extends IdEntity {
 		this.displayObject = displayObject;
 	}
 
-	public Boolean isVisible() {
+	public boolean isVisible() {
 		return visible;
 	}
 
-	public void setVisible(Boolean visible) {
+	public void setVisible(boolean visible) {
 		this.visible = visible;
 	}
 
@@ -91,7 +91,7 @@ public class ItemInstance extends IdEntity {
 		return readonly;
 	}
 
-	public void setReadonly(Boolean readonly) {
+	public void setReadonly(boolean readonly) {
 		this.readonly = readonly;
 	}
 
