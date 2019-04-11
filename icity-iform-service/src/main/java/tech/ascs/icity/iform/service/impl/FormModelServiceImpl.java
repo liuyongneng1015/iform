@@ -380,7 +380,10 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 	//设置关联控件父控件
 	private void setSelectItem(Map<String, ItemModelEntity> map, ItemModelEntity itemModel){
 		SelectItemModelEntity selectItemModelEntity = ((SelectItemModelEntity) itemModel);
-		SelectItemModelEntity parentSelectItem = (SelectItemModelEntity) map.get(selectItemModelEntity.getParentItem().getUuid());
+		SelectItemModelEntity parentSelectItem = null;
+		if(selectItemModelEntity.getParentItem() != null) {
+			parentSelectItem = (SelectItemModelEntity) map.get(selectItemModelEntity.getParentItem().getUuid());
+		}
 		SelectItemModelEntity oldSelectItem = null;
 		if(!selectItemModelEntity.isNew()){
 			SelectItemModelEntity selectItemModelEntitys = (SelectItemModelEntity)itemManager.get(selectItemModelEntity.getId());

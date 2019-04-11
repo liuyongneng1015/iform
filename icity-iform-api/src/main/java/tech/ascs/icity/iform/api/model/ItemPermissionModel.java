@@ -14,11 +14,8 @@ public class ItemPermissionModel extends NameEntity {
 	@ApiModelProperty(value = "控件模型唯一标识", position = 4)
 	private String uuid;
 
-	@ApiModelProperty(value = "控件模型表名", position = 4)
-	private String tableName;
-
-	@ApiModelProperty(value = "控件模型字段名", position = 4)
-	private String columnName;
+	@ApiModelProperty(value = "前端用的控件类型key", position = 53)
+	private String typeKey;
 
 	@ApiModelProperty(value = "新增时控件权限", position = 7)
 	private ItemPermissionInfoModel addPermissions ;
@@ -37,20 +34,12 @@ public class ItemPermissionModel extends NameEntity {
 		this.uuid = uuid;
 	}
 
-	public String getTableName() {
-		return tableName;
+	public String getTypeKey() {
+		return typeKey;
 	}
 
-	public void setTableName(String tableName) {
-		this.tableName = tableName;
-	}
-
-	public String getColumnName() {
-		return columnName;
-	}
-
-	public void setColumnName(String columnName) {
-		this.columnName = columnName;
+	public void setTypeKey(String typeKey) {
+		this.typeKey = typeKey;
 	}
 
 	public ItemPermissionInfoModel getAddPermissions() {
