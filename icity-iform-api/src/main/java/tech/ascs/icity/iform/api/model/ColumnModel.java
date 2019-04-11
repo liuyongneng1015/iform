@@ -45,7 +45,7 @@ public class ColumnModel extends NameEntity {
     private String defaultValue;
 
 	@ApiModelProperty(value = "是否关联:true关联，false未关联", position = 12)
-	private Boolean referenceItem;
+	private Boolean referenceItem = false;
 
 	@ApiModelProperty(value = "关联表", position = 11)
 	private List<ReferenceModel> referenceTables = new ArrayList<ReferenceModel>();

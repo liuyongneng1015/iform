@@ -350,11 +350,13 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		}
 		List<ColumnModelEntity> columnModelEntities = modelEntity.getColumns();
 		List<ColumnModel> columnModels = new ArrayList<>();
-		List<ItemModelEntity> itemModelEntityList = formModelService.findAllItems(formModelEntity);
 		Map<String, ItemModelEntity> itemModelEntityMap = new HashMap<>();
-		for(ItemModelEntity itemModelEntity1 : itemModelEntityList){
-			if(itemModelEntity1.getColumnModel() != null){
-				itemModelEntityMap.put(itemModelEntity1.getColumnModel().getId(), itemModelEntity1);
+		if(formModelEntity != null) {
+			List<ItemModelEntity> itemModelEntityList = formModelService.findAllItems(formModelEntity);
+			for (ItemModelEntity itemModelEntity1 : itemModelEntityList) {
+				if (itemModelEntity1.getColumnModel() != null) {
+					itemModelEntityMap.put(itemModelEntity1.getColumnModel().getId(), itemModelEntity1);
+				}
 			}
 		}
 		for(ColumnModelEntity columnModelEntity : columnModelEntities){

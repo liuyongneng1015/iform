@@ -387,6 +387,9 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 			List<ColumnModel> columns = new ArrayList<ColumnModel>();
 			for (ColumnModelEntity columnEntity : entity.getColumns()) {
 				ColumnModel column = toDTO(columnEntity);
+				if(column.getReferenceItem() == null){
+					column.setReferenceItem(false);
+				}
 				columns.add(column);
 			}
 			dataModel.setColumns(columns);

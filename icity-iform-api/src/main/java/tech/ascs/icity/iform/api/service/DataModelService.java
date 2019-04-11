@@ -197,4 +197,5 @@ public interface DataModelService {
 	})
 	@GetMapping("/delete/tableColumn")
 	void deletetableColumn(@RequestParam(name = "tableName", required = true) String tableName, @RequestParam(name = "columnName", required = true) String columnName);
+
 }
