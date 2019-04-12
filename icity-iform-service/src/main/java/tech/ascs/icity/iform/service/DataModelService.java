@@ -31,4 +31,7 @@ public interface DataModelService extends JPAService<DataModelEntity> {
 
 	//查询表单所有索引
 	List<String> listDataIndexName(String tableName);
+
+	//删除表单无需校验
+	void deleteDataModelWithoutVerify(DataModelEntity modelEntity);
 }

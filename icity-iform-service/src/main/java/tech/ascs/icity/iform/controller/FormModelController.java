@@ -653,13 +653,13 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 		formMap.put(masterDataModel.getTableName(), itemModelEntityList);
 
-		Map<String, DataModel> dataModelMap = new HashMap<>();
+		Map<String, DataModel> newDataModelMap = new HashMap<>();
 		for(DataModel dataModel : formModel.getDataModels()){
-			dataModelMap.put(dataModel.getTableName(), dataModel);
+			newDataModelMap.put(dataModel.getTableName(), dataModel);
 		}
 
 		for(String key : formMap.keySet()){
-			setReference(dataModelMap.get(key), formMap.get(key));
+			setReference(newDataModelMap.get(key), formMap.get(key));
 		}
 
 		//设置主表字段
@@ -695,7 +695,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 
 		for(String key : oldMasterDataModelMap.keySet()){
-			updateSalverDataModel(oldMasterDataModelMap.get(key));
+			deleteSalverDataModel(oldMasterDataModelMap.get(key));
 		}
 
 		//数据标识对应的字段
@@ -728,9 +728,8 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	}
 
 	//更新表单建模
-	private void updateSalverDataModel(DataModelEntity dataModelEntity){
-		dataModelEntity.setMasterModel(null);
-		dataModelService.save(dataModelEntity);
+	private void deleteSalverDataModel(DataModelEntity dataModelEntity){
+		dataModelService.deleteDataModelWithoutVerify(dataModelEntity);
 	}
 
 	private void setMasterDataModelEntity(DataModelEntity masterDataModelEntity, DataModel masterDataModel, FormModel formModel, Map<String, DataModelEntity> oldMasterDataModelMap){

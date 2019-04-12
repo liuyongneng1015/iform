@@ -653,6 +653,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				&& itemModelEntity.getType() == ItemType.ReferenceList){
 				manyTomanyFormIdList.add(((ReferenceItemModelEntity) itemModelEntity).getReferenceFormId());
 			}
+
 			deleteItemOtherReferenceEntity(itemModelEntity);
 			if(itemModelEntity instanceof ReferenceItemModelEntity && ((ReferenceItemModelEntity) itemModelEntity).getSelectMode() == SelectMode.Multiple){
 				ColumnModelEntity columnModelEntity = columnModelService.saveColumnModelEntity(dataModelEntity, "id");
@@ -725,7 +726,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				}
 				itemManager.delete(itemModelEntity);
 			}else if(itemModelEntity instanceof SubFormItemModelEntity){
-				columnModelService.deleteTable(itemModelEntity.getColumnModel().getDataModel().getTableName());
+				if(itemModelEntity.getColumnModel() != null) {//刪除子表
+					columnModelService.deleteTable(itemModelEntity.getColumnModel().getDataModel().getTableName());
+				}
 				for(int t =0 ; t < ((SubFormItemModelEntity) itemModelEntity).getItems().size(); t++) {
 					SubFormRowItemModelEntity subFormRowItemModelEntity = ((SubFormItemModelEntity) itemModelEntity).getItems().get(t);
 					List<ItemModelEntity> list1 = subFormRowItemModelEntity.getItems();

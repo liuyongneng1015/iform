@@ -287,15 +287,16 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 	//检查属性是否被关联
 	@Transactional(readOnly = true)
 	protected void checkRelevance(List<ColumnModelEntity> waitingDeletCloumns) {
-		if (!waitingDeletCloumns.isEmpty()) {
+		if (!waitingDeletCloumns.isEmpty() &&  waitingDeletCloumns.size() > 0 ) {
+			String tableName = waitingDeletCloumns.get(0).getDataModel().getTableName();
 			//TODO 处理查看行是否被关联,则提示“字段被XXX表单XXX控件关联”
 			for(ColumnModelEntity entity : waitingDeletCloumns) {
-				verifyColumReferenceItem(entity);
+				verifyColumReferenceItem(tableName, entity);
 			}
 		}
 	}
 
-	private void verifyColumReferenceItem(ColumnModelEntity entity){
+	private void verifyColumReferenceItem(String tableName, ColumnModelEntity entity){
 		List<ItemModelEntity> itemModelEntityList = itemManager.findByProperty("columnModel.id", entity.getId());
 		if(itemModelEntityList != null && itemModelEntityList.size() > 0) {
 			for (ItemModelEntity itemModel : itemModelEntityList) {
@@ -303,7 +304,7 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 				if(formModelEntity == null && itemModel.getSourceFormModelId() != null){
 					formModelEntity  = formModelService.get(itemModel.getSourceFormModelId());
 				}
-				throw new IFormException(CommonUtils.exceptionCode, entity.getColumnName() + "字段被" + (formModelEntity == null ? "" : formModelEntity.getName()) + "表单" + itemModel.getName() + "控件关联");
+				throw new IFormException(CommonUtils.exceptionCode, tableName + "数据表的" + entity.getColumnName() + "字段被" + (formModelEntity == null ? "" : formModelEntity.getName()) + "表单" + itemModel.getName() + "控件关联");
 			}
 		}
 	}
@@ -418,23 +419,50 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 
 	@Override
 	public void deleteDataModel(DataModelEntity modelEntity) {
+		veryDataModelColumnModel(modelEntity);
+		if(modelEntity.getSlaverModels() != null){
+			for(DataModelEntity dataModelEntity  : modelEntity.getSlaverModels()){
+				deleteDatModel(dataModelEntity);
+			}
+		}
+		deleteDatModel(modelEntity);
+	}
+
+	private void deleteDatModel(DataModelEntity modelEntity){
 		List<ColumnModelEntity> columnModelEntities = modelEntity.getColumns();
+		deleteColumnModel(columnModelEntities);
+		String tableName = modelEntity.getTableName();
+		delete(modelEntity);
+		try {
+			String deleteTableSql =" DROP TABLE IF exists if_"+tableName;
+			jdbcTemplate.execute(deleteTableSql);
+		} catch (DataAccessException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void veryDataModelColumnModel(DataModelEntity modelEntity){
+		List<ColumnModelEntity> columnModelEntities = modelEntity.getColumns();
+		for(ColumnModelEntity columnModelEntity : columnModelEntities){
+			verifyColumReferenceItem(modelEntity.getTableName(), columnModelEntity);
+		}
+		if(modelEntity.getSlaverModels() != null){
+			for(DataModelEntity dataModelEntity  : modelEntity.getSlaverModels()){
+				for(ColumnModelEntity columnModelEntity : dataModelEntity.getColumns()){
+					verifyColumReferenceItem("子表"+dataModelEntity.getTableName(), columnModelEntity);
+				}
+			}
+		}
+	}
+
+	private void deleteColumnModel(List<ColumnModelEntity> columnModelEntities){
 		for(int i = 0; i < columnModelEntities.size(); i++){
 			ColumnModelEntity columnModelEntity = columnModelEntities.get(i);
-			verifyColumReferenceItem(columnModelEntity);
 			List<ColumnReferenceEntity> list = columnModelEntity.getColumnReferences();
 			if(list != null && list.size() > 0){
 				deleteColumnReferenceEntity(columnModelEntity);
 			}
 			columnModelService.deleteTableColumn(columnModelEntity.getDataModel().getTableName(), columnModelEntity.getColumnName());
-		}
-		delete(modelEntity);
-		String tableName = modelEntity.getTableName();
-		try {
-			String deleteTableSql ="DROP TABLE IF exists "+tableName;
-			jdbcTemplate.execute(deleteTableSql);
-		} catch (DataAccessException e) {
-			e.printStackTrace();
 		}
 	}
 
@@ -473,6 +501,29 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 			list.add((String)map.get("Key_name"));
 		}
 		return new ArrayList<>(list);
+	}
+
+	@Override
+	public void deleteDataModelWithoutVerify(DataModelEntity modelEntity) {
+		if(modelEntity.getSlaverModels() != null){
+			for(DataModelEntity dataModelEntity  : modelEntity.getSlaverModels()){
+				updateColumnItemModel(dataModelEntity);
+				deleteDatModel(dataModelEntity);
+			}
+		}
+		updateColumnItemModel(modelEntity);
+		modelEntity.setMasterModel(null);
+		deleteDatModel(modelEntity);
+	}
+
+	private void updateColumnItemModel(DataModelEntity modelEntity){
+		for(ColumnModelEntity columnModelEntity : modelEntity.getColumns() ) {
+			List<ItemModelEntity> itemModelEntityList = itemManager.query().filterIn("columnModel.id", columnModelEntity.getId()).list();
+			for (ItemModelEntity itemModelEntity : itemModelEntityList) {
+				itemModelEntity.setColumnModel(null);
+				itemManager.save(itemModelEntity);
+			}
+		}
 	}
 
 	private List<Map<String, Object>> listIndexBySql(String sql) {
