@@ -50,10 +50,12 @@ public class ListFunction extends JPAEntity implements Serializable {
 	/** 前端传过来的是数组，返回给前端的时候要转成数组 */
 	private String paramCondition;
 
+	@Enumerated(EnumType.STRING)
 	private ListFunctionType functionType;
 
 	private String confirmForm;
 
+	@Enumerated(EnumType.STRING)
 	private ReturnOperation returnOperation;
 
 	private String jumpNewUrl;
