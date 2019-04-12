@@ -213,7 +213,8 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 				}
 			}
 		}
-		return formInstanceService.pageFormInstance(listModel, page, pagesize, queryParameters);
+		Page<FormDataSaveInstance> formDataSaveInstancePage = formInstanceService.pageFormInstance(listModel, page, pagesize, queryParameters);
+		return formDataSaveInstancePage;
 	}
 
 	public int assemblyActivitiStatus(SelectItemModelEntity selectItem, String valueId) {

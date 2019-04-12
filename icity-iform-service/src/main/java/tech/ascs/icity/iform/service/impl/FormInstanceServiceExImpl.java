@@ -2493,7 +2493,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				for(String str : list){
 					DictionaryItemEntity dictionaryItemEntity = map.get(str);
 					if(dictionaryItemEntity != null) {
-						displayObjectList.add(dictionaryItemEntity);
+//						displayObjectList.add(dictionaryItemEntity);
+						SelectItemModelValue selectItemModelValue = new SelectItemModelValue();
+						selectItemModelValue.setCode(dictionaryItemEntity.getCode());
+						selectItemModelValue.setDescription(dictionaryItemEntity.getDescription());
+						displayObjectList.add(selectItemModelValue);
 						displayValuelist.add(dictionaryItemEntity.getName());
 					}
 				}
@@ -2508,7 +2512,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			for(String str : list){
 				ItemSelectOption itemSelectOption = map.get(str);
 				if(itemSelectOption != null) {
-					displayObjectList.add(itemSelectOption);
+//					displayObjectList.add(itemSelectOption);
+					SelectItemModelValue selectItemModelValue = new SelectItemModelValue();
+					selectItemModelValue.setCode(itemSelectOption.getValue());
+					selectItemModelValue.setDescription(itemSelectOption.getLabel());
 					displayValuelist.add(itemSelectOption.getLabel());
 				}
 			}
@@ -2518,7 +2525,15 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 		//设置控件的显示对象
 		if(itemInstance != null) {
-			itemInstance.setDisplayObject(displayObjectList);
+			if (displayObjectList!=null && displayObjectList.size()>0) {
+				for (Object displayObjectItem:displayObjectList) {
+					if (displayObjectItem instanceof ItemSelectOption) {
+
+					}
+				}
+				itemInstance.setDisplayObject(displayObjectList);
+			}
+
 		}
 
 		return displayValuelist;
