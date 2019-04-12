@@ -797,15 +797,19 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		//旧数据
 		List<ItemSelectOption> itemSelectOptions = newEntity.getOptions();
 		Map<String, ItemSelectOption> itemSelectOptionMap = new HashMap<>();
-		for(ItemSelectOption option : itemSelectOptions){
-			itemSelectOptionMap.put(option.getId(), option);
+		if(itemSelectOptions != null) {
+			for (ItemSelectOption option : itemSelectOptions) {
+				itemSelectOptionMap.put(option.getId(), option);
+			}
 		}
 		List<ItemSelectOption> options = new ArrayList<ItemSelectOption>();
-		for (ItemSelectOption option : paramerItemModelEntity.getOptions()) {
-            ItemSelectOption newOption = option.isNew() ?  new ItemSelectOption() : itemSelectOptionMap.remove(option.getId());
-            BeanUtils.copyProperties(option, newOption, new String[]{"itemModel"});
-            newOption.setItemModel(newEntity);
-			options.add(newOption);
+		if(paramerItemModelEntity.getOptions() != null) {
+			for (ItemSelectOption option : paramerItemModelEntity.getOptions()) {
+				ItemSelectOption newOption = option.isNew() ? new ItemSelectOption() : itemSelectOptionMap.remove(option.getId());
+				BeanUtils.copyProperties(option, newOption, new String[]{"itemModel"});
+				newOption.setItemModel(newEntity);
+				options.add(newOption);
+			}
 		}
 
 		newEntity.setOptions(options);

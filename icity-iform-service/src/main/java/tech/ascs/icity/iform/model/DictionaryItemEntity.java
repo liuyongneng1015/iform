@@ -36,6 +36,12 @@ public class DictionaryItemEntity extends BaseEntity implements Codeable {
 	private String description;
 
 	/**
+	 * 按钮icon
+	 */
+	@Column(name = "icon")
+	private String icon;
+
+	/**
 	 * 排序号
 	 */
 	@Column(name = "order_no")
@@ -74,6 +80,14 @@ public class DictionaryItemEntity extends BaseEntity implements Codeable {
 
 	public void setDescription(String description) {
 		this.description = description;
+	}
+
+	public String getIcon() {
+		return icon;
+	}
+
+	public void setIcon(String icon) {
+		this.icon = icon;
 	}
 
 	public Integer getOrderNo() {

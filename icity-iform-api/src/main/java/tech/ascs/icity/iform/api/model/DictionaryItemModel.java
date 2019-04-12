@@ -33,6 +33,12 @@ public class DictionaryItemModel extends NameEntity implements Codeable {
 	private String description;
 
 	/**
+	 * 按钮icon
+	 */
+	@ApiModelProperty(value = "按钮icon", position = 4)
+	private String icon;
+
+	/**
 	 * 排序号
 	 */
 	@ApiModelProperty(value = "排序号", position = 5)
@@ -74,6 +80,14 @@ public class DictionaryItemModel extends NameEntity implements Codeable {
 
 	public void setDescription(String description) {
 		this.description = description;
+	}
+
+	public String getIcon() {
+		return icon;
+	}
+
+	public void setIcon(String icon) {
+		this.icon = icon;
 	}
 
 	public Integer getOrderNo() {

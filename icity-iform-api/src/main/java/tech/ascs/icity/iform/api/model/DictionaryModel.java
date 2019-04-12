@@ -1,6 +1,5 @@
 package tech.ascs.icity.iform.api.model;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import io.swagger.annotations.ApiModel;
@@ -25,6 +24,12 @@ public class DictionaryModel extends NameEntity implements Codeable {
 	 */
 	@ApiModelProperty(value = "描述", position = 4)
 	private String description;
+
+	/**
+	 * 按钮icon
+	 */
+	@ApiModelProperty(value = "按钮icon", position = 4)
+	private String icon;
 
 	/**
 	 * 排序号
@@ -61,6 +66,14 @@ public class DictionaryModel extends NameEntity implements Codeable {
 
 	public void setDescription(String description) {
 		this.description = description;
+	}
+
+	public String getIcon() {
+		return icon;
+	}
+
+	public void setIcon(String icon) {
+		this.icon = icon;
 	}
 
 	public Integer getOrderNo() {
