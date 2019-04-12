@@ -47,7 +47,8 @@ public class ListFunction extends JPAEntity implements Serializable {
 
 	private String backgroundColor;
 
-	private ParamCondition paramCondition;
+	/** 前端传过来的是数组，返回给前端的时候要转成数组 */
+	private String paramCondition;
 
 	private ListFunctionType functionType;
 
@@ -153,11 +154,11 @@ public class ListFunction extends JPAEntity implements Serializable {
 		this.backgroundColor = backgroundColor;
 	}
 
-	public ParamCondition getParamCondition() {
+	public String getParamCondition() {
 		return paramCondition;
 	}
 
-	public void setParamCondition(ParamCondition paramCondition) {
+	public void setParamCondition(String paramCondition) {
 		this.paramCondition = paramCondition;
 	}
 

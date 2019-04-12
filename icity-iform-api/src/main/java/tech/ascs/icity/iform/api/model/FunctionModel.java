@@ -5,6 +5,8 @@ import io.swagger.annotations.ApiModelProperty;
 import org.apache.commons.lang3.StringUtils;
 import tech.ascs.icity.model.NameEntity;
 
+import java.util.List;
+
 @ApiModel("功能模型")
 public class FunctionModel extends NameEntity implements Comparable<FunctionModel> {
 
@@ -29,7 +31,7 @@ public class FunctionModel extends NameEntity implements Comparable<FunctionMode
 	@ApiModelProperty(value ="背景颜色", position = 9)
 	private String backgroundColor;
 	@ApiModelProperty(value ="参数条件", position = 10)
-	private ParamCondition paramCondition;
+	private List<String> paramCondition;
 	@ApiModelProperty(value ="功能类型", position = 11)
 	private ListFunctionType functionType;
 	@ApiModelProperty(value ="确认框", position = 12)
@@ -127,11 +129,11 @@ public class FunctionModel extends NameEntity implements Comparable<FunctionMode
 		this.backgroundColor = backgroundColor;
 	}
 
-	public ParamCondition getParamCondition() {
+	public List<String> getParamCondition() {
 		return paramCondition;
 	}
 
-	public void setParamCondition(ParamCondition paramCondition) {
+	public void setParamCondition(List<String> paramCondition) {
 		this.paramCondition = paramCondition;
 	}
 

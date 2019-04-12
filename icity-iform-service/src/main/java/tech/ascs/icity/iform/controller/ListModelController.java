@@ -380,7 +380,10 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 					throw new IFormException("功能按钮存在功能名或者功能编码为空");
 				}
 				ListFunction listFunction = new ListFunction() ;
-				BeanUtils.copyProperties(function, listFunction, new String[]{"listModel"});
+				BeanUtils.copyProperties(function, listFunction, new String[]{"listModel", "paramCondition"});
+				if (function.getParamCondition()!=null) {
+					listFunction.setParamCondition(String.join(",", function.getParamCondition()));
+				}
 				listFunction.setListModel(entity);
 				listFunction.setOrderNo(++i);
 				functions.add(listFunction);
@@ -535,7 +538,10 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			List<FunctionModel> functions = new ArrayList();
 			for(ListFunction listFunction : entity.getFunctions()) {
 				FunctionModel function = new FunctionModel();
-				BeanUtils.copyProperties(listFunction, function, new String[]{"listModel", "formModel"});
+				BeanUtils.copyProperties(listFunction, function, new String[]{"listModel", "formModel", "paramCondition"});
+				if (listFunction.getParamCondition()!=null && listFunction.getParamCondition().length()>0) {
+					function.setParamCondition(Arrays.asList(listFunction.getParamCondition().split(",")));
+				}
 				functions.add(function);
 			}
             Collections.sort(functions);
