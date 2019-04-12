@@ -8,12 +8,16 @@ import tech.ascs.icity.model.NameEntity;
 public class SelectItemModelValue extends NameEntity {
     public SelectItemModel itemModel;
     /** 编码比如0,1 对应name字段男女 */
-    @ApiModelProperty(value = "字典表的英文Key", position = 7)
+    @ApiModelProperty(value = "字典表的英文Key", position = 1)
     private String code;
 
     /** 描述 */
-    @ApiModelProperty(value = "字典表的中文描述", position = 7)
+    @ApiModelProperty(value = "字典表的中文描述", position = 2)
     private String description;
+
+    /** 描述 */
+    @ApiModelProperty(value = "icon图标", position = 3)
+    private String icon;
 
     public SelectItemModelValue() { }
 
@@ -39,5 +43,13 @@ public class SelectItemModelValue extends NameEntity {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getIcon() {
+        return icon;
+    }
+
+    public void setIcon(String icon) {
+        this.icon = icon;
     }
 }
