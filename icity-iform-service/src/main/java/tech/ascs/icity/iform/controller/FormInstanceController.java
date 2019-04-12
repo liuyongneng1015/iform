@@ -417,7 +417,6 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			map.put(item.getColumnModelName(), item);
 			item.setColumnModelName(null);
 			item.setColumnModelId(null);
-			item.setDisplayObject(null);
 			item.setVisible(null);
 			item.setReadonly(null);
 		}
@@ -448,7 +447,6 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 					}
 					item.setColumnModelName(null);
 					item.setColumnModelId(null);
-					item.setDisplayObject(null);
 					item.setVisible(null);
 					item.setReadonly(null);
 				}
