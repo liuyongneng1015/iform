@@ -31,10 +31,10 @@ public interface ListModelService extends JPAService<ListModelEntity> {
      * @param name
      * @param applicationId
      * @param formId
-     * @param hasAcvititi 列表对应的表单是否绑定了工作流
+     * @param hasAcvititi 列表对应的表单是否绑定了工作流，null表示该条件不查询，false表示查询没有绑定工作流的列表，true表示绑定工作流的列表
      * @return
      */
-    List<ListModel> findListModelSimpleInfo(String name, String applicationId, String formId, boolean hasAcvititi);
+    List<ListModel> findListModelSimpleInfo(String name, String applicationId, String formId, Boolean hasAcvititi);
 
     /**
      * 查询列表模型的简要分页信息

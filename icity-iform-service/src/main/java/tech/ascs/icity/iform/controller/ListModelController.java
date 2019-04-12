@@ -51,7 +51,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 	@Override
 	public List<ListModel> list(@RequestParam(name = "name", defaultValue = "") String name,
 								@RequestParam(name = "applicationId", required = false) String applicationId) {
-		return listModelService.findListModelSimpleInfo(name, applicationId, null, false);
+		return listModelService.findListModelSimpleInfo(name, applicationId, null, null);
 	}
 
 	@Override
