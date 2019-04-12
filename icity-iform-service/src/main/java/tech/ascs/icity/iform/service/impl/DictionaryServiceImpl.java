@@ -35,30 +35,31 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 	}
 
 	@Override
-	public void updateDictionaryItem(String dictionaryId, String itemId, String code, String name, String description, String parentItemId) {
+	public void updateDictionaryItem(DictionaryItemModel dictionaryItemModel) {
 		DictionaryItemEntity parentItemEntity = null;
-		if (StringUtils.isNoneBlank(parentItemId)) {
-			parentItemEntity = getDictionaryItemById(parentItemId);
+		if (StringUtils.isNoneBlank(dictionaryItemModel.getParentId())) {
+			parentItemEntity = getDictionaryItemById(dictionaryItemModel.getParentId());
 		}
 		DictionaryEntity dictionary = null;
-		if (StringUtils.isNoneBlank(dictionaryId)) {
-			dictionary = get(dictionaryId);
+		if (StringUtils.isNoneBlank(dictionaryItemModel.getDictionaryId())) {
+			dictionary = get(dictionaryItemModel.getDictionaryId());
 		}
 		if (parentItemEntity == null && dictionary == null) {
 			throw new IFormException("查询关联对象失败");
 		}
 		DictionaryItemEntity   root = findRootDictionaryItem();
-		if (parentItemEntity != null && !root.getId().equals(parentItemId)) {
+		if (parentItemEntity != null && !root.getId().equals(dictionaryItemModel.getParentId())) {
 			dictionary = null;
 		}
-		DictionaryItemEntity item = getDictionaryItemById(itemId);
-		item.setCode(StringUtils.isBlank(code) ? "key_"+System.currentTimeMillis() : code);
+		DictionaryItemEntity item = getDictionaryItemById(dictionaryItemModel.getId());
+		item.setCode(StringUtils.isBlank(dictionaryItemModel.getCode()) ? "key_"+System.currentTimeMillis() : dictionaryItemModel.getCode());
 
-		item.setName(name);
-		item.setDescription(description);
+		item.setName(dictionaryItemModel.getName());
+		item.setDescription(dictionaryItemModel.getDescription());
+		item.setIcon(dictionaryItemModel.getIcon());
 		for (int i = 0; i < root.getChildrenItem().size(); i++) {
 			DictionaryItemEntity itemEntity = root.getChildrenItem().get(i);
-			if(itemEntity.getId().equals(itemId)){
+			if(itemEntity.getId().equals(dictionaryItemModel.getId())){
 				root.getChildrenItem().remove(itemEntity);
 				i--;
 			}
@@ -67,7 +68,7 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 		if (dictionary != null) {
 			for (int i = 0; i < dictionary.getDictionaryItems().size(); i++) {
 				DictionaryItemEntity itemEntity = dictionary.getDictionaryItems().get(i);
-				if(itemEntity.getId().equals(itemId)){
+				if(itemEntity.getId().equals(dictionaryItemModel.getId())){
 					dictionary.getDictionaryItems().remove(itemEntity);
 					i--;
 				}
@@ -78,7 +79,7 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 		}else{
 			for (int i = 0; i < parentItemEntity.getChildrenItem().size(); i++) {
 				DictionaryItemEntity itemEntity = parentItemEntity.getChildrenItem().get(i);
-				if (itemEntity.getId().equals(itemId)) {
+				if (itemEntity.getId().equals(dictionaryItemModel.getId())) {
 					parentItemEntity.getChildrenItem().remove(itemEntity);
 					i--;
 				}

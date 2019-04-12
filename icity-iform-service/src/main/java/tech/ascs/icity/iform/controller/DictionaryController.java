@@ -247,10 +247,9 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
     	item.setName(dictionaryItemModel.getName());
     	Integer maxOrderNo = dictionaryService.maxDictionaryItemOrderNo();
 		item.setOrderNo(maxOrderNo == null ? 1 :  maxOrderNo + 1);
-
 		item.setCode(StringUtils.isBlank(dictionaryItemModel.getCode()) ? "key_"+item.getOrderNo() : dictionaryItemModel.getCode());
-
 		item.setDescription(dictionaryItemModel.getDescription());
+		item.setIcon(dictionaryItemModel.getIcon());
     	if(dictionary != null) {
 			item.setParentItem(root);
 			item.setDictionary(dictionary);
@@ -325,7 +324,7 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 			throw new IFormException("更新系统变量失败，id不一致");
 		}
 		veryDictionaryItemByCode(dictionaryItemModel);
-		dictionaryService.updateDictionaryItem(dictionaryItemModel.getDictionaryId(), id, dictionaryItemModel.getCode(), dictionaryItemModel.getName(), dictionaryItemModel.getDescription(), dictionaryItemModel.getParentId());
+		dictionaryService.updateDictionaryItem(dictionaryItemModel);
     }
 
 	@Override

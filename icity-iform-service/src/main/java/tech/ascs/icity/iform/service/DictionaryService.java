@@ -2,6 +2,7 @@ package tech.ascs.icity.iform.service;
 
 import java.util.List;
 
+import tech.ascs.icity.iform.api.model.DictionaryItemModel;
 import tech.ascs.icity.iform.api.model.DictionaryModel;
 import tech.ascs.icity.iform.model.DictionaryEntity;
 import tech.ascs.icity.iform.model.DictionaryItemEntity;
@@ -20,14 +21,9 @@ public interface DictionaryService extends JPAService<DictionaryEntity> {
 
 	/**
 	 * 更新字典表选项
-	 * 
-	 * @param dictionaryId 字典表ID
-	 * @param itemId 选项ID
-	 * @param code 编码
-	 * @param name 名称
-	 * @param description 描述
+	 *
 	 */
-	void updateDictionaryItem(String dictionaryId, String itemId, String code, String name, String description, String parentItemId);
+	void updateDictionaryItem(DictionaryItemModel dictionaryItemModel);
 
 	/**
 	 * 删除字典表选项
