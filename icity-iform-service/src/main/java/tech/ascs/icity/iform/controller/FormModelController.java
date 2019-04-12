@@ -1238,7 +1238,8 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 		if(!(entity instanceof RowItemModelEntity) && !(entity instanceof TabsItemModelEntity)
 				&& !(entity instanceof SubFormItemModelEntity) && !(entity instanceof SubFormRowItemModelEntity)
-				&& !(entity instanceof ReferenceItemModelEntity) && !(entity instanceof TabPaneItemModelEntity) && entity.getColumnModel() == null){
+				&& !(entity instanceof ReferenceItemModelEntity) && !(entity instanceof TabPaneItemModelEntity)
+				&& entity.getType() != ItemType.Label && entity.getColumnModel() == null){
 			throw  new IFormException("控件"+entity.getName()+"没有对应字段");
 		}
 		
