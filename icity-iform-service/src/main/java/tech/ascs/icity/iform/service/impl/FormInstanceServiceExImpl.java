@@ -2493,7 +2493,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				for(String str : list){
 					DictionaryItemEntity dictionaryItemEntity = map.get(str);
 					if(dictionaryItemEntity != null) {
-//						displayObjectList.add(dictionaryItemEntity);
 						SelectItemModelValue selectItemModelValue = new SelectItemModelValue();
 						selectItemModelValue.setCode(dictionaryItemEntity.getCode());
 						selectItemModelValue.setIcon(dictionaryItemEntity.getIcon());
@@ -2504,20 +2503,13 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				}
 			}
 		}else if(selectItemModelEntity.getOptions() != null && selectItemModelEntity.getOptions().size() > 0) {
-			Map<String, ItemSelectOption> map = new HashMap<>();
 			for (ItemSelectOption option : selectItemModelEntity.getOptions()) {
 				if (list.contains(option.getId())) {
-					map.put(option.getId(), option);
-				}
-			}
-			for(String str : list){
-				ItemSelectOption itemSelectOption = map.get(str);
-				if(itemSelectOption != null) {
-//					displayObjectList.add(itemSelectOption);
 					SelectItemModelValue selectItemModelValue = new SelectItemModelValue();
-					selectItemModelValue.setCode(itemSelectOption.getValue());
-					selectItemModelValue.setDescription(itemSelectOption.getLabel());
-					displayValuelist.add(itemSelectOption.getLabel());
+					selectItemModelValue.setCode(option.getValue());
+					selectItemModelValue.setDescription(option.getLabel());
+					displayObjectList.add(selectItemModelValue);
+					displayValuelist.add(option.getLabel());
 				}
 			}
 		}else if(list != null){
