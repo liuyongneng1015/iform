@@ -655,6 +655,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			for(String str : stringListMap.keySet()){
 				for(String string : stringListMap.get(str)){
 					if(StringUtils.hasText(str) && (map.get("id") == null ||  !str.equals(map.get("id")))){
+						System.out.println(string+"____zzz");
 						String[] strings = string.split("_");
 						throw new IFormException(strings[strings.length-1]+"必须唯一");
 					}
