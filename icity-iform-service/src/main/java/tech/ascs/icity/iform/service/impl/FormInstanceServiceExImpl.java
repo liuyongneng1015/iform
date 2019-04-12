@@ -2496,7 +2496,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 //						displayObjectList.add(dictionaryItemEntity);
 						SelectItemModelValue selectItemModelValue = new SelectItemModelValue();
 						selectItemModelValue.setCode(dictionaryItemEntity.getCode());
-						selectItemModelValue.setDescription(dictionaryItemEntity.getDescription());
+						selectItemModelValue.setIcon(dictionaryItemEntity.getIcon());
+						selectItemModelValue.setDescription(dictionaryItemEntity.getName());
 						displayObjectList.add(selectItemModelValue);
 						displayValuelist.add(dictionaryItemEntity.getName());
 					}
@@ -2525,15 +2526,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 		//设置控件的显示对象
 		if(itemInstance != null) {
-			if (displayObjectList!=null && displayObjectList.size()>0) {
-				for (Object displayObjectItem:displayObjectList) {
-					if (displayObjectItem instanceof ItemSelectOption) {
-
-					}
-				}
-				itemInstance.setDisplayObject(displayObjectList);
-			}
-
+			itemInstance.setDisplayObject(displayObjectList);
 		}
 
 		return displayValuelist;
