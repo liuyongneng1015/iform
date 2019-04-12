@@ -653,6 +653,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				&& itemModelEntity.getType() == ItemType.ReferenceList){
 				manyTomanyFormIdList.add(((ReferenceItemModelEntity) itemModelEntity).getReferenceFormId());
 			}
+
 			deleteItemOtherReferenceEntity(itemModelEntity);
 			if(itemModelEntity instanceof ReferenceItemModelEntity && ((ReferenceItemModelEntity) itemModelEntity).getSelectMode() == SelectMode.Multiple){
 				ColumnModelEntity columnModelEntity = columnModelService.saveColumnModelEntity(dataModelEntity, "id");
