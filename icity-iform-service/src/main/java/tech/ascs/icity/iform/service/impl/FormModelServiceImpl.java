@@ -117,9 +117,6 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 			BeanUtils.copyProperties(entity, old, new String[] {"dataModels", "items", "permissions", "submitChecks","functions"});
 
-			//删除活动
-			//deleteOldItems(old);
-
 			List<ItemModelEntity> oldItems = old.getItems();
 
 			Map<String, ItemModelEntity> oldMapItmes = new HashMap<>();

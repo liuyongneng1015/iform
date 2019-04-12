@@ -290,13 +290,20 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		if (!waitingDeletCloumns.isEmpty()) {
 			//TODO 处理查看行是否被关联,则提示“字段被XXX表单XXX控件关联”
 			for(ColumnModelEntity entity : waitingDeletCloumns) {
-				List<ItemModelEntity> itemModelEntity = itemManager.findByProperty("columnModel.id", entity.getId());
-				if(itemModelEntity != null && itemModelEntity.size() > 0) {
-					for (ItemModelEntity itemModel : itemModelEntity) {
-						FormModelEntity formModelEntity  = itemModel.getFormModel() == null ? formModelService.get(itemModel.getSourceFormModelId()) : itemModel.getFormModel() ;
-						throw new IFormException(CommonUtils.exceptionCode, entity.getColumnName() + "字段被" + formModelEntity == null ? "" : formModelEntity.getName() + "表单" + itemModel.getName() + "控件关联");
-					}
+				verifyColumReferenceItem(entity);
+			}
+		}
+	}
+
+	private void verifyColumReferenceItem(ColumnModelEntity entity){
+		List<ItemModelEntity> itemModelEntityList = itemManager.findByProperty("columnModel.id", entity.getId());
+		if(itemModelEntityList != null && itemModelEntityList.size() > 0) {
+			for (ItemModelEntity itemModel : itemModelEntityList) {
+				FormModelEntity formModelEntity  = itemModel.getFormModel();
+				if(formModelEntity == null && itemModel.getSourceFormModelId() != null){
+					formModelEntity  = formModelService.get(itemModel.getSourceFormModelId());
 				}
+				throw new IFormException(CommonUtils.exceptionCode, entity.getColumnName() + "字段被" + (formModelEntity == null ? "" : formModelEntity.getName()) + "表单" + itemModel.getName() + "控件关联");
 			}
 		}
 	}
@@ -414,19 +421,12 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		List<ColumnModelEntity> columnModelEntities = modelEntity.getColumns();
 		for(int i = 0; i < columnModelEntities.size(); i++){
 			ColumnModelEntity columnModelEntity = columnModelEntities.get(i);
+			verifyColumReferenceItem(columnModelEntity);
 			List<ColumnReferenceEntity> list = columnModelEntity.getColumnReferences();
 			if(list != null && list.size() > 0){
 				deleteColumnReferenceEntity(columnModelEntity);
 			}
 			columnModelService.deleteTableColumn(columnModelEntity.getDataModel().getTableName(), columnModelEntity.getColumnName());
-			List<ItemModelEntity> itemModelEntityList = itemManager.query().filterIn("columnModel.id", columnModelEntity.getId()).list();
-			if(itemModelEntityList != null && itemModelEntityList.size() > 0){
-				for(ItemModelEntity itemModelEntity : itemModelEntityList){
-					FormModelEntity formModelEntity  = itemModelEntity.getFormModel() == null ? formModelService.get(itemModelEntity.getSourceFormModelId()) : itemModelEntity.getFormModel() ;
-					throw new IFormException(CommonUtils.exceptionCode, columnModelEntity.getColumnName() + "字段被" + (formModelEntity == null ? "":formModelEntity.getName()) + "表单" + itemModelEntity.getName() + "控件关联");
-				}
-			}
-
 		}
 		delete(modelEntity);
 		String tableName = modelEntity.getTableName();
