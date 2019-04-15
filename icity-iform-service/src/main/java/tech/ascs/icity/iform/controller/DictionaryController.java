@@ -203,7 +203,7 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 	@Override
 	public List<DictionaryItemModel> listItem(@PathVariable(name="id", required = true) String id) {
 		log.error("listItem with id="+id +"begin");
-    	DictionaryEntity dictionary = dictionaryService.get(id);
+    	DictionaryEntity dictionary = dictionaryService.find(id);
     	if(dictionary == null){
 			throw new IFormException("未找到【"+id+"】对应的系统代码分类");
 		}
