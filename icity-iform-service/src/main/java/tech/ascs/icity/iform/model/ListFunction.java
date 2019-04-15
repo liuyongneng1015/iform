@@ -44,6 +44,7 @@ public class ListFunction extends JPAEntity implements Serializable {
 
 	private String icon;
 
+	@Column(name="style", length=4096)
 	private String style;
 
 	/** 前端传过来的是数组，返回给前端的时候要转成数组 */
