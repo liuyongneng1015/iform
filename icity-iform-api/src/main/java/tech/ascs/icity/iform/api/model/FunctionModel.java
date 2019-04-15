@@ -48,6 +48,8 @@ public class FunctionModel extends NameEntity implements Comparable<FunctionMode
 	private Boolean addPageVisible = false;
 	@ApiModelProperty(value ="编辑页", position = 18)
 	private Boolean editPageVisible = false;
+	// 是否是系统的按钮
+	private Boolean isSystemBtn = false;
 
 	public String getLabel() {
 		return label;
@@ -199,6 +201,14 @@ public class FunctionModel extends NameEntity implements Comparable<FunctionMode
 
 	public void setEditPageVisible(Boolean editPageVisible) {
 		this.editPageVisible = editPageVisible;
+	}
+
+	public Boolean getSystemBtn() {
+		return isSystemBtn;
+	}
+
+	public void setSystemBtn(Boolean systemBtn) {
+		isSystemBtn = systemBtn;
 	}
 
 	@Override

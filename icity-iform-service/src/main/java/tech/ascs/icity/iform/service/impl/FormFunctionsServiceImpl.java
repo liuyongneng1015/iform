@@ -64,6 +64,7 @@ public class FormFunctionsServiceImpl extends DefaultJPAService<ListFunction> im
 			listFunction.setAction(functionType.getValue());
 			listFunction.setLabel(functionType.getDesc());
 			listFunction.setVisible(functionVisibles[i]);
+			listFunction.setSystemBtn(true);
 			listFunction.setOrderNo(i+1);
 			listFunctions.add(listFunction);
 		}
