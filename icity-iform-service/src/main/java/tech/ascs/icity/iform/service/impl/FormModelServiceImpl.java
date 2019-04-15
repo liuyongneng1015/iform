@@ -37,6 +37,8 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 	private JPAManager<FormModelEntity> formModelManager;
 
+	private JPAManager<ListFunction> listFunctionManager;
+
 
 	private JPAManager<ListSearchItem> listSearchItemManager;
 
@@ -82,6 +84,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		itemPermissionManager = getJPAManagerFactory().getJPAManager(ItemPermissionInfo.class);
 		formSubmitCheckManager = getJPAManagerFactory().getJPAManager(FormSubmitCheckInfo.class);
 		formModelManager = getJPAManagerFactory().getJPAManager(FormModelEntity.class);
+		listFunctionManager = getJPAManagerFactory().getJPAManager(ListFunction.class);
 		listSearchItemManager = getJPAManagerFactory().getJPAManager(ListSearchItem.class);
 		listSortItemManager = getJPAManagerFactory().getJPAManager(ListSortItem.class);
 		quickSearchEntityManager = getJPAManagerFactory().getJPAManager(QuickSearchEntity.class);
@@ -1260,8 +1263,8 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 	@Override
 	public FormModelEntity saveFormModelProcessBind(FormModelEntity entity) {
-		FormModelEntity formModelEntity = get(entity.getId());
-		BeanUtils.copyProperties(entity, formModelEntity, new String[] {"items","dataModels","permissions","submitChecks","functions"});
+		FormModelEntity oldFormModelEntity = get(entity.getId());
+		BeanUtils.copyProperties(entity, oldFormModelEntity, new String[] {"items","dataModels","permissions","submitChecks","functions"});
 
 		List<ItemModelEntity> parameterItems = entity.getItems();
 
@@ -1275,7 +1278,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 		//旧数据
 		Map<String, List<ItemActivityInfo>> oldMap = new HashMap<>();
-		List<ItemModelEntity> oldItems = findAllItems(formModelEntity);
+		List<ItemModelEntity> oldItems = findAllItems(oldFormModelEntity);
 		Map<String, ItemModelEntity> oldItemsMap = new HashMap<>();
 		for(ItemModelEntity oldItem : oldItems){
 			oldItemsMap.put(oldItem.getId(), oldItem);
@@ -1317,8 +1320,17 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				i--;
 			}
 		}
-		formModelManager.save(formModelEntity);
-		return formModelEntity;
+
+		//关联流程表单删除表单功能
+		for(int i = 0; i < oldFormModelEntity.getFunctions().size(); i ++){
+			ListFunction function = oldFormModelEntity.getFunctions().get(i);
+			oldFormModelEntity.getFunctions().remove(function);
+			listFunctionManager.delete(function);
+			i--;
+		}
+
+		formModelManager.save(oldFormModelEntity);
+		return oldFormModelEntity;
 	}
 
 	private void deleteItemActivityInfo(ItemActivityInfo old){
