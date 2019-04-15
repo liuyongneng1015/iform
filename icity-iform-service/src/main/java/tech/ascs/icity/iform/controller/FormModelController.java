@@ -1000,10 +1000,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			for (int i = 0; i < formModel.getFunctions().size(); i++) {
 			    FunctionModel model = formModel.getFunctions().get(i);
 				ListFunction function =  new ListFunction();
-				BeanUtils.copyProperties(model, function, new String[]{"formModel", "paramCondition"});
-				if (model.getParamCondition()!=null && model.getParamCondition().size()>0) {
-					function.setParamCondition(String.join(",", model.getParamCondition()));
-				}
+				BeanUtils.copyProperties(model, function, new String[]{"formModel"});
 				function.setFormModel(entity);
 				function.setOrderNo(i+1);
 				functions.add(function);
@@ -1890,10 +1887,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			List<FunctionModel> functionModels = new ArrayList<>();
 			for(ListFunction function : functions){
 				FunctionModel functionModel = new FunctionModel();
-				BeanUtils.copyProperties(function, functionModel, new String[] {"formModel","itemModel","paramCondition"});
-				if (function.getParamCondition()!=null && function.getParamCondition().length()>0) {
-					functionModel.setParamCondition(Arrays.asList(function.getParamCondition().split(",")));
-				}
+				BeanUtils.copyProperties(function, functionModel, new String[] {"formModel","itemModel"});
 				functionModels.add(functionModel);
 			}
 			if(isPCForm) {

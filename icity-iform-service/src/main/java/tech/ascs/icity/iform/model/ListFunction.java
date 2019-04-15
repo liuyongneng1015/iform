@@ -6,6 +6,7 @@ import javax.persistence.*;
 
 import tech.ascs.icity.iform.api.model.DisplayTimingType;
 import tech.ascs.icity.iform.api.model.ListFunctionType;
+import tech.ascs.icity.iform.api.model.ParamCondition;
 import tech.ascs.icity.iform.api.model.ReturnOperation;
 import tech.ascs.icity.jpa.dao.model.JPAEntity;
 
@@ -47,8 +48,8 @@ public class ListFunction extends JPAEntity implements Serializable {
 	@Column(name="style", length=4096)
 	private String style;
 
-	/** 前端传过来的是数组，返回给前端的时候要转成数组 */
-	private String paramCondition;
+	@Enumerated(EnumType.STRING)
+	private ParamCondition paramCondition;
 
 	@Enumerated(EnumType.STRING)
 	private ListFunctionType functionType;
@@ -159,11 +160,11 @@ public class ListFunction extends JPAEntity implements Serializable {
 		this.style = style;
 	}
 
-	public String getParamCondition() {
+	public ParamCondition getParamCondition() {
 		return paramCondition;
 	}
 
-	public void setParamCondition(String paramCondition) {
+	public void setParamCondition(ParamCondition paramCondition) {
 		this.paramCondition = paramCondition;
 	}
 
