@@ -70,5 +70,10 @@ public interface DictionaryService extends JPAService<DictionaryEntity> {
 	 */
 	DictionaryItemEntity findRootDictionaryItem();
 
+	/**
+	 * 通过itemIds获取相应的字典表item项
+	 * @return
+	 */
+	List<DictionaryItemEntity> findByItemIds(String[] itemIds);
 }
 

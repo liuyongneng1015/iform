@@ -21,6 +21,7 @@ import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.api.model.ListModel.SortItem;
 import tech.ascs.icity.iform.api.model.SearchItem.Search;
 import tech.ascs.icity.iform.model.*;
+import tech.ascs.icity.iform.service.FormInstanceServiceEx;
 import tech.ascs.icity.iform.service.FormModelService;
 import tech.ascs.icity.iform.service.ItemModelService;
 import tech.ascs.icity.iform.service.ListModelService;
@@ -44,6 +45,9 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 
 	@Autowired
 	private ApplicationService applicationService;
+
+	@Autowired
+	private FormInstanceServiceEx formInstanceServiceEx;
 
 	@Autowired
 	GroupService groupService;
@@ -695,12 +699,12 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 								Set<String> set = new HashSet(Arrays.asList("Department", "Position", "Personnel", "PositionIdentify"));
 								if (dataSource!=null && set.contains(dataSource.getValue()) && multiple!=null && multiple) {
 									search.setDefaultValue(defaultValue.split(","));
-									List<TreeSelectData> list = groupService.getTreeSelectDataSourceByIds(dataSource.getValue(), defaultValue.split(","));
+									List<TreeSelectData> list = formInstanceServiceEx.getTreeSelectData(dataSource, defaultValue.split(","));
 									if (list!=null) {
 										search.setDefaultValueName(list.stream().map(item->item.getName()).collect(Collectors.toList()));
 									}
 								} else if (dataSource!=null && set.contains(dataSource.getValue()) && multiple!=null && multiple==false) {
-									List<TreeSelectData> list = groupService.getTreeSelectDataSourceByIds(dataSource.getValue(), new String[]{defaultValue});
+									List<TreeSelectData> list = formInstanceServiceEx.getTreeSelectData(dataSource, new String[]{defaultValue});
 									search.setDefaultValue(defaultValue);
 									if (list!=null && list.size()>0) {
 										search.setDefaultValueName(list.get(0).getName());

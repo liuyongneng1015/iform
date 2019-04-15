@@ -150,6 +150,14 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 		return getRootItem();
 	}
 
+	@Override
+	public List<DictionaryItemEntity> findByItemIds(String[] itemIds) {
+		if (itemIds==null || itemIds.length==0) {
+			return new ArrayList<>();
+		}
+		return dictionaryItemManager.query().filterIn("id", itemIds).list();
+	}
+
 	private synchronized DictionaryItemEntity getRootItem(){
 		List<DictionaryItemEntity> dictionaryItems = dictionaryItemManager.findAll();
 		DictionaryItemEntity rootDictionaryItemEntity = null;

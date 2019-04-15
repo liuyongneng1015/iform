@@ -1305,7 +1305,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		if (defaultValue!=null && defaultValue instanceof List) {
 			List<String> defaultValues = (List)defaultValue;
 			if (defaultValues.size()>0) {
-				List<TreeSelectData> result = groupService.getTreeSelectDataSourceByIds(itemModel.getDataSource().getValue(), defaultValues.toArray(new String[]{}));
+				List<TreeSelectData> result = formInstanceServiceEx.getTreeSelectData(itemModel.getDataSource(), defaultValues.toArray(new String[]{}));
 				if (result == null || result.size() != defaultValues.size()) {
 					throw new ICityException("树形下拉框的默认值与数据源设置的类型不一致");
 				}
@@ -1314,7 +1314,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				entity.setDefaultValue("");
 			}
 		}else if (defaultValue!=null && defaultValue instanceof String && !StringUtils.isEmpty(defaultValue)) {
-			List<TreeSelectData> result = groupService.getTreeSelectDataSourceByIds(itemModel.getDataSource().getValue(), new String[] {(String)defaultValue});
+			List<TreeSelectData> result = formInstanceServiceEx.getTreeSelectData(itemModel.getDataSource(),  new String[] {(String)defaultValue});
 			if (result==null || result.size()!=1) {
 				throw new ICityException("树形下拉框的默认值与数据源设置的类型不一致");
 			}
@@ -2192,21 +2192,21 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 
 	private void setTreeSelectItemModel(ItemModelEntity entity, ItemModel itemModel, boolean isPCItem){
-		TreeSelectItemModelEntity treeSelectItemModelEntity = (TreeSelectItemModelEntity)entity;
-		if (treeSelectItemModelEntity.getMultiple()) {
-			if (!StringUtils.isEmpty(treeSelectItemModelEntity.getDefaultValue())) {
-				itemModel.setDefaultValue(Arrays.asList(treeSelectItemModelEntity.getDefaultValue().split(",")));
+		TreeSelectItemModelEntity treeSelectEntity = (TreeSelectItemModelEntity)entity;
+		if (treeSelectEntity.getMultiple()) {
+			if (!StringUtils.isEmpty(treeSelectEntity.getDefaultValue())) {
+				itemModel.setDefaultValue(Arrays.asList(treeSelectEntity.getDefaultValue().split(",")));
 			}
 		} else {
-			if (!StringUtils.isEmpty(treeSelectItemModelEntity.getDefaultValue())) {
-				itemModel.setDefaultValue(treeSelectItemModelEntity.getDefaultValue());
+			if (!StringUtils.isEmpty(treeSelectEntity.getDefaultValue())) {
+				itemModel.setDefaultValue(treeSelectEntity.getDefaultValue());
 			}
 		}
-		if (!StringUtils.isEmpty(((TreeSelectItemModelEntity) entity).getDefaultValue())) {
-			List<TreeSelectData> list = groupService.getTreeSelectDataSourceByIds(((TreeSelectItemModelEntity) entity).getDataSource().getValue(), ((TreeSelectItemModelEntity) entity).getDefaultValue().split(","));
+		if (!StringUtils.isEmpty(treeSelectEntity.getDefaultValue())) {
+			List<TreeSelectData> list = formInstanceServiceEx.getTreeSelectData(treeSelectEntity.getDataSource(), treeSelectEntity.getDefaultValue().split(","));
 			if(list != null && list.size() > 0) {
 				List<String> defalueVlaues = list.parallelStream().map(TreeSelectData::getName).collect(Collectors.toList());
-				if(treeSelectItemModelEntity.getMultiple() != null && treeSelectItemModelEntity.getMultiple()) {
+				if(treeSelectEntity.getMultiple() != null && treeSelectEntity.getMultiple()) {
 					itemModel.setDefaultValueName(defalueVlaues);
 				}else{
 					itemModel.setDefaultValueName(defalueVlaues.get(0));

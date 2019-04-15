@@ -9,13 +9,9 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.swagger.annotations.ApiModelProperty;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.*;
@@ -48,6 +44,9 @@ import tech.ascs.icity.rbac.feign.model.UserInfo;
 public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity> implements FormInstanceServiceEx {
 
 	private static final Random random = new Random();
+
+	@Autowired
+	private DictionaryService dictionaryService;
 
 	@Autowired
 	private IFormSessionFactoryBuilder sessionFactoryBuilder;
@@ -2416,14 +2415,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 
 		if(valueStrs != null && valueStrs.length() > 0) {
-			List<TreeSelectData> list = new ArrayList<>();
-			if (TreeSelectDataSource.Department==treeSelectItem.getDataSource() || TreeSelectDataSource.Personnel==treeSelectItem.getDataSource() ||
-				TreeSelectDataSource.Position==treeSelectItem.getDataSource() || TreeSelectDataSource.PositionIdentify==treeSelectItem.getDataSource()) {
-				list = groupService.getTreeSelectDataSourceByIds(treeSelectItem.getDataSource().getValue(), valueStrs.split(","));
-			}
+			List<TreeSelectData> list = getTreeSelectData(treeSelectItem.getDataSource(), valueStrs.split(","));
 			if(list != null && list.size() > 0) {
 				List<String> values = list.parallelStream().map(TreeSelectData::getName).collect(Collectors.toList());
-				if(((TreeSelectItemModelEntity) itemModel).getMultiple() != null && ((TreeSelectItemModelEntity) itemModel).getMultiple()) {
+				if(treeSelectItem.getMultiple() != null && treeSelectItem.getMultiple()) {
 					itemInstance.setDisplayValue(values);
 				}else{
 					itemInstance.setDisplayValue(values.get(0));
@@ -2431,6 +2426,32 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}
 
 		}
+	}
+
+	@Override
+	public List<TreeSelectData> getTreeSelectData(TreeSelectDataSource dataSourceType, String[] ids) {
+		if (ids==null || ids.length==0 || dataSourceType==null) {
+			return new ArrayList<>();
+		}
+		List<TreeSelectData> list = new ArrayList<>();
+		// 部门，岗位，人员，岗位标识
+		if (TreeSelectDataSource.Department==dataSourceType || TreeSelectDataSource.Personnel==dataSourceType ||
+			TreeSelectDataSource.Position==dataSourceType || TreeSelectDataSource.PositionIdentify==dataSourceType) {
+			list = groupService.getTreeSelectDataSourceByIds(dataSourceType.getValue(), ids);
+		// 系统代码
+		} else if (TreeSelectDataSource.SystemCode==dataSourceType){
+			List<DictionaryItemEntity> dictionaryItems = dictionaryService.findByItemIds(ids);
+			if (dictionaryItems!=null && dictionaryItems.size()>0) {
+				for (DictionaryItemEntity dictionaryItem:dictionaryItems) {
+					TreeSelectData treeSelectData = new TreeSelectData();
+					treeSelectData.setType(TreeSelectDataSource.SystemCode.getValue());
+					treeSelectData.setId(dictionaryItem.getId());
+					treeSelectData.setName(dictionaryItem.getName());
+					list.add(treeSelectData);
+				}
+			}
+		}
+		return list;
 	}
 
 	private String getNumberFormat(NumberItemModelEntity numberItemModelEntity){

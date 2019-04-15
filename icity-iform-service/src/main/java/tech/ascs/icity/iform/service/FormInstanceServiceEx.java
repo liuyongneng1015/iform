@@ -3,14 +3,13 @@ package tech.ascs.icity.iform.service;
 import java.util.List;
 import java.util.Map;
 
+import tech.ascs.icity.admin.api.model.TreeSelectData;
 import tech.ascs.icity.admin.api.model.User;
 import tech.ascs.icity.iform.api.model.FormDataSaveInstance;
 import tech.ascs.icity.iform.api.model.FormInstance;
 import tech.ascs.icity.iform.api.model.ItemInstance;
-import tech.ascs.icity.iform.model.FormModelEntity;
-import tech.ascs.icity.iform.model.ItemModelEntity;
-import tech.ascs.icity.iform.model.ListModelEntity;
-import tech.ascs.icity.iform.model.SelectItemModelEntity;
+import tech.ascs.icity.iform.api.model.TreeSelectDataSource;
+import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.model.Page;
 
 public interface FormInstanceServiceEx {
@@ -43,4 +42,6 @@ public interface FormInstanceServiceEx {
     FormDataSaveInstance getFormDataSaveInstance(FormModelEntity formModel, String id);
 
     List<String> setSelectItemDisplayValue(ItemInstance itemInstance, SelectItemModelEntity selectItemModelEntity, List<String> list);
+
+	List<TreeSelectData> getTreeSelectData(TreeSelectDataSource dataSourceType, String[] ids);
 }
