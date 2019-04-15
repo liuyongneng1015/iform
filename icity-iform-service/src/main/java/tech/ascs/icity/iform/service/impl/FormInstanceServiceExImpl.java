@@ -2408,14 +2408,19 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		String valueStrs = value == null || StringUtils.isEmpty(value) ?  null : String.valueOf(value);
 		String[] strings = valueStrs == null ? new String[]{} : valueStrs.split(",");
 		List<String> ids  = strings == null ? new ArrayList<>() : Arrays.asList(strings);
-		if(((TreeSelectItemModelEntity)itemModel).getMultiple() != null && ((TreeSelectItemModelEntity)itemModel).getMultiple()){
+		TreeSelectItemModelEntity treeSelectItem = (TreeSelectItemModelEntity)itemModel;
+		if(treeSelectItem.getMultiple() != null && treeSelectItem.getMultiple()){
 			itemInstance.setValue(ids);
 		}else {
 			itemInstance.setValue(valueStrs);
 		}
 
 		if(valueStrs != null && valueStrs.length() > 0) {
-			List<TreeSelectData> list = groupService.getTreeSelectDataSourceByIds(((TreeSelectItemModelEntity) itemModel).getDataSource().getValue(), valueStrs.split(","));
+			List<TreeSelectData> list = new ArrayList<>();
+			if (TreeSelectDataSource.Department==treeSelectItem.getDataSource() || TreeSelectDataSource.Personnel==treeSelectItem.getDataSource() ||
+				TreeSelectDataSource.Position==treeSelectItem.getDataSource() || TreeSelectDataSource.PositionIdentify==treeSelectItem.getDataSource()) {
+				list = groupService.getTreeSelectDataSourceByIds(treeSelectItem.getDataSource().getValue(), valueStrs.split(","));
+			}
 			if(list != null && list.size() > 0) {
 				List<String> values = list.parallelStream().map(TreeSelectData::getName).collect(Collectors.toList());
 				if(((TreeSelectItemModelEntity) itemModel).getMultiple() != null && ((TreeSelectItemModelEntity) itemModel).getMultiple()) {
@@ -2424,6 +2429,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					itemInstance.setDisplayValue(values.get(0));
 				}
 			}
+
 		}
 	}
 

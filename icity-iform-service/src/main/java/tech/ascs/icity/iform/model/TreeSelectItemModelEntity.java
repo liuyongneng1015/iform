@@ -33,6 +33,9 @@ public class TreeSelectItemModelEntity extends ItemModelEntity  {
 	@Column(name="data_depth")// 数据深度
 	private Integer dataDepth;
 
+	@Column(name="reference_dictionary_id")// 数据字典分类
+	private String referenceDictionaryId;
+
 	public Boolean getMultiple() {
 		return multiple;
 	}
@@ -81,4 +84,11 @@ public class TreeSelectItemModelEntity extends ItemModelEntity  {
 		this.defaultValue = defaultValue;
 	}
 
+	public String getReferenceDictionaryId() {
+		return referenceDictionaryId;
+	}
+
+	public void setReferenceDictionaryId(String referenceDictionaryId) {
+		this.referenceDictionaryId = referenceDictionaryId;
+	}
 }
