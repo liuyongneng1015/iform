@@ -4,10 +4,8 @@ import java.io.Serializable;
 
 import javax.persistence.*;
 
-import io.swagger.annotations.ApiModelProperty;
 import tech.ascs.icity.iform.api.model.DisplayTimingType;
 import tech.ascs.icity.iform.api.model.ListFunctionType;
-import tech.ascs.icity.iform.api.model.ParamCondition;
 import tech.ascs.icity.iform.api.model.ReturnOperation;
 import tech.ascs.icity.jpa.dao.model.JPAEntity;
 
@@ -41,11 +39,12 @@ public class ListFunction extends JPAEntity implements Serializable {
 
 	private String url;
 
+	// 请求方式，GET、HEAD、POST、PUT、DELETE、CONNECT、OPTIONS、TRACE
 	private String method;
 
 	private String icon;
 
-	private String backgroundColor;
+	private String style;
 
 	/** 前端传过来的是数组，返回给前端的时候要转成数组 */
 	private String paramCondition;
@@ -148,12 +147,12 @@ public class ListFunction extends JPAEntity implements Serializable {
 		this.icon = icon;
 	}
 
-	public String getBackgroundColor() {
-		return backgroundColor;
+	public String getStyle() {
+		return style;
 	}
 
-	public void setBackgroundColor(String backgroundColor) {
-		this.backgroundColor = backgroundColor;
+	public void setStyle(String style) {
+		this.style = style;
 	}
 
 	public String getParamCondition() {
