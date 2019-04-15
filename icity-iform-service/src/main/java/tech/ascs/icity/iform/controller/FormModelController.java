@@ -320,8 +320,13 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			throw new IFormException("表单模型ID不一致");
 		}
 		try {
+			FormModelEntity oldEntity = formModelService.get(id);
+			boolean updatePermissFlag = oldEntity.getFunctions() != null && oldEntity.getFunctions().size() > 0;
 			FormModelEntity entity = wrapProcessActivityBind(formModel);
 			formModelService.saveFormModelProcessBind(entity);
+			if(updatePermissFlag) {
+				listModelService.submitFormBtnPermission(entity);
+			}
 		} catch (Exception e) {
 			throw new IFormException("保存表单模型列表失败：" + e.getMessage(), e);
 		}
