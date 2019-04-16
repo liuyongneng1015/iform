@@ -88,7 +88,7 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 			}
 
 			List<DataModelEntity> entities = query.list();
-			return toSimpleDTO(entities);
+			return toSimpleDTO(entities, true);
 		} catch (Exception e) {
 			throw new IFormException("获取数据模型列表失败：" + e.getMessage(), e);
 		}
@@ -106,8 +106,9 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 			if (StringUtils.hasText(modelType)) {
 				query.filterIn("modelType", getDataModelType(modelType));
 			}
+
 			List<DataModelEntity> entities = query.list();
-			return list(applicationId, toDTO(entities));
+			return list(applicationId, toSimpleDTO(entities, false));
 		} catch (Exception e) {
 			throw new IFormException("获取数据模型列表失败：" + e.getMessage(), e);
 		}
@@ -372,10 +373,10 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 		return dataModels;
 	}
 
-	private List<DataModel> toSimpleDTO(List<DataModelEntity> entities) {
+	private List<DataModel> toSimpleDTO(List<DataModelEntity> entities, boolean isShowMasterModel) {
 		List<DataModel> dataModels = new ArrayList<DataModel>();
 		for (DataModelEntity entity : entities) {
-			dataModels.add(toSimpleDataModelDTO(entity));
+			dataModels.add(toSimpleDataModelDTO(entity, isShowMasterModel));
 		}
 		return dataModels;
 	}
@@ -430,12 +431,12 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 		return dataModel;
 	}
 
-	private DataModel toSimpleDataModelDTO(DataModelEntity entity)  {
+	private DataModel toSimpleDataModelDTO(DataModelEntity entity, boolean isShowMasterModel)  {
 		DataModel dataModel = new DataModel();
 		BeanUtils.copyProperties(entity, dataModel, new String[] {"masterModel","slaverModels","columns", "indexes","referencesDataModel"});
 		dataModel.setSynchronized(entity.getSynchronized());
 
-		if(entity.getMasterModel() != null){
+		if(isShowMasterModel && entity.getMasterModel() != null){
 			DataModelInfo masterModel = new DataModelInfo();
 			BeanUtils.copyProperties(entity.getMasterModel(), masterModel, new String[]{"masterModel","slaverModels","columns", "indexes","referencesDataModel"});
 			dataModel.setMasterModel(masterModel);

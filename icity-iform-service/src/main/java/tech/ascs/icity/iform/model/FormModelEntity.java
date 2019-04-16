@@ -6,6 +6,7 @@ import java.util.List;
 
 import javax.persistence.*;
 
+import tech.ascs.icity.iform.api.model.FormType;
 import tech.ascs.icity.jpa.dao.model.BaseEntity;
 
 /**
@@ -53,6 +54,10 @@ public class FormModelEntity extends BaseEntity implements Serializable {
 
 	@Column(name="qrcode_item_uuids", length = 2048) // 二维码数据标识：控件对应的唯一标识
 	private String qrCodeItemUuids;
+
+	@JoinColumn(name="type")
+	@Enumerated(EnumType.STRING)
+	private FormType type = FormType.General;
 
 	public String getDescription() {
 		return description;
@@ -140,5 +145,13 @@ public class FormModelEntity extends BaseEntity implements Serializable {
 
 	public void setQrCodeItemUuids(String qrCodeItemUuids) {
 		this.qrCodeItemUuids = qrCodeItemUuids;
+	}
+
+	public FormType getType() {
+		return type;
+	}
+
+	public void setType(FormType type) {
+		this.type = type;
 	}
 }
