@@ -98,8 +98,15 @@ public interface DictionaryService {
 
 	@ApiOperation("获取数据字典表选项列表")
 	@ApiImplicitParams({
-			@ApiImplicitParam(paramType="path", name = "id", value = "字典表分类ID", required = true, dataType = "String"),
-			@ApiImplicitParam(paramType="path", name = "itemId", value = "字典表选项ID", required = true, dataType = "String")
-	})	@GetMapping("/{id}/{itemId}/items")
+		@ApiImplicitParam(paramType="path", name = "id", value = "字典表分类ID", required = true, dataType = "String"),
+		@ApiImplicitParam(paramType="path", name = "itemId", value = "字典表选项ID", required = true, dataType = "String")
+	})
+	@GetMapping("/{id}/{itemId}/items")
 	List<DictionaryItemModel> findItems(@PathVariable(name="id",required = true) String id, @PathVariable(name="itemId",required = true) String itemId);
+
+
+	@ApiOperation(value = "通过批量ID获取字典表选项的详情")
+	@ApiImplicitParam(paramType = "query", name = "ids",  value = "ID集合", allowMultiple=true)
+	@GetMapping("/items/batch-simple-info")
+	List<DictionaryItemModel> batchSimpleInfo(@RequestParam(name = "ids", required = false) String[] ids);
 }

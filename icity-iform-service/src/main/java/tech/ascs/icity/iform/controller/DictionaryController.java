@@ -458,4 +458,19 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 
 		return dictionaryItemModels;
 	}
+
+	@Override
+	public List<DictionaryItemModel> batchSimpleInfo(@RequestParam(name = "ids", required = false) String[] ids) {
+		if (ids==null || ids.length==0) {
+			return new ArrayList<>();
+		}
+		List<DictionaryItemEntity> list = dictionaryService.findByItemIds(ids);
+		List<DictionaryItemModel> returnList = new ArrayList<>();
+		for (DictionaryItemEntity item:list) {
+			DictionaryItemModel returnItem = new DictionaryItemModel();
+			BeanUtils.copyProperties(item, returnItem, new String[]{"dictionary"});
+			returnList.add(returnItem);
+		}
+		return returnList;
+	}
 }
