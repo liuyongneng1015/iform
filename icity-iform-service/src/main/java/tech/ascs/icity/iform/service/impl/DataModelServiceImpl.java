@@ -525,6 +525,7 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 				DataModel dataModel = new DataModel();
 				dataModel.setId(rs.getString("id"));
 				dataModel.setName(rs.getString("name"));
+				dataModel.setTableName(rs.getString("table_name"));
 				dataModel.setDescription(rs.getString("description"));
 				dataModel.setSynchronized(rs.getBoolean("synchronized_"));
 				dataModel.setApplicationId(rs.getString("application_id"));
