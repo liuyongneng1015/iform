@@ -62,6 +62,10 @@ public class FormModel extends NameEntity {
 	@ApiModelProperty(value="二维码数据标识:控件集合",position = 11)
 	private List<ItemModel> qrCodeItemModelList = new ArrayList<ItemModel>();
 
+	@ApiModelProperty(value = "表单类型", position = 4)
+	private FormType type = FormType.General;
+
+
 	public String getDescription() {
 		return description;
 	}
@@ -140,6 +144,14 @@ public class FormModel extends NameEntity {
 
 	public void setQrCodeItemModelList(List<ItemModel> qrCodeItemModelList) {
 		this.qrCodeItemModelList = qrCodeItemModelList;
+	}
+
+	public FormType getType() {
+		return type;
+	}
+
+	public void setType(FormType type) {
+		this.type = type;
 	}
 
 	@Override

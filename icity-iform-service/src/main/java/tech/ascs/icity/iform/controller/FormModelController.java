@@ -76,7 +76,8 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	private JdbcTemplate jdbcTemplate;
 
 	@Override
-	public List<FormModel> list(@RequestParam(name="name", defaultValue="") String name, @RequestParam(name = "applicationId", required = false) String applicationId) {
+	public List<FormModel> list(@RequestParam(name="name", defaultValue="") String name, @RequestParam(name = "type", required = false ) String type,
+								@RequestParam(name = "dataModelId", required = false ) String dataModelId, @RequestParam(name = "applicationId", required = false) String applicationId) {
 		try {
 			Query<FormModelEntity, FormModelEntity> query = formModelService.query().sort(Sort.desc("id"));
 			if (StringUtils.hasText(name)) {
@@ -85,6 +86,19 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			if (StringUtils.hasText(applicationId)) {
 				query.filterEqual("applicationId",  applicationId);
 			}
+			FormType formType = FormType.getByType(type);
+			if (formType != null) {
+				query.filterEqual("type",  formType);
+			}
+			if(StringUtils.hasText(dataModelId)) {
+				List<String> idlist = getFormIdByDataModelId(dataModelId);
+				if(idlist != null && idlist.size() > 0){
+					query.filterIn("id",  idlist);
+				}else{
+					return new ArrayList<>();
+				}
+			}
+
 			List<FormModelEntity> entities = query.list();
 			return toDTO(entities, false);
 		} catch (Exception e) {
@@ -92,8 +106,15 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 	}
 
+	private List<String> getFormIdByDataModelId(String dataModelId){
+		List<String> idlist = jdbcTemplate.query("select fd.form_model from ifm_form_data_bind fd where fd.data_model='"+dataModelId+"'",
+				(rs, rowNum) -> rs.getString("form_model"));
+		return idlist;
+	}
+
 	@Override
-	public Page<FormModel> page(@RequestParam(name="name", defaultValue="") String name, @RequestParam(name="page", defaultValue="1") int page,
+	public Page<FormModel> page(@RequestParam(name="name", defaultValue="") String name, @RequestParam(name = "type", required = false ) String type,
+								@RequestParam(name="page", defaultValue="1") int page, @RequestParam(name = "dataModelId", required = false ) String dataModelId,
 								@RequestParam(name="pagesize", defaultValue="10") int pagesize, @RequestParam(name = "applicationId", required = false) String applicationId) {
 		try {
 			Query<FormModelEntity, FormModelEntity> query = formModelService.query();
@@ -102,6 +123,18 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			}
 			if (StringUtils.hasText(applicationId)) {
 				query.filterEqual("applicationId",  applicationId);
+			}
+			FormType formType = FormType.getByType(type);
+			if (formType != null) {
+				query.filterEqual("type",  formType);
+			}
+			if(StringUtils.hasText(dataModelId)) {
+				List<String> idlist = getFormIdByDataModelId(dataModelId);
+				if(idlist != null && idlist.size() > 0){
+					query.filterIn("id",  idlist);
+				}else{
+					return Page.get(page, pagesize);
+				}
 			}
 			Page<FormModelEntity> entities = query.sort(Sort.desc("id")).page(page, pagesize).page();
 			return toDTO(entities);
