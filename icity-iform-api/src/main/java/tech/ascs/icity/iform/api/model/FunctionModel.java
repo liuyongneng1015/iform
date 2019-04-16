@@ -41,11 +41,11 @@ public class FunctionModel extends NameEntity implements Comparable<FunctionMode
 	@ApiModelProperty(value ="列表操作栏", position = 15)
 	private Boolean listActionBarVisible = false;
 	@ApiModelProperty(value ="查看页", position = 16)
-	private Boolean viewPageVisible = false;
+	private Boolean checkPageVisible = false;
 	@ApiModelProperty(value ="新增页", position = 17)
 	private Boolean addPageVisible = false;
 	@ApiModelProperty(value ="编辑页", position = 18)
-	private Boolean editPageVisible = false;
+	private Boolean updatePageVisible = false;
 	// 是否是系统的按钮
 	private Boolean isSystemBtn = false;
 
@@ -177,12 +177,12 @@ public class FunctionModel extends NameEntity implements Comparable<FunctionMode
 		this.listActionBarVisible = listActionBarVisible;
 	}
 
-	public Boolean getViewPageVisible() {
-		return viewPageVisible;
+	public Boolean getCheckPageVisible() {
+		return checkPageVisible;
 	}
 
-	public void setViewPageVisible(Boolean viewPageVisible) {
-		this.viewPageVisible = viewPageVisible;
+	public void setCheckPageVisible(Boolean checkPageVisible) {
+		this.checkPageVisible = checkPageVisible;
 	}
 
 	public Boolean getAddPageVisible() {
@@ -193,12 +193,12 @@ public class FunctionModel extends NameEntity implements Comparable<FunctionMode
 		this.addPageVisible = addPageVisible;
 	}
 
-	public Boolean getEditPageVisible() {
-		return editPageVisible;
+	public Boolean getUpdatePageVisible() {
+		return updatePageVisible;
 	}
 
-	public void setEditPageVisible(Boolean editPageVisible) {
-		this.editPageVisible = editPageVisible;
+	public void setUpdatePageVisible(Boolean updatePageVisible) {
+		this.updatePageVisible = updatePageVisible;
 	}
 
 	public Boolean getSystemBtn() {
