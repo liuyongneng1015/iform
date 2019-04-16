@@ -29,6 +29,9 @@ public class ItemModel extends NameEntity {
 	@ApiModelProperty(value = "文件大小限制M", position = 7)
 	private Integer fileSizeLimit = 10;
 
+    @ApiModelProperty(value = "文件数量限制", position = 7)
+    private Integer fileNumberLimit;
+
 	@ApiModelProperty(value = "隐藏条件", position = 8)
 	private String hiddenCondition;
 
@@ -187,8 +190,11 @@ public class ItemModel extends NameEntity {
 	@ApiModelProperty(value = "纬度", position = 50)
 	private String latitude;
 
-	@ApiModelProperty(value = "地图描述", position = 51)
-	private String mapDesc;
+	@ApiModelProperty(value = "详细地址", position = 51)
+    private String detailAddress;
+
+    @ApiModelProperty(value = "地标", position = 51)
+    private String landmark;
 
 	@ApiModelProperty(value = "关联的根节点标识", position = 52)
 	private Boolean referenceRootFlag;
@@ -250,7 +256,15 @@ public class ItemModel extends NameEntity {
 		this.fileSizeLimit = fileSizeLimit;
 	}
 
-	public String getHiddenCondition() {
+    public Integer getFileNumberLimit() {
+        return fileNumberLimit;
+    }
+
+    public void setFileNumberLimit(Integer fileNumberLimit) {
+        this.fileNumberLimit = fileNumberLimit;
+    }
+
+    public String getHiddenCondition() {
 		return hiddenCondition;
 	}
 
@@ -701,15 +715,23 @@ public class ItemModel extends NameEntity {
 		this.latitude = latitude;
 	}
 
-	public String getMapDesc() {
-		return mapDesc;
-	}
+    public String getDetailAddress() {
+        return detailAddress;
+    }
 
-	public void setMapDesc(String mapDesc) {
-		this.mapDesc = mapDesc;
-	}
+    public void setDetailAddress(String detailAddress) {
+        this.detailAddress = detailAddress;
+    }
 
-	public Boolean getReferenceRootFlag() {
+    public String getLandmark() {
+        return landmark;
+    }
+
+    public void setLandmark(String landmark) {
+        this.landmark = landmark;
+    }
+
+    public Boolean getReferenceRootFlag() {
 		return referenceRootFlag;
 	}
 

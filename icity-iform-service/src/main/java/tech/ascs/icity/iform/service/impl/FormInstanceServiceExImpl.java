@@ -1026,6 +1026,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		} else if (itemModel.getType() == ItemType.Media || itemModel.getType() == ItemType.Attachment) {
             Object o = itemInstance.getValue();
 			Map<String, FileUploadEntity> fileUploadEntityMap = new HashMap<>();
+			Integer numberLimit = ((FileItemModelEntity)itemModel).getFileNumberLimit();
 			if(data.get("id") != null && data.get("id") != "") {
 				List<FileUploadEntity> fileUploadList = fileUploadManager.query().filterEqual("fromSourceDataId", data.get("id")).filterEqual("fromSource", itemModel.getId()).filterEqual("uploadType", FileUploadType.ItemModel).list();
 				for (FileUploadEntity fileUploadEntity : fileUploadList) {
@@ -1033,6 +1034,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				}
 			}
 			if(o != null && o instanceof List){
+				if(numberLimit != null && numberLimit > 0 && ((List) o).size() > numberLimit){
+					throw new IFormException(itemModel.getName() + "控件上传文件数量超过" + numberLimit);
+				}
 				List<Map<String, String>> fileList = (List<Map<String, String>>)o;
 				List<FileUploadEntity> newList = new ArrayList<>();
 				for(Map<String, String> fileUploadModelMap : fileList){
@@ -1118,7 +1122,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}else {
 			geographicalMapEntity = new GeographicalMapEntity();
 		}
-		geographicalMapEntity.setMapDesc(geographicalMap.get("mapDesc"));
+		geographicalMapEntity.setLandmark((geographicalMap.get("landmark")));
+		geographicalMapEntity.setDetailAddress(geographicalMap.get("detailAddress"));
 		geographicalMapEntity.setLatitude(geographicalMap.get("latitude"));
 		geographicalMapEntity.setLongitude(geographicalMap.get("longitude"));
 		geographicalMapEntity.setFromSource(itemId);
