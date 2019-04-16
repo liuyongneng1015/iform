@@ -24,7 +24,7 @@ public class FileItemModelEntity extends ItemModelEntity  {
 	@Column(name="file_size_limit")//文件大小限制M
 	private Integer fileSizeLimit = 10;
 
-	@Column(name="file_size_limit")//文件数量限制
+	@Column(name="file_number_limit")//文件数量限制
 	private Integer fileNumberLimit;
 
 	public FileReferenceType getFileReferenceType() {
