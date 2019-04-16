@@ -34,4 +34,6 @@ public interface DataModelService extends JPAService<DataModelEntity> {
 
 	//删除表单无需校验
 	void deleteDataModelWithoutVerify(DataModelEntity modelEntity);
+
+	List<DataModel> queryAllList();
 }

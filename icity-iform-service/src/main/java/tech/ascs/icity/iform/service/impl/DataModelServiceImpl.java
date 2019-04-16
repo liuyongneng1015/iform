@@ -516,6 +516,47 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		deleteDatModel(modelEntity);
 	}
 
+	@Override
+	public List<DataModel> queryAllList() {
+		Map<String, DataModel> idAndDataModelMap = new HashMap();
+		Map<String, String> masterModelIdMap = new HashMap();
+		List<DataModel> list = jdbcTemplate.query("SELECT id, name, description, model_type, table_name, master_model, synchronized_, application_id FROM ifm_data_model",
+			(rs, rowNum) -> {
+				DataModel dataModel = new DataModel();
+				dataModel.setId(rs.getString("id"));
+				dataModel.setName(rs.getString("name"));
+				dataModel.setDescription(rs.getString("description"));
+				dataModel.setSynchronized(rs.getBoolean("synchronized_"));
+				dataModel.setApplicationId(rs.getString("application_id"));
+				String modelType = rs.getString("model_type");
+				if (org.springframework.util.StringUtils.hasText(modelType)) {
+					dataModel.setModelType(DataModelType.valueOf(modelType));
+				}
+				idAndDataModelMap.put(dataModel.getId(), dataModel);
+				String masterModelId = rs.getString("master_model");
+				if (org.springframework.util.StringUtils.hasText(masterModelId)) {
+					masterModelIdMap.put(dataModel.getId(), masterModelId);
+				}
+				return dataModel;
+			}
+		);
+		for (DataModel item:list) {
+			String masterModelId = masterModelIdMap.get(item.getId());
+			if (org.springframework.util.StringUtils.hasText(masterModelId)) {
+				DataModel masterModel = idAndDataModelMap.get(masterModelId);
+				if (masterModel!=null){
+					DataModelInfo masterModelInfo = new DataModelInfo();
+					masterModelInfo.setId(masterModel.getId());
+					masterModelInfo.setName(masterModel.getName());
+					masterModelInfo.setTableName(masterModel.getTableName());
+					masterModelInfo.setApplicationId(masterModel.getApplicationId());
+					item.setMasterModel(masterModelInfo);
+				}
+			}
+		}
+		return list;
+	}
+
 	private void updateColumnItemModel(DataModelEntity modelEntity){
 		for(ColumnModelEntity columnModelEntity : modelEntity.getColumns() ) {
 			List<ItemModelEntity> itemModelEntityList = itemManager.query().filterIn("columnModel.id", columnModelEntity.getId()).list();
