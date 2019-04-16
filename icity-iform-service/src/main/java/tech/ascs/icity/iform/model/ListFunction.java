@@ -63,11 +63,11 @@ public class ListFunction extends JPAEntity implements Serializable {
 
 	private Boolean listActionBarVisible;
 
-	private Boolean viewPageVisible;
+	private Boolean checkPageVisible;
 
 	private Boolean addPageVisible;
 
-	private Boolean editPageVisible;
+	private Boolean updatePageVisible;
 
 	@Column(name="order_no",columnDefinition = "int default 0")//排序号
 	private Integer orderNo = 0;
@@ -208,12 +208,12 @@ public class ListFunction extends JPAEntity implements Serializable {
 		this.listActionBarVisible = listActionBarVisible;
 	}
 
-	public Boolean getViewPageVisible() {
-		return viewPageVisible;
+	public Boolean getCheckPageVisible() {
+		return checkPageVisible;
 	}
 
-	public void setViewPageVisible(Boolean viewPageVisible) {
-		this.viewPageVisible = viewPageVisible;
+	public void setCheckPageVisible(Boolean checkPageVisible) {
+		this.checkPageVisible = checkPageVisible;
 	}
 
 	public Boolean getAddPageVisible() {
@@ -224,12 +224,12 @@ public class ListFunction extends JPAEntity implements Serializable {
 		this.addPageVisible = addPageVisible;
 	}
 
-	public Boolean getEditPageVisible() {
-		return editPageVisible;
+	public Boolean getUpdatePageVisible() {
+		return updatePageVisible;
 	}
 
-	public void setEditPageVisible(Boolean editPageVisible) {
-		this.editPageVisible = editPageVisible;
+	public void setUpdatePageVisible(Boolean updatePageVisible) {
+		this.updatePageVisible = updatePageVisible;
 	}
 
 	public Integer getOrderNo() {
