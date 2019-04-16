@@ -25,6 +25,7 @@ import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.ColumnModelService;
 import tech.ascs.icity.iform.service.DataModelService;
+import tech.ascs.icity.iform.service.FormModelService;
 import tech.ascs.icity.jpa.dao.Query;
 import tech.ascs.icity.model.IdEntity;
 import tech.ascs.icity.model.Page;
@@ -374,9 +375,13 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 	}
 
 	private List<DataModel> toSimpleDTO(List<DataModelEntity> entities, boolean isShowMasterModel) {
-		List<DataModel> dataModels = new ArrayList<DataModel>();
+		List<DataModel> dataModels = new ArrayList();
+        Map<String, DataModel> map = dataModelService.queryAllList().stream().collect(Collectors.toMap(item->item.getId(), item -> item));
 		for (DataModelEntity entity : entities) {
-			dataModels.add(toSimpleDataModelDTO(entity, isShowMasterModel));
+            DataModel dataModel = map.get(entity.getId());
+            if(dataModel!=null) {
+                dataModels.add(dataModel);
+            }
 		}
 		return dataModels;
 	}
@@ -431,18 +436,18 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 		return dataModel;
 	}
 
-	private DataModel toSimpleDataModelDTO(DataModelEntity entity, boolean isShowMasterModel)  {
-		DataModel dataModel = new DataModel();
-		BeanUtils.copyProperties(entity, dataModel, new String[] {"masterModel","slaverModels","columns", "indexes","referencesDataModel"});
-		dataModel.setSynchronized(entity.getSynchronized());
-
-		if(isShowMasterModel && entity.getMasterModel() != null){
-			DataModelInfo masterModel = new DataModelInfo();
-			BeanUtils.copyProperties(entity.getMasterModel(), masterModel, new String[]{"masterModel","slaverModels","columns", "indexes","referencesDataModel"});
-			dataModel.setMasterModel(masterModel);
-		}
-		return dataModel;
-	}
+//	private DataModel toSimpleDataModelDTO(DataModelEntity entity, boolean isShowMasterModel)  {
+//		DataModel dataModel = new DataModel();
+//		BeanUtils.copyProperties(entity, dataModel, new String[] {"masterModel","slaverModels","columns", "indexes","referencesDataModel"});
+//		dataModel.setSynchronized(entity.getSynchronized());
+//
+//		if(isShowMasterModel && entity.getMasterModel() != null){
+//			DataModelInfo masterModel = new DataModelInfo();
+//			BeanUtils.copyProperties(entity.getMasterModel(), masterModel, new String[]{"masterModel","slaverModels","columns", "indexes","referencesDataModel"});
+//			dataModel.setMasterModel(masterModel);
+//		}
+//		return dataModel;
+//	}
 
 	private ColumnModel toDTO(ColumnModelEntity entity)  {
 		ColumnModel columnModel = new ColumnModel();

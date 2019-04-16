@@ -49,7 +49,7 @@ public interface DataModelService {
 	})
 	@GetMapping("/find")
 	List<DataModel> findAllList(@RequestParam(name = "name", required = false) String name, @RequestParam(name = "sync", required = false) String sync,
-						 @RequestParam(name = "modelType", required = false) String modelType, @RequestParam(name = "applicationId", required = false) String applicationId );
+								@RequestParam(name = "modelType", required = false) String modelType, @RequestParam(name = "applicationId", required = false) String applicationId );
 
 	/**
 	 * 查询新增关联数据模型
