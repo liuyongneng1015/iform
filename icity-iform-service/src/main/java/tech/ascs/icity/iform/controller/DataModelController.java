@@ -436,19 +436,6 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 		return dataModel;
 	}
 
-//	private DataModel toSimpleDataModelDTO(DataModelEntity entity, boolean isShowMasterModel)  {
-//		DataModel dataModel = new DataModel();
-//		BeanUtils.copyProperties(entity, dataModel, new String[] {"masterModel","slaverModels","columns", "indexes","referencesDataModel"});
-//		dataModel.setSynchronized(entity.getSynchronized());
-//
-//		if(isShowMasterModel && entity.getMasterModel() != null){
-//			DataModelInfo masterModel = new DataModelInfo();
-//			BeanUtils.copyProperties(entity.getMasterModel(), masterModel, new String[]{"masterModel","slaverModels","columns", "indexes","referencesDataModel"});
-//			dataModel.setMasterModel(masterModel);
-//		}
-//		return dataModel;
-//	}
-
 	private ColumnModel toDTO(ColumnModelEntity entity)  {
 		ColumnModel columnModel = new ColumnModel();
 		BeanUtils.copyProperties(entity, columnModel, new String[] {"dataModel","columnReferences"});
