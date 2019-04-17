@@ -653,6 +653,19 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		if(formModel.getDataModels() == null || formModel.getDataModels().isEmpty()){
 			throw new IFormException("请先关联数据模型");
 		}
+
+		if(formModel.getFunctions() != null && formModel.getFunctions().size() > 0){
+			Map<String, String> map = new HashMap<>();
+			for(FunctionModel function : formModel.getFunctions()){
+				if(!StringUtils.hasText(function.getAction()) || !StringUtils.hasText(function.getLabel())){
+					throw new IFormException("功能编码或者功能名为空");
+				}
+				if(map.get(function.getAction()) != null){
+					throw new IFormException("功能编码重复");
+				}
+				map.put(function.getAction(), function.getLabel());
+			}
+		}
 	}
 
 	private FormModelEntity wrap(FormModel formModel) {
