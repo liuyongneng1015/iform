@@ -33,7 +33,7 @@ public class FormModelEntity extends BaseEntity implements Serializable {
 
 	@Embedded
 	private FormProcessInfo process;
- 
+
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "formModel")
 	private List<ItemModelEntity> items = new ArrayList<ItemModelEntity>();
 

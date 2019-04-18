@@ -403,19 +403,25 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	@Override
 	public List<ApplicationModel> findApplicationFormModel(@RequestParam(name="applicationId", required = true) String applicationId,
 														   @RequestParam(name="columnId", required = false) String columnId,
-														   @RequestParam(name="formModelId", required = false) String formModelId) {
+														   @RequestParam(name="formModelId", required = false) String formModelId,
+														   @RequestParam(name="type", required = false) String type) {
 		List<FormModelEntity> formModels = null;
 		if(StringUtils.hasText(columnId)){
-			formModels = findFormModelsByColumnId(columnId);
+			formModels = findFormModelsByColumnId(columnId);//关联表单
 		}else if(StringUtils.hasText(formModelId)){
-			formModels = findFormModelsByFormModelId(formModelId);
+			formModels = findFormModelsByFormModelId(formModelId);//单个表单
 			if(formModels == null || formModels.size() < 1){
 				return new ArrayList<>();
 			}
 		}
 
 		if(formModels == null || formModels.size() < 1) {
-			 formModels = formModelService.findAll();
+			FormType formType = FormType.getByType(type);
+			if(formType != null){
+				formModels = formModelService.query().filterEqual("type", formType).list();
+			}else {
+				formModels = formModelService.findAll();
+			}
 		}
 		List<FormModel> formModelList = new ArrayList<>();
 		Map<String, List<FormModel>> map = new HashMap<>();
