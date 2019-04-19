@@ -78,7 +78,7 @@ public class ListFunction extends JPAEntity implements Serializable {
 	private DisplayTimingType displayTiming;
 
 	// 是否是系统的按钮
-	private Boolean isSystemBtn;
+	private Boolean systemBtn;
 
 	public ListModelEntity getListModel() {
 		return listModel;
@@ -249,10 +249,10 @@ public class ListFunction extends JPAEntity implements Serializable {
 	}
 
 	public Boolean getSystemBtn() {
-		return isSystemBtn;
+		return systemBtn;
 	}
 
 	public void setSystemBtn(Boolean systemBtn) {
-		isSystemBtn = systemBtn;
+		this.systemBtn = systemBtn;
 	}
 }

@@ -152,7 +152,12 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		}
 		// 校验功能按钮的功能名不允许为空和同名
 		if (functions.stream().filter(item->item.getLabel()!=null).map(item->item.getLabel()).collect(Collectors.toSet()).size()<functions.size()) {
-			throw new IFormException("校验功能按钮的功能名能为空和同名");
+			throw new IFormException("功能按钮的功能名能为空和同名");
+		}
+		for (FunctionModel function:functions) {
+			if (function.getAction().contains("-")||function.getAction().contains("#")) {
+				throw new IFormException("功能按钮的编码不能包含 - 和 # 字符");
+			}
 		}
 		// 校验默认的功能按钮是否被删除
 		for (int i = 0; i < functionDefaultActions.length; i++) {
