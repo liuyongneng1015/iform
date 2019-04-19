@@ -84,8 +84,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 
 	// 新增列表的时候，自动创建新增、导入、批量删除，为系统自带功能
 	private DefaultFunctionType[] functionDefaultActions = {DefaultFunctionType.Add, DefaultFunctionType.BatchDelete, DefaultFunctionType.Export};
-	private String[] functionDefaultLabels = new String[]{"新增", "批量删除", "导入"};
-	private String[] functionDefaultIcons = new String[]{null, "icon-xuanzhong", null};
+	private String[] functionDefaultIcons = new String[]{null, "icon-xuanzhong", "icon-shangchuan"};
 	private String[] functionDefaultMethods = new String[]{"POST", "DELETE", "GET"};
 	private Boolean[] functionVisibles = {true, false, false};
 
@@ -167,7 +166,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 																				action.equals(item.getAction()) &&
 																				label.equals(item.getLabel())).findFirst();
 			if (optional.isPresent()==false) {
-				throw new IFormException("系统自带的功能按钮 "+functionDefaultLabels[i]+" 不允许删除，改名，或者修改功能编码");
+				throw new IFormException("系统自带的功能按钮 "+ label +" 不允许删除，改名，或者修改功能编码");
 			}
 		}
 	}

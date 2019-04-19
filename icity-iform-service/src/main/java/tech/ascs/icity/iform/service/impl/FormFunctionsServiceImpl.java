@@ -3,11 +3,9 @@ package tech.ascs.icity.iform.service.impl;
 import org.springframework.beans.factory.annotation.Autowired;
 import tech.ascs.icity.iform.api.model.DefaultFunctionType;
 import tech.ascs.icity.iform.model.FormModelEntity;
-import tech.ascs.icity.iform.model.FormSubmitCheckInfo;
 import tech.ascs.icity.iform.model.ListFunction;
 import tech.ascs.icity.iform.service.FormFunctionsService;
 import tech.ascs.icity.iform.service.FormModelService;
-import tech.ascs.icity.iform.service.FormSubmitCheckService;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 
@@ -45,27 +43,33 @@ public class FormFunctionsServiceImpl extends DefaultJPAService<ListFunction> im
 		 return 0;
 	}
 
+    private DefaultFunctionType[] functionDefaultTypes = {DefaultFunctionType.Edit, DefaultFunctionType.Delete, DefaultFunctionType.QrCode, DefaultFunctionType.TempStore, DefaultFunctionType.Manage, DefaultFunctionType.Download};
+	private String[] functionDefaultIcons = new String[]{"icon-xuanzhong1", "icon-xuanzhong", "icon-erweima", null};
+	private String[] functionDefaultMethods = new String[]{"PUT", "DELETE", "GET", null};
+	private Boolean[] functionVisibles = {true, true, false, false};
+
 	@Override
 	public void createDefaultFormFunctions(FormModelEntity formModelEntity) {
 		// 表单创建时，默认创建的权限码：编辑，删除，二维码，暂存
-		DefaultFunctionType[] list = {DefaultFunctionType.Edit, DefaultFunctionType.Delete, DefaultFunctionType.QrCode, DefaultFunctionType.TempStore, DefaultFunctionType.Manage, DefaultFunctionType.Download};
-		boolean[] functionVisibles = new boolean[]{true, true, false, false, false, false};
-		for(int i = 0; i < formModelEntity.getFunctions().size() ; i++){
-			ListFunction listFunction = formModelEntity.getFunctions().get(i);
-			formModelEntity.getFunctions().remove(listFunction);
-			listFunctionJPAManager.delete(listFunction);
-			i--;
-		}
+//		boolean[] functionVisibles = new boolean[]{true, true, false, false, false, false};
+//		for(int i = 0; i < formModelEntity.getFunctions().size() ; i++){
+//			ListFunction listFunction = formModelEntity.getFunctions().get(i);
+//			formModelEntity.getFunctions().remove(listFunction);
+//			listFunctionJPAManager.delete(listFunction);
+//			i--;
+//		}
 		List<ListFunction> listFunctions = new ArrayList<>();
-		for (int i = 0; i < list.length; i++) {
-			DefaultFunctionType functionType =  list[i];
+		for (int i = 0; i < functionDefaultTypes.length; i++) {
+			DefaultFunctionType functionType =  functionDefaultTypes[i];
 			ListFunction listFunction = new ListFunction();
 			listFunction.setFormModel(formModelEntity);
-			listFunction.setAction(functionType.getValue());
-			listFunction.setLabel(functionType.getDesc());
-			listFunction.setVisible(functionVisibles[i]);
-			listFunction.setSystemBtn(true);
 			listFunction.setOrderNo(i+1);
+			listFunction.setSystemBtn(true);
+			listFunction.setVisible(functionVisibles[i]);
+			listFunction.setIcon(functionDefaultIcons[i]);
+			listFunction.setLabel(functionType.getDesc());
+			listFunction.setAction(functionType.getValue());
+			listFunction.setMethod(functionDefaultMethods[i]);
 			listFunctions.add(listFunction);
 		}
 		formModelEntity.setFunctions(listFunctions);
