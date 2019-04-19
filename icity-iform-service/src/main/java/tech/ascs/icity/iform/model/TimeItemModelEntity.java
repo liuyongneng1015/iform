@@ -26,9 +26,6 @@ public class TimeItemModelEntity extends ItemModelEntity  {
 	@Enumerated(EnumType.STRING)
 	private SystemCreateType createType = SystemCreateType.Normal;
 
-	@JoinColumn(name="double_control")//时间格式如开始时间（“yyyy-MM-dd”），结束时间（“yyyy-MM-dd”）
-	private Boolean doubleControl = false;
-
 	public String getTimeFormat() {
 		return timeFormat;
 	}
@@ -45,11 +42,4 @@ public class TimeItemModelEntity extends ItemModelEntity  {
 		this.createType = createType;
 	}
 
-	public Boolean getDoubleControl() {
-		return doubleControl;
-	}
-
-	public void setDoubleControl(Boolean doubleControl) {
-		this.doubleControl = doubleControl;
-	}
 }
