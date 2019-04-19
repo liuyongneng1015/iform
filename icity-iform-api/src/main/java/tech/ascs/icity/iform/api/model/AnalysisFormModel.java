@@ -7,13 +7,12 @@ import tech.ascs.icity.model.NameEntity;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-@ApiModel("PC表单模型FormModel")
-public class PCFormModel extends NameEntity {
+@ApiModel("PC/APP解析表单模型FormModel")
+public class AnalysisFormModel extends NameEntity {
 
-	@ApiModel("流程摘要信息")
-	public static class PCProceeeModel extends NameEntity {
+	@ApiModel("PC/APP解析流程摘要信息")
+	public static class AnalysisProceeeModel extends NameEntity {
 		@ApiModelProperty(value = "流程KEY", position = 0)
 		private String key;
 		@ApiModelProperty(value = "流程启动环节ID", position = 1)
@@ -33,13 +32,13 @@ public class PCFormModel extends NameEntity {
 
 	}
 	@ApiModelProperty(value = "表单绑定的流程模型", position = 1)
-	private PCProceeeModel process;
+	private AnalysisProceeeModel process;
 
 	@ApiModelProperty(value = "描述", position = 2)
 	private String description;
 
 	@ApiModelProperty(value = "关联表数据模型列表", position = 3)
-	private List<PCDataModel> dataModels = new ArrayList<PCDataModel>();
+	private List<AnalysisDataModel> dataModels = new ArrayList<AnalysisDataModel>();
 
 	@ApiModelProperty(value = "表单字段列表", position = 5)
 	private List<ItemModel> items = new ArrayList<ItemModel>();
@@ -60,16 +59,16 @@ public class PCFormModel extends NameEntity {
 	private List<ItemModel> qrCodeItemModelList = new ArrayList<ItemModel>();
 
 	@ApiModelProperty(value="关联表单模型集合",position = 11)
-	private List<PCFormModel> referenceFormModel = new ArrayList<PCFormModel>();
+	private List<AnalysisFormModel> referenceFormModel = new ArrayList<AnalysisFormModel>();
 
 	@ApiModelProperty(value="联动控件集合",position = 12)
 	private List<LinkedItemModel> linkedItemModelList;
 
-	public PCProceeeModel getProcess() {
+	public AnalysisProceeeModel getProcess() {
 		return process;
 	}
 
-	public void setProcess(PCProceeeModel process) {
+	public void setProcess(AnalysisProceeeModel process) {
 		this.process = process;
 	}
 
@@ -81,11 +80,11 @@ public class PCFormModel extends NameEntity {
 		this.description = description;
 	}
 
-	public List<PCDataModel> getDataModels() {
+	public List<AnalysisDataModel> getDataModels() {
 		return dataModels;
 	}
 
-	public void setDataModels(List<PCDataModel> dataModels) {
+	public void setDataModels(List<AnalysisDataModel> dataModels) {
 		this.dataModels = dataModels;
 	}
 
@@ -137,11 +136,11 @@ public class PCFormModel extends NameEntity {
 		this.qrCodeItemModelList = qrCodeItemModelList;
 	}
 
-	public List<PCFormModel> getReferenceFormModel() {
+	public List<AnalysisFormModel> getReferenceFormModel() {
 		return referenceFormModel;
 	}
 
-	public void setReferenceFormModel(List<PCFormModel> referenceFormModel) {
+	public void setReferenceFormModel(List<AnalysisFormModel> referenceFormModel) {
 		this.referenceFormModel = referenceFormModel;
 	}
 

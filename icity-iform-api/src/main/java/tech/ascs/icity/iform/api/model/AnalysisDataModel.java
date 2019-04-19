@@ -8,8 +8,8 @@ import tech.ascs.icity.model.NameEntity;
 import java.util.ArrayList;
 import java.util.List;
 
-@ApiModel("数据模型")
-public class PCDataModel extends NameEntity {
+@ApiModel("PC/APP解析数据模型")
+public class AnalysisDataModel extends NameEntity {
 
     @ApiModelProperty(value = "数据库表名", position = 2)
 	private String tableName;

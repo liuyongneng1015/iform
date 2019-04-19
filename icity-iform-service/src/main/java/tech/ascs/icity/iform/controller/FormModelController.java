@@ -6,7 +6,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.googlecode.genericdao.search.Sort;
-import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.StringUtils;
@@ -287,14 +286,14 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
     }
 
 	@Override
-	public PCFormModel getPCFormModelById(@PathVariable(name="id") String id, @RequestParam(value = "deviceType", required = false) String deviceType) {
+	public AnalysisFormModel getPCFormModelById(@PathVariable(name="id") String id, @RequestParam(value = "deviceType", required = false) String deviceType) {
 		FormModelEntity entity = formModelService.find(id);
 		if (entity == null) {
 			throw new IFormException(404, "表单模型【" + id + "】不存在");
 		}
 		DeviceType type = DeviceType.getByType(deviceType);
 		try {
-			return toPCDTO(entity, type);
+			return toAnalysisDTO(entity, type);
 		} catch (Exception e) {
 			throw new IFormException("获取表单模型列表失败：" + e.getMessage(), e);
 		}
@@ -1841,16 +1840,16 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 
 
-	private PCFormModel toPCDTO(FormModelEntity entity, DeviceType deviceType) {
-		PCFormModel formModel = new PCFormModel();
+	private AnalysisFormModel toAnalysisDTO(FormModelEntity entity, DeviceType deviceType) {
+		AnalysisFormModel formModel = new AnalysisFormModel();
 		entityToDTO( entity,  formModel, true, deviceType);
 
-		List<PCDataModel> dataModelList = new ArrayList<>();
+		List<AnalysisDataModel> dataModelList = new ArrayList<>();
 		List<ItemModelEntity> itemModelEntities = formModelService.findAllItems(entity);
 		Map<String, DataModelEntity> dataModelEntities = new HashMap<>();
 		Map<String, List<String>> columnsMap = new HashMap<>();
 		//关联表单
-		Set<PCFormModel> referenceFormModelList = new HashSet<>();
+		Set<AnalysisFormModel> referenceFormModelList = new HashSet<>();
 		for(ItemModelEntity itemModelEntity : itemModelEntities){
 			if(itemModelEntity instanceof ReferenceItemModelEntity && ((ReferenceItemModelEntity) itemModelEntity).getReferenceList() != null) {
                 setPCReferenceItemModel((ReferenceItemModelEntity)itemModelEntity, referenceFormModelList, dataModelEntities, columnsMap, deviceType);
@@ -1859,7 +1858,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		formModel.setReferenceFormModel(new ArrayList<>(referenceFormModelList));
 
 		for(String formId : dataModelEntities.keySet()){
-			PCDataModel dataModel = dataModelService.transitionToModel(formId, dataModelEntities.get(formId), columnsMap.get(formId));
+			AnalysisDataModel dataModel = dataModelService.transitionToModel(formId, dataModelEntities.get(formId), columnsMap.get(formId));
 			dataModelList.add(dataModel);
 		}
 		formModel.setDataModels(dataModelList);
@@ -1906,9 +1905,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		itemModel.setItems(childrenItemModel.size() > 0 ? childrenItemModel : null);
 	}
 
-	private void setPCReferenceItemModel(ReferenceItemModelEntity itemModelEntity, Set<PCFormModel> referenceFormModelList, Map<String, DataModelEntity> dataModelEntities,
+	private void setPCReferenceItemModel(ReferenceItemModelEntity itemModelEntity, Set<AnalysisFormModel> referenceFormModelList, Map<String, DataModelEntity> dataModelEntities,
 										 Map<String, List<String>> columnsMap, DeviceType deviceType){
-        PCFormModel referencePCFormModel = new PCFormModel();
+        AnalysisFormModel referencePCFormModel = new AnalysisFormModel();
         entityToDTO(itemModelEntity.getReferenceList().getMasterForm(), referencePCFormModel, true, deviceType);
         referenceFormModelList.add(referencePCFormModel);
 
@@ -1935,7 +1934,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
         dataModelEntities.put(listModelEntity.getMasterForm().getId(), listModelEntity.getMasterForm().getDataModels().get(0));
     }
 
-	private void entityToDTO(FormModelEntity entity, Object object, boolean isPCForm, DeviceType deviceType){
+	private void entityToDTO(FormModelEntity entity, Object object, boolean isAnalysisForm, DeviceType deviceType){
 		BeanUtils.copyProperties(entity, object, new String[] {"dataModels","items","permissions","submitChecks","functions"});
 		if(entity.getFunctions() != null && entity.getFunctions().size() > 0){
 			List<ListFunction> functions = entity.getFunctions().parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
@@ -1950,8 +1949,8 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				functionModel.setOrderNo(i+1);
 				functionModels.add(functionModel);
 			}
-			if(isPCForm) {
-				((PCFormModel) object).setFunctions(functionModels);
+			if(isAnalysisForm) {
+				((AnalysisFormModel) object).setFunctions(functionModels);
 			}else{
 				((FormModel) object).setFunctions(functionModels);
 			}
@@ -1966,8 +1965,8 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 					resultList.add(str);
 				}
 			}
-			if(isPCForm) {
-				((PCFormModel) object).setItemModelList(getItemModelList(resultList));
+			if(isAnalysisForm) {
+				((AnalysisFormModel) object).setItemModelList(getItemModelList(resultList));
 			}else{
 				((FormModel) object).setItemModelList(getItemModelList(resultList));
 			}
@@ -1982,8 +1981,8 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 					resultList.add(str);
 				}
 			}
-			if(isPCForm) {
-				((PCFormModel) object).setQrCodeItemModelList(getItemModelList(resultList));
+			if(isAnalysisForm) {
+				((AnalysisFormModel) object).setQrCodeItemModelList(getItemModelList(resultList));
 			}else{
 				((FormModel) object).setQrCodeItemModelList(getItemModelList(resultList));
 			}
@@ -1991,8 +1990,8 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	}
 
 	@Deprecated
-	private PCFormModel toPCDTOold(FormModelEntity entity) throws InstantiationException, IllegalAccessException {
-		PCFormModel formModel = BeanUtils.copy(entity, PCFormModel.class, new String[] {"dataModels"});
+	private AnalysisFormModel toPCDTOold(FormModelEntity entity) throws InstantiationException, IllegalAccessException {
+		AnalysisFormModel formModel = BeanUtils.copy(entity, AnalysisFormModel.class, new String[] {"dataModels"});
 		List<ReferenceItemModel> pcReferenceItem = new ArrayList<>();
 		List<ItemModelEntity> itemListModelEntities = new ArrayList<>();
 		String tableName = entity.getDataModels() == null || entity.getDataModels().size() < 1 ? null :  entity.getDataModels().get(0).getTableName();
@@ -2033,7 +2032,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		return formModel;
 	}
 
-	private ItemModel toDTO(ItemModelEntity entity, boolean isPCItem, String tableName)  {
+	private ItemModel toDTO(ItemModelEntity entity, boolean isAnalysisItem, String tableName)  {
 		//TODO 根据模型找到对应的参数
 		ItemModel itemModel = new ItemModel();
 		BeanUtils.copyProperties(entity, itemModel, new String[]{"formModel", "columnModel", "activities", "options","searchItems","sortItems", "permissions","items","parentItem","referenceList", "defaultValue"});
@@ -2043,17 +2042,17 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 
 		if(entity instanceof ReferenceItemModelEntity){
-			setReferenceItemModel( entity, itemModel,  isPCItem);
+			setReferenceItemModel( entity, itemModel,  isAnalysisItem);
 		}else if(entity instanceof SelectItemModelEntity){
-			setSelectItemModel( entity,  itemModel,  isPCItem);
+			setSelectItemModel( entity,  itemModel,  isAnalysisItem);
 		}else if(entity instanceof RowItemModelEntity){
-			setRowItemModel(entity, itemModel, isPCItem, tableName);
+			setRowItemModel(entity, itemModel, isAnalysisItem, tableName);
 		}else if(entity instanceof SubFormItemModelEntity){
-			setSubFormItemModelEntity(entity, itemModel, isPCItem);
+			setSubFormItemModelEntity(entity, itemModel, isAnalysisItem);
 		}else if(entity instanceof TabsItemModelEntity){
-			setTabsItemModel(entity, itemModel, isPCItem, tableName);
+			setTabsItemModel(entity, itemModel, isAnalysisItem, tableName);
 		} else if (entity instanceof TreeSelectItemModelEntity) {
-			setTreeSelectItemModel(entity, itemModel, isPCItem);
+			setTreeSelectItemModel(entity, itemModel, isAnalysisItem);
 		}
 
 		if(entity.getColumnModel() != null) {
@@ -2080,7 +2079,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			}
 			itemModel.setOptions(options);
 		}
-		if(isPCItem && entity.getPermissions() != null && entity.getPermissions().size() > 0){
+		if(isAnalysisItem && entity.getPermissions() != null && entity.getPermissions().size() > 0){
 			ItemPermissionModel itemPermissionModel = new ItemPermissionModel();
 			itemPermissionModel.setId(entity.getId());
 			itemPermissionModel.setName(entity.getName());
@@ -2114,12 +2113,12 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		return itemModel;
 	}
 
-	private void setRowItemModel(ItemModelEntity entity, ItemModel itemModel, boolean isPCItem, String tableName){
+	private void setRowItemModel(ItemModelEntity entity, ItemModel itemModel, boolean isAnalysisItem, String tableName){
 		List<ItemModel> rows = new ArrayList<>();
 		List<ItemModelEntity> rowList = ((RowItemModelEntity) entity).getItems();
 		List<ItemModelEntity> itemModelEntities = rowList == null || rowList.size() < 2 ? rowList : rowList.parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
 		for(ItemModelEntity itemModelEntity : itemModelEntities) {
-			ItemModel itemModel1 = toDTO(itemModelEntity, isPCItem, tableName);
+			ItemModel itemModel1 = toDTO(itemModelEntity, isAnalysisItem, tableName);
 			if(itemModel1.getType() == ItemType.ReferenceLabel){
 				itemModel1.setTableName(tableName);
 			}
@@ -2128,7 +2127,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		itemModel.setItems(rows);
 	}
 
-	private void setTabsItemModel(ItemModelEntity entity, ItemModel itemModel, boolean isPCItem, String tableName){
+	private void setTabsItemModel(ItemModelEntity entity, ItemModel itemModel, boolean isAnalysisItem, String tableName){
 		List<ItemModel> subFormRows = new ArrayList<>();
 		List<TabPaneItemModelEntity> tabPaneItemModelEntities = ((TabsItemModelEntity) entity).getItems();
 
@@ -2139,7 +2138,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			List<ItemModel> children = new ArrayList<>();
 			List<ItemModelEntity> itemModelEntities = tabPaneItemModelEntity.getItems() == null || tabPaneItemModelEntity.getItems().size() < 2 ? tabPaneItemModelEntity.getItems() : tabPaneItemModelEntity.getItems().parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
 			for(ItemModelEntity childrenItem : itemModelEntities) {
-				ItemModel childItem = toDTO(childrenItem, isPCItem, tableName);
+				ItemModel childItem = toDTO(childrenItem, isAnalysisItem, tableName);
 				children.add(childItem);
 			}
 			itemModel1.setItems(children);
@@ -2148,7 +2147,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		itemModel.setItems(subFormRows);
 	}
 
-	private void setSubFormItemModelEntity(ItemModelEntity entity, ItemModel itemModel, boolean isPCItem){
+	private void setSubFormItemModelEntity(ItemModelEntity entity, ItemModel itemModel, boolean isAnalysisItem){
 		List<ItemModel> subFormRows = new ArrayList<>();
 		List<SubFormRowItemModelEntity> rowItemModelEntities = ((SubFormItemModelEntity) entity).getItems();
 
@@ -2160,7 +2159,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			List<ItemModel> rows = new ArrayList<>();
 			List<ItemModelEntity> itemModelEntities = rowItemModelEntity.getItems() == null || rowItemModelEntity.getItems().size() < 2 ? rowItemModelEntity.getItems() : rowItemModelEntity.getItems().parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
 			for(ItemModelEntity childrenItem : itemModelEntities) {
-				ItemModel childItem = toDTO(childrenItem, isPCItem, ((SubFormItemModelEntity) entity).getTableName());
+				ItemModel childItem = toDTO(childrenItem, isAnalysisItem, ((SubFormItemModelEntity) entity).getTableName());
 				childItem.setTableName(((SubFormItemModelEntity) entity).getTableName());
 				rows.add(childItem);
 			}
@@ -2172,7 +2171,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		itemModel.setItems(subFormRows);
 	}
 
-	private void setSelectItemModel(ItemModelEntity entity, ItemModel itemModel, boolean isPCItem){
+	private void setSelectItemModel(ItemModelEntity entity, ItemModel itemModel, boolean isAnalysisItem){
 		String defaultValue = ((SelectItemModelEntity) entity).getDefaultReferenceValue();
 		if(StringUtils.hasText(defaultValue) && (entity.getType() == ItemType.CheckboxGroup
 				||entity.getType() == ItemType.RadioGroup ||entity.getType() == ItemType.Select)) {
@@ -2222,7 +2221,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 
 		//pc表单控件才有下拉子类
-		if(isPCItem && ((SelectItemModelEntity) entity).getItems() != null && ((SelectItemModelEntity) entity).getItems().size() > 0){
+		if(isAnalysisItem && ((SelectItemModelEntity) entity).getItems() != null && ((SelectItemModelEntity) entity).getItems().size() > 0){
 		    if(((SelectItemModelEntity) entity).getParentItem() != null){
                 itemModel.setReferenceRootFlag(false);
             }else{
@@ -2250,7 +2249,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	}
 
 
-	private void setTreeSelectItemModel(ItemModelEntity entity, ItemModel itemModel, boolean isPCItem){
+	private void setTreeSelectItemModel(ItemModelEntity entity, ItemModel itemModel, boolean isAnalysisItem){
 		TreeSelectItemModelEntity treeSelectEntity = (TreeSelectItemModelEntity)entity;
 		if (treeSelectEntity.getMultiple()) {
 			if (!StringUtils.isEmpty(treeSelectEntity.getDefaultValue())) {
@@ -2274,7 +2273,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 	}
 
-	private void setReferenceItemModel(ItemModelEntity entity, ItemModel itemModel, boolean isPCItem){
+	private void setReferenceItemModel(ItemModelEntity entity, ItemModel itemModel, boolean isAnalysisItem){
 		if(((ReferenceItemModelEntity) entity).getItemModelIds() != null) {
 			List<String> resultList = new ArrayList<>(Arrays.asList(((ReferenceItemModelEntity) entity).getItemModelIds().split(",")));
 			itemModel.setItemModelList(getItemModelList(resultList));
@@ -2292,7 +2291,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				itemModel.setTableName(formModelEntity.getDataModels().get(0).getTableName());
 			}
 		}
-		if(isPCItem) {
+		if(isAnalysisItem) {
 			if(((ReferenceItemModelEntity) entity).getReferenceList() != null) {
 				itemModel.setReferenceListId(((ReferenceItemModelEntity) entity).getReferenceList().getId());
 			}

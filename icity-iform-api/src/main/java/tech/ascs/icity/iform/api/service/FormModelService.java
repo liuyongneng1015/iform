@@ -122,18 +122,18 @@ public interface FormModelService {
 	void removeFormModels(@RequestBody List<String> ids);
 
 	/**
-	 * 根据表单模型ID获取表单模型对象
+	 * PC/APP根据表单模型ID解析表单模型对象
 	 *
 	 * @param id 表单模型ID（uuid）
 	 * @return
 	 */
-	@ApiOperation(value = "根据表单模型ID获取表单模型对象", position = 2)
+	@ApiOperation(value = "PC/APP根据表单模型ID解析表单模型对象", position = 2)
 	@ApiImplicitParams({
 			@ApiImplicitParam(paramType = "path", name = "id", value = "表单模型ID", required = true, dataType = "String"),
 			@ApiImplicitParam(paramType = "query", name = "deviceType", value = "应用id", required = false)
 	})
 	@GetMapping("/pc/{id}")
-	PCFormModel getPCFormModelById(@PathVariable(name="id") String id, @RequestParam(value = "deviceType", required = false) String deviceType);
+	AnalysisFormModel getPCFormModelById(@PathVariable(name="id") String id, @RequestParam(value = "deviceType", required = false) String deviceType);
 
 	/**
 	 * 获取数据标识

@@ -6,8 +6,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -382,8 +380,8 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 	}
 
 	@Override
-	public PCDataModel transitionToModel(String formId, DataModelEntity modelEntity, List<String> displayColuns){
-		PCDataModel dataModel = new PCDataModel();
+	public AnalysisDataModel transitionToModel(String formId, DataModelEntity modelEntity, List<String> displayColuns){
+		AnalysisDataModel dataModel = new AnalysisDataModel();
 		BeanUtils.copyProperties(modelEntity, dataModel, new String[] {"columns","slaverModels","masterModel","parentsModel","childrenModels","indexes"});
 		List<ColumnModelEntity> columnModelEntities = modelEntity.getColumns();
 		List<ColumnModelInfo> columnModels = new ArrayList<>();
