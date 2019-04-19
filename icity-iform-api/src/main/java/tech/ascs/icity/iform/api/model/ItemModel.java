@@ -119,8 +119,6 @@ public class ItemModel extends NameEntity {
 	//TimeItemModel
 	@ApiModelProperty(value="时间格式如yyyy-MM-dd",position = 27)//时间格式
 	private String timeFormat;
-	@ApiModelProperty(value="时间格式如开始时间（“yyyy-MM-dd”），结束时间（“yyyy-MM-dd”）",position = 27)
-	private Boolean doubleControl = false;
 
 	//TimeItemModel
 	@ApiModelProperty(value="系统控件类型", position = 29)
@@ -547,14 +545,6 @@ public class ItemModel extends NameEntity {
 
 	public void setTimeFormat(String timeFormat) {
 		this.timeFormat = timeFormat;
-	}
-
-	public Boolean getDoubleControl() {
-		return doubleControl;
-	}
-
-	public void setDoubleControl(Boolean doubleControl) {
-		this.doubleControl = doubleControl;
 	}
 
 	public SystemItemType getSystemItemType() {
