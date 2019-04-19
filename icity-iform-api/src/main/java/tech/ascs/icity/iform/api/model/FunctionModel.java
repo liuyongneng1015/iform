@@ -48,6 +48,8 @@ public class FunctionModel extends NameEntity implements Comparable<FunctionMode
 	private Boolean updatePageVisible = false;
 	// 是否是系统的按钮
 	private Boolean isSystemBtn = false;
+	@ApiModelProperty(value ="设备类型", position = 18)
+	private DeviceType deviceType;
 
 	public String getLabel() {
 		return label;
@@ -207,6 +209,14 @@ public class FunctionModel extends NameEntity implements Comparable<FunctionMode
 
 	public void setSystemBtn(Boolean systemBtn) {
 		isSystemBtn = systemBtn;
+	}
+
+	public DeviceType getDeviceType() {
+		return deviceType;
+	}
+
+	public void setDeviceType(DeviceType deviceType) {
+		this.deviceType = deviceType;
 	}
 
 	@Override

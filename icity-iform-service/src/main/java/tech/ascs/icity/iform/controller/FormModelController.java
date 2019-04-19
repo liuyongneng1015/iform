@@ -286,13 +286,14 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
     }
 
 	@Override
-	public PCFormModel getPCFormModelById(@PathVariable(name="id") String id) {
+	public PCFormModel getPCFormModelById(@PathVariable(name="id") String id, @RequestParam(value = "deviceType", required = false) String deviceType) {
 		FormModelEntity entity = formModelService.find(id);
 		if (entity == null) {
 			throw new IFormException(404, "表单模型【" + id + "】不存在");
 		}
+		DeviceType type = DeviceType.getByType(deviceType);
 		try {
-			return toPCDTO(entity);
+			return toPCDTO(entity, type);
 		} catch (Exception e) {
 			throw new IFormException("获取表单模型列表失败：" + e.getMessage(), e);
 		}
@@ -1699,7 +1700,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	private FormModel toDTODetail(FormModelEntity entity)  {
         FormModel formModel = new FormModel();
 
-		entityToDTO( entity,  formModel, false);
+		entityToDTO( entity,  formModel, false, null);
 		List<Activity> activities = new ArrayList<>();
 		if(entity.getProcess() != null && StringUtils.hasText(entity.getProcess().getKey())){
 			Process process = processService.get(entity.getProcess().getKey());
@@ -1839,9 +1840,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 
 
-	private PCFormModel toPCDTO(FormModelEntity entity) {
+	private PCFormModel toPCDTO(FormModelEntity entity, DeviceType deviceType) {
 		PCFormModel formModel = new PCFormModel();
-		entityToDTO( entity,  formModel, true);
+		entityToDTO( entity,  formModel, true, deviceType);
 
 		List<PCDataModel> dataModelList = new ArrayList<>();
 		List<ItemModelEntity> itemModelEntities = formModelService.findAllItems(entity);
@@ -1851,7 +1852,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		Set<PCFormModel> referenceFormModelList = new HashSet<>();
 		for(ItemModelEntity itemModelEntity : itemModelEntities){
 			if(itemModelEntity instanceof ReferenceItemModelEntity && ((ReferenceItemModelEntity) itemModelEntity).getReferenceList() != null) {
-                setPCReferenceItemModel((ReferenceItemModelEntity)itemModelEntity, referenceFormModelList, dataModelEntities, columnsMap);
+                setPCReferenceItemModel((ReferenceItemModelEntity)itemModelEntity, referenceFormModelList, dataModelEntities, columnsMap, deviceType);
 			}
 		}
 		formModel.setReferenceFormModel(new ArrayList<>(referenceFormModelList));
@@ -1904,9 +1905,10 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		itemModel.setItems(childrenItemModel.size() > 0 ? childrenItemModel : null);
 	}
 
-	private void setPCReferenceItemModel(ReferenceItemModelEntity itemModelEntity, Set<PCFormModel> referenceFormModelList, Map<String, DataModelEntity> dataModelEntities, Map<String, List<String>> columnsMap){
+	private void setPCReferenceItemModel(ReferenceItemModelEntity itemModelEntity, Set<PCFormModel> referenceFormModelList, Map<String, DataModelEntity> dataModelEntities,
+										 Map<String, List<String>> columnsMap, DeviceType deviceType){
         PCFormModel referencePCFormModel = new PCFormModel();
-        entityToDTO(itemModelEntity.getReferenceList().getMasterForm(), referencePCFormModel, true);
+        entityToDTO(itemModelEntity.getReferenceList().getMasterForm(), referencePCFormModel, true, deviceType);
         referenceFormModelList.add(referencePCFormModel);
 
         List<String> displayColuns = new ArrayList<>();
@@ -1932,13 +1934,16 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
         dataModelEntities.put(listModelEntity.getMasterForm().getId(), listModelEntity.getMasterForm().getDataModels().get(0));
     }
 
-	private void entityToDTO(FormModelEntity entity, Object object, boolean isPCForm){
+	private void entityToDTO(FormModelEntity entity, Object object, boolean isPCForm, DeviceType deviceType){
 		BeanUtils.copyProperties(entity, object, new String[] {"dataModels","items","permissions","submitChecks","functions"});
 		if(entity.getFunctions() != null && entity.getFunctions().size() > 0){
 			List<ListFunction> functions = entity.getFunctions().parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
 			List<FunctionModel> functionModels = new ArrayList<>();
 			for (int i = 0; i < functions.size(); i++) {
 				ListFunction function = functions.get(i);
+				if(deviceType != null && deviceType != function.getDeviceType()){
+					continue;
+				}
 				FunctionModel functionModel = new FunctionModel();
 				BeanUtils.copyProperties(function, functionModel, new String[] {"formModel","itemModel"});
 				functionModel.setOrderNo(i+1);

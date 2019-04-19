@@ -36,8 +36,11 @@ public class ItemModelEntity extends  BaseEntity implements Serializable {
 	@Enumerated(EnumType.STRING)
 	private ItemType type;
 
-	@Column(name="props",length = 1024)
+	@Column(name="props",length = 2048)
 	private String props;
+
+	@Column(name="app_props",length = 2048)
+	private String appProps;
 
 	@Column(name="hidden_conditions",columnDefinition="text")//隐藏条件
 	private String hiddenCondition;

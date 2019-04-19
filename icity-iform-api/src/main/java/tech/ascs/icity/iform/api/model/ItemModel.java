@@ -16,6 +16,9 @@ public class ItemModel extends NameEntity {
 	@ApiModelProperty(value = "前端个性化属性（直接存json字符串，后端不做处理）", position = 4)
 	private String props;
 
+	@ApiModelProperty(value = "移动app前端个性化属性（直接存json字符串，后端不做处理）", position = 4)
+	private String appProps;
+
 	@ApiModelProperty(value = "数据字段模型", position = 5)
 	private ColumnModelInfo columnModel;
 
@@ -222,6 +225,14 @@ public class ItemModel extends NameEntity {
 
 	public void setProps(String props) {
 		this.props = props;
+	}
+
+	public String getAppProps() {
+		return appProps;
+	}
+
+	public void setAppProps(String appProps) {
+		this.appProps = appProps;
 	}
 
 	public ColumnModelInfo getColumnModel() {
