@@ -17,6 +17,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import io.swagger.annotations.Api;
+import tech.ascs.icity.admin.api.model.Position;
+import tech.ascs.icity.admin.client.UserService;
 import tech.ascs.icity.iflow.api.model.ProcessInstance;
 import tech.ascs.icity.iflow.client.ProcessInstanceService;
 import tech.ascs.icity.iform.IFormException;
@@ -579,5 +581,50 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			throw new IFormException(404, "表单模型【" + formModel.getId() + "】,生成【" + id + "】二维码失败");
 		}
 		return fileUploadModels == null || fileUploadModels.size() < 1 ? null : fileUploadModels.get(0);
+	}
+
+	@Autowired
+	private UserService userService;
+
+	/**
+	{
+		"navigations": [
+			{ "name": "地图", "iconName": "ditu3", "screenKey": "Map", "screenType": "Inherent", initialPage: true },
+			{ "name": "工作台", "iconName": "gongzuotai1", "screenKey": "Dashboard", "screenType": "Inherent", initialPage: false },
+			{ "name": "个人中心", "iconName": "gerenzhongxin", "screenKey": "User", "screenType": "Inherent", initialPage: false }
+		],
+		"dashboard":[{
+			"id": "id", "name": "巡河上报",
+			"children": [
+				{ "id": "id", "name": "巡河上报", "screenKey": "RiverPatrol", "screenType": "Inherent" },
+				{ "id": "PatrolHistory", "name": "巡河历史", "screenKey": "PatrolHistory", "screenType": "Inherent" },
+				{ "id": "ReportHistory", "name": "上报历史", "screenKey": "ReportHistory", "screenType": "Inherent" }
+			]
+		}, {
+			"id": "id", "name": "河流动态",
+			"children": [{ "id": "SixOne", "name": "河流六个一", "screenKey": "SixOne", "screenType": "Inherent" }]
+		}, {
+			"id": "id", "name": "河长制业务",
+			"children": [
+				{ "id": "EventManagent", "name": "事件管理", "screenKey": "EventManagent", "screenType": "Inherent" },
+				{ "id": "SixOne", "name": "河长交办", "screenKey": "RiverManagerAssign", "screenType": "Inherent" },
+				{ "id": "NoticeNews", "name": "通知新闻", "screenKey": "NoticeNews", "screenType": "Inherent" },
+				{ "id": "OneWeekOneReport", "name": "一周一报", "screenKey": "OneWeekOneReport", "screenType": "Inherent" },
+				{ "id": "RiverManagerPat", "name": "河长拍", "screenKey": "RiverManagerPat", "screenType": "Inherent" }
+			]
+		}, {
+			"id": "id", "name": "统计分析",
+			"children": [{ "id": "StatisticsAnalysis", "name": "统计分析", "screenKey": "StatisticsAnalysis", "screenType": "Inherent" }]
+		}]
+	 }
+	 */
+	@Override
+	public Map dashboard(@PathVariable(name="listId", required = true) String userId) {
+		Map map = new HashMap();
+		List<Position> list = userService.queryUserPositions(userId);
+		if (list!=null && list.size()>0) {
+
+		}
+		return map;
 	}
 }

@@ -279,4 +279,15 @@ public interface FormInstanceService {
 	@PutMapping("/{listId}/{id}/reset_qrcode")
 	FileUploadModel resetQrCode(@PathVariable(name="listId", required = true) String listId, @PathVariable(name="id", required = true) String id);
 
+	/**
+	 * 静态的策略组接口
+	 *
+	 * @param userId 用户ID
+	 */
+	@ApiOperation(value = "静态的策略组接口", position = 6)
+	@ApiImplicitParams({
+		@ApiImplicitParam(paramType = "path", name = "userId", value = "用户ID", required = true, dataType = "String")
+	})
+	@PutMapping("/users/{userId}/dashboard")
+	Map dashboard(@PathVariable(name="listId", required = true) String userId);
 }
