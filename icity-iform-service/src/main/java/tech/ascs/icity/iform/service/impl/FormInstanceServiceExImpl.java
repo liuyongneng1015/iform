@@ -1375,17 +1375,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				if (itemModel.getSystemItemType() == SystemItemType.CreateDate || itemModel.getType() == ItemType.DatePicker || itemModel.getType() == ItemType.TimePicker) {
 					equalsFlag = true;
 					if (values[i] != null) {
-						String strValue = String.valueOf(values[i]);
-						String[] timeParams = strValue.split(",");
-						Object[] o = new Object[timeParams.length];
-						for(int t = 0; t < timeParams.length; t++) {
-						    if(itemModel.getType() != ItemType.TimePicker) {
-                                o[t] = new Date(Long.parseLong(timeParams[t]));
-                            }else{
-                                o[t] = timeParams[t];
-                            }
-                        }
-                        value = o;
+                        value = getTimeParams(itemModel.getType(), String.valueOf(values[i]));
 					}
 				} else if (itemModel.getType() == ItemType.InputNumber) {
 					equalsFlag = true;
@@ -1414,12 +1404,15 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
                     Object[] objects = (Object[])value;
 					if (Objects.nonNull(value)) {  // Timestamp
                         if(objects.length == 3) {
+                        	if(((Date)objects[2]).before((Date)objects[0])){
+                        		throw new IFormException("开始时间不能大于结束时间");
+							}
                             criteria.add(Restrictions.ge(propertyName, objects[0]));
-                            criteria.add(Restrictions.le(propertyName, objects[2]));
+                            criteria.add(Restrictions.lt(propertyName, objects[2]));
                         }else if(objects[0] instanceof Date){
                             criteria.add(Restrictions.ge(propertyName, objects[0]));
                         }else if(objects[0] instanceof String){
-                            criteria.add(Restrictions.le(propertyName, objects[1]));
+                            criteria.add(Restrictions.lt(propertyName, objects[1]));
                         }
 					}
 				} else {
@@ -1450,6 +1443,56 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}
 		}
 		return criteria;
+	}
+
+	private Object[] getTimeParams(ItemType itemType, String strValue){
+		boolean flag = strValue.startsWith(",");
+		if(flag){
+			strValue = strValue.substring(1);
+		}
+		String[] timeParams = strValue.split(",");
+		int size = timeParams.length;
+		Object[] o = new Object[size + 1];
+		if(size == 1){
+			Object object = null;
+			if(itemType != ItemType.TimePicker) {
+				if(flag) {
+					object = DateUtils.addDays(new Date(Long.parseLong(timeParams[0])), 1);;
+				}else{
+					object = new Date(Long.parseLong(timeParams[0]));
+				}
+			}else{
+				object = timeParams[0];
+			}
+			if(flag){
+				o[0] = ",";
+				o[1] = object;
+			}else{
+				o[0] = object;
+				o[1] = ",";
+			}
+		}else if(size == 2){
+			for(int t = 0; t < size + 1; t++) {
+				int k = t;
+				if(t > 1){
+					k = t-1;
+				}
+				if(t == 1){
+					o[t] = ",";
+					continue;
+				}
+				if(itemType != ItemType.TimePicker) {
+					if(k > 0) {
+						o[t] = DateUtils.addDays(new Date(Long.parseLong(timeParams[k])), 1);;
+					}else {
+						o[t] = new Date(Long.parseLong(timeParams[k]));
+					}
+				}else{
+					o[t] = timeParams[k];
+				}
+			}
+		}
+		return  o;
 	}
 
 	/**
