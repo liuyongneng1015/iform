@@ -1945,7 +1945,10 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 					continue;
 				}
 				FunctionModel functionModel = new FunctionModel();
-				BeanUtils.copyProperties(function, functionModel, new String[] {"formModel","itemModel"});
+				BeanUtils.copyProperties(function, functionModel, new String[] {"formModel","itemModel", "parseArea"});
+				if (StringUtils.hasText(function.getParseArea())) {
+					functionModel.setParseArea(function.getParseArea().split(","));
+				}
 				functionModel.setOrderNo(i+1);
 				functionModels.add(functionModel);
 			}
