@@ -69,11 +69,8 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 	@Override
 	public ListModel get(@PathVariable(name="id") String id) {
 		ListModelEntity entity = listModelService.find(id);
-		if (entity == null) {
-			throw new IFormException(404, "列表模型【" + id + "】不存在");
-		}
-		if (entity.getMasterForm()==null) {
-			return null;
+		if (entity == null || entity.getMasterForm() == null) {
+            return null;
 		}
 		try {
 			return toDTO(entity);
@@ -553,6 +550,10 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				if (StringUtils.hasText(listFunction.getParseArea())) {
 				    function.setParseArea(listFunction.getParseArea().split(","));
                 }
+                function.setListActionBarVisible(null);
+                function.setUpdatePageVisible(null);
+				function.setCheckPageVisible(null);
+				function.setAddPageVisible(null);
 				functions.add(function);
 			}
             Collections.sort(functions);
