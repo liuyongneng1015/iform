@@ -1945,7 +1945,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			List<FunctionModel> functionModels = new ArrayList<>();
 			for (int i = 0; i < functions.size(); i++) {
 				ListFunction function = functions.get(i);
-				if(deviceType != null && deviceType != function.getDeviceType()){
+				if(deviceType != null && (function.getParseArea() == null || !function.getParseArea().contains(function.getDeviceType().getValue()))){
 					continue;
 				}
 				FunctionModel functionModel = new FunctionModel();
