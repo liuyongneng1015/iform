@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 import javax.persistence.*;
 
+import io.swagger.annotations.ApiModelProperty;
 import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.jpa.dao.model.JPAEntity;
 
@@ -74,10 +75,13 @@ public class ListFunction extends JPAEntity implements Serializable {
 	@Enumerated(EnumType.STRING)
 	private DisplayTimingType displayTiming;
 
+	// 返回结果
+	private ReturnResult returnResult;
+
 	// 是否是系统的按钮
 	private Boolean systemBtn;
 
-	//设备类型
+	// 设备类型
 	@JoinColumn(name = "device_type")
 	@Enumerated(EnumType.STRING)
 	private DeviceType deviceType;
@@ -248,6 +252,14 @@ public class ListFunction extends JPAEntity implements Serializable {
 
 	public void setDisplayTiming(DisplayTimingType displayTiming) {
 		this.displayTiming = displayTiming;
+	}
+
+	public ReturnResult getReturnResult() {
+		return returnResult;
+	}
+
+	public void setReturnResult(ReturnResult returnResult) {
+		this.returnResult = returnResult;
 	}
 
 	public Boolean getSystemBtn() {
