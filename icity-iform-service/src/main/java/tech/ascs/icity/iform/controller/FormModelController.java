@@ -680,6 +680,10 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		FormModelEntity entity = new FormModelEntity();
 		BeanUtils.copyProperties(formModel, entity, new String[] {"items","dataModels","permissions","submitChecks","functions"});
 
+		if(formModel.getProcess() != null){
+			formModel.setFunctions(null);
+		}
+
 		verifyFormModelName(formModel);
 
 		//TODO 获取主数据模型
@@ -1944,7 +1948,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			List<FunctionModel> functionModels = new ArrayList<>();
 			for (int i = 0; i < functions.size(); i++) {
 				ListFunction function = functions.get(i);
-				if(deviceType != null && deviceType != function.getDeviceType()){
+				if(deviceType != null && (function.getParseArea() == null || !function.getParseArea().contains(function.getDeviceType().getValue()))){
 					continue;
 				}
 				FunctionModel functionModel = new FunctionModel();
