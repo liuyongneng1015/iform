@@ -4,10 +4,10 @@ package tech.ascs.icity.iform.api.model;
  * 解析区域
  */
 public enum ParseArea {
-    /** 无 */
+    /** APP */
     APP("APP"),
 
-    /** 带URL */
+    /** PC */
     PC("PC");
 
     private String value;
