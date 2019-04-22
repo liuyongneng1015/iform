@@ -5,6 +5,8 @@ import io.swagger.annotations.ApiModelProperty;
 import org.apache.commons.lang3.StringUtils;
 import tech.ascs.icity.model.NameEntity;
 
+import java.util.List;
+
 @ApiModel("功能模型")
 public class FunctionModel extends NameEntity implements Comparable<FunctionModel> {
 
@@ -50,9 +52,13 @@ public class FunctionModel extends NameEntity implements Comparable<FunctionMode
 	private ReturnResult returnResult;
 
 	// 是否是系统的按钮
+	@ApiModelProperty(value ="是否是系统按钮", position = 19)
 	private Boolean systemBtn = false;
 
-	@ApiModelProperty(value ="设备类型", position = 19)
+	@ApiModelProperty(value ="解析区域", position = 20)
+	private String[] parseArea;
+
+	@ApiModelProperty(value ="设备类型", position = 21)
 	private DeviceType deviceType;
 
 	public String getLabel() {
@@ -221,6 +227,14 @@ public class FunctionModel extends NameEntity implements Comparable<FunctionMode
 
 	public void setSystemBtn(Boolean systemBtn) {
 		this.systemBtn = systemBtn;
+	}
+
+	public String[] getParseArea() {
+		return parseArea;
+	}
+
+	public void setParseArea(String[] parseArea) {
+		this.parseArea = parseArea;
 	}
 
 	public DeviceType getDeviceType() {

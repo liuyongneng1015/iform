@@ -2,6 +2,8 @@ package tech.ascs.icity.iform.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import tech.ascs.icity.iform.api.model.DefaultFunctionType;
+import tech.ascs.icity.iform.api.model.ParseArea;
+import tech.ascs.icity.iform.api.model.ReturnResult;
 import tech.ascs.icity.iform.model.FormModelEntity;
 import tech.ascs.icity.iform.model.ListFunction;
 import tech.ascs.icity.iform.service.FormFunctionsService;
@@ -68,6 +70,8 @@ public class FormFunctionsServiceImpl extends DefaultJPAService<ListFunction> im
 			listFunction.setVisible(functionVisibles[i]);
 			listFunction.setIcon(functionDefaultIcons[i]);
 			listFunction.setLabel(functionType.getDesc());
+			listFunction.setParseArea(ParseArea.PC.value());
+			listFunction .setReturnResult(ReturnResult.NONE);
 			listFunction.setAction(functionType.getValue());
 			listFunction.setMethod(functionDefaultMethods[i]);
 			listFunctions.add(listFunction);

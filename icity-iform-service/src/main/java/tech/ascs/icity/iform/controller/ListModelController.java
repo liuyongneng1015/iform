@@ -106,6 +106,8 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				function.setAction(functionDefaultActions[i].getValue());
 				function.setLabel(functionDefaultActions[i].getDesc());
 				function.setMethod(functionDefaultMethods[i]);
+                function.setParseArea(ParseArea.PC.value());
+				function.setReturnResult(ReturnResult.NONE);
                 function.setVisible(functionVisibles[i]);
                 function.setIcon(functionDefaultIcons[i]);
                 function.setSystemBtn(true);
@@ -389,7 +391,10 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 					throw new IFormException("功能按钮存在功能名或者功能编码为空");
 				}
 				ListFunction listFunction = new ListFunction() ;
-				BeanUtils.copyProperties(function, listFunction, new String[]{"listModel"});
+				BeanUtils.copyProperties(function, listFunction, new String[]{"listModel", "parseArea"});
+				if (function.getParseArea()!=null && function.getParseArea().length>0) {
+					listFunction.setParseArea(String.join(",", function.getParseArea()));
+				}
 				listFunction.setListModel(entity);
 				listFunction.setOrderNo(++i);
 				functions.add(listFunction);
@@ -544,7 +549,10 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			List<FunctionModel> functions = new ArrayList();
 			for(ListFunction listFunction : entity.getFunctions()) {
 				FunctionModel function = new FunctionModel();
-				BeanUtils.copyProperties(listFunction, function, new String[]{"listModel", "formModel"});
+				BeanUtils.copyProperties(listFunction, function, new String[]{"listModel", "formModel", "parseArea"});
+				if (StringUtils.hasText(listFunction.getParseArea())) {
+				    function.setParseArea(listFunction.getParseArea().split(","));
+                }
 				functions.add(function);
 			}
             Collections.sort(functions);

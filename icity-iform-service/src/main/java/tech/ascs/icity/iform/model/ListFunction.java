@@ -76,7 +76,11 @@ public class ListFunction extends JPAEntity implements Serializable {
 	private DisplayTimingType displayTiming;
 
 	// 返回结果
+	@Enumerated(EnumType.STRING)
 	private ReturnResult returnResult;
+
+	// 解析区域
+	private String parseArea;
 
 	// 是否是系统的按钮
 	private Boolean systemBtn;
@@ -260,6 +264,14 @@ public class ListFunction extends JPAEntity implements Serializable {
 
 	public void setReturnResult(ReturnResult returnResult) {
 		this.returnResult = returnResult;
+	}
+
+	public String getParseArea() {
+		return parseArea;
+	}
+
+	public void setParseArea(String parseArea) {
+		this.parseArea = parseArea;
 	}
 
 	public Boolean getSystemBtn() {
