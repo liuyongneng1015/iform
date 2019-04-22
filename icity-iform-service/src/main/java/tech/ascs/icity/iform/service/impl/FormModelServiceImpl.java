@@ -1406,6 +1406,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		return dataModel;
 	}
 
+	@Override
 	public ItemModel findItemByTableAndColumName(String tableName, String columnName) {
 		ItemModel itemModel = null;
 		ColumnModelEntity columnModel = columnModelManager.query().filterEqual("dataModel.tableName", tableName).filterEqual("columnName", columnName).first();
@@ -1420,6 +1421,11 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			}
 		}
 		return itemModel;
+	}
+
+	@Override
+	public FormModelEntity findByTableName(String tableName) {
+		return query().filterEqual("dataModels.tableName", tableName).first();
 	}
 
 	@Override
