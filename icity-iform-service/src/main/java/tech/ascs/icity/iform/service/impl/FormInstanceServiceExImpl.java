@@ -1371,12 +1371,21 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			boolean equalsFlag = false;
 
 			for (int i = 0; i < values.length; i++) {
-				value = values[i];
-				if (itemModel.getSystemItemType() == SystemItemType.CreateDate || itemModel.getType() == ItemType.DatePicker) {
+				value = null;
+				if (itemModel.getSystemItemType() == SystemItemType.CreateDate || itemModel.getType() == ItemType.DatePicker || itemModel.getType() == ItemType.TimePicker) {
 					equalsFlag = true;
-					if (!(value instanceof Date)) {
-						String strValue = String.valueOf(value);
-						values[i] = new Date(Long.parseLong(strValue));
+					if (values[i] != null) {
+						String strValue = String.valueOf(values[i]);
+						String[] timeParams = strValue.split(",");
+						Object[] o = new Object[timeParams.length];
+						for(int t = 0; t < timeParams.length; t++) {
+						    if(itemModel.getType() != ItemType.TimePicker) {
+                                o[t] = new Date(Long.parseLong(timeParams[t]));
+                            }else{
+                                o[t] = timeParams[t];
+                            }
+                        }
+                        value = o;
 					}
 				} else if (itemModel.getType() == ItemType.InputNumber) {
 					equalsFlag = true;
@@ -1400,11 +1409,18 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}
 
 			if (equalsFlag) {
-				if(itemModel.getSystemItemType() == SystemItemType.CreateDate || itemModel.getType() == ItemType.DatePicker) {
-					Date dateParams = timestampNumberToDate(value);
+				if(itemModel.getSystemItemType() == SystemItemType.CreateDate || itemModel.getType() == ItemType.DatePicker || itemModel.getType() == ItemType.TimePicker) {
+					//Date dateParams = timestampNumberToDate(value);
+                    Object[] objects = (Object[])value;
 					if (Objects.nonNull(value)) {  // Timestamp
-						criteria.add(Restrictions.ge(propertyName, dateParams));
-						criteria.add(Restrictions.lt(propertyName, DateUtils.addDays(dateParams, 1)));
+                        if(objects.length == 3) {
+                            criteria.add(Restrictions.ge(propertyName, objects[0]));
+                            criteria.add(Restrictions.le(propertyName, objects[2]));
+                        }else if(objects[0] instanceof Date){
+                            criteria.add(Restrictions.ge(propertyName, objects[0]));
+                        }else if(objects[0] instanceof String){
+                            criteria.add(Restrictions.le(propertyName, objects[1]));
+                        }
 					}
 				} else {
 					Criterion[] conditions = new Criterion[values.length];
