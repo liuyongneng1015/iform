@@ -288,6 +288,6 @@ public interface FormInstanceService {
 	@ApiImplicitParams({
 		@ApiImplicitParam(paramType = "path", name = "userId", value = "用户ID", required = true, dataType = "String")
 	})
-	@PutMapping("/users/{userId}/strategyGroup")
+	@GetMapping("/users/{userId}/strategyGroup")
 	Map dashboard(@PathVariable(name="userId", required = true) String userId);
 }
