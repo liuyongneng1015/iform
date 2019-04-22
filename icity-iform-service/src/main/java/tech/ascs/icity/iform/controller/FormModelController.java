@@ -680,6 +680,10 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		FormModelEntity entity = new FormModelEntity();
 		BeanUtils.copyProperties(formModel, entity, new String[] {"items","dataModels","permissions","submitChecks","functions"});
 
+		if(formModel.getProcess() != null){
+			formModel.setFunctions(null);
+		}
+
 		verifyFormModelName(formModel);
 
 		//TODO 获取主数据模型
