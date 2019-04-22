@@ -621,9 +621,14 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	@Override
 	public Map dashboard(@PathVariable(name="listId", required = true) String userId) {
 		Map map = new HashMap();
-		List<Position> list = userService.queryUserPositions(userId);
-		if (list!=null && list.size()>0) {
-
+		FormModelEntity formModelEntity = formModelService.findByTableName("strategy_group");
+		if (formModelEntity!=null) {
+			String formId = formModelEntity.getId();
+			List<Position> list = userService.queryUserPositions(userId);
+			if (list==null || list.size()==0) {
+				return map;
+			}
+			Set<String> positionIdSet = list.stream().map(item->item.getId()).collect(Collectors.toSet());
 		}
 		return map;
 	}

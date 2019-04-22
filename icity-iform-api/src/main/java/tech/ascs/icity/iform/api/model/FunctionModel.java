@@ -46,10 +46,13 @@ public class FunctionModel extends NameEntity implements Comparable<FunctionMode
 	private Boolean addPageVisible = false;
 	@ApiModelProperty(value ="编辑页", position = 18)
 	private Boolean updatePageVisible = false;
+	@ApiModelProperty(value ="返回结果", position = 18)
+	private ReturnResult returnResult;
+
 	// 是否是系统的按钮
 	private Boolean systemBtn = false;
 
-	@ApiModelProperty(value ="设备类型", position = 18)
+	@ApiModelProperty(value ="设备类型", position = 19)
 	private DeviceType deviceType;
 
 	public String getLabel() {
@@ -202,6 +205,14 @@ public class FunctionModel extends NameEntity implements Comparable<FunctionMode
 
 	public void setUpdatePageVisible(Boolean updatePageVisible) {
 		this.updatePageVisible = updatePageVisible;
+	}
+
+	public ReturnResult getReturnResult() {
+		return returnResult;
+	}
+
+	public void setReturnResult(ReturnResult returnResult) {
+		this.returnResult = returnResult;
 	}
 
 	public Boolean getSystemBtn() {
