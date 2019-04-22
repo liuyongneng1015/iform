@@ -58,9 +58,6 @@ public class FunctionModel extends NameEntity implements Comparable<FunctionMode
 	@ApiModelProperty(value ="解析区域", position = 20)
 	private String[] parseArea;
 
-	@ApiModelProperty(value ="设备类型", position = 21)
-	private DeviceType deviceType;
-
 	public String getLabel() {
 		return label;
 	}
@@ -235,14 +232,6 @@ public class FunctionModel extends NameEntity implements Comparable<FunctionMode
 
 	public void setParseArea(String[] parseArea) {
 		this.parseArea = parseArea;
-	}
-
-	public DeviceType getDeviceType() {
-		return deviceType;
-	}
-
-	public void setDeviceType(DeviceType deviceType) {
-		this.deviceType = deviceType;
 	}
 
 	@Override

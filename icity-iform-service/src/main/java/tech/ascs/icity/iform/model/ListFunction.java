@@ -85,11 +85,6 @@ public class ListFunction extends JPAEntity implements Serializable {
 	// 是否是系统的按钮
 	private Boolean systemBtn;
 
-	// 设备类型
-	@JoinColumn(name = "device_type")
-	@Enumerated(EnumType.STRING)
-	private DeviceType deviceType;
-
 	public ListModelEntity getListModel() {
 		return listModel;
 	}
@@ -282,11 +277,4 @@ public class ListFunction extends JPAEntity implements Serializable {
 		this.systemBtn = systemBtn;
 	}
 
-	public DeviceType getDeviceType() {
-		return deviceType;
-	}
-
-	public void setDeviceType(DeviceType deviceType) {
-		this.deviceType = deviceType;
-	}
 }
