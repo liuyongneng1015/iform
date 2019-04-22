@@ -1057,7 +1057,10 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			for (int i = 0; i < formModel.getFunctions().size(); i++) {
 			    FunctionModel model = formModel.getFunctions().get(i);
 				ListFunction function =  new ListFunction();
-				BeanUtils.copyProperties(model, function, new String[]{"formModel"});
+				BeanUtils.copyProperties(model, function, new String[]{"formModel", "parseArea"});
+				if (model.getParseArea()!=null && model.getParseArea().length>0) {
+					function.setParseArea(String.join(",", model.getParseArea()));
+				}
 				function.setFormModel(entity);
 				function.setOrderNo(i+1);
 				functions.add(function);
