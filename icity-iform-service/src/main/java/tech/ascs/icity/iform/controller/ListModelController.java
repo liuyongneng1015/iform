@@ -549,7 +549,10 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			List<FunctionModel> functions = new ArrayList();
 			for(ListFunction listFunction : entity.getFunctions()) {
 				FunctionModel function = new FunctionModel();
-				BeanUtils.copyProperties(listFunction, function, new String[]{"listModel", "formModel"});
+				BeanUtils.copyProperties(listFunction, function, new String[]{"listModel", "formModel", "parseArea"});
+				if (StringUtils.hasText(listFunction.getParseArea())) {
+				    function.setParseArea(listFunction.getParseArea().split(","));
+                }
 				functions.add(function);
 			}
             Collections.sort(functions);
