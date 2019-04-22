@@ -5,6 +5,9 @@ import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONPath;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
@@ -626,33 +629,100 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	 */
 	@Override
 	public Map dashboard(@PathVariable(name="userId", required = true) String userId) {
-		Map map = new HashMap();
+		Map<String, List<Map>> returnMap = new HashMap();
 		FormModelEntity formModelEntity = formModelService.findByTableName("strategy_group");
-		if (formModelEntity!=null) {
-			List<Position> positions = userService.queryUserPositions(userId);
-			if (positions==null || positions.size()==0) {
-				return map;
-			}
-			Set<String> positionIdSet = positions.stream().map(item->item.getId()).collect(Collectors.toSet());
-			Page<FormDataSaveInstance> pageData = formInstanceService.pageFormInstance(formModelEntity, 1, 100, new HashMap());
-			List<Map> list = new ArrayList();
-			for (FormDataSaveInstance formDataSaveInstance:pageData.getResults()) {
-				if (formDataSaveInstance!=null) {
-					list.add(toColumnNameValueDTO(formDataSaveInstance));
-				}
-			}
-
-//			Map map = new HashMap();
-//			for (ItemInstance item:formDataSaveInstance.getItems()) {
-//				map.put(item.getColumnModelName(), item);
-//			}
-//			for (SubFormItemInstance sumForm:formDataSaveInstance.getSubFormData()) {
-//				map.put(sumForm.getTableName(), getSubFormItemInstance(sumForm));
-//			}
-//			return map;
-		} else {
+		if (formModelEntity==null) {
 			throw new IFormException(404, "没有名称为strategy_group的策略组的数据建模");
 		}
-		return map;
+		List<Position> positions = userService.queryUserPositions(userId);
+		if (positions==null || positions.size()==0) {
+			return returnMap;
+		}
+		Set<String> positionIdSet = positions.stream().map(item->item.getId()).collect(Collectors.toSet());
+		Page<FormDataSaveInstance> pageData = formInstanceService.pageFormInstance(formModelEntity, 1, 100, new HashMap());
+		List<Map> list = new ArrayList();
+		for (FormDataSaveInstance formDataSaveInstance:pageData.getResults()) {
+			list.add(toColumnNameValueDTO(formDataSaveInstance));
+		}
+
+		JSONArray jsonArray = JSON.parseArray(JSON.toJSONString(list));
+		Map<String,List<Map>> positionMap = new HashMap();
+
+		// 封装成
+		for (int i = 0; i < (Integer)JSONPath.eval(jsonArray, "$.size()"); i++) {
+			Object positionObjects = JSONPath.eval(jsonArray, "$["+i+"].position.value");
+			if (positionObjects==null || (positionObjects instanceof List)==false) {
+				continue;
+			}
+			List<Map> navigations = new ArrayList();
+			for (int j = 0; j < (Integer) JSONPath.eval(jsonArray, "$[" + i + "].navigations.size()"); j++) {
+				Map map = new HashMap();
+				assemblyInitialPage(map, JSONPath.eval(jsonArray, "$[" + i + "].navigations[" + j + "].initialPage.displayObject[0].code"));
+				map.put("id", JSONPath.eval(jsonArray, "$[" + i + "].navigations[" + j + "].id"));
+				map.put("iconName", JSONPath.eval(jsonArray, "$[" + i + "].navigations[" + j + "].name.displayObject[0].icon"));
+				map.put("name", JSONPath.eval(jsonArray, "$[" + i + "].navigations[" + j + "].name.displayObject[0].description"));
+				map.put("screenKey", JSONPath.eval(jsonArray, "$[" + i + "].navigations[" + j + "].name.displayObject[0].code"));
+				map.put("screenType", JSONPath.eval(jsonArray, "$[" + i + "].navigations[" + j + "].screenType.displayObject[0].code"));
+				navigations.add(map);
+			}
+
+			List<Map> dashboard = new ArrayList();
+			for (int j = 0; j < (Integer) JSONPath.eval(jsonArray, "$[" + i + "].dashboard.size()"); j++) {
+				Map map = new HashMap();
+				map.put("id", JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].id"));
+				map.put("iconName", JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].name.displayObject[0].icon"));
+				map.put("screenKey", JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].name.displayObject[0].code"));
+				map.put("name", JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].name.displayObject[0].description"));
+				map.put("screenType", JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].screenType.displayObject[0].code"));
+				map.put("categoryCode", JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].businessCategories.displayObject[0].code"));
+				map.put("categoryName", JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].businessCategories.displayObject[0].description"));
+
+				dashboard.add(map);
+			}
+			List<String> positionIds = (List<String>)positionObjects;
+			for (String positionId:positionIds) {
+				List<Map> nav = positionMap.get(positionId+"-navigations");
+				if (nav==null) {
+					nav = new ArrayList();
+					positionMap.put(positionId+"-navigations", nav);
+				}
+				nav.addAll(navigations);
+				List<Map> dash = positionMap.get(positionId+"-dashboard");
+				if (dash==null) {
+					dash = new ArrayList();
+					positionMap.put(positionId+"-dashboard", dash);
+				}
+				dash.addAll(dash);
+			}
+		}
+		for (String positionId:positionIdSet) {
+			List<Map> nav  = positionMap.get(positionId+"-navigations");
+			if (nav!=null) {
+				List<Map> existNav  = returnMap.get("navigations");
+				if (existNav==null) {
+					existNav = new ArrayList();
+					returnMap.put("navigations", existNav);
+				}
+				existNav.addAll(nav);
+			}
+			List<Map> dash = positionMap.get(positionId+"-dashboard");
+			if (dash!=null) {
+				List<Map> existDash  = returnMap.get("dashboard");
+				if (existDash==null) {
+					existDash = new ArrayList();
+					returnMap.put("dashboard", existDash);
+				}
+				existDash.addAll(nav);
+			}
+		}
+		return returnMap;
+	}
+
+	public void assemblyInitialPage(Map map, Object initialPage) {
+		if (initialPage!=null && "true".equals(initialPage.toString())) {
+			map.put("initialPage", true);
+		} else {
+			map.put("initialPage", false);
+		}
 	}
 }
