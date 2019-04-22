@@ -72,6 +72,9 @@ public class ListModel extends NameEntity {
 	@ApiModelProperty(value = "数据权限", position = 13)
 	private DataPermissionsType dataPermissions;
 
+	@ApiModelProperty(value ="APP列表展示模板", position = 14)
+	private String appListTemplate;
+
 	@ApiModelProperty(value="关联关系控件集合",position = 10)
 	@JsonInclude(JsonInclude.Include.NON_EMPTY)
 	private List<ItemModel> relevanceItemModelList = new ArrayList();
@@ -170,6 +173,14 @@ public class ListModel extends NameEntity {
 
 	public void setDataPermissions(DataPermissionsType dataPermissions) {
 		this.dataPermissions = dataPermissions;
+	}
+
+	public String getAppListTemplate() {
+		return appListTemplate;
+	}
+
+	public void setAppListTemplate(String appListTemplate) {
+		this.appListTemplate = appListTemplate;
 	}
 
 	public List<ItemModel> getRelevanceItemModelList() {

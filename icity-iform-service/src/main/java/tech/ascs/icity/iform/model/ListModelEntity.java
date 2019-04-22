@@ -61,6 +61,10 @@ public class ListModelEntity extends BaseEntity implements Serializable {
 	@Column(name = "display_item_sort", length = 4096)
 	private String displayItemsSort;
 
+	// APP列表展示模板
+	@Column(columnDefinition="text")
+	private String appListTemplate;
+
 	@Enumerated(EnumType.STRING)
 	private DataPermissionsType dataPermissions;
 
@@ -150,6 +154,14 @@ public class ListModelEntity extends BaseEntity implements Serializable {
 
 	public void setDisplayItemsSort(String displayItemsSort) {
 		this.displayItemsSort = displayItemsSort;
+	}
+
+	public String getAppListTemplate() {
+		return appListTemplate;
+	}
+
+	public void setAppListTemplate(String appListTemplate) {
+		this.appListTemplate = appListTemplate;
 	}
 
 	public DataPermissionsType getDataPermissions() {

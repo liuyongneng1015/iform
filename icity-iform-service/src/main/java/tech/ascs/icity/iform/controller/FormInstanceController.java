@@ -305,6 +305,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			return false;
 		}
 	}
+
 	/**
 	 * 是否是平常组件
 	 * @param item
@@ -409,18 +410,22 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		return formInstanceService.getFormDataSaveInstance(formModel, id);
 	}
 
-	/** 根据表单实例ID获取表单column列的name和value */
+	/** 根据表单实例ID获取表单columnName与对应的取值value */
 	@Override
 	public Map getColumnNameValue(@PathVariable(name="formId") String formId, @PathVariable(name="id") String id) {
 		FormModelEntity formModel = formModelService.find(formId);
 		FormDataSaveInstance formDataSaveInstance = formInstanceService.getFormDataSaveInstance(formModel, id);
+		if (formDataSaveInstance!=null) {
+			return toColumnNameValueDTO(formDataSaveInstance);
+		} else {
+			return null;
+		}
+	}
+
+	public Map toColumnNameValueDTO(FormDataSaveInstance formDataSaveInstance) {
 		Map map = new HashMap();
 		for (ItemInstance item:formDataSaveInstance.getItems()) {
 			map.put(item.getColumnModelName(), item);
-			item.setColumnModelName(null);
-			item.setColumnModelId(null);
-			item.setVisible(null);
-			item.setReadonly(null);
 		}
 		for (SubFormItemInstance sumForm:formDataSaveInstance.getSubFormData()) {
 			map.put(sumForm.getTableName(), getSubFormItemInstance(sumForm));
@@ -433,6 +438,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		for (SubFormDataItemInstance itemInstance:sumForm.getItemInstances()) {
 			Map map = new HashMap();
 			for (SubFormRowItemInstance rowItemInstance:itemInstance.getItems()) {
+				map.put("id", rowItemInstance.getId());
 				for (ItemInstance item:rowItemInstance.getItems()) {
 					if (ItemType.SubForm!=item.getType()) {
 						map.put(item.getColumnModelName(), item);
@@ -619,16 +625,33 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	 }
 	 */
 	@Override
-	public Map dashboard(@PathVariable(name="listId", required = true) String userId) {
+	public Map dashboard(@PathVariable(name="userId", required = true) String userId) {
 		Map map = new HashMap();
 		FormModelEntity formModelEntity = formModelService.findByTableName("strategy_group");
 		if (formModelEntity!=null) {
-			String formId = formModelEntity.getId();
-			List<Position> list = userService.queryUserPositions(userId);
-			if (list==null || list.size()==0) {
+			List<Position> positions = userService.queryUserPositions(userId);
+			if (positions==null || positions.size()==0) {
 				return map;
 			}
-			Set<String> positionIdSet = list.stream().map(item->item.getId()).collect(Collectors.toSet());
+			Set<String> positionIdSet = positions.stream().map(item->item.getId()).collect(Collectors.toSet());
+			Page<FormDataSaveInstance> pageData = formInstanceService.pageFormInstance(formModelEntity, 1, 100, new HashMap());
+			List<Map> list = new ArrayList();
+			for (FormDataSaveInstance formDataSaveInstance:pageData.getResults()) {
+				if (formDataSaveInstance!=null) {
+					list.add(toColumnNameValueDTO(formDataSaveInstance));
+				}
+			}
+
+//			Map map = new HashMap();
+//			for (ItemInstance item:formDataSaveInstance.getItems()) {
+//				map.put(item.getColumnModelName(), item);
+//			}
+//			for (SubFormItemInstance sumForm:formDataSaveInstance.getSubFormData()) {
+//				map.put(sumForm.getTableName(), getSubFormItemInstance(sumForm));
+//			}
+//			return map;
+		} else {
+			throw new IFormException(404, "没有名称为strategy_group的策略组的数据建模");
 		}
 		return map;
 	}
