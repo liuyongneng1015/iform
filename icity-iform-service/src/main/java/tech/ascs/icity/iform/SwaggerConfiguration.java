@@ -2,6 +2,7 @@ package tech.ascs.icity.iform;
 
 import com.fasterxml.classmate.TypeResolver;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -17,6 +18,9 @@ import tech.ascs.icity.iform.api.model.*;
 @Configuration
 @EnableSwagger2
 public class SwaggerConfiguration {
+
+    @Value("${info.app.version}")
+    private String swaggerVersion;
 
     @Autowired
     private TypeResolver typeResolver;
@@ -36,9 +40,9 @@ public class SwaggerConfiguration {
 
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
-                .title("iCity 业务支撑平台iform API V1.0")
+                .title("iCity 业务支撑平台iform API "+swaggerVersion)
                 .description("iCity 业务支撑平台iform API，包括数据表建模,列表建模,表单建模等功能")
-                .version("1.0")
+                .version(swaggerVersion)
                 .build();
     }
 }
