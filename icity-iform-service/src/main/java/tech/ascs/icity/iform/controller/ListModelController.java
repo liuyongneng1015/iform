@@ -79,10 +79,10 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		}
 	}
 
-	// 新增列表的时候，自动创建新增、导入、批量删除，为系统自带功能
-	private DefaultFunctionType[] functionDefaultActions = {DefaultFunctionType.Add, DefaultFunctionType.BatchDelete, DefaultFunctionType.Export};
-	private String[] functionDefaultIcons = new String[]{null, "icon-xuanzhong", "icon-shangchuan"};
-	private String[] functionDefaultMethods = new String[]{"POST", "DELETE", "GET"};
+	// 新增列表的时候，自动创建新增、批量删除，为系统自带功能
+	private DefaultFunctionType[] functionDefaultActions = {DefaultFunctionType.Add, DefaultFunctionType.BatchDelete};
+	private String[] functionDefaultIcons = new String[]{null, "icon-xuanzhong"};
+	private String[] functionDefaultMethods = new String[]{"POST", "DELETE"};
 	private Boolean[] functionVisibles = {true, false, false};
 
 	@Override
@@ -667,20 +667,6 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 								chiildrenItemModel.add(chiildItemModel);
 							}
 							searchItem.setItems(chiildrenItemModel);
-
-							/**
-							// 设置联动控件
-							ItemModel selectItemModel = new ItemModel();
-							selectItemModel.setId(selectItemModelEntity.getId());
-//							selectItemModel.setType(selectItemModelEntity.getType());
-//							selectItemModel.setName(selectItemModelEntity.getName());
-//							selectItemModel.setProps(selectItemModelEntity.getProps());
-//							selectItemModel.setSystemItemType(selectItemModelEntity.getSystemItemType());
-							selectItemModel.setReferenceDictionaryId(selectItemModelEntity.getReferenceDictionaryId());
-							selectItemModel.setReferenceDictionaryItemId(selectItemModelEntity.getReferenceDictionaryItemId());
-							listModel.getRelevanceItemModelList().add(selectItemModel);
-							setChildrenItems(selectItemModel, selectItemModelEntity);
-							 */
 						}
 					}
 
@@ -756,34 +742,6 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
         }
 		return listModel;
 	}
-
-//	/**
-//	 * @param parentItemModel
-//	 * @param parentItemModelEntity
-//	 */
-//	private void setChildrenItems(ItemModel parentItemModel, ItemModelEntity parentItemModelEntity) {
-//		if (parentItemModelEntity instanceof SelectItemModelEntity) {
-//			List<ItemModel> list = new ArrayList<>();
-//			SelectItemModelEntity selectItemModelEntity = (SelectItemModelEntity)parentItemModelEntity;
-//			for (SelectItemModelEntity selectItemSonEntity:selectItemModelEntity.getItems()) {
-//				ItemModel selectItemSonModel = new ItemModel();
-//				selectItemSonModel.setId(selectItemSonEntity.getId());
-//				selectItemSonModel.setParentItemId(parentItemModel.getId());
-////				selectItemSonModel.setType(selectItemSonEntity.getType());
-////				selectItemSonModel.setName(selectItemSonEntity.getName());
-////				selectItemSonModel.setProps(selectItemSonEntity.getProps());
-//				selectItemSonModel.setParentItemId(parentItemModelEntity.getId());
-////				selectItemSonModel.setSystemItemType(selectItemSonEntity.getSystemItemType());
-////				selectItemSonModel.setReferenceDictionaryId(selectItemSonEntity.getReferenceDictionaryId());
-////				selectItemSonModel.setReferenceDictionaryItemId(selectItemSonEntity.getReferenceDictionaryItemId());
-//				list.add(selectItemSonModel);
-//				setChildrenItems(selectItemSonModel, selectItemSonEntity);
-//			}
-//			if (list.size()>0) {
-//				parentItemModel.setItems(list);
-//			}
-//		}
-//	}
 
 	private List<ItemModel> getItemModelList(List<String> idResultList){
 		if(idResultList == null || idResultList.size() < 1){
