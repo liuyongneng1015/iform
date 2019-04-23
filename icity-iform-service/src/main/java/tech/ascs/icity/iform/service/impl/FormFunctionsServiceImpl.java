@@ -45,7 +45,7 @@ public class FormFunctionsServiceImpl extends DefaultJPAService<ListFunction> im
 		 return 0;
 	}
 
-    private DefaultFunctionType[] functionDefaultTypes = {DefaultFunctionType.Edit, DefaultFunctionType.Delete, DefaultFunctionType.QrCode, DefaultFunctionType.TempStore, DefaultFunctionType.Manage, DefaultFunctionType.Download};
+    private DefaultFunctionType[] functionDefaultTypes = {DefaultFunctionType.Edit, DefaultFunctionType.Delete, DefaultFunctionType.QrCode, DefaultFunctionType.TempStore};
 	private String[] functionDefaultIcons = new String[]{"icon-xuanzhong1", "icon-xuanzhong", "icon-erweima", null};
 	private String[] functionDefaultMethods = new String[]{"PUT", "DELETE", "GET", null};
 	private Boolean[] functionVisibles = {true, true, false, false};
