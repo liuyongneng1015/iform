@@ -641,6 +641,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		Set<String> positionIdSet = positions.stream().map(item->item.getId()).collect(Collectors.toSet());
 		Page<FormDataSaveInstance> pageData = formInstanceService.pageFormInstance(formModelEntity, 1, 100, new HashMap());
 		List<Map> list = new ArrayList();
+		// 转成columnName与value对应关系
 		for (FormDataSaveInstance formDataSaveInstance:pageData.getResults()) {
 			list.add(toColumnNameValueDTO(formDataSaveInstance));
 		}
@@ -676,46 +677,38 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 				map.put("screenType", JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].screenType.displayObject[0].code"));
 				map.put("categoryCode", JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].businessCategories.displayObject[0].code"));
 				map.put("categoryName", JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].businessCategories.displayObject[0].description"));
-
 				dashboard.add(map);
 			}
+
 			List<String> positionIds = (List<String>)positionObjects;
 			for (String positionId:positionIds) {
-				List<Map> nav = positionMap.get(positionId+"-navigations");
-				if (nav==null) {
-					nav = new ArrayList();
-					positionMap.put(positionId+"-navigations", nav);
-				}
-				nav.addAll(navigations);
-				List<Map> dash = positionMap.get(positionId+"-dashboard");
-				if (dash==null) {
-					dash = new ArrayList();
-					positionMap.put(positionId+"-dashboard", dash);
-				}
-				dash.addAll(dash);
+				assemblyMapData(positionId+"-navigations", positionMap, navigations);
+				assemblyMapData(positionId+"-dashboard", positionMap, dashboard);
 			}
 		}
 		for (String positionId:positionIdSet) {
-			List<Map> nav  = positionMap.get(positionId+"-navigations");
-			if (nav!=null) {
-				List<Map> existNav  = returnMap.get("navigations");
-				if (existNav==null) {
-					existNav = new ArrayList();
-					returnMap.put("navigations", existNav);
-				}
-				existNav.addAll(nav);
-			}
-			List<Map> dash = positionMap.get(positionId+"-dashboard");
-			if (dash!=null) {
-				List<Map> existDash  = returnMap.get("dashboard");
-				if (existDash==null) {
-					existDash = new ArrayList();
-					returnMap.put("dashboard", existDash);
-				}
-				existDash.addAll(nav);
-			}
+			assemblyMapData("navigations", returnMap, positionMap.get(positionId+"-navigations"));
+			assemblyMapData("dashboard", returnMap, positionMap.get(positionId+"-dashboard"));
+
 		}
 		return returnMap;
+	}
+
+	/**
+	 * 在map中对应的Key路径添加needPutData数据
+	 * @param key
+	 * @param map
+	 * @param needPutData
+	 */
+	public void assemblyMapData(String key, Map<String, List<Map>> map, List<Map> needPutData) {
+		if (needPutData!=null) {
+			List<Map> nav = map.get(key);
+			if (nav == null) {
+				nav = new ArrayList();
+				map.put(key, nav);
+			}
+			nav.addAll(needPutData);
+		}
 	}
 
 	public void assemblyInitialPage(Map map, Object initialPage) {
