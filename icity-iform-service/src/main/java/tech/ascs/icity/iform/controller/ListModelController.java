@@ -666,7 +666,9 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 								}
 								chiildrenItemModel.add(chiildItemModel);
 							}
+							searchItem.setItems(chiildrenItemModel);
 
+							/**
 							// 设置联动控件
 							ItemModel selectItemModel = new ItemModel();
 							selectItemModel.setId(selectItemModelEntity.getId());
@@ -678,6 +680,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 							selectItemModel.setReferenceDictionaryItemId(selectItemModelEntity.getReferenceDictionaryItemId());
 							listModel.getRelevanceItemModelList().add(selectItemModel);
 							setChildrenItems(selectItemModel, selectItemModelEntity);
+							 */
 						}
 					}
 
@@ -754,32 +757,33 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		return listModel;
 	}
 
-	/**
-	 * @param parentItemModel
-	 * @param parentItemModelEntity
-	 */
-	private void setChildrenItems(ItemModel parentItemModel, ItemModelEntity parentItemModelEntity) {
-		if (parentItemModelEntity instanceof SelectItemModelEntity) {
-			List<ItemModel> list = new ArrayList<>();
-			SelectItemModelEntity selectItemModelEntity = (SelectItemModelEntity)parentItemModelEntity;
-			for (SelectItemModelEntity selectItemSonEntity:selectItemModelEntity.getItems()) {
-				ItemModel selectItemSonModel = new ItemModel();
-				selectItemSonModel.setId(selectItemSonEntity.getId());
-//				selectItemSonModel.setType(selectItemSonEntity.getType());
-//				selectItemSonModel.setName(selectItemSonEntity.getName());
-//				selectItemSonModel.setProps(selectItemSonEntity.getProps());
-				selectItemSonModel.setParentItemId(parentItemModelEntity.getId());
-//				selectItemSonModel.setSystemItemType(selectItemSonEntity.getSystemItemType());
-//				selectItemSonModel.setReferenceDictionaryId(selectItemSonEntity.getReferenceDictionaryId());
-//				selectItemSonModel.setReferenceDictionaryItemId(selectItemSonEntity.getReferenceDictionaryItemId());
-				list.add(selectItemSonModel);
-				setChildrenItems(selectItemSonModel, selectItemSonEntity);
-			}
-			if (list.size()>0) {
-				parentItemModel.setItems(list);
-			}
-		}
-	}
+//	/**
+//	 * @param parentItemModel
+//	 * @param parentItemModelEntity
+//	 */
+//	private void setChildrenItems(ItemModel parentItemModel, ItemModelEntity parentItemModelEntity) {
+//		if (parentItemModelEntity instanceof SelectItemModelEntity) {
+//			List<ItemModel> list = new ArrayList<>();
+//			SelectItemModelEntity selectItemModelEntity = (SelectItemModelEntity)parentItemModelEntity;
+//			for (SelectItemModelEntity selectItemSonEntity:selectItemModelEntity.getItems()) {
+//				ItemModel selectItemSonModel = new ItemModel();
+//				selectItemSonModel.setId(selectItemSonEntity.getId());
+//				selectItemSonModel.setParentItemId(parentItemModel.getId());
+////				selectItemSonModel.setType(selectItemSonEntity.getType());
+////				selectItemSonModel.setName(selectItemSonEntity.getName());
+////				selectItemSonModel.setProps(selectItemSonEntity.getProps());
+//				selectItemSonModel.setParentItemId(parentItemModelEntity.getId());
+////				selectItemSonModel.setSystemItemType(selectItemSonEntity.getSystemItemType());
+////				selectItemSonModel.setReferenceDictionaryId(selectItemSonEntity.getReferenceDictionaryId());
+////				selectItemSonModel.setReferenceDictionaryItemId(selectItemSonEntity.getReferenceDictionaryItemId());
+//				list.add(selectItemSonModel);
+//				setChildrenItems(selectItemSonModel, selectItemSonEntity);
+//			}
+//			if (list.size()>0) {
+//				parentItemModel.setItems(list);
+//			}
+//		}
+//	}
 
 	private List<ItemModel> getItemModelList(List<String> idResultList){
 		if(idResultList == null || idResultList.size() < 1){
