@@ -441,15 +441,12 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		for (SubFormDataItemInstance itemInstance:sumForm.getItemInstances()) {
 			Map map = new HashMap();
 			for (SubFormRowItemInstance rowItemInstance:itemInstance.getItems()) {
-				map.put("id", rowItemInstance.getId());
 				for (ItemInstance item:rowItemInstance.getItems()) {
-					if (ItemType.SubForm!=item.getType()) {
-						map.put(item.getColumnModelName(), item);
-						item.setColumnModelName(null);
-						item.setColumnModelId(null);
-						item.setVisible(null);
-						item.setReadonly(null);
-					}
+					map.put(item.getColumnModelName(), item);
+					item.setColumnModelName(null);
+					item.setColumnModelId(null);
+					item.setVisible(null);
+					item.setReadonly(null);
 				}
 			}
 			list.add(map);
@@ -659,7 +656,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			for (int j = 0; j < (Integer) JSONPath.eval(jsonArray, "$[" + i + "].navigations.size()"); j++) {
 				Map map = new HashMap();
 				assemblyInitialPage(map, JSONPath.eval(jsonArray, "$[" + i + "].navigations[" + j + "].initialPage.displayObject[0].code"));
-				map.put("id", JSONPath.eval(jsonArray, "$[" + i + "].navigations[" + j + "].id"));
+				map.put("id", JSONPath.eval(jsonArray, "$[" + i + "].navigations[" + j + "].id.value"));
 				map.put("iconName", JSONPath.eval(jsonArray, "$[" + i + "].navigations[" + j + "].name.displayObject[0].icon"));
 				map.put("name", JSONPath.eval(jsonArray, "$[" + i + "].navigations[" + j + "].name.displayObject[0].description"));
 				map.put("screenKey", JSONPath.eval(jsonArray, "$[" + i + "].navigations[" + j + "].name.displayObject[0].code"));
@@ -670,7 +667,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			List<Map> dashboard = new ArrayList();
 			for (int j = 0; j < (Integer) JSONPath.eval(jsonArray, "$[" + i + "].dashboard.size()"); j++) {
 				Map map = new HashMap();
-				map.put("id", JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].id"));
+				map.put("id", JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].id.value"));
 				map.put("iconName", JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].name.displayObject[0].icon"));
 				map.put("screenKey", JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].name.displayObject[0].code"));
 				map.put("name", JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].name.displayObject[0].description"));
@@ -695,19 +692,19 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	}
 
 	/**
-	 * 在map中对应的Key路径添加needPutData数据
-	 * @param key
+	 * 在map中对应的keyPath路径追加needPutData数据
+	 * @param keyPath
 	 * @param map
-	 * @param needPutData
+	 * @param needAndData
 	 */
-	public void assemblyMapData(String key, Map<String, List<Map>> map, List<Map> needPutData) {
-		if (needPutData!=null) {
-			List<Map> nav = map.get(key);
+	public void assemblyMapData(String keyPath, Map<String, List<Map>> map, List<Map> needAndData) {
+		if (needAndData!=null) {
+			List<Map> nav = map.get(keyPath);
 			if (nav == null) {
 				nav = new ArrayList();
-				map.put(key, nav);
+				map.put(keyPath, nav);
 			}
-			nav.addAll(needPutData);
+			nav.addAll(needAndData);
 		}
 	}
 
