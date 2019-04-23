@@ -626,14 +626,14 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	 */
 	@Override
 	public Map dashboard(@PathVariable(name="userId", required = true) String userId) {
-		Map<String, List<Map>> returnMap = new HashMap();
+		Map<String, List> dataMap = new HashMap();
 		FormModelEntity formModelEntity = formModelService.findByTableName("strategy_group");
 		if (formModelEntity==null) {
 			throw new IFormException(404, "没有名称为strategy_group的策略组的数据建模");
 		}
 		List<Position> positions = userService.queryUserPositions(userId);
 		if (positions==null || positions.size()==0) {
-			return returnMap;
+			return dataMap;
 		}
 		Set<String> positionIdSet = positions.stream().map(item->item.getId()).collect(Collectors.toSet());
 		Page<FormDataSaveInstance> pageData = formInstanceService.pageFormInstance(formModelEntity, 1, 100, new HashMap());
@@ -644,7 +644,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		}
 
 		JSONArray jsonArray = JSON.parseArray(JSON.toJSONString(list));
-		Map<String,List<Map>> positionMap = new HashMap();
+		Map<String,List> positionMap = new HashMap();
 
 		// 封装成
 		for (int i = 0; i < (Integer)JSONPath.eval(jsonArray, "$.size()"); i++) {
@@ -652,29 +652,27 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			if (positionObjects==null || (positionObjects instanceof List)==false) {
 				continue;
 			}
-			List<Map> navigations = new ArrayList();
+			List<Navigations> navigations = new ArrayList();
 			for (int j = 0; j < (Integer) JSONPath.eval(jsonArray, "$[" + i + "].navigations.size()"); j++) {
-				Map map = new HashMap();
-				assemblyInitialPage(map, JSONPath.eval(jsonArray, "$[" + i + "].navigations[" + j + "].initialPage.displayObject[0].code"));
-				map.put("id", JSONPath.eval(jsonArray, "$[" + i + "].navigations[" + j + "].id.value"));
-				map.put("iconName", JSONPath.eval(jsonArray, "$[" + i + "].navigations[" + j + "].name.displayObject[0].icon"));
-				map.put("name", JSONPath.eval(jsonArray, "$[" + i + "].navigations[" + j + "].name.displayObject[0].description"));
-				map.put("screenKey", JSONPath.eval(jsonArray, "$[" + i + "].navigations[" + j + "].name.displayObject[0].code"));
-				map.put("screenType", JSONPath.eval(jsonArray, "$[" + i + "].navigations[" + j + "].screenType.displayObject[0].code"));
-				navigations.add(map);
+				Object idObj = JSONPath.eval(jsonArray, "$[" + i + "].navigations[" + j + "].id.value");
+				Object nameObj = JSONPath.eval(jsonArray, "$[" + i + "].navigations[" + j + "].name.displayObject[0].description");
+				Object iconObj = JSONPath.eval(jsonArray, "$[" + i + "].navigations[" + j + "].name.displayObject[0].icon");
+				Object screenKeyObj = JSONPath.eval(jsonArray, "$[" + i + "].navigations[" + j + "].name.displayObject[0].code");
+				Object screenTypeObj = JSONPath.eval(jsonArray, "$[" + i + "].navigations[" + j + "].screenType.displayObject[0].code");
+				Boolean initialPage = convertInitialPage(JSONPath.eval(jsonArray, "$[" + i + "].navigations[" + j + "].initialPage.displayObject[0].code"));
+				navigations.add(new Navigations(idObj, nameObj, iconObj, screenKeyObj, screenTypeObj, initialPage));
 			}
 
-			List<Map> dashboard = new ArrayList();
+			List<Dashboard> dashboard = new ArrayList();
 			for (int j = 0; j < (Integer) JSONPath.eval(jsonArray, "$[" + i + "].dashboard.size()"); j++) {
-				Map map = new HashMap();
-				map.put("id", JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].id.value"));
-				map.put("iconName", JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].name.displayObject[0].icon"));
-				map.put("screenKey", JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].name.displayObject[0].code"));
-				map.put("name", JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].name.displayObject[0].description"));
-				map.put("screenType", JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].screenType.displayObject[0].code"));
-				map.put("categoryCode", JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].businessCategories.displayObject[0].code"));
-				map.put("categoryName", JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].businessCategories.displayObject[0].description"));
-				dashboard.add(map);
+				Object idObj = JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].id.value");
+				Object nameObj = JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].name.displayObject[0].description");
+				Object iconObj = JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].name.displayObject[0].icon");
+				Object screenKeyObj = JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].name.displayObject[0].code");
+				Object screenTypeObj = JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].screenType.displayObject[0].code");
+				Object categoryCodeObj = JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].businessCategories.displayObject[0].code");
+				Object categoryNameObj = JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].businessCategories.displayObject[0].description");
+				dashboard.add(new Dashboard(idObj, nameObj, iconObj, screenKeyObj, screenTypeObj, categoryCodeObj, categoryNameObj));
 			}
 
 			List<String> positionIds = (List<String>)positionObjects;
@@ -684,9 +682,34 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			}
 		}
 		for (String positionId:positionIdSet) {
-			assemblyMapData("navigations", returnMap, positionMap.get(positionId+"-navigations"));
-			assemblyMapData("dashboard", returnMap, positionMap.get(positionId+"-dashboard"));
+			assemblyMapData("navigations", dataMap, positionMap.get(positionId+"-navigations"));
+			assemblyMapData("dashboard", dataMap, positionMap.get(positionId+"-dashboard"));
+		}
+		Map returnMap = new HashMap();
+		// navigations去重
+		if (dataMap.get("navigations")!=null) {
+			returnMap.put("navigations", new LinkedHashSet(dataMap.get("navigations")));
+		}
 
+		// dashboard去重
+		if (dataMap.get("dashboard")!=null) {
+			List<Dashboard> dashboard = dataMap.get("dashboard");
+			Set<Dashboard> parents = new LinkedHashSet();
+			for (Dashboard item:new LinkedHashSet<>(dashboard)) {
+				parents.add(new Dashboard(item.getCategoryCode(), item.getCategoryName()));
+			}
+			for (Dashboard parent:parents) {
+				List<Dashboard> items = new ArrayList();
+				Set<String> set = new HashSet();
+				for (Dashboard item:dashboard) {
+					if (!set.contains(item.getScreenKey())) {
+						set.add(item.getScreenKey());
+						items.add(item);
+					}
+				}
+				parent.setChildren(items);
+			}
+			returnMap.put("dashboard", parents);
 		}
 		return returnMap;
 	}
@@ -697,7 +720,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	 * @param map
 	 * @param needAndData
 	 */
-	public void assemblyMapData(String keyPath, Map<String, List<Map>> map, List<Map> needAndData) {
+	public void assemblyMapData(String keyPath, Map<String, List> map, List needAndData) {
 		if (needAndData!=null) {
 			List<Map> nav = map.get(keyPath);
 			if (nav == null) {
@@ -708,11 +731,11 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		}
 	}
 
-	public void assemblyInitialPage(Map map, Object initialPage) {
+	public Boolean convertInitialPage(Object initialPage) {
 		if (initialPage!=null && "true".equals(initialPage.toString())) {
-			map.put("initialPage", true);
+			return true;
 		} else {
-			map.put("initialPage", false);
+			return false;
 		}
 	}
 }
