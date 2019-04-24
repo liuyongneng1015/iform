@@ -18,9 +18,10 @@ public class Dashboard extends NameEntity {
 
     public Dashboard() { }
 
-    public Dashboard(String id, String name) {
+    public Dashboard(String id, String name, String categoryCode) {
         setId(id);
         setName(name);
+        this.categoryCode=categoryCode;
     }
 
     public Dashboard(Object idObj, Object nameObj, Object iconObj, Object screenKeyObj,

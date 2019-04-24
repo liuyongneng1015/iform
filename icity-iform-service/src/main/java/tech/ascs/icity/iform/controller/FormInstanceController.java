@@ -701,8 +701,9 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		if (dataMap.get("dashboard")!=null) {
 			List<Dashboard> dashboard = dataMap.get("dashboard");
 			Set<Dashboard> parents = new LinkedHashSet();
-			for (Dashboard item:new LinkedHashSet<>(dashboard)) {
-				parents.add(new Dashboard(item.getCategoryCode(), item.getCategoryName()));
+			Set<Dashboard> Others =new LinkedHashSet<>(dashboard);
+			for (Dashboard item:Others) {
+				parents.add(new Dashboard(item.getCategoryCode(), item.getCategoryName(), item.getCategoryCode()));
 			}
 			for (Dashboard parent:parents) {
 				List<Dashboard> items = new ArrayList();
