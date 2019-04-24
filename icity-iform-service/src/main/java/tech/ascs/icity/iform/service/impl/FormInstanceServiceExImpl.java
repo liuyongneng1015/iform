@@ -177,7 +177,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			result.data(count.intValue(), list);
 		} catch (Exception e) {
 			e.printStackTrace();
-			new ICityException(e.getLocalizedMessage(), e);
+			if(e instanceof ICityException){
+				throw e;
+			}
+			new IFormException(e.getLocalizedMessage(), e);
 		} finally {
 			if (session!=null) {
 				session.close();
