@@ -34,7 +34,9 @@ public class FunctionModel extends NameEntity implements Comparable<FunctionMode
 	private ParamCondition paramCondition;
 	@ApiModelProperty(value ="功能类型", position = 11)
 	private ListFunctionType functionType;
-	@ApiModelProperty(value ="确认框", position = 12)
+	@ApiModelProperty(value ="是否有确认框", position = 12)
+	private Boolean hasConfirmForm = false;
+	@ApiModelProperty(value ="确认框提示信息", position = 12)
 	private String confirmForm;
 	@ApiModelProperty(value ="返回操作", position = 13)
 	private ReturnOperation returnOperation;
@@ -152,6 +154,14 @@ public class FunctionModel extends NameEntity implements Comparable<FunctionMode
 
 	public void setFunctionType(ListFunctionType functionType) {
 		this.functionType = functionType;
+	}
+
+	public Boolean getHasConfirmForm() {
+		return hasConfirmForm;
+	}
+
+	public void setHasConfirmForm(Boolean hasConfirmForm) {
+		this.hasConfirmForm = hasConfirmForm;
 	}
 
 	public String getConfirmForm() {

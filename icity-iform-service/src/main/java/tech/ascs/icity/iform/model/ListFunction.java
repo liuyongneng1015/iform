@@ -4,7 +4,6 @@ import java.io.Serializable;
 
 import javax.persistence.*;
 
-import io.swagger.annotations.ApiModelProperty;
 import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.jpa.dao.model.JPAEntity;
 
@@ -51,6 +50,8 @@ public class ListFunction extends JPAEntity implements Serializable {
 
 	@Enumerated(EnumType.STRING)
 	private ListFunctionType functionType;
+
+	private Boolean hasConfirmForm = false;
 
 	private String confirmForm;
 
@@ -179,6 +180,14 @@ public class ListFunction extends JPAEntity implements Serializable {
 
 	public void setFunctionType(ListFunctionType functionType) {
 		this.functionType = functionType;
+	}
+
+	public Boolean getHasConfirmForm() {
+		return hasConfirmForm;
+	}
+
+	public void setHasConfirmForm(Boolean hasConfirmForm) {
+		this.hasConfirmForm = hasConfirmForm;
 	}
 
 	public String getConfirmForm() {

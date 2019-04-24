@@ -1,5 +1,6 @@
 package tech.ascs.icity.iform.api.service;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -289,5 +290,5 @@ public interface FormInstanceService {
 		@ApiImplicitParam(paramType = "path", name = "userId", value = "用户ID", required = true, dataType = "String")
 	})
 	@GetMapping("/users/{userId}/strategyGroup")
-	Map dashboard(@PathVariable(name="userId", required = true) String userId);
+	Map dashboard(@PathVariable(name="userId", required = true) String userId) throws IOException;
 }

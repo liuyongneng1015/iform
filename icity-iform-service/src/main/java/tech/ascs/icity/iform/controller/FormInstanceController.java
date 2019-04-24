@@ -1,5 +1,6 @@
 package tech.ascs.icity.iform.controller;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.*;
@@ -8,9 +9,8 @@ import java.util.stream.Collectors;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONPath;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
@@ -625,7 +625,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	 }
 	 */
 	@Override
-	public Map dashboard(@PathVariable(name="userId", required = true) String userId) {
+	public Map dashboard(@PathVariable(name="userId", required = true) String userId) throws IOException {
 		Map<String, List> dataMap = new HashMap();
 		FormModelEntity formModelEntity = formModelService.findByTableName("strategy_group");
 		if (formModelEntity==null) {
@@ -701,15 +701,16 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		if (dataMap.get("dashboard")!=null) {
 			List<Dashboard> dashboard = dataMap.get("dashboard");
 			Set<Dashboard> parents = new LinkedHashSet();
-			Set<Dashboard> Others =new LinkedHashSet<>(dashboard);
-			for (Dashboard item:Others) {
-				parents.add(new Dashboard(item.getCategoryCode(), item.getCategoryName(), item.getCategoryCode()));
+			for (Dashboard item:new LinkedHashSet<>(dashboard)) {
+				if (StringUtils.hasText(item.getCategoryCode())) {
+					parents.add(new Dashboard(item.getCategoryCode(), item.getCategoryName(), item.getCategoryCode()));
+				}
 			}
 			for (Dashboard parent:parents) {
 				List<Dashboard> items = new ArrayList();
 				Set<String> set = new HashSet();
 				for (Dashboard item:dashboard) {
-					if (!set.contains(item.getScreenKey())) {
+					if (!set.contains(item.getScreenKey()) && parent.getCategoryCode().equals(item.getCategoryCode())) {
 						set.add(item.getScreenKey());
 						items.add(item);
 					}
