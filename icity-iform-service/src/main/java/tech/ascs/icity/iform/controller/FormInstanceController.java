@@ -633,6 +633,9 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		}
 		List<Position> positions = userService.queryUserPositions(userId);
 		if (positions==null || positions.size()==0) {
+			// 该用户没有导航和应用分类时时，也要返回 navigations和dashboard 的字段，保持结构一致
+			dataMap.put("navigations", new ArrayList());
+			dataMap.put("dashboard", new ArrayList());
 			return dataMap;
 		}
 		Set<String> positionIdSet = positions.stream().map(item->item.getId()).collect(Collectors.toSet());
@@ -689,6 +692,9 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		// navigations去重
 		if (dataMap.get("navigations")!=null) {
 			returnMap.put("navigations", new LinkedHashSet(dataMap.get("navigations")));
+		} else {
+		// 该用户没有导航时，也要返回 navigations 的字段，保持结构一致
+			returnMap.put("navigations", new ArrayList());
 		}
 
 		// dashboard去重
@@ -710,6 +716,9 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 				parent.setChildren(items);
 			}
 			returnMap.put("dashboard", parents);
+		} else {
+		// 该用户没有应用分类时时，也要返回 dashboard 的字段，保持结构一致
+			returnMap.put("dashboard", new ArrayList());
 		}
 		return returnMap;
 	}
