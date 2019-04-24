@@ -6,7 +6,8 @@ spring.application.name: lyn-iform
 info:
   app:
     name: ${spring.application.name}
-    version: v1.0.0
+# info.app.version 这个变量在 tech.ascs.icity.iform.SwaggerConfiguration 文件中有注入，用来修改swagger文档显示的版本号
+    version: V0.7.0.0
     time: 2018年09月18日 13:55:11
   describe: 表单引擎
   home: /
