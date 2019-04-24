@@ -177,7 +177,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			result.data(count.intValue(), list);
 		} catch (Exception e) {
 			e.printStackTrace();
-			new ICityException(e.getLocalizedMessage(), e);
+			if(e instanceof ICityException){
+				throw e;
+			}
+			new IFormException(e.getLocalizedMessage(), e);
 		} finally {
 			if (session!=null) {
 				session.close();
@@ -1405,7 +1408,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					if (Objects.nonNull(value)) {  // Timestamp
                         if(objects.length == 3) {
                         	if(((Date)objects[2]).before((Date)objects[0])){
-                        		throw new IFormException("开始时间不能大于结束时间");
+                        		throw new IFormException(itemModel.getName() + "开始时间不能大于结束时间");
 							}
                             criteria.add(Restrictions.ge(propertyName, objects[0]));
                             criteria.add(Restrictions.lt(propertyName, objects[2]));

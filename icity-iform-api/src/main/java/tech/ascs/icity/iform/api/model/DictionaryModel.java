@@ -13,17 +13,18 @@ import tech.ascs.icity.model.NameEntity;
  */
 @ApiModel("字典表")
 public class DictionaryModel extends NameEntity implements Codeable {
-	
-	/**
-	 * 编码
-	 */
-    @ApiModelProperty(value = "编码", position = 2)
-	private String code;
+
 	/**
 	 * 描述
 	 */
 	@ApiModelProperty(value = "描述", position = 4)
 	private String description;
+
+	/**
+	 * 编码
+	 */
+	@ApiModelProperty(value = "编码", position = 2)
+	private String code;
 
 	/**
 	 * 按钮icon

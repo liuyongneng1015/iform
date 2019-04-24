@@ -22,6 +22,12 @@ public class DictionaryEntity extends BaseEntity {
 	private String description;
 
 	/**
+	 * 编码
+	 */
+	@Column(name = "code")
+	private String code;
+
+	/**
 	 * 按钮icon
 	 */
 	@Column(name = "icon")
@@ -53,6 +59,14 @@ public class DictionaryEntity extends BaseEntity {
 
 	public void setDescription(String description) {
 		this.description = description;
+	}
+
+	public String getCode() {
+		return code;
+	}
+
+	public void setCode(String code) {
+		this.code = code;
 	}
 
 	public String getIcon() {
