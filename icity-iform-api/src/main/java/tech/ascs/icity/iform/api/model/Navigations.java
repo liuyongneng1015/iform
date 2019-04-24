@@ -68,11 +68,11 @@ public class Navigations extends NameEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Navigations that = (Navigations) o;
-        return Objects.equals(getScreenType(), that.getScreenType());
+        return Objects.equals(getScreenKey(), that.getScreenKey());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getScreenType());
+        return Objects.hash(getScreenKey());
     }
 }
