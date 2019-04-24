@@ -39,7 +39,7 @@ public interface DictionaryService {
 			@ApiImplicitParam(paramType = "query", name = "name", value = "名称", required = false),
 			@ApiImplicitParam(paramType = "query", name = "code", value = "编码", required = false)
 	})
-	@GetMapping("/dictinary")
+	@GetMapping("/model")
 	DictionaryModel getByNameAndCode(@RequestParam(name = "name", required = false) String name, @RequestParam(name="code", required = false) String code);
 
 	@ApiOperation("新增字典表")
