@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.DictionaryItemModel;
+import tech.ascs.icity.iform.api.model.DictionaryModel;
 import tech.ascs.icity.iform.model.DictionaryEntity;
 import tech.ascs.icity.iform.model.DictionaryItemEntity;
 import tech.ascs.icity.iform.service.DictionaryService;
@@ -158,6 +159,22 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 		return dictionaryItemManager.query().filterIn("id", itemIds).list();
 	}
 
+	@Override
+	public DictionaryModel getDictionaryByNameAndCode(String name, String code) {
+		DictionaryEntity dictionaryEntity = null;
+		if(StringUtils.isNotEmpty(name) && StringUtils.isNotEmpty(code)) {
+			dictionaryEntity = query().filterEqual("name", name).filterEqual("code", code).first();
+		}else if(StringUtils.isNotEmpty(name)){
+			dictionaryEntity = query().filterEqual("name", name).first();
+		}else if(StringUtils.isNotEmpty(code)){
+			dictionaryEntity = query().filterEqual("code", code).first();
+		}
+		if(dictionaryEntity == null){
+			return null;
+		}
+		return getByEntity(dictionaryEntity);
+	}
+
 	private synchronized DictionaryItemEntity getRootItem(){
 		List<DictionaryItemEntity> dictionaryItems = dictionaryItemManager.findAll();
 		DictionaryItemEntity rootDictionaryItemEntity = null;
@@ -218,5 +235,18 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 			dictionaryItemModel.setResources(list.size() < 1 ? null : list);
 		}
 		return dictionaryItemModel;
+	}
+
+	private DictionaryModel getByEntity(DictionaryEntity dictionaryEntity) {
+		DictionaryModel dictionaryModel = new DictionaryModel();
+		BeanUtils.copyProperties(dictionaryEntity, dictionaryModel, new String[]{"dictionaryItems"});
+
+		if (dictionaryEntity.getDictionaryItems() != null && dictionaryEntity.getDictionaryItems().size() > 0) {
+			List<DictionaryItemModel> list = new ArrayList<>();
+			for (DictionaryItemEntity childDictionaryItemEntity : dictionaryEntity.getDictionaryItems()) {
+				list.add(getByEntity(childDictionaryItemEntity));
+			}
+		}
+		return dictionaryModel;
 	}
 }

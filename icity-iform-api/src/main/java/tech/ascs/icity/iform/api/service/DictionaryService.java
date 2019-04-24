@@ -34,6 +34,14 @@ public interface DictionaryService {
 	@GetMapping("/page")
     Page<DictionaryModel> page(@RequestParam(name = "page", defaultValue = "1") int page, @RequestParam(name="pagesize", defaultValue = "12") int pagesize);
 
+	@ApiOperation("获取字典表及子项数据")
+	@ApiImplicitParams({
+			@ApiImplicitParam(paramType = "query", name = "name", value = "名称", required = false),
+			@ApiImplicitParam(paramType = "query", name = "code", value = "编码", required = false)
+	})
+	@GetMapping("/dictinary")
+	DictionaryModel getByNameAndCode(@RequestParam(name = "name", required = false) String name, @RequestParam(name="code", required = false) String code);
+
 	@ApiOperation("新增字典表")
 	@PostMapping
 	void add(@RequestBody(required = true) DictionaryModel dictionaryModel);

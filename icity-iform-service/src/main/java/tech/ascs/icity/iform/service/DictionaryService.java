@@ -75,5 +75,7 @@ public interface DictionaryService extends JPAService<DictionaryEntity> {
 	 * @return
 	 */
 	List<DictionaryItemEntity> findByItemIds(String[] itemIds);
+
+    DictionaryModel getDictionaryByNameAndCode(String name, String code);
 }
 

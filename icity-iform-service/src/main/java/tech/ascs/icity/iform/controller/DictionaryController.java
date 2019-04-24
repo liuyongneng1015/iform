@@ -9,7 +9,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import tech.ascs.icity.iform.api.model.SystemCodeModel;
-import tech.ascs.icity.iform.model.SelectItemModelEntity;
 import tech.ascs.icity.model.Page;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.DictionaryItemModel;
@@ -146,30 +145,46 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 	}
 
 	@Override
+	public DictionaryModel getByNameAndCode(@RequestParam(name = "name", required = false) String name, @RequestParam(name="code", required = false) String code) {
+		if(StringUtils.isBlank(name) && StringUtils.isBlank(code)){
+			throw new IFormException("参数为空了");
+		}
+		return dictionaryService.getDictionaryByNameAndCode(name, code);
+	}
+
+	@Override
     public void add(@RequestBody(required = true) DictionaryModel dictionaryModel) {
-		veryDictionaryByName(null, dictionaryModel.getName());
+		veryDictionaryByName(null, dictionaryModel.getName(), dictionaryModel.getCode());
 		DictionaryEntity dictionary = new DictionaryEntity();
     	dictionary.setName(dictionaryModel.getName());
     	dictionary.setDescription(dictionaryModel.getDescription());
+		dictionary.setCode(dictionaryModel.getCode());
 		dictionary.setOrderNo(dictionaryService.maxDictionaryOrderNo() + 1);
     	dictionaryService.save(dictionary);
     }
 
-    private  void veryDictionaryByName(String id, String name){
-		List<DictionaryEntity> list = dictionaryService.findByProperty("name", name);
+    private  void veryDictionaryByName(String id, String name, String code){
+		if(StringUtils.isBlank(name)){
+			throw new IFormException("数据字典分类名称不能为空");
+		}
+		List<DictionaryEntity> list = null;
+		if(StringUtils.isBlank(code)) {
+			list = dictionaryService.findByProperty("name", name);
+		}else{
+			list = dictionaryService.query().filterEqual("code", code).list();
+		}
 		if(list == null || list.size() < 1){
 			return;
 		}
 		if(StringUtils.isBlank(id)){
 			throw new IFormException("数据字典分类名称不能重复");
 		}
-		if(StringUtils.isNoneBlank(id) ){
-			for(DictionaryEntity dictionaryEntity : list) {
-				if (StringUtils.equals(dictionaryEntity.getName(), name) && !StringUtils.equals(dictionaryEntity.getId(), id)) {
-					throw new IFormException("数据字典分类名称不能重复");
-				}
+		for(DictionaryEntity dictionaryEntity : list) {
+			if (!StringUtils.equals(dictionaryEntity.getId(), id)) {
+				throw new IFormException("数据字典分类名称不能重复");
 			}
 		}
+
 	}
 
 	@Override
@@ -177,7 +192,7 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 		if(!StringUtils.equals(id, dictionaryModel.getId())){
 			throw new IFormException("更新系统分类失败，id不一致");
 		}
-		veryDictionaryByName(id, dictionaryModel.getName());
+		veryDictionaryByName(id, dictionaryModel.getName(), dictionaryModel.getCode());
     	DictionaryEntity dictionary = dictionaryService.get(id);
     	if(dictionary == null){
 			throw new IFormException("未查到对应的系统代码分类");
@@ -185,6 +200,9 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
     	if (StringUtils.isNoneBlank(dictionaryModel.getName())) {
         	dictionary.setName(dictionaryModel.getName());
     	}
+		if (StringUtils.isNoneBlank(dictionaryModel.getCode())) {
+			dictionary.setCode(dictionaryModel.getCode());
+		}
     	if (StringUtils.isNoneBlank(dictionaryModel.getDescription())) {
         	dictionary.setDescription(dictionaryModel.getDescription());
     	}
