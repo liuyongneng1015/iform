@@ -98,7 +98,11 @@ public enum SystemItemType {
 
 	public static List<ColumnType> getColumnType(SystemItemType systemItemType){
 		List<ColumnType> list = new ArrayList<>();
-		if(SystemItemType.CreateDate == systemItemType || SystemItemType.DatePicker == systemItemType || SystemItemType.TimePicker == systemItemType){
+		if(SystemItemType.CreateDate == systemItemType || SystemItemType.DatePicker == systemItemType){
+			list.add(ColumnType.Date);
+			list.add(ColumnType.Time);
+			list.add(ColumnType.Timestamp);
+		}else if(SystemItemType.TimePicker == systemItemType){
 			list.add(ColumnType.Date);
 			list.add(ColumnType.Time);
 			list.add(ColumnType.Timestamp);
