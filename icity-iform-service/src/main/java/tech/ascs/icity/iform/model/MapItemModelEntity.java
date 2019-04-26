@@ -1,5 +1,8 @@
 package tech.ascs.icity.iform.model;
 
+import tech.ascs.icity.iform.api.model.GeographicalMapType;
+import tech.ascs.icity.iform.api.model.PositionType;
+
 import javax.persistence.*;
 
 /**
@@ -12,11 +15,19 @@ public class MapItemModelEntity extends ItemModelEntity  {
 
 	private static final long serialVersionUID = 1L;
 
+	@Column(name="map_type")//地理地图类型
+	@Enumerated(EnumType.STRING)
+	private GeographicalMapType mapType;
+
+	@Column(name="position_type")//定位类型
+	@Enumerated(EnumType.STRING)
+	private PositionType positionType;
+
 	@Column(name="longitude")//级度
-	private String longitude;
+	private Double longitude;
 
 	@Column(name="latitude")//纬度
-	private String latitude;
+	private Double latitude;
 
 	@Column(name="detail_address")//详细地址
 	private String detailAddress;
@@ -24,19 +35,39 @@ public class MapItemModelEntity extends ItemModelEntity  {
 	@Column(name="landmark")//地标
 	private String landmark;
 
-	public String getLongitude() {
+	@Column(name="level")//地图显示级别
+	private int level = 12;
+
+
+	public GeographicalMapType getMapType() {
+		return mapType;
+	}
+
+	public void setMapType(GeographicalMapType mapType) {
+		this.mapType = mapType;
+	}
+
+	public PositionType getPositionType() {
+		return positionType;
+	}
+
+	public void setPositionType(PositionType positionType) {
+		this.positionType = positionType;
+	}
+
+	public Double getLongitude() {
 		return longitude;
 	}
 
-	public void setLongitude(String longitude) {
+	public void setLongitude(Double longitude) {
 		this.longitude = longitude;
 	}
 
-	public String getLatitude() {
+	public Double getLatitude() {
 		return latitude;
 	}
 
-	public void setLatitude(String latitude) {
+	public void setLatitude(Double latitude) {
 		this.latitude = latitude;
 	}
 
@@ -54,5 +85,13 @@ public class MapItemModelEntity extends ItemModelEntity  {
 
 	public void setLandmark(String landmark) {
 		this.landmark = landmark;
+	}
+
+	public int getLevel() {
+		return level;
+	}
+
+	public void setLevel(int level) {
+		this.level = level;
 	}
 }

@@ -1063,9 +1063,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}  else if (itemModel.getType() == ItemType.Map) {
 			Object o = itemInstance.getValue();
 			if(o != null && o instanceof List){
-				List<Map<String, String>> fileList = (List<Map<String, String>>)o;
+				List<Map<String, Object>> fileList = (List<Map<String, Object>>)o;
 				List<GeographicalMapEntity> newList = new ArrayList<>();
-				for(Map<String, String> geographicalMap : fileList){
+				for(Map<String, Object> geographicalMap : fileList){
 					if(geographicalMap == null || geographicalMap.values() == null || geographicalMap.values().size() < 1){
 						continue;
 					}
@@ -1074,7 +1074,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				}
 				value = String.join(",", newList.parallelStream().map(GeographicalMapEntity::getId).collect(Collectors.toList()));
 			}else{
-				Map<String, String> fileUploadModel = o == null || o == "" ? null : (Map<String, String>)o;
+				Map<String, Object> fileUploadModel = o == null || o == "" ? null : (Map<String, Object>)o;
 				if(fileUploadModel != null && fileUploadModel.values() != null && fileUploadModel.values().size() > 0){
 					GeographicalMapEntity fileUploadEntity = getGeographicalMapEntity( fileUploadModel, itemModel.getId());
 					value = fileUploadEntity.getId();
@@ -1115,20 +1115,22 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		return fileUploadEntity;
 	}
 
-	private GeographicalMapEntity getGeographicalMapEntity(Map<String, String> geographicalMap, String itemId){
+	private GeographicalMapEntity getGeographicalMapEntity(Map<String, Object> geographicalMap, String itemId){
 		GeographicalMapEntity geographicalMapEntity = null;
 		if(geographicalMap.get("id") != null){
-			geographicalMapEntity = mapEntityJPAManager.get(geographicalMap.get("id"));
+			geographicalMapEntity = mapEntityJPAManager.get((String)geographicalMap.get("id"));
 			if(geographicalMapEntity == null){
 				throw new IFormException("未找到【"+geographicalMap.get("id")+"】对应的文件");
 			}
 		}else {
 			geographicalMapEntity = new GeographicalMapEntity();
 		}
-		geographicalMapEntity.setLandmark((geographicalMap.get("landmark")));
-		geographicalMapEntity.setDetailAddress(geographicalMap.get("detailAddress"));
-		geographicalMapEntity.setLatitude(geographicalMap.get("latitude"));
-		geographicalMapEntity.setLongitude(geographicalMap.get("longitude"));
+		geographicalMapEntity.setLandmark((String)geographicalMap.get("landmark"));
+		geographicalMapEntity.setDetailAddress((String)geographicalMap.get("detailAddress"));
+		geographicalMapEntity.setLatitude(new BigDecimal(String.valueOf(geographicalMap.get("latitude"))).doubleValue());
+		geographicalMapEntity.setLongitude(new BigDecimal(String.valueOf(geographicalMap.get("longitude"))).doubleValue());
+		geographicalMapEntity.setMapType(GeographicalMapType.getByType(String.valueOf(geographicalMap.get("mapType"))));
+		geographicalMapEntity.setPositionType(PositionType.getByType(String.valueOf(geographicalMap.get("positionType"))));
 		geographicalMapEntity.setFromSource(itemId);
 		mapEntityJPAManager.save(geographicalMapEntity);
 		return geographicalMapEntity;

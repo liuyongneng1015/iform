@@ -187,17 +187,27 @@ public class ItemModel extends NameEntity {
 	@ApiModelProperty(value = "数据范围名称", position = 48)
 	private String dataRangeName;
 
+	@ApiModelProperty(value = "地理地图类型", position = 49)
+	private GeographicalMapType mapType;
+
+	@ApiModelProperty(value = "定位类型", position = 49)
+	private PositionType positionType;
+
+
 	@ApiModelProperty(value = "经度", position = 49)
-	private String longitude;
+	private Double longitude;
 
-	@ApiModelProperty(value = "纬度", position = 50)
-	private String latitude;
+	@ApiModelProperty(value = "纬度", position = 49)
+	private Double latitude;
 
-	@ApiModelProperty(value = "详细地址", position = 51)
-    private String detailAddress;
+	@ApiModelProperty(value = "详细地址", position = 49)
+	private String detailAddress;
 
-    @ApiModelProperty(value = "地标", position = 51)
-    private String landmark;
+	@ApiModelProperty(value = "地标", position = 49)
+	private String landmark;
+
+	@ApiModelProperty(value = "地图显示级别", position = 49)
+	private int level = 12;
 
 	@ApiModelProperty(value = "关联的根节点标识", position = 52)
 	private Boolean referenceRootFlag;
@@ -710,21 +720,6 @@ public class ItemModel extends NameEntity {
 		this.dataRangeName = dataRangeName;
 	}
 
-	public String getLongitude() {
-		return longitude;
-	}
-
-	public void setLongitude(String longitude) {
-		this.longitude = longitude;
-	}
-
-	public String getLatitude() {
-		return latitude;
-	}
-
-	public void setLatitude(String latitude) {
-		this.latitude = latitude;
-	}
 
     public String getDetailAddress() {
         return detailAddress;
@@ -734,7 +729,47 @@ public class ItemModel extends NameEntity {
         this.detailAddress = detailAddress;
     }
 
-    public String getLandmark() {
+	public GeographicalMapType getMapType() {
+		return mapType;
+	}
+
+	public void setMapType(GeographicalMapType mapType) {
+		this.mapType = mapType;
+	}
+
+	public PositionType getPositionType() {
+		return positionType;
+	}
+
+	public void setPositionType(PositionType positionType) {
+		this.positionType = positionType;
+	}
+
+	public Double getLongitude() {
+		return longitude;
+	}
+
+	public void setLongitude(Double longitude) {
+		this.longitude = longitude;
+	}
+
+	public Double getLatitude() {
+		return latitude;
+	}
+
+	public void setLatitude(Double latitude) {
+		this.latitude = latitude;
+	}
+
+	public int getLevel() {
+		return level;
+	}
+
+	public void setLevel(int level) {
+		this.level = level;
+	}
+
+	public String getLandmark() {
         return landmark;
     }
 
