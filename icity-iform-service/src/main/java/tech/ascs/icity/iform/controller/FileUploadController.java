@@ -21,6 +21,7 @@ import java.io.*;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Api(tags = "文件上传服务", description = "文件上传服务")
 @RestController
@@ -117,6 +118,12 @@ public class FileUploadController implements FileUploadService {
 			e.printStackTrace();
 		}
 		return "下载失败";
+	}
+
+	@Override
+	public List<Map<String, Object>> parseExcel(HttpServletRequest request) {
+		MultipartFile file = ((MultipartHttpServletRequest)request).getFile("file");
+		return uploadService.parseExcel(file);
 	}
 
 }

@@ -14,10 +14,7 @@ import tech.ascs.icity.iform.api.model.FileUploadModel;
 import tech.ascs.icity.iform.api.model.FileUploadType;
 import tech.ascs.icity.iform.model.FileUploadEntity;
 import tech.ascs.icity.iform.service.UploadService;
-import tech.ascs.icity.iform.utils.CommonUtils;
-import tech.ascs.icity.iform.utils.ImagesUtils;
-import tech.ascs.icity.iform.utils.MergedQrCodeImages;
-import tech.ascs.icity.iform.utils.MinioConfig;
+import tech.ascs.icity.iform.utils.*;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 
@@ -25,10 +22,7 @@ import java.awt.image.DataBufferByte;
 import java.awt.image.WritableRaster;
 import java.io.*;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -109,6 +103,16 @@ public class UploadServiceImpl extends DefaultJPAService<FileUploadEntity> imple
 			fileUploadEntityList = fileUploadEntityManager.query().filterEqual("uploadType", fileUploadtype).filterEqual("fromSource", fromSource).filterEqual("fromSourceDataId", fromSourceDataId).list();
 		}
 		return fileUploadEntityList;
+	}
+
+	@Override
+	public List<Map<String, Object>> parseExcel(MultipartFile file) {
+		try {
+			return ImportUtils.readExcel(file);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 	/**

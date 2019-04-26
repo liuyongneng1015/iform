@@ -10,6 +10,7 @@ import tech.ascs.icity.jpa.service.JPAService;
 
 import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
 
 public interface UploadService  extends JPAService<FileUploadEntity> {
 
@@ -87,4 +88,7 @@ public interface UploadService  extends JPAService<FileUploadEntity> {
      * @throws Exception
      */
     List<FileUploadEntity> getFileUploadEntity(FileUploadType fileUploadtype, String fromSource, String fromSourceDataId) ;
+
+    //解析excel文件
+    List<Map<String, Object>> parseExcel(MultipartFile file);
 }
