@@ -372,7 +372,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			return null;
 		}
 
-		ColumnModelEntity columnModelEntity = columnModelService.query().filterEqual("tableName", tableName).first();
+		ColumnModelEntity columnModelEntity = columnModelService.query().filterEqual("dataModels.tableName", tableName).first();
 		if(columnModelEntity == null){
 			throw new IFormException("未找到【"+tableName+"】对应的表");
 		}
