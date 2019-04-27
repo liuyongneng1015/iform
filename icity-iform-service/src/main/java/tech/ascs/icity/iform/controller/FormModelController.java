@@ -374,11 +374,11 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 		ColumnModelEntity columnModelEntity = columnModelService.query().filterEqual("dataModel.tableName", tableName).first();
 		if(columnModelEntity == null){
-			throw new IFormException("未找到【"+tableName+"】对应的表");
+			return null;
 		}
 		List<String> idlist = jdbcTemplate.queryForList("select i.index_info  from ifm_index_column as i  where i.column_model='"+columnModelEntity.getId()+"'", String.class);
 		if(idlist == null || idlist.size() < 1){
-			throw new IFormException("未找到【"+tableName+"】对应的表单");
+			return null;
 		}
 		Query<FormModelEntity, FormModelEntity> query = formModelService.query();
 
