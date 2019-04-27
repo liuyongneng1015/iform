@@ -546,6 +546,12 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		if(formModelEntity == null){
 			throw new IFormException("未找到【"+id+"】对应的表单");
 		}
+
+		return getAllItemModel(formModelEntity, itemId);
+	}
+
+
+	private List<ItemModel> getAllItemModel(FormModelEntity formModelEntity, String itemId){
 		List<ItemModel> itemModelList = new ArrayList<>();
 		List<ItemModelEntity> list =  formModelService.getAllColumnItems(formModelEntity.getItems());
 		if(list != null) {
@@ -571,6 +577,15 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			}
 		}
 		return itemModelList;
+	}
+
+	@Override
+	public List<ItemModel> findItemsByProcessId(@PathVariable(name="processId", required = true) String processId) {
+		FormModelEntity formModelEntity = formModelService.query().filterEqual("process.id", processId).first();
+		if(formModelEntity == null){
+			throw new IFormException("未找到流程【"+processId+"】关联的表单");
+		}
+		return getAllItemModel(formModelEntity, null);
 	}
 
 	@Override

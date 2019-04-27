@@ -11,6 +11,7 @@ import tech.ascs.icity.iform.api.model.FileUploadType;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;
+import java.util.Map;
 
 
 @RestController
@@ -49,5 +50,9 @@ public interface FileUploadService {
 	@GetMapping("/download")
 	String downloadTemplate(HttpServletResponse response, HttpServletRequest request);
 
+
+	@ApiOperation("解析excel文件")
+	@PostMapping("/parseExcel")
+	List<Map<String, Object>> parseExcel(HttpServletRequest request);
 
 }

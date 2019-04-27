@@ -214,6 +214,18 @@ public interface FormModelService {
 	@GetMapping(value = "/form-item")
 	List<ItemModel> findItemsByFormId(@RequestParam(name="id", required = true) String id, @RequestParam(name="itemId", required = false) String itemId);
 
+
+	/**
+	 * 通过流程id查询表单的控件
+	 *
+	 */
+	@ApiOperation(value = "通过流程id查询表单的控件", position = 3)
+	@ApiImplicitParams({
+			@ApiImplicitParam(paramType = "path", name = "processId", value = "流程ID", required = true, dataType = "String")
+	})
+	@GetMapping(value = "/form-item/{processId}")
+	List<ItemModel> findItemsByProcessId(@PathVariable(name="processId", required = true) String processId);
+
 	/**
 	 * 查询关联表单的控件模型
 	 *
