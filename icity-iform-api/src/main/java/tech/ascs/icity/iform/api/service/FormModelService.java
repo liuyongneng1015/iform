@@ -255,5 +255,5 @@ public interface FormModelService {
 			@ApiImplicitParam(paramType = "query", name = "tableName", value = "数据建模表名", required = false)
 	})
 	@GetMapping(value = "/find-by-id-and-table-name")
-	FormModel findByIdAndTableName(@RequestParam(name = "id") String id, @RequestParam(name = "tableName") String tableName);
+	FormModel findByIdAndTableName(@RequestParam(name = "id", required = false) String id, @RequestParam(name = "tableName", required = false) String tableName);
 }

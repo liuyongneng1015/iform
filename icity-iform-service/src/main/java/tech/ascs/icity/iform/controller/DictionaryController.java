@@ -147,7 +147,7 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 	@Override
 	public DictionaryModel getByNameAndCode(@RequestParam(name = "name", required = false) String name, @RequestParam(name="code", required = false) String code) {
 		if(StringUtils.isBlank(name) && StringUtils.isBlank(code)){
-			throw new IFormException("参数为空了");
+			throw new IFormException("参数不能为空");
 		}
 		return dictionaryService.getDictionaryByNameAndCode(name, code);
 	}

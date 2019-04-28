@@ -377,9 +377,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	}
 
 	@Override
-	public FormModel findByIdAndTableName(@RequestParam(name = "id") String id, @RequestParam(name = "tableName") String tableName) {
+	public FormModel findByIdAndTableName(@RequestParam(name = "id", required = false) String id, @RequestParam(name = "tableName", required = false) String tableName) {
 		if(!StringUtils.hasText(id) &&  !StringUtils.hasText(tableName)){
-			throw new IFormException("参数为空了");
+			throw new IFormException("参数不能为空");
 		}
 		FormModelEntity entity = null;
 		if(StringUtils.hasText(id)) {
@@ -860,6 +860,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			Map<String, Object> map = new HashMap<String, Object>();
 			for(String string : columnModelEntities){
 				String key = string.toLowerCase();
+				if(!StringUtils.hasText(key.trim())){
+					throw new IFormException("字段名不能为空");
+				}
 				if(map.containsKey(key)){
 					throw new IFormException(key+"字段重复了");
 				}
