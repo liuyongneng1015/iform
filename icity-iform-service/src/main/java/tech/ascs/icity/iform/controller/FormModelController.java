@@ -2115,9 +2115,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			List<Option> options = new ArrayList<Option>();
 			for (ItemSelectOption optionEntity : entity.getOptions()) {
 				if(isAnalysisItem) {
-					options.add(new Option(optionEntity.getId(), optionEntity.getLabel(), optionEntity.getValue(), optionEntity.getDefaultFlag()));
-				}else{
 					options.add(new Option(optionEntity.getId(), optionEntity.getLabel(), optionEntity.getId(), optionEntity.getDefaultFlag()));
+				}else{
+					options.add(new Option(optionEntity.getId(), optionEntity.getLabel(), optionEntity.getValue(), optionEntity.getDefaultFlag()));
 				}
 			}
 			itemModel.setOptions(options);
