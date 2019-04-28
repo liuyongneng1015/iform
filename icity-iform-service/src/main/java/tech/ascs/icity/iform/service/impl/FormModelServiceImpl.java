@@ -1424,7 +1424,12 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 	@Override
 	public FormModelEntity findByTableName(String tableName) {
-		return query().filterEqual("dataModels.tableName", tableName).first();
+		List<String> idlist = jdbcTemplate.query(" select fd.form_model from ifm_form_data_bind fd,ifm_data_model d where fd.data_model=d.id and d.table_name ='"+tableName+"'",
+				(rs, rowNum) -> rs.getString("form_model"));
+		if(idlist == null || idlist.size() < 1){
+			return null;
+		}
+		return query().filterIn("id", idlist).first();
 	}
 
 	@Override

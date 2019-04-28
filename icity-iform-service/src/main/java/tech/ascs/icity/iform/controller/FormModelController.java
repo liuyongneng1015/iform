@@ -402,6 +402,24 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	}
 
 	@Override
+	public FormModel findByIdAndTableName(@RequestParam(name = "id") String id, @RequestParam(name = "tableName") String tableName) {
+		FormModelEntity entity = null;
+		if(StringUtils.hasText(id)) {
+			entity = formModelService.find(id);
+		}else{
+			entity = formModelService.findByTableName(tableName);
+		}
+		if (entity == null) {
+			throw new IFormException(404, "表单模型【" + id + "】不存在");
+		}
+		try {
+			return toDTODetail(entity);
+		} catch (Exception e) {
+			throw new IFormException("获取表单模型列表失败：" + e.getMessage(), e);
+		}
+	}
+
+	@Override
 	public List<ApplicationModel> findApplicationFormModel(@RequestParam(name="applicationId", required = true) String applicationId,
 														   @RequestParam(name="columnId", required = false) String columnId,
 														   @RequestParam(name="formModelId", required = false) String formModelId,
