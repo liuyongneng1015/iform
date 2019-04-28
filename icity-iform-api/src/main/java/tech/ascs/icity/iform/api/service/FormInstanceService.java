@@ -297,14 +297,15 @@ public interface FormInstanceService {
 	/**
 	 * 通过表名和该表的字段对应的value获取表单实例
 	 */
-	@ApiOperation(value = "通过表名和该表的字段对应的value获取表单实例", position = 6)
+	@ApiOperation(value = "通过表名和该表的字段对应的value获取表单实例，columnValues的columnName必须是属于该表的字段，不能是子表或者管理属性的字段", position = 6)
 	@ApiImplicitParams({
 		@ApiImplicitParam(paramType = "query", name = "tableName", value = "表名", required = false),
-		@ApiImplicitParam(paramType = "query", name = "parameters", value = "查询参数", required = false)
+		@ApiImplicitParam(paramType = "query", name = "columnName", value = "字段取值", required = false)
 	})
-	@PutMapping("/find-by-table-name-and-column-values")
-	List<FormDataSaveInstance> findByTableNameAndColumnValues(@RequestParam(name="tableName", defaultValue = "") int tableName,
-															  @RequestParam Map<String, Object> columnValues);
+	@GetMapping("/find-by-table-name-and-column-value")
+	List<FormDataSaveInstance> findByTableNameAndColumnValue(@RequestParam(name="tableName", defaultValue = "") String tableName,
+															 @RequestParam(name="columnName", defaultValue = "") String columnName,
+															 @RequestParam(name="columnValue") String columnValue);
 
 	/**
 	 * 静态的策略组接口

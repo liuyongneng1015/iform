@@ -373,7 +373,16 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		if (StringUtils.isEmpty(tableName) || StringUtils.isEmpty(columnName)) {
 			return null;
 		}
-		return formModelService.findItemByTableAndColumName(tableName, columnName);
+		ItemModelEntity itemEntity = formModelService.findItemByTableAndColumName(tableName, columnName);
+		if (itemEntity!=null) {
+			ItemModel itemModel = new ItemModel();
+			itemModel.setId(itemEntity.getId());
+			itemModel.setName(itemEntity.getName());
+			itemModel.setType(itemEntity.getType());
+			itemModel.setSystemItemType(itemEntity.getSystemItemType());
+			return itemModel;
+		}
+		return null;
 	}
 
 	@Override
