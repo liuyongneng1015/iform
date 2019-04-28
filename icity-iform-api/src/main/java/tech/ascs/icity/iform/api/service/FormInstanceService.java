@@ -147,6 +147,20 @@ public interface FormInstanceService {
 
 
 	/**
+	 * 通过数据建模表名获取空的表单实例对象
+	 *
+	 * @param tableName 数据建模表名
+	 * @return
+	 */
+	@ApiOperation(value = "通过数据建模表名获取空的表单实例对象", position = 2)
+	@ApiImplicitParams({
+			@ApiImplicitParam(paramType = "query", name = "tableName", value = "表名", required = true, dataType = "String")
+	})
+	@GetMapping("/get-by-table-name/empty")
+	FormInstance getEmptyInstanceByTableName(@RequestParam(name="tableName", required = true) String tableName);
+
+
+	/**
      * 根据表单实例ID获取表单实例对象
      *
      * @param formId 表单模型ID
