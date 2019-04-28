@@ -239,15 +239,6 @@ public interface FormModelService {
 	List<ItemModel> findReferenceItemsByFormId(@RequestParam(name="formModelId", required = true) String formModelId,
 											   @RequestParam(name="referenceFormModelId", required = true) String referenceFormModelId);
 
-
-	@ApiOperation(value = "通过数据表名获取表单的ID", position = 1)
-	@ApiImplicitParams({
-		@ApiImplicitParam(paramType = "query", name = "tableName", value = "数据表名", required = false)
-	})
-	@GetMapping(value = "/find-form-id-by-table-name")
-	IdEntity findFormIdByTableName(@RequestParam(name = "tableName", defaultValue = "") String tableName);
-
-
 	/** 通过数据表名和数据库字段获取对应的item控件 */
 	@ApiOperation(value = "通过数据表名和数据库字段获取对应的item控件", position = 1)
 	@ApiImplicitParams({
