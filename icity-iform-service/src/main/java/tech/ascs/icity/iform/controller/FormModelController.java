@@ -367,7 +367,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	}
 
 	@Override
-	public IdEntity findByTableName(@RequestParam(name = "tableName", defaultValue = "") String tableName) {
+	public IdEntity findFormIdByTableName(@RequestParam(name = "tableName", defaultValue = "") String tableName) {
 		if (StringUtils.isEmpty(tableName)) {
 			return null;
 		}
