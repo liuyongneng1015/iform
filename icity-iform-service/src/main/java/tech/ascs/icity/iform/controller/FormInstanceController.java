@@ -407,7 +407,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	public FormInstance getEmptyInstanceByTableName(@RequestParam(name="tableName", required = true) String tableName) {
 		FormModelEntity entity = formModelService.findByTableName(tableName);
 		if (entity == null) {
-			throw new IFormException("表单模型【" + tableName + "】不存在");
+			return null;
 		}
 		return formInstanceService.newFormInstance(entity);
 	}
