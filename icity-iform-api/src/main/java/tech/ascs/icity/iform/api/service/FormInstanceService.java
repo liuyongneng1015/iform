@@ -295,6 +295,18 @@ public interface FormInstanceService {
 	FileUploadModel resetQrCode(@PathVariable(name="listId", required = true) String listId, @PathVariable(name="id", required = true) String id);
 
 	/**
+	 * 通过表名和该表的字段对应的value获取表单实例
+	 */
+	@ApiOperation(value = "通过表名和该表的字段对应的value获取表单实例", position = 6)
+	@ApiImplicitParams({
+		@ApiImplicitParam(paramType = "query", name = "tableName", value = "表名", required = false),
+		@ApiImplicitParam(paramType = "query", name = "parameters", value = "查询参数", required = false)
+	})
+	@PutMapping("/find-by-table-name-and-column-values")
+	List<FormDataSaveInstance> findByTableNameAndColumnValues(@RequestParam(name="tableName", defaultValue = "") int tableName,
+															  @RequestParam Map<String, Object> columnValues);
+
+	/**
 	 * 静态的策略组接口
 	 *
 	 * @param userId 用户ID
