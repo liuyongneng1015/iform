@@ -555,7 +555,7 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 	@Override
 	public ListModel getFirstListModelByTableName(String tableName) {
 		if(!StringUtils.hasText(tableName)){
-			throw new IFormException("请求参数【"+tableName+"】为空了");
+			throw new IFormException("请求参数【"+tableName+"】不能为空");
 		}
 		List<ListModel> listModels = findListModelsByTableName(tableName);
 		return listModels  == null || listModels.size() < 1 ? null : listModels.get(0);

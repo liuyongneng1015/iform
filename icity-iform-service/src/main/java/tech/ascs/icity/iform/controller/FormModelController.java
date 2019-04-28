@@ -379,7 +379,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	@Override
 	public FormModel findByIdAndTableName(@RequestParam(name = "id", required = false) String id, @RequestParam(name = "tableName", required = false) String tableName) {
 		if(!StringUtils.hasText(id) &&  !StringUtils.hasText(tableName)){
-			throw new IFormException("参数为空了");
+			throw new IFormException("参数不能为空");
 		}
 		FormModelEntity entity = null;
 		if(StringUtils.hasText(id)) {

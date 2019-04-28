@@ -87,6 +87,9 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		List<String> newCloumnIds = new ArrayList<String>();
 		Map<String,Object> map = new HashMap<>();
 		for (ColumnModel newColumn : dataModel.getColumns()) {
+			if(StringUtils.isBlank(newColumn.getColumnName().trim())){
+				throw new IFormException("字段名不能为空");
+			}
 			if(map.get(newColumn.getColumnName()) != null){
 				throw new IFormException("同步数据模型【" + dataModel.getName() + "】失败：字段" +newColumn.getColumnName()+"重复了");
 			}
