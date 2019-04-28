@@ -384,14 +384,18 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		FormModelEntity entity = null;
 		if(StringUtils.hasText(id)) {
 			entity = formModelService.find(id);
+			if (entity == null) {
+				throw new IFormException("表单模型【" + id + "】不存在");
+			}
 		}else{
 			entity = formModelService.findByTableName(tableName);
 		}
-		if (entity == null) {
-			throw new IFormException("表单模型【" + id + "】不存在");
-		}
 		try {
-			return toDTODetail(entity);
+			if (entity!=null) {
+				return toDTODetail(entity);
+			} else {
+				return null;
+			}
 		} catch (Exception e) {
 			throw new IFormException("获取表单模型列表失败：" + e.getMessage(), e);
 		}

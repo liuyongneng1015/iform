@@ -11,6 +11,9 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONPath;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
@@ -587,6 +590,14 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			throw new IFormException(404, "表单模型【" + formModel.getId() + "】,生成【" + id + "】二维码失败");
 		}
 		return fileUploadModels == null || fileUploadModels.size() < 1 ? null : fileUploadModels.get(0);
+	}
+
+	public List<FormDataSaveInstance> findByTableNameAndColumnValues(@RequestParam(name="tableName", defaultValue = "") int tableName,
+		    														 @RequestParam Map<String, Object> columnValues) {
+		if (StringUtils.isEmpty(tableName)) {
+			return new ArrayList();
+		}
+
 	}
 
 	@Autowired
