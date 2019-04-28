@@ -60,6 +60,9 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	@Autowired
 	private UploadService uploadService;
 
+	@Autowired
+	private DataModelService dataModelService;
+
 	@Override
 	public List<FormDataSaveInstance> list(@PathVariable(name="listId") String listId, @RequestParam Map<String, Object> parameters) {
 		ListModelEntity listModel = listModelService.find(listId);
@@ -601,12 +604,23 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		return fileUploadModels == null || fileUploadModels.size() < 1 ? null : fileUploadModels.get(0);
 	}
 
-	public List<FormDataSaveInstance> findByTableNameAndColumnValues(@RequestParam(name="tableName", defaultValue = "") int tableName,
-		    														 @RequestParam Map<String, Object> columnValues) {
-		if (StringUtils.isEmpty(tableName)) {
-			return new ArrayList();
+	@Override
+	public List<FormDataSaveInstance> findByTableNameAndColumnValue(@RequestParam(name="tableName", defaultValue = "") String tableName,
+																	@RequestParam(name="columnName", defaultValue = "") String columnName,
+																	@RequestParam(name="columnValue") String columnValue) {
+		if (StringUtils.isEmpty(tableName) || StringUtils.isEmpty(columnName) || columnValue==null) {
+			return null;
 		}
-
+		ItemModelEntity itemEntity = formModelService.findItemByTableAndColumName(tableName, columnName);
+		if (itemEntity!=null) {
+			FormModelEntity formModelEntity = itemEntity.getFormModel();
+			if (formModelEntity!=null) {
+				Map<String,Object> paramters = new HashMap<>();
+				paramters.put(itemEntity.getId(), columnValue);
+				return formInstanceService.listFormInstance(formModelEntity, paramters);
+			}
+		}
+		return null;
 	}
 
 	@Autowired

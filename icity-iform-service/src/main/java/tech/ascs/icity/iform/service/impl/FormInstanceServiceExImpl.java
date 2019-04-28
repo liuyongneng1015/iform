@@ -132,6 +132,25 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		return list;
 	}
 
+	@Override
+	public List<FormDataSaveInstance> listFormInstance(FormModelEntity formModel, Map<String, Object> queryParameters) {
+		Session session = getSession(formModel.getDataModels().get(0));
+		List<FormDataSaveInstance> list = new ArrayList<>();
+		try {
+			Criteria criteria = generateCriteria(session, formModel, queryParameters);
+			list = wrapFormDataList(formModel, null, criteria.list());
+		} catch (Exception e) {
+			e.printStackTrace();
+			new ICityException(e.getLocalizedMessage(), e);
+		} finally {
+			if (session!=null) {
+				session.close();
+				session = null;
+			}
+		}
+		return list;
+	}
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public Page<FormDataSaveInstance> pageFormInstance(FormModelEntity formModel, int page, int pagesize, Map<String, Object> queryParameters) {

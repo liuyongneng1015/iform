@@ -1406,20 +1406,12 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 	}
 
 	@Override
-	public ItemModel findItemByTableAndColumName(String tableName, String columnName) {
-		ItemModel itemModel = null;
+	public ItemModelEntity findItemByTableAndColumName(String tableName, String columnName) {
 		ColumnModelEntity columnModel = columnModelManager.query().filterEqual("dataModel.tableName", tableName).filterEqual("columnName", columnName).first();
 		if (columnModel!=null) {
-			ItemModelEntity itemEntity = itemManager.query().filterEqual("columnModel.id", columnModel.getId()).first();
-			if (itemEntity!=null) {
-				itemModel = new ItemModel();
-				itemModel.setId(itemEntity.getId());
-				itemModel.setName(itemEntity.getName());
-				itemModel.setType(itemEntity.getType());
-				itemModel.setSystemItemType(itemEntity.getSystemItemType());
-			}
+			return itemManager.query().filterEqual("columnModel.id", columnModel.getId()).first();
 		}
-		return itemModel;
+		return null;
 	}
 
 	@Override

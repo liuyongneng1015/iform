@@ -820,10 +820,11 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 					try {
 						Object itemValues = f.get(itemModelEntity);
 						if (itemValues!=null && itemValues instanceof List) {
-							List<ItemModelEntity> items = (List<ItemModelEntity>)itemValues;
-							for (ItemModelEntity subItem:items) {
-								list.addAll(getItemsInItem(subItem));
-							}
+
+//							List<ItemModelEntity> items = (List<ItemModelEntity>)itemValues;
+//							for (ItemModelEntity subItem:items) {
+//								list.addAll(getItemsInItem(subItem));
+//							}
 						}
 					} catch (IllegalAccessException e) {
 						e.printStackTrace();
