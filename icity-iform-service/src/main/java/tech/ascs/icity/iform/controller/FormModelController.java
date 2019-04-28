@@ -366,31 +366,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 	}
 
-	@Override
-	public IdEntity findFormIdByTableName(@RequestParam(name = "tableName", defaultValue = "") String tableName) {
-		if (StringUtils.isEmpty(tableName)) {
-			return null;
-		}
-
-		ColumnModelEntity columnModelEntity = columnModelService.query().filterEqual("dataModel.tableName", tableName).first();
-		if(columnModelEntity == null){
-			return null;
-		}
-		List<String> idlist = jdbcTemplate.queryForList("select i.index_info  from ifm_index_column as i  where i.column_model='"+columnModelEntity.getId()+"'", String.class);
-		if(idlist == null || idlist.size() < 1){
-			return null;
-		}
-		Query<FormModelEntity, FormModelEntity> query = formModelService.query();
-
-		query.filterIn("id", idlist);
-		FormModelEntity entitiy = query.sort(Sort.desc("id")).first();
-		if (entitiy!=null) {
-			IdEntity idEntity = new IdEntity();
-			idEntity.setId(entitiy.getId());
-			return idEntity;
-		}
-		return null;
-	}
 
 	@Override
 	public ItemModel findItemByTableAndColumName(@RequestParam(name = "tableName", defaultValue = "") String tableName,
