@@ -403,6 +403,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 	@Override
 	public FormModel findByIdAndTableName(@RequestParam(name = "id") String id, @RequestParam(name = "tableName") String tableName) {
+		if(!StringUtils.hasText(id) &&  !StringUtils.hasText(tableName)){
+			throw new IFormException("参数为空了");
+		}
 		FormModelEntity entity = null;
 		if(StringUtils.hasText(id)) {
 			entity = formModelService.find(id);
@@ -410,7 +413,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			entity = formModelService.findByTableName(tableName);
 		}
 		if (entity == null) {
-			throw new IFormException(404, "表单模型【" + id + "】不存在");
+			throw new IFormException("表单模型【" + id + "】不存在");
 		}
 		try {
 			return toDTODetail(entity);
@@ -2111,7 +2114,11 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		if (entity.getOptions().size() > 0) {
 			List<Option> options = new ArrayList<Option>();
 			for (ItemSelectOption optionEntity : entity.getOptions()) {
-				options.add(new Option(optionEntity.getId(), optionEntity.getLabel(), optionEntity.getValue(), optionEntity.getDefaultFlag()));
+				if(isAnalysisItem) {
+					options.add(new Option(optionEntity.getId(), optionEntity.getLabel(), optionEntity.getValue(), optionEntity.getDefaultFlag()));
+				}else{
+					options.add(new Option(optionEntity.getId(), optionEntity.getLabel(), optionEntity.getId(), optionEntity.getDefaultFlag()));
+				}
 			}
 			itemModel.setOptions(options);
 		}
