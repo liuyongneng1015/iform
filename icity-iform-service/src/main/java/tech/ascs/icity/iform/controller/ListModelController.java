@@ -245,7 +245,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 
 	@Override
 	public ListModel getByTableName(@PathVariable(name="tableName") String tableName) {
-		return listModelService.getByTableName(tableName);
+		return listModelService.getFirstListModelByTableName(tableName);
 	}
 
 	private List<ApplicationModel> list(String applicationId, List<ListModel> entities){

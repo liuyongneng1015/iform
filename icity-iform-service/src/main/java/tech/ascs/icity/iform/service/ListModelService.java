@@ -76,5 +76,5 @@ public interface ListModelService extends JPAService<ListModelEntity> {
     List<ListModelEntity> findListModelsByItemModelId(String itemModelId);
 
     //通过表名集合查询列表模型
-    ListModel getByTableName(String tableName);
+    ListModel getFirstListModelByTableName(String tableName);
 }

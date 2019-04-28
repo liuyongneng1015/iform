@@ -5,7 +5,7 @@ import org.springframework.util.StringUtils;
 import java.io.Serializable;
 
 /**
- * 地理地图类型
+ * 地图选择类型
  * 
  * @author Jackie
  *

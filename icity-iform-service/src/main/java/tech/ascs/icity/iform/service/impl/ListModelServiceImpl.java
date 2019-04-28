@@ -277,13 +277,19 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 	@Override
 	public List<ListModel> findListModelsByTableName(String tableName) {
 		try {
-
-			List<String> idlist = jdbcTemplate.query("select l.id from ifm_form_data_bind fd,ifm_list_model l,ifm_data_model d where fd.data_model=d.id and d.table_name ='"+tableName+"' and fd.form_model=l.master_form",
+			List<String> idlist = jdbcTemplate.query("select l.id from ifm_list_model l,ifm_form_data_bind fd,ifm_data_model d where fd.form_model=l.master_form and fd.data_model=d.id and d.table_name ='"+tableName+"'",
 					(rs, rowNum) -> rs.getString("id"));
 			List<ListModelEntity> listModelEntities = query().filterIn("id",idlist).list();
 			List<ListModel> list = new ArrayList<>();
 			for(ListModelEntity listModelEntity : listModelEntities){
-				list.add(BeanUtils.copy(listModelEntity, ListModel.class, new String[]{"displayItems","searchItems","functions","sortItems","slaverForms","masterForm"}));
+				ListModel listModel = new ListModel();
+				BeanUtils.copyProperties(listModelEntity, listModel, new String[]{"displayItems","searchItems","functions","sortItems","slaverForms","masterForm"});
+				if(listModelEntity.getMasterForm() != null){
+					FormModel masterForm = new FormModel();
+					masterForm.setId(listModelEntity.getMasterForm().getId());
+					listModel.setMasterForm(masterForm);
+				}
+				list.add(listModel);
 			}
 			return list;
 		} catch (Exception e) {
@@ -547,26 +553,11 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 	}
 
 	@Override
-	public ListModel getByTableName(String tableName) {
+	public ListModel getFirstListModelByTableName(String tableName) {
 		if(!StringUtils.hasText(tableName)){
 			throw new IFormException("请求参数【"+tableName+"】为空了");
 		}
-		ColumnModelEntity columnModelEntity = columnModelManager.query().filterEqual("tableName", tableName).first();
-		if(columnModelEntity == null){
-			throw new IFormException("未找到【"+tableName+"】对应的表");
-		}
-		List<String> idlist = jdbcTemplate.queryForList("select i.index_info  from ifm_index_column as i  where i.column_model='"+columnModelEntity.getId()+"'", String.class);
-		if(idlist == null || idlist.size() < 1){
-			throw new IFormException("未找到【"+tableName+"】对应的表单");
-		}
-		List<ListModelEntity> listModelEntities = query().filterEqual("masterForm.id", idlist).list();
-		if(listModelEntities == null || listModelEntities.size() < 1 ){
-			throw new IFormException("未找到【"+tableName+"】对应的列表模型");
-		}
-		ListModel list = entityToModel(listModelEntities.get(0));
-		FormModel formModel = new FormModel();
-		formModel.setId(listModelEntities.get(0).getMasterForm().getId());
-		list.setMasterForm(formModel);
-		return list;
+		List<ListModel> listModels = findListModelsByTableName(tableName);
+		return listModels  == null || listModels.size() < 1 ? null : listModels.get(0);
 	}
 }

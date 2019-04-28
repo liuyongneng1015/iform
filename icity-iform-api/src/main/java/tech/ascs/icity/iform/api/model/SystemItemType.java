@@ -81,7 +81,7 @@ public enum SystemItemType {
 	/** 树形下拉 */
 	Treeselect("Treeselect"),
 	/** 地图 */
-	Map("Map");
+	Location("Location");
 
 	private String value;
 	private SystemItemType(String value) {

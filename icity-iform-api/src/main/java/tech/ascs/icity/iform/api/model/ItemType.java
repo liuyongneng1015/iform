@@ -55,7 +55,7 @@ public enum ItemType {
 	Treeselect("Treeselect"),
 
 	/** 地图 */
-	Map("Map");
+	Location("Location");
 
 	private String value;
 	private ItemType(String value) {

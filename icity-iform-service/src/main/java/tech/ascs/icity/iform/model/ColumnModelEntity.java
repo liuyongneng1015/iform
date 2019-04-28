@@ -27,6 +27,9 @@ public class ColumnModelEntity extends BaseEntity implements Serializable {
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "fromColumn")
 	private List<ColumnReferenceEntity> columnReferences = new ArrayList<ColumnReferenceEntity>();
 
+	@Column(name = "prefix")
+	private String prefix;
+
 	@Column(name="column_name")
 	private String columnName;
 
@@ -69,6 +72,14 @@ public class ColumnModelEntity extends BaseEntity implements Serializable {
 
 	public void setColumnReferences(List<ColumnReferenceEntity> columnReferences) {
 		this.columnReferences = columnReferences;
+	}
+
+	public String getPrefix() {
+		return prefix;
+	}
+
+	public void setPrefix(String prefix) {
+		this.prefix = prefix;
 	}
 
 	public String getColumnName() {

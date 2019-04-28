@@ -509,14 +509,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				throw new IFormException("未找到【"+paramerItemModelEntity.getId()+"】对应控件");
 			}
 		}else{
-			saveItemModelEntity = getItemModelEntity(paramerItemModelEntity.getType());
-			if(paramerItemModelEntity.getSystemItemType() == SystemItemType.SerialNumber){
-				saveItemModelEntity = new SerialNumberItemModelEntity();
-			}else if(paramerItemModelEntity.getSystemItemType() == SystemItemType.Creator){
-				saveItemModelEntity = new CreatorItemModelEntity();
-			}else if(paramerItemModelEntity.getSystemItemType() == SystemItemType.CreateDate){
-				saveItemModelEntity = new TimeItemModelEntity();
-			}
+			saveItemModelEntity = getItemModelEntity(paramerItemModelEntity.getType(), paramerItemModelEntity.getSystemItemType());
 		}
 		return saveItemModelEntity;
 	}
@@ -544,6 +537,8 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			}else if (columnModelEntity != null && saveItemModelEntity.getType() == ItemType.TimePicker) {//不带日期的时间控件为String类型
 				columnModelEntity.setDataType(ColumnType.String);
 				columnModelEntity.setLength(255);
+			}else if(saveItemModelEntity instanceof ReferenceItemModelEntity){
+				columnModelEntity.setPrefix(null);
 			}
 			saveItemModelEntity.setColumnModel(columnModelEntity);
 		}else if(!"id".equals(saveItemModelEntity.getName())){
@@ -1117,11 +1112,8 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 	}
 
 	@Override
-	public ItemModelEntity getItemModelEntity(ItemType itemType){
+	public ItemModelEntity getItemModelEntity(ItemType itemType, SystemItemType systemItemType){
 		ItemModelEntity entity = new ItemModelEntity();
-		if(itemType == null){
-			return entity;
-		}
 		switch (itemType){
 			case InputNumber:
 				entity = new NumberItemModelEntity();
@@ -1171,12 +1163,19 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			case  Treeselect:
 				entity = new TreeSelectItemModelEntity();
 				break;
-			case  Map:
-				entity = new MapItemModelEntity();
+			case  Location:
+				entity = new LocationItemModelEntity();
 				break;
 			default:
 				entity = new ItemModelEntity();
 				break;
+		}
+		if(systemItemType == SystemItemType.SerialNumber){
+			entity = new SerialNumberItemModelEntity();
+		}else if(systemItemType == SystemItemType.Creator){
+			entity = new ReferenceItemModelEntity();
+		}else if(systemItemType == SystemItemType.CreateDate){
+			entity = new TimeItemModelEntity();
 		}
 		return entity;
 	}

@@ -1,9 +1,6 @@
 package tech.ascs.icity.iform.service;
 
-import tech.ascs.icity.iform.api.model.DataModel;
-import tech.ascs.icity.iform.api.model.FormModel;
-import tech.ascs.icity.iform.api.model.ItemModel;
-import tech.ascs.icity.iform.api.model.ItemType;
+import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.model.DataModelEntity;
 import tech.ascs.icity.iform.model.FormModelEntity;
 import tech.ascs.icity.iform.model.ItemModelEntity;
@@ -19,7 +16,7 @@ public interface FormModelService extends JPAService<FormModelEntity> {
      //获取表单模型的控件
      List<ItemModelEntity> getAllColumnItems(List<ItemModelEntity> itemModelEntities);
 
-     ItemModelEntity getItemModelEntity(ItemType itemType);
+     ItemModelEntity getItemModelEntity(ItemType itemType, SystemItemType systemItemType);
 
      void deleteFormModelEntityById(String id);
 

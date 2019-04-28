@@ -9,17 +9,17 @@ import javax.persistence.*;
  * 地图控件
  */
 @Entity
-@Table(name = "ifm_map_item_model")
-@DiscriminatorValue("mapItemModel")
-public class MapItemModelEntity extends ItemModelEntity  {
+@Table(name = "ifm_location_item_model")
+@DiscriminatorValue("locationItemModel")
+public class LocationItemModelEntity extends ItemModelEntity  {
 
 	private static final long serialVersionUID = 1L;
 
-	@Column(name="map_type")//地理地图类型
+	@Column(name="map_type")//地图选择类型
 	@Enumerated(EnumType.STRING)
 	private GeographicalMapType mapType;
 
-	@Column(name="position_type")//定位类型
+	@Column(name="position_type")//定位摘取方式类型
 	@Enumerated(EnumType.STRING)
 	private PositionType positionType;
 

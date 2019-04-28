@@ -5,16 +5,16 @@ import org.springframework.util.StringUtils;
 import java.io.Serializable;
 
 /**
- * 定位类型
+ * 定位摘取方式类型
  * 
  * @author Jackie
  *
  */
 public enum PositionType implements Serializable {
 
-	AUTO("AUTO"),//自动
+	Drag("Drag"),//拖拽获取
 
-	HAND("HAND");//手动经纬度
+	Not_Drag("Not_Drag");//不允许拖拽获取
 
 	private String value;//
 

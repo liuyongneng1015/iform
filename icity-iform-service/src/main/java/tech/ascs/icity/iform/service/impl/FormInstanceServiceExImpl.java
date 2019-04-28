@@ -1,5 +1,6 @@
 package tech.ascs.icity.iform.service.impl;
 
+import java.lang.ref.Reference;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.sql.SQLException;
@@ -62,6 +63,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	@Autowired
 	private UserService userService;
+
+    @Autowired
+    private ListModelService listModelService;
 
 	private JPAManager<FormModelEntity> formModelEntityJPAManager;
 
@@ -375,7 +379,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 			list.add(getItemInstance(itemModelEntity.getId(), getNowTime(((TimeItemModelEntity) itemModelEntity).getTimeFormat())));
 
-		}else if(itemModelEntity.getSystemItemType() == SystemItemType.Creator && ((CreatorItemModelEntity)itemModelEntity).getCreateType() == SystemCreateType.Create){
+		}else if(itemModelEntity.getSystemItemType() == SystemItemType.Creator && ((ReferenceItemModelEntity)itemModelEntity).getCreateType() == SystemCreateType.Create){
 			if(itemMap.keySet().contains(itemModelEntity.getId())){
 				list.remove(itemMap.get(itemModelEntity.getId()));
 			}
@@ -522,7 +526,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				list.remove(itemMap.get(itemModelEntity.getId()));
 			}
 			list.add(getItemInstance(itemModelEntity.getId(), getNowTime(((TimeItemModelEntity) itemModelEntity).getTimeFormat())));
-		}else if(itemModelEntity.getSystemItemType() == SystemItemType.Creator && ((CreatorItemModelEntity)itemModelEntity).getCreateType() == SystemCreateType.Update){
+		}else if(itemModelEntity.getSystemItemType() == SystemItemType.Creator && ((ReferenceItemModelEntity)itemModelEntity).getCreateType() == SystemCreateType.Update){
 			if(itemMap.keySet().contains(itemModelEntity.getId())){
 				list.remove(itemMap.get(itemModelEntity.getId()));
 			}
@@ -1060,7 +1064,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			for(String key : fileUploadEntityMap.keySet()){
 				fileUploadManager.deleteById(key);
 			}
-		}  else if (itemModel.getType() == ItemType.Map) {
+		}  else if (itemModel.getType() == ItemType.Location) {
 			Object o = itemInstance.getValue();
 			if(o != null && o instanceof List){
 				List<Map<String, Object>> fileList = (List<Map<String, Object>>)o;
@@ -1934,6 +1938,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		String key =new ArrayList<>(keyMap.keySet()).get(0);
 		boolean flag = keyMap.get(key);
 		Object listMap = null;
+        if(fromItem.getSystemItemType() != null){
+            //关联人员
+            return;
+        }
 		if(flag) {
 			listMap = (Map<String, Object>) entity.get(key);
 		}else{
@@ -2149,7 +2157,13 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			itemModelInstance.setDisplayValue(String.join(",",displayValues));
 			items.add(itemModelInstance);
 		}else{
-			Map<String, Object> mapData = (Map<String, Object>)entity.get(key);
+            Map<String, Object> mapData = null;
+            if(fromItem.getSystemItemType() != null && fromItem.getReferenceTableName() != null && entity.get(key) != null){
+		        DataModelEntity dataModelEntity = dataModelManager.findUniqueByProperty("tableName", fromItem.getReferenceTableName());
+                mapData = getDataInfo(dataModelEntity, String.valueOf(entity.get(key)));
+            }else{
+                mapData = (Map<String, Object>)entity.get(key);
+            }
 			if( mapData == null || mapData.size() == 0) {
 				return;
 			}
@@ -2421,8 +2435,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			case Attachment:
 				setFileItemInstance(value, itemInstance);
 				break;
-			case Map:
-				setMapItemInstance(value, itemInstance);
+			case Location:
+				setLocationItemInstance(value, itemInstance);
 				break;
 			case ReferenceLabel:
 				ReferenceItemModelEntity referenceItemModelEntity = (ReferenceItemModelEntity)itemModel;
@@ -2659,7 +2673,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 	}
 
-	private void setMapItemInstance(Object value, ItemInstance itemInstance){
+	private void setLocationItemInstance(Object value, ItemInstance itemInstance){
 		String valueStr = value == null || StringUtils.isEmpty(value) ?  null : String.valueOf(value);
 		if(valueStr != null) {
 			List<String> listv = Arrays.asList(valueStr.split(","));

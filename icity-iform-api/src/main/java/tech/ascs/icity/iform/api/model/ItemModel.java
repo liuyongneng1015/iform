@@ -41,8 +41,10 @@ public class ItemModel extends NameEntity {
 	//File/selectItemModel
 	@ApiModelProperty(value = "关联类型", position = 9)
 	private ReferenceType referenceType;
-	@ApiModelProperty(value = "多对多创建表的名称", position = 10)
+	@ApiModelProperty(value = "关联数据建模表名称", position = 10)
 	private String referenceTableName;
+	@ApiModelProperty(value = "是否创建外键", position = 10)
+	private Boolean createForeignKey;
 	@ApiModelProperty(value="选择关系",position = 11)
 	private SelectReferenceType selectReferenceType;
 
@@ -307,6 +309,17 @@ public class ItemModel extends NameEntity {
 
 	public void setReferenceTableName(String referenceTableName) {
 		this.referenceTableName = referenceTableName;
+	}
+
+	public Boolean getCreateForeignKey() {
+		if(type == ItemType.ReferenceList){
+			createForeignKey = true;
+		}
+		return createForeignKey;
+	}
+
+	public void setCreateForeignKey(Boolean createForeignKey) {
+		this.createForeignKey = createForeignKey;
 	}
 
 	public ItemModel getParentItem() {

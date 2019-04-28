@@ -3,6 +3,7 @@ package tech.ascs.icity.iform.model;
 import tech.ascs.icity.iform.api.model.ControlType;
 import tech.ascs.icity.iform.api.model.ReferenceType;
 import tech.ascs.icity.iform.api.model.SelectMode;
+import tech.ascs.icity.iform.api.model.SystemCreateType;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -53,6 +54,16 @@ public class ReferenceItemModelEntity extends ItemModelEntity  {
 
 	@Column(name="item_uuids", length = 2048) // 关联数据标识：控件对应的唯一标识
 	private String itemUuids;
+
+	@Column(name="create_foreign_key") // 是否创建外键
+	private Boolean createForeignKey;
+
+	@Column(name="create_type")//创建类型
+	@Enumerated(EnumType.STRING)
+	private SystemCreateType createType = SystemCreateType.Normal;
+
+	@Column(name="reference_table_name")//关联数据建模表名称
+	private String referenceTableName;
 
 	public ReferenceType getReferenceType() {
 		return referenceType;
@@ -132,5 +143,29 @@ public class ReferenceItemModelEntity extends ItemModelEntity  {
 
 	public void setItemUuids(String itemUuids) {
 		this.itemUuids = itemUuids;
+	}
+
+	public Boolean getCreateForeignKey() {
+		return createForeignKey;
+	}
+
+	public void setCreateForeignKey(Boolean createForeignKey) {
+		this.createForeignKey = createForeignKey;
+	}
+
+	public SystemCreateType getCreateType() {
+		return createType;
+	}
+
+	public void setCreateType(SystemCreateType createType) {
+		this.createType = createType;
+	}
+
+	public String getReferenceTableName() {
+		return referenceTableName;
+	}
+
+	public void setReferenceTableName(String referenceTableName) {
+		this.referenceTableName = referenceTableName;
 	}
 }

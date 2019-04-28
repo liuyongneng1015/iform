@@ -20,6 +20,9 @@ public class DataModelEntity extends BaseEntity implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
+	@Column(name = "prefix")
+	private String prefix;
+
 	@Column(name = "table_name")
 	private String tableName;
 
@@ -51,6 +54,14 @@ public class DataModelEntity extends BaseEntity implements Serializable {
 
 	@Transient//关联数据模型不存数据库
 	private List<DataModelEntity> referencesDataModel = new ArrayList<DataModelEntity>();
+
+	public String getPrefix() {
+		return prefix;
+	}
+
+	public void setPrefix(String prefix) {
+		this.prefix = prefix;
+	}
 
 	public String getTableName() {
 		return tableName;

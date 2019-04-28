@@ -14,6 +14,9 @@ import tech.ascs.icity.model.NameEntity;
 @ApiModel("数据模型")
 public class DataModel extends NameEntity {
 
+	@ApiModelProperty(value = "前缀", position = 2)
+	private String prefix = "if_";
+
     @ApiModelProperty(value = "数据库表名", position = 2)
 	private String tableName;
 
@@ -45,6 +48,14 @@ public class DataModel extends NameEntity {
 	@Override
 	public String getName() {
 		return super.getName();
+	}
+
+	public String getPrefix() {
+		return prefix;
+	}
+
+	public void setPrefix(String prefix) {
+		this.prefix = prefix;
 	}
 
 	public String getTableName() {

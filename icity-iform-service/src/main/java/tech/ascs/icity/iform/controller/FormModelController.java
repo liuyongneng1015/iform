@@ -949,6 +949,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	private void setReference(DataModel dataModel, List<ItemModelEntity> itemModelEntityList){
 		for(ItemModelEntity itemModelEntity : itemModelEntityList){
 			if(itemModelEntity instanceof ReferenceItemModelEntity ){
+				if(((ReferenceItemModelEntity) itemModelEntity).getCreateForeignKey() == null || !((ReferenceItemModelEntity) itemModelEntity).getCreateForeignKey()){
+					continue;
+				}
 				if(itemModelEntity.getType() == ItemType.ReferenceLabel || ((ReferenceItemModelEntity) itemModelEntity).getSelectMode() == SelectMode.Inverse){
 					continue;
 				}
@@ -1290,20 +1293,22 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			itemModel.setSelectMode(SelectMode.Attribute);
 		}
 		//TODO 根据类型映射对应的item
-		ItemModelEntity entity = formModelService.getItemModelEntity(itemModel.getType());
-		if(itemModel.getSystemItemType() == SystemItemType.SerialNumber){
-			 entity = new SerialNumberItemModelEntity();
-		}else if(itemModel.getSystemItemType() == SystemItemType.Creator){
-			entity = new CreatorItemModelEntity();
-		}else if(itemModel.getSystemItemType() == SystemItemType.CreateDate){
-			entity = new TimeItemModelEntity();
-		}
+		ItemModelEntity entity = formModelService.getItemModelEntity(itemModel.getType(), itemModel.getSystemItemType());
 
 		if(itemModel.getType() == ItemType.CheckboxGroup){
 			itemModel.setMultiple(true);
-		}
-		if(itemModel.getType() == ItemType.RadioGroup){
+		}else if(itemModel.getType() == ItemType.RadioGroup){
 			itemModel.setMultiple(false);
+		}
+
+		if(itemModel.getSystemItemType() == SystemItemType.Creator){
+			//创建人赋值关联关系
+			ListModel listModel = listModelService.getFirstListModelByTableName(itemModel.getReferenceTableName());
+			itemModel.setReferenceList(listModel);
+			itemModel.setReferenceFormId(listModel == null || listModel.getMasterForm() == null ? null : listModel.getMasterForm().getId());
+			itemModel.setCreateForeignKey(false);
+			itemModel.setReferenceType(ReferenceType.ManyToOne);
+			itemModel.setSelectMode(SelectMode.Single);
 		}
 
 		//需要保持column
@@ -1477,14 +1482,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	}
 
 	private ItemModelEntity getParentItemModel(ItemModel itemModel){
-		ItemModelEntity parentItemModel = formModelService.getItemModelEntity(itemModel.getType());
-		if(itemModel.getSystemItemType() == SystemItemType.SerialNumber){
-			parentItemModel = new SerialNumberItemModelEntity();
-		}else if(itemModel.getSystemItemType() == SystemItemType.Creator){
-			parentItemModel = new CreatorItemModelEntity();
-		}else if(itemModel.getSystemItemType() == SystemItemType.CreateDate){
-			parentItemModel = new TimeItemModelEntity();
-		}
+		ItemModelEntity parentItemModel = formModelService.getItemModelEntity(itemModel.getType(), itemModel.getSystemItemType());
 		BeanUtils.copyProperties(itemModel, parentItemModel, new String[] {"referenceList","parentItem", "searchItems","sortItems", "permissions", "items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});
 		ColumnModelEntity columnModel = new ColumnModelEntity();
 		columnModel.setColumnName(itemModel.getColumnName());
@@ -1507,11 +1505,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		if(itemModel.getType() != ItemType.ReferenceLabel && (!StringUtils.hasText(itemModel.getReferenceFormId())
 				|| itemModel.getReferenceList() == null || itemModel.getReferenceList().getId() == null)){
 			throw  new IFormException("关联控件【"+itemModel.getName()+"】未找到关联表单或列表模型");
-		}
-
-		if(itemModel.getType() == ItemType.ReferenceLabel  &&
-				!StringUtils.hasText(itemModel.getItemTableName()) && !StringUtils.hasText(itemModel.getItemColunmName())){
-			throw  new IFormException("关联属性控件【"+itemModel.getName()+"】未找到关联控件");
 		}
 
 		if(itemModel.getType() == ItemType.ReferenceLabel){
