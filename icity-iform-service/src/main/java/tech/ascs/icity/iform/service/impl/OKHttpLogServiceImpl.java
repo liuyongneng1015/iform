@@ -1,40 +1,18 @@
 package tech.ascs.icity.iform.service.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.minio.MinioClient;
-import org.apache.commons.lang.StringUtils;
-import org.bytedeco.javacv.FFmpegFrameGrabber;
-import org.bytedeco.javacv.Frame;
-import org.bytedeco.javacv.Java2DFrameConverter;
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.model.BusinessTriggerEntity;
-import tech.ascs.icity.iform.model.FileUploadEntity;
 import tech.ascs.icity.iform.model.FormModelEntity;
 import tech.ascs.icity.iform.model.OKHttpLogEntity;
 import tech.ascs.icity.iform.service.OKHttpLogService;
-import tech.ascs.icity.iform.service.UploadService;
 import tech.ascs.icity.iform.utils.*;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 
-import javax.imageio.ImageIO;
-import javax.persistence.Column;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.JoinColumn;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.*;
 import java.util.*;
 import java.util.List;
 
-
-@Service
 public class OKHttpLogServiceImpl extends DefaultJPAService<OKHttpLogEntity> implements OKHttpLogService {
 
 
