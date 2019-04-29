@@ -438,12 +438,12 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	public Map toColumnNameValueDTO(FormDataSaveInstance formDataSaveInstance) {
 		Map map = new HashMap();
 		for (ItemInstance item:formDataSaveInstance.getItems()) {
+			map.put(item.getColumnModelName(), item);
 			item.setType(null);
 			item.setVisible(null);
 			item.setReadonly(null);
 			item.setColumnModelId(null);
 			item.setColumnModelName(null);
-			map.put(item.getColumnModelName(), item);
 		}
 		for (SubFormItemInstance sumForm:formDataSaveInstance.getSubFormData()) {
 			map.put(sumForm.getTableName(), getSubFormItemInstance(sumForm));
