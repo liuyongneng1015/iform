@@ -2,10 +2,8 @@ package tech.ascs.icity.iform.service;
 
 import org.springframework.web.multipart.MultipartFile;
 import tech.ascs.icity.iform.api.model.FileUploadModel;
-import tech.ascs.icity.iform.api.model.FileUploadType;
-import tech.ascs.icity.iform.model.ColumnModelEntity;
+import tech.ascs.icity.iform.api.model.DataSourceType;
 import tech.ascs.icity.iform.model.FileUploadEntity;
-import tech.ascs.icity.iform.model.ItemModelEntity;
 import tech.ascs.icity.jpa.service.JPAService;
 
 import java.io.InputStream;
@@ -37,7 +35,7 @@ public interface UploadService  extends JPAService<FileUploadEntity> {
      * @return
      * @throws Exception
      */
-    FileUploadModel uploadOneFileReturnUrl(String fileKey, FileUploadType uploadType, Integer fileSize, MultipartFile file) throws Exception;
+    FileUploadModel uploadOneFileReturnUrl(String fileKey, DataSourceType sourceType, Integer fileSize, MultipartFile file) throws Exception;
 
 
     /**
@@ -83,11 +81,11 @@ public interface UploadService  extends JPAService<FileUploadEntity> {
 
     /**
      * 上传文件实体
-     * @param fileUploadtype 文件上传类型
+     * @param sourceType 文件上传类型
      * @return
      * @throws Exception
      */
-    List<FileUploadEntity> getFileUploadEntity(FileUploadType fileUploadtype, String fromSource, String fromSourceDataId) ;
+    List<FileUploadEntity> getFileUploadEntity(DataSourceType sourceType, String fromSource, String fromSourceDataId) ;
 
     //解析excel文件
     List<Map<String, Object>> parseExcel(MultipartFile file);

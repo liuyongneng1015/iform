@@ -709,6 +709,22 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				map.put(function.getAction(), function.getLabel());
 			}
 		}
+
+		if(formModel.getTriggeres() != null && formModel.getTriggeres().size() > 0){
+			Map<String, String> map = new HashMap<>();
+			for(BusinessTriggerModel triggerModel : formModel.getTriggeres()){
+				if(triggerModel.getType() == null){
+					throw new IFormException("业务触发类型不能为空");
+				}
+				if(!StringUtils.hasText(triggerModel.getUrl()) || !triggerModel.getUrl().startsWith("http") ){
+					throw new IFormException("调用微服务地址格式错误");
+				}
+				if(map.get(triggerModel.getType().getValue()) != null){
+					throw new IFormException("功能编码重复");
+				}
+				map.put(triggerModel.getType().getValue(), triggerModel.getUrl());
+			}
+		}
 	}
 
 	private FormModelEntity wrap(FormModel formModel) {
@@ -2015,6 +2031,22 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				((AnalysisFormModel) object).setFunctions(functionModels);
 			}else{
 				((FormModel) object).setFunctions(functionModels);
+			}
+		}
+
+		if(entity.getTriggeres() != null && entity.getTriggeres().size() > 0){
+			List<BusinessTriggerEntity> triggerEntityList = entity.getTriggeres().parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
+			List<BusinessTriggerModel> triggerModels = new ArrayList<>();
+			for (int i = 0; i < triggerEntityList.size(); i++) {
+				BusinessTriggerEntity triggerEntity = triggerEntityList.get(i);
+				BusinessTriggerModel model = new BusinessTriggerModel();
+				BeanUtils.copyProperties(triggerEntity, model, new String[] {"formModel"});
+				triggerModels.add(model);
+			}
+			if(isAnalysisForm) {
+				((AnalysisFormModel) object).setTriggeres(triggerModels);
+			}else{
+				((FormModel) object).setTriggeres(triggerModels);
 			}
 		}
 

@@ -3,12 +3,12 @@ package tech.ascs.icity.iform.api.model;
 import org.springframework.util.StringUtils;
 
 /**
- * 文件上传类型
+ * 数据来源类型
  * 
  * @author Jackie
  *
  */
-public enum FileUploadType {
+public enum DataSourceType {
 
 	/** 表单 */
 	FormModel("FormModel"),
@@ -24,7 +24,7 @@ public enum FileUploadType {
 
 	private String value;
 
-	private FileUploadType(String value) {
+	private DataSourceType(String value) {
 		this.value = value;
 	}
 
@@ -36,10 +36,10 @@ public enum FileUploadType {
 		this.value = value;
 	}
 
-	public static FileUploadType getFileUploadType(String value) {
-		for(FileUploadType fileUploadType : FileUploadType.values()){
-			if(StringUtils.hasText(value) && fileUploadType.getValue().equals(value)){
-				return fileUploadType;
+	public static DataSourceType getDataSourceType(String value) {
+		for(DataSourceType sourceType : DataSourceType.values()){
+			if(StringUtils.hasText(value) && sourceType.getValue().equals(value)){
+				return sourceType;
 			}
 		}
 		return null;

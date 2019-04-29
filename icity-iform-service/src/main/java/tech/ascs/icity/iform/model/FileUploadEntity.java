@@ -1,13 +1,10 @@
 package tech.ascs.icity.iform.model;
 
-import io.swagger.annotations.ApiModelProperty;
-import tech.ascs.icity.iform.api.model.FileUploadType;
+import tech.ascs.icity.iform.api.model.DataSourceType;
 import tech.ascs.icity.jpa.dao.model.BaseEntity;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * 文件上传
@@ -41,9 +38,9 @@ public class FileUploadEntity extends BaseEntity implements Serializable {
 	private String thumbnailUrl;
 
 	//来源对象类型
-	@JoinColumn(name="upload_type")
+	@JoinColumn(name="source_type")
 	@Enumerated(EnumType.STRING)
-	private FileUploadType uploadType;
+	private DataSourceType sourceType;
 
 	public String getFileKey() {
 		return fileKey;
@@ -77,12 +74,12 @@ public class FileUploadEntity extends BaseEntity implements Serializable {
 		this.fromSourceDataId = fromSourceDataId;
 	}
 
-	public FileUploadType getUploadType() {
-		return uploadType;
+	public DataSourceType getSourceType() {
+		return sourceType;
 	}
 
-	public void setUploadType(FileUploadType uploadType) {
-		this.uploadType = uploadType;
+	public void setSourceType(DataSourceType sourceType) {
+		this.sourceType = sourceType;
 	}
 
 	public String getThumbnail() {

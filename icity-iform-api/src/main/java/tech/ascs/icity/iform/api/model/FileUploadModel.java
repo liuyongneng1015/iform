@@ -26,8 +26,8 @@ public class FileUploadModel extends NameEntity {
 	@ApiModelProperty(value = "缩略图地址", position = 8)
 	private String thumbnailUrl;
 
-	@ApiModelProperty(value = "文件上传类型", position = 9)
-	private FileUploadType uploadType = FileUploadType.ItemModel;
+	@ApiModelProperty(value = "数据来源类型", position = 9)
+	private DataSourceType sourceType = DataSourceType.ItemModel;
 
 	public String getFileKey() {
 		return fileKey;
@@ -77,12 +77,12 @@ public class FileUploadModel extends NameEntity {
 		this.thumbnailUrl = thumbnailUrl;
 	}
 
-	public FileUploadType getUploadType() {
-		return uploadType;
+	public DataSourceType getSourceType() {
+		return sourceType;
 	}
 
-	public void setUploadType(FileUploadType uploadType) {
-		this.uploadType = uploadType;
+	public void setSourceType(DataSourceType sourceType) {
+		this.sourceType = sourceType;
 	}
 
 	@Override

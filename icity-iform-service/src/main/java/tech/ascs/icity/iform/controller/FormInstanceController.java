@@ -9,11 +9,6 @@ import java.util.stream.Collectors;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONPath;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
@@ -515,7 +510,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		try {
 			InputStream inputStream = getInputStream(httpHead+"?status=check&listId="+listId+"&formId="+formModel.getId()+"&listRowId="+id, new String(qrcodeName.getBytes("UTF-8"),"UTF-8"));
             FileUploadModel fileUploadModel = uploadService.uploadOneFileByInputstream(formModel.getName()+"_"+id+".png" ,inputStream,"image/png");
-			fileUploadModel.setUploadType(FileUploadType.FormModel);
+			fileUploadModel.setSourceType(DataSourceType.FormModel);
 			fileUploadModel.setFromSource(formModel.getId());
 			fileUploadModel.setFromSourceDataId(id);
 			FileUploadEntity fileUploadEntity = uploadService.saveFileUploadEntity(fileUploadModel);
@@ -583,7 +578,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		if (formModel == null) {
 			throw new IFormException(404, "表单模型【" + formModel.getId() + "】不存在");
 		}
-		List<FileUploadEntity> fileUploadEntityList = uploadService.getFileUploadEntity(FileUploadType.FormModel, formModel.getId(), id);
+		List<FileUploadEntity> fileUploadEntityList = uploadService.getFileUploadEntity(DataSourceType.FormModel, formModel.getId(), id);
 		List<FileUploadModel> fileUploadModels = new ArrayList<>();
 		String httpHead = qrcodeBaseUrl != null && qrcodeBaseUrl.contains("http") ? qrcodeBaseUrl : "http://"+qrcodeBaseUrl;
 		try {

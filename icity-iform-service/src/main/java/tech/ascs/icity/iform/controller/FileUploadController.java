@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.FileUploadModel;
-import tech.ascs.icity.iform.api.model.FileUploadType;
+import tech.ascs.icity.iform.api.model.DataSourceType;
 import tech.ascs.icity.iform.api.service.FileUploadService;
 import tech.ascs.icity.iform.service.UploadService;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
@@ -36,14 +36,14 @@ public class FileUploadController implements FileUploadService {
 		log.error("fileUpload in ");
 		MultipartFile file = ((MultipartHttpServletRequest)request).getFile("file");
 		String fileSizeLimit = request.getParameter("fileSizeLimit");
-		String uploadTypeStr = request.getParameter("uploadType");
-		FileUploadType uploadType = FileUploadType.getFileUploadType(uploadTypeStr);
+		String sourceTypeStr = request.getParameter("sourceType");
+		DataSourceType sourceType = DataSourceType.getDataSourceType(sourceTypeStr);
 		Integer size = null;
 		if(StringUtils.isNoneBlank(fileSizeLimit)){
 			size = Integer.parseInt(fileSizeLimit);
 		}
 		try {
-			return uploadService.uploadOneFileReturnUrl(null, uploadType, size, file);
+			return uploadService.uploadOneFileReturnUrl(null, sourceType, size, file);
 		} catch (Exception e) {
 			throw new IFormException("上传文件失败" + e.getMessage());
 		}
@@ -52,8 +52,8 @@ public class FileUploadController implements FileUploadService {
 	public List<FileUploadModel> batchFileUpload(HttpServletRequest request) {
 		List<MultipartFile> files =((MultipartHttpServletRequest)request).getFiles("file");
 		String fileSizeLimit = request.getParameter("fileSizeLimit");
-		String uploadTypeStr = request.getParameter("uploadType");
-		FileUploadType uploadType = FileUploadType.getFileUploadType(uploadTypeStr);
+		String sourceTypeStr = request.getParameter("sourceType");
+		DataSourceType sourceType = DataSourceType.getDataSourceType(sourceTypeStr);
 		Integer size = null;
 		if(StringUtils.isNoneBlank(fileSizeLimit)){
 			size = Integer.parseInt(fileSizeLimit);
@@ -62,7 +62,7 @@ public class FileUploadController implements FileUploadService {
 		if(files != null && files.size() > 0) {
 			for (MultipartFile file : files){
 				try {
-					list.add(uploadService.uploadOneFileReturnUrl(null, uploadType, size, file));
+					list.add(uploadService.uploadOneFileReturnUrl(null, sourceType, size, file));
 				} catch (Exception e) {
 					throw new IFormException("上传文件失败" + e.getMessage());
 				}
