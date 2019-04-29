@@ -46,6 +46,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 	private JPAManager<QuickSearchEntity> quickSearchEntityManager;
 
+	private JPAManager<BusinessTriggerEntity> businessTriggerManager;
 
 	@Autowired
 	ProcessService processService;
@@ -88,6 +89,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		listSearchItemManager = getJPAManagerFactory().getJPAManager(ListSearchItem.class);
 		listSortItemManager = getJPAManagerFactory().getJPAManager(ListSortItem.class);
 		quickSearchEntityManager = getJPAManagerFactory().getJPAManager(QuickSearchEntity.class);
+		businessTriggerManager = getJPAManagerFactory().getJPAManager(BusinessTriggerEntity.class);
 	}
 
 	@Override
@@ -118,7 +120,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				columnModelEntityMap.put(columnModelEntity.getDataModel().getTableName() + "_" + columnModelEntity.getColumnName(), columnModelEntity);
 			}
 
-			BeanUtils.copyProperties(entity, old, new String[] {"dataModels", "items", "permissions", "submitChecks","functions"});
+			BeanUtils.copyProperties(entity, old, new String[] {"dataModels", "items", "permissions", "submitChecks","functions", "triggeres"});
 
 			List<ItemModelEntity> oldItems = old.getItems();
 
@@ -163,6 +165,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 			//设置表单功能
 			saveFormModelFunctions(old, entity);
+
+			//设置表单业务触发
+			saveFormModelTriggeres(old, entity);
 
 			//设计表单校验
 			setFormSubmitChecks(old, entity);
@@ -1056,7 +1061,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
             newDataModelIds.add(dataModelEntity.getId());
             newAddDataModel.add(dataModelEntity);
         }
-		BeanUtils.copyProperties(formModel, oldEntity, new String[] {"items","indexes","dataModels","permissions","submitChecks","functions"});
+		BeanUtils.copyProperties(formModel, oldEntity, new String[] {"items","indexes","dataModels","permissions","submitChecks","functions", "triggeres"});
         if(formModel.isNew()){
             oldEntity.setId(null);
         }
@@ -1225,7 +1230,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 	@Override
 	public FormModelEntity saveFormModelSubmitCheck(FormModelEntity entity) {
         FormModelEntity formModelEntity = get(entity.getId());
-		BeanUtils.copyProperties(entity, formModelEntity, new String[] {"items","dataModels","permissions","submitChecks","functions"});
+		BeanUtils.copyProperties(entity, formModelEntity, new String[] {"items","dataModels","permissions","submitChecks","functions", "triggeres"});
 
 		Map<String, FormSubmitCheckInfo> oldMap = new HashMap<>();
 		List<FormSubmitCheckInfo> oldSubmitCheck = formModelEntity.getSubmitChecks();
@@ -1263,7 +1268,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 	@Override
 	public FormModelEntity saveFormModelProcessBind(FormModelEntity entity) {
 		FormModelEntity oldFormModelEntity = get(entity.getId());
-		BeanUtils.copyProperties(entity, oldFormModelEntity, new String[] {"items","dataModels","permissions","submitChecks","functions"});
+		BeanUtils.copyProperties(entity, oldFormModelEntity, new String[] {"items","dataModels","permissions","submitChecks","functions", "triggeres"});
 
 		List<ItemModelEntity> parameterItems = entity.getItems();
 
@@ -1459,6 +1464,30 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		}
 		for(String key : oldMap.keySet()){
 			formFunctionsService.deleteById(key);
+		}
+	}
+
+	//设置表单业务触发
+	private void saveFormModelTriggeres(FormModelEntity formModelEntity, FormModelEntity paramerEntity) {
+
+		Map<String, BusinessTriggerEntity> oldMap = new HashMap<>();
+		for(BusinessTriggerEntity triggerEntity : formModelEntity.getTriggeres()){
+			oldMap.put(triggerEntity.getId(), triggerEntity);
+		}
+		List<BusinessTriggerEntity> newTriggeres= paramerEntity.getTriggeres();
+		if(newTriggeres != null){
+			List<BusinessTriggerEntity> submitTriggeres = new ArrayList<>();
+			for(BusinessTriggerEntity triggerEntity : newTriggeres){
+				boolean isNew = triggerEntity.isNew();
+				BusinessTriggerEntity trigger = isNew ? new BusinessTriggerEntity() : oldMap.remove(triggerEntity.getId());
+				BeanUtils.copyProperties(triggerEntity, trigger, new String[]{"formModel"});
+				triggerEntity.setFormModel(formModelEntity);
+				submitTriggeres.add(triggerEntity);
+			}
+			formModelEntity.setTriggeres(submitTriggeres);
+		}
+		for(String key : oldMap.keySet()){
+			businessTriggerManager.deleteById(key);
 		}
 	}
 

@@ -7,6 +7,9 @@ public enum ReturnResult {
     /** 无 */
     NONE("NONE"),
 
+    /** 有 */
+    HAS("HAS"),
+
     /** 带URL */
     URL("URL");
 

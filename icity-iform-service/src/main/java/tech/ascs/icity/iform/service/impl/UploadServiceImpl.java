@@ -4,24 +4,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.minio.MinioClient;
 import org.apache.commons.lang.StringUtils;
 import org.bytedeco.javacv.Java2DFrameConverter;
-import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.FileUploadModel;
-import tech.ascs.icity.iform.api.model.FileUploadType;
+import tech.ascs.icity.iform.api.model.DataSourceType;
 import tech.ascs.icity.iform.model.FileUploadEntity;
 import tech.ascs.icity.iform.service.UploadService;
 import tech.ascs.icity.iform.utils.*;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 
-import java.awt.image.DataBufferByte;
-import java.awt.image.WritableRaster;
 import java.io.*;
-import java.nio.ByteBuffer;
 import java.util.*;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
@@ -29,7 +25,6 @@ import java.io.File;
 
 import javax.imageio.ImageIO;
 
-import org.bytedeco.javacpp.opencv_core.IplImage;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.Frame;
 
@@ -95,12 +90,12 @@ public class UploadServiceImpl extends DefaultJPAService<FileUploadEntity> imple
 	}
 
 	@Override
-	public List<FileUploadEntity> getFileUploadEntity(FileUploadType fileUploadtype, String fromSource, String fromSourceDataId) {
+	public List<FileUploadEntity> getFileUploadEntity(DataSourceType sourceType, String fromSource, String fromSourceDataId) {
 		List<FileUploadEntity> fileUploadEntityList = new ArrayList<>();
-		if(fileUploadtype == FileUploadType.ItemModel) {
-			fileUploadEntityList = fileUploadEntityManager.query().filterEqual("uploadType", fileUploadtype).filterEqual("fromSource", fromSource).list();
+		if(sourceType == DataSourceType.ItemModel) {
+			fileUploadEntityList = fileUploadEntityManager.query().filterEqual("sourceType", sourceType).filterEqual("fromSource", fromSource).list();
 		}else{
-			fileUploadEntityList = fileUploadEntityManager.query().filterEqual("uploadType", fileUploadtype).filterEqual("fromSource", fromSource).filterEqual("fromSourceDataId", fromSourceDataId).list();
+			fileUploadEntityList = fileUploadEntityManager.query().filterEqual("sourceType", sourceType).filterEqual("fromSource", fromSource).filterEqual("fromSourceDataId", fromSourceDataId).list();
 		}
 		return fileUploadEntityList;
 	}
@@ -123,7 +118,7 @@ public class UploadServiceImpl extends DefaultJPAService<FileUploadEntity> imple
 	 * @throws Exception
 	 */
 	@Override
-	public FileUploadModel uploadOneFileReturnUrl(String fileKey, FileUploadType uploadType, Integer fileSize, MultipartFile file) throws Exception {
+	public FileUploadModel uploadOneFileReturnUrl(String fileKey, DataSourceType sourceType, Integer fileSize, MultipartFile file) throws Exception {
 		FileUploadModel fileUploadModel = new FileUploadModel();
 		InputStream inputStream = file.getInputStream();
 		File thumbnailFile = null;
@@ -148,7 +143,7 @@ public class UploadServiceImpl extends DefaultJPAService<FileUploadEntity> imple
 			fileUploadModelEntity.setFileKey(filePath);
 			fileUploadModelEntity.setUrl(getFileUrl(filePath));
 			fileUploadModelEntity.setName(filename);
-			fileUploadModelEntity.setUploadType(uploadType);
+			fileUploadModelEntity.setSourceType(sourceType);
 			if(file.getContentType().contains("video")) {//视频
 				thumbnailFile = new File(UUID.randomUUID()+"_thumbnail.png");
 				InputStream stream2 = new ByteArrayInputStream(baos.toByteArray());

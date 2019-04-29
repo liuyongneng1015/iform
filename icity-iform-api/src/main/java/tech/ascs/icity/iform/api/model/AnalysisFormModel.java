@@ -64,6 +64,9 @@ public class AnalysisFormModel extends NameEntity {
 	@ApiModelProperty(value="联动控件集合",position = 12)
 	private List<LinkedItemModel> linkedItemModelList;
 
+	@ApiModelProperty(value = "业务触发器", position = 9)
+	private List<BusinessTriggerModel> triggeres = new ArrayList<BusinessTriggerModel>();
+
 	public AnalysisProceeeModel getProcess() {
 		return process;
 	}
@@ -152,7 +155,15 @@ public class AnalysisFormModel extends NameEntity {
         this.linkedItemModelList = linkedItemModelList;
     }
 
-    @Override
+	public List<BusinessTriggerModel> getTriggeres() {
+		return triggeres;
+	}
+
+	public void setTriggeres(List<BusinessTriggerModel> triggeres) {
+		this.triggeres = triggeres;
+	}
+
+	@Override
     public String getId() {
         String id = super.getId();
         if(StringUtils.isBlank(id)){

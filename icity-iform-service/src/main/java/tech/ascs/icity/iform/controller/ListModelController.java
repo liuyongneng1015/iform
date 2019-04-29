@@ -306,7 +306,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 
 		if(listModel.getMasterForm() != null && !listModel.getMasterForm().isNew()) {
 			FormModelEntity formModelEntity = new FormModelEntity();
-			BeanUtils.copyProperties(listModel.getMasterForm(), formModelEntity, new String[] {"dataModels","items", "permissions","submitChecks","functions"});
+			BeanUtils.copyProperties(listModel.getMasterForm(), formModelEntity, new String[] {"dataModels","items", "permissions","submitChecks","functions", "triggeres"});
 			entity.setMasterForm(formModelEntity);
 		}
 
@@ -314,7 +314,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			List<FormModelEntity> formModelEntities = new ArrayList<>();
 			for (FormModel formModel : listModel.getSlaverForms()){
 				FormModelEntity formModelEntity = new FormModelEntity();
-				BeanUtils.copyProperties(formModel, formModelEntity, new String[]{"dataModels", "items", "permissions", "submitChecks","functions"});
+				BeanUtils.copyProperties(formModel, formModelEntity, new String[]{"dataModels", "items", "permissions", "submitChecks","functions", "triggeres"});
 				formModelEntities.add(formModelEntity);
 			}
 			entity.setSlaverForms(formModelEntities);
@@ -482,7 +482,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		if(entity.getMasterForm() != null){
 			FormModelEntity formModelEntity = entity.getMasterForm();
 			FormModel masterForm = new FormModel();
-			BeanUtils.copyProperties(formModelEntity, masterForm, new String[] {"items","dataModels","permissions","submitChecks","functions"});
+			BeanUtils.copyProperties(formModelEntity, masterForm, new String[] {"items","dataModels","permissions","submitChecks","functions", "triggeres"});
 			listModel.setMasterForm(masterForm);
 
 			if(formModelEntity.getDataModels() != null && formModelEntity.getDataModels().size() > 0){
@@ -536,7 +536,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			List<FormModel> list = new ArrayList<>();
 			for(FormModelEntity formModelEntity : entity.getSlaverForms()) {
 				FormModel slaverForm = new FormModel();
-				BeanUtils.copyProperties(formModelEntity, slaverForm, new String[]{"items", "dataModels", "permissions", "submitChecks","functions"});
+				BeanUtils.copyProperties(formModelEntity, slaverForm, new String[]{"items", "dataModels", "permissions", "submitChecks","functions", "triggeres"});
 				list.add(slaverForm);
 			}
 			listModel.setSlaverForms(list);

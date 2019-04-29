@@ -59,6 +59,9 @@ public class FormModelEntity extends BaseEntity implements Serializable {
 	@Enumerated(EnumType.STRING)
 	private FormType type = FormType.General;
 
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "formModel")//业务触发
+	private List<BusinessTriggerEntity> triggeres = new ArrayList<>();
+
 	public String getDescription() {
 		return description;
 	}
@@ -153,5 +156,13 @@ public class FormModelEntity extends BaseEntity implements Serializable {
 
 	public void setType(FormType type) {
 		this.type = type;
+	}
+
+	public List<BusinessTriggerEntity> getTriggeres() {
+		return triggeres;
+	}
+
+	public void setTriggeres(List<BusinessTriggerEntity> triggeres) {
+		this.triggeres = triggeres;
 	}
 }
