@@ -245,7 +245,7 @@ public interface FormModelService {
 		@ApiImplicitParam(paramType = "query", name = "tableName", value = "表名名", required = true, dataType = "String"),
 		@ApiImplicitParam(paramType = "query", name = "columnName", value = "字段名", required = true, dataType = "String")
 	})
-	@GetMapping(value = "/find-item-by-table-and-column-name")
+	@GetMapping(value = "/find-item-by-table-and-column")
 	ItemModel findItemByTableAndColumName(@RequestParam(name = "tableName", defaultValue = "") String tableName,
 										  @RequestParam(name = "columnName", defaultValue = "") String columnName);
 

@@ -305,12 +305,17 @@ public interface FormInstanceService {
 		@ApiImplicitParam(paramType = "query", name = "page", value = "页码", required = false, defaultValue = "1"),
 		@ApiImplicitParam(paramType = "query", name = "pagesize", value = "每页记录数", required = false, defaultValue = "10"),
 	})
-	@GetMapping("/find-by-table-name-and-column-value")
+	@GetMapping("/find-by-table-and-column")
 	Page<FormDataSaveInstance> findByTableNameAndColumnValue(@RequestParam(name = "page", defaultValue = "1") int page,
 															 @RequestParam(name="pagesize", defaultValue = "10") int pagesize,
 															 @RequestParam(name="tableName", defaultValue = "") String tableName,
 															 @RequestParam(name="columnName", defaultValue = "") String columnName,
 															 @RequestParam(name="columnValue", required = false) String columnValue);
+
+    /**
+     *
+     */
+
 
 	/**
 	 * 静态的策略组接口
