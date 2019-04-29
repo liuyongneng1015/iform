@@ -1,5 +1,6 @@
 package tech.ascs.icity.iform.service.impl;
 
+import org.apache.commons.lang3.StringUtils;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.model.BusinessTriggerEntity;
@@ -80,13 +81,13 @@ public class OKHttpLogServiceImpl extends DefaultJPAService<OKHttpLogEntity> imp
 
 	private ResponseResult requestWebService(BusinessTriggerEntity triggerEntity, Map<String, Object>  map){
 		ResponseResult result = null;
-		if("get".equals(triggerEntity.getMethod())){
+		if(StringUtils.equalsIgnoreCase("get", triggerEntity.getMethod())){
 			result = OkHttpUtils.doGet(triggerEntity.getUrl(), map);
-		}else if("delete".equals(triggerEntity.getMethod())){
+		}else if(StringUtils.equalsIgnoreCase("delete", triggerEntity.getMethod())){
 			result = OkHttpUtils.doDelete(triggerEntity.getUrl(), map);
-		}else if("put".equals(triggerEntity.getMethod())){
+		}else if(StringUtils.equalsIgnoreCase("put", triggerEntity.getMethod())){
 			result = OkHttpUtils.doPut(triggerEntity.getUrl(), map);
-		}else if("head".equals(triggerEntity.getMethod())){
+		}else if(StringUtils.equalsIgnoreCase("head", triggerEntity.getMethod())){
 			result = OkHttpUtils.doHeader(triggerEntity.getUrl(), map);
 		}else{
 			result = OkHttpUtils.doPost(triggerEntity.getUrl(), map);
