@@ -438,6 +438,11 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	public Map toColumnNameValueDTO(FormDataSaveInstance formDataSaveInstance) {
 		Map map = new HashMap();
 		for (ItemInstance item:formDataSaveInstance.getItems()) {
+			item.setType(null);
+			item.setVisible(null);
+			item.setReadonly(null);
+			item.setColumnModelId(null);
+			item.setColumnModelName(null);
 			map.put(item.getColumnModelName(), item);
 		}
 		for (SubFormItemInstance sumForm:formDataSaveInstance.getSubFormData()) {
@@ -455,8 +460,9 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 					map.put(item.getColumnModelName(), item);
 					item.setColumnModelName(null);
 					item.setColumnModelId(null);
-					item.setVisible(null);
 					item.setReadonly(null);
+					item.setVisible(null);
+					item.setType(null);
 				}
 			}
 			list.add(map);
@@ -618,6 +624,24 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			}
 		}
 		return Page.get(page, pagesize);
+	}
+
+	@Override
+	public Page<Map> getColumnNameValue(@RequestParam(name="page", defaultValue = "1") int page,
+									    @RequestParam(name="pagesize", defaultValue = "10") int pagesize,
+									    @RequestParam(name="tableName", defaultValue = "") String tableName,
+									    @RequestParam(name="columnName", defaultValue = "") String columnName,
+								    	@RequestParam(name="columnValue", required = false) String columnValue) {
+		Page pageInstance = findByTableNameAndColumnValue(page,  pagesize, tableName, columnName, columnValue);
+		List<FormDataSaveInstance> results = pageInstance.getResults();
+		if (results!=null && results.size()>0) {
+			List<Map> list = new ArrayList();
+			for (FormDataSaveInstance formDataSaveInstance:results) {
+				list.add(toColumnNameValueDTO(formDataSaveInstance));
+			}
+			pageInstance.setContent(list);
+		}
+		return pageInstance;
 	}
 
 	@Autowired
