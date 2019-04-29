@@ -1447,8 +1447,8 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			oldMap.put(function.getId(), function);
 		}
 		List<ListFunction> newFunctions= paramerEntity.getFunctions();
+		List<ListFunction> submitFunctions = new ArrayList<>();
 		if(newFunctions != null){
-			List<ListFunction> submitFunctions = new ArrayList<>();
 			for(ListFunction function : newFunctions){
 				boolean isNew = function.isNew();
 				ListFunction listFunction = isNew ? new ListFunction() : oldMap.remove(function.getId());
@@ -1460,10 +1460,10 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				listFunction.setFormModel(formModelEntity);
 				submitFunctions.add(listFunction);
 			}
-			formModelEntity.setFunctions(submitFunctions);
 		}
+		formModelEntity.setFunctions(submitFunctions);
 		for(String key : oldMap.keySet()){
-			formFunctionsService.deleteById(key);
+			listFunctionManager.deleteById(key);
 		}
 	}
 
@@ -1474,18 +1474,18 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		for(BusinessTriggerEntity triggerEntity : formModelEntity.getTriggeres()){
 			oldMap.put(triggerEntity.getId(), triggerEntity);
 		}
-		List<BusinessTriggerEntity> newTriggeres= paramerEntity.getTriggeres();
-		if(newTriggeres != null){
-			List<BusinessTriggerEntity> submitTriggeres = new ArrayList<>();
-			for(BusinessTriggerEntity triggerEntity : newTriggeres){
+		List<BusinessTriggerEntity> paramerTriggeres= paramerEntity.getTriggeres();
+		List<BusinessTriggerEntity> submitTriggeres = new ArrayList<>();
+		if(paramerTriggeres != null){
+			for(BusinessTriggerEntity triggerEntity : paramerTriggeres){
 				boolean isNew = triggerEntity.isNew();
 				BusinessTriggerEntity trigger = isNew ? new BusinessTriggerEntity() : oldMap.remove(triggerEntity.getId());
 				BeanUtils.copyProperties(triggerEntity, trigger, new String[]{"formModel"});
 				triggerEntity.setFormModel(formModelEntity);
 				submitTriggeres.add(triggerEntity);
 			}
-			formModelEntity.setTriggeres(submitTriggeres);
 		}
+		formModelEntity.setTriggeres(submitTriggeres);
 		for(String key : oldMap.keySet()){
 			businessTriggerManager.deleteById(key);
 		}

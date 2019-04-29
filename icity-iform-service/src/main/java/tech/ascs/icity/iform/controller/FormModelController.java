@@ -678,19 +678,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			if(formModelEntity == null){
 				throw new IFormException("未找到【"+formModel.getId()+"】对应的表单模型");
 			}
-			if(formModelEntity.getItems() != null){
-				List<String> oldItemIds = formModelEntity.getItems().parallelStream().map(ItemModelEntity::getId).collect(Collectors.toList());
-				List<String> newItemIds = new ArrayList<>();
-				for(ItemModel itemModel : formModel.getItems()){
-					if(!itemModel.isNew()) {
-						newItemIds.add(itemModel.getId());
-					}
-				}
-				oldItemIds.removeAll(newItemIds);
-				if(oldItemIds == null || oldItemIds.size() < 1){
-					return;
-				}
-			}
 		}
 
 		if(formModel.getDataModels() == null || formModel.getDataModels().isEmpty()){
@@ -1050,7 +1037,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			for(FormSubmitCheckModel model : formModel.getSubmitChecks()){
 				FormSubmitCheckInfo checkInfo =  new FormSubmitCheckInfo();
 				BeanUtils.copyProperties(model, checkInfo, new String[]{"formModel"});
-				checkInfo.setFormModel(entity);
 				checkInfos.add(checkInfo);
 			}
 			List<FormSubmitCheckInfo> checkInfoList = checkInfos.size() < 2 ? checkInfos : checkInfos.parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
@@ -1123,7 +1109,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				if (model.getParseArea()!=null && model.getParseArea().length>0) {
 					function.setParseArea(String.join(",", model.getParseArea()));
 				}
-				function.setFormModel(entity);
 				function.setOrderNo(i+1);
 				functions.add(function);
 			}
@@ -1139,7 +1124,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				BusinessTriggerModel model = formModel.getTriggeres().get(i);
 				BusinessTriggerEntity triggerEntity =  new BusinessTriggerEntity();
 				BeanUtils.copyProperties(model, triggerEntity, new String[]{"formModel"});
-				triggerEntity.setFormModel(entity);
 				triggerEntity.setOrderNo(i+1);
 				list.add(triggerEntity);
 			}

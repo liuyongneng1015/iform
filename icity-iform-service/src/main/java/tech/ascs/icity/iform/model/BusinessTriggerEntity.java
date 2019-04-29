@@ -15,6 +15,10 @@ public class BusinessTriggerEntity extends BaseEntity implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
+	@ManyToOne(cascade = {CascadeType.REFRESH})
+	@JoinColumn(name="form_id")
+	private FormModelEntity formModel;
+
 	@Column(name="order_no",columnDefinition = "int default 0")//排序号
 	private Integer orderNo = 0;
 
@@ -39,10 +43,6 @@ public class BusinessTriggerEntity extends BaseEntity implements Serializable {
 
 	@Column(name="remark")//备注
 	private String remark ;
-
-	@ManyToOne(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
-	@JoinColumn(name="form_id")
-	private FormModelEntity formModel;
 
 
 	public Integer getOrderNo() {
