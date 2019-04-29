@@ -153,22 +153,6 @@ public class DictionaryController implements tech.ascs.icity.iform.api.service.D
 	}
 
 	@Override
-	public List<DictionaryItemModel> getItemsByCode(@RequestParam(name="code", required = false) String code) {
-		if (StringUtils.isEmpty(code)) {
-			return new ArrayList();
-		}
-		DictionaryEntity dictionary = dictionaryService.query().filterEqual("code", code).first();
-		if (dictionary!=null) {
-			List<DictionaryItemModel> list = listItem(dictionary.getId());
-			if (list.size()>0) {
-				return list.get(0).getResources();
-			}
-			return new ArrayList<>();
-		}
-		return new ArrayList();
-	}
-
-	@Override
     public void add(@RequestBody(required = true) DictionaryModel dictionaryModel) {
 		veryDictionaryByName(null, dictionaryModel.getName(), dictionaryModel.getCode());
 		DictionaryEntity dictionary = new DictionaryEntity();

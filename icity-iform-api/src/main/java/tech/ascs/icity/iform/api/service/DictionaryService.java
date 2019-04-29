@@ -42,13 +42,6 @@ public interface DictionaryService {
 	@GetMapping("/model")
 	DictionaryModel getByNameAndCode(@RequestParam(name = "name", required = false) String name, @RequestParam(name="code", required = false) String code);
 
-	@ApiOperation("通过分类的code编码获取该分类的所有字典表内容")
-	@ApiImplicitParams({
-		@ApiImplicitParam(paramType = "query", name = "code", value = "字典表分类编码", required = false)
-	})
-	@GetMapping("/find-items-by-code")
-	List<DictionaryItemModel> getItemsByCode(@RequestParam(name="code", required = false) String code);
-
 	@ApiOperation("新增字典表")
 	@PostMapping
 	void add(@RequestBody(required = true) DictionaryModel dictionaryModel);

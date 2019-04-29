@@ -300,12 +300,17 @@ public interface FormInstanceService {
 	@ApiOperation(value = "通过表名和该表的字段对应的value获取表单实例，columnValues的columnName必须是属于该表的字段，不能是子表或者管理属性的字段", position = 6)
 	@ApiImplicitParams({
 		@ApiImplicitParam(paramType = "query", name = "tableName", value = "表名", required = false),
-		@ApiImplicitParam(paramType = "query", name = "columnValues", value = "字段取值", required = false)
+		@ApiImplicitParam(paramType = "query", name = "columnName", value = "字段名称", required = false),
+		@ApiImplicitParam(paramType = "query", name = "columnValue", value = "字段取值", required = false),
+		@ApiImplicitParam(paramType = "query", name = "page", value = "页码", required = false, defaultValue = "1"),
+		@ApiImplicitParam(paramType = "query", name = "pagesize", value = "每页记录数", required = false, defaultValue = "10"),
 	})
 	@GetMapping("/find-by-table-name-and-column-value")
-	List<FormDataSaveInstance> findByTableNameAndColumnValue(@RequestParam(name="tableName", defaultValue = "") String tableName,
+	Page<FormDataSaveInstance> findByTableNameAndColumnValue(@RequestParam(name = "page", defaultValue = "1") int page,
+															 @RequestParam(name="pagesize", defaultValue = "10") int pagesize,
+															 @RequestParam(name="tableName", defaultValue = "") String tableName,
 															 @RequestParam(name="columnName", defaultValue = "") String columnName,
-															 @RequestParam(name="columnValue") String columnValue);
+															 @RequestParam(name="columnValue", required = false) String columnValue);
 
 	/**
 	 * 静态的策略组接口

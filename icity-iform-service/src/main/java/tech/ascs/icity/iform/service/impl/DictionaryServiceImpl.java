@@ -240,12 +240,14 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 	private DictionaryModel getByEntity(DictionaryEntity dictionaryEntity) {
 		DictionaryModel dictionaryModel = new DictionaryModel();
 		BeanUtils.copyProperties(dictionaryEntity, dictionaryModel, new String[]{"dictionaryItems"});
-
-		if (dictionaryEntity.getDictionaryItems() != null && dictionaryEntity.getDictionaryItems().size() > 0) {
+		List<DictionaryItemEntity> dictionaryItems = dictionaryEntity.getDictionaryItems();
+		if (dictionaryItems!= null && dictionaryItems.size() > 0) {
 			List<DictionaryItemModel> list = new ArrayList<>();
-			for (DictionaryItemEntity childDictionaryItemEntity : dictionaryEntity.getDictionaryItems()) {
+			for (DictionaryItemEntity childDictionaryItemEntity : dictionaryItems) {
 				list.add(getByEntity(childDictionaryItemEntity));
 			}
+			list.stream().sorted(Comparator.comparing(DictionaryItemModel::getOrderNo));
+			dictionaryModel.setResources(list);
 		}
 		return dictionaryModel;
 	}
