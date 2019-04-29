@@ -300,7 +300,7 @@ public interface FormInstanceService {
 	@ApiOperation(value = "通过表名和该表的字段对应的value获取表单实例，columnValues的columnName必须是属于该表的字段，不能是子表或者管理属性的字段", position = 6)
 	@ApiImplicitParams({
 		@ApiImplicitParam(paramType = "query", name = "tableName", value = "表名", required = false),
-		@ApiImplicitParam(paramType = "query", name = "columnName", value = "字段取值", required = false)
+		@ApiImplicitParam(paramType = "query", name = "columnValues", value = "字段取值", required = false)
 	})
 	@GetMapping("/find-by-table-name-and-column-value")
 	List<FormDataSaveInstance> findByTableNameAndColumnValue(@RequestParam(name="tableName", defaultValue = "") String tableName,
