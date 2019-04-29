@@ -249,6 +249,13 @@ public interface FormModelService {
 	ItemModel findItemByTableAndColumName(@RequestParam(name = "tableName", defaultValue = "") String tableName,
 										  @RequestParam(name = "columnName", defaultValue = "") String columnName);
 
+	@ApiOperation(value = "通过表名获取表单ID", position = 1)
+	@ApiImplicitParams({
+		@ApiImplicitParam(paramType = "query", name = "tableName", value = "数据建模表名", required = false)
+	})
+	@GetMapping(value = "/find-id-by-table-name")
+	IdEntity findIdByTableName(@RequestParam(name = "tableName", defaultValue = "") String tableName);
+
 	@ApiOperation(value = "通过id和数据建模表名获取表单", position = 1)
 	@ApiImplicitParams({
 			@ApiImplicitParam(paramType = "query", name = "id", value = "表单id", required = false),
