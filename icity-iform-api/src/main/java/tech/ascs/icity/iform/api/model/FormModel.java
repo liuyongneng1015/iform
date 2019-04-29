@@ -65,6 +65,9 @@ public class FormModel extends NameEntity {
 	@ApiModelProperty(value = "表单类型", position = 4)
 	private FormType type = FormType.General;
 
+	@ApiModelProperty(value = "业务触发器", position = 9)
+	private List<BusinessTriggerModel> triggeres = new ArrayList<BusinessTriggerModel>();
+
 
 	public String getDescription() {
 		return description;
@@ -152,6 +155,14 @@ public class FormModel extends NameEntity {
 
 	public void setType(FormType type) {
 		this.type = type;
+	}
+
+	public List<BusinessTriggerModel> getTriggeres() {
+		return triggeres;
+	}
+
+	public void setTriggeres(List<BusinessTriggerModel> triggeres) {
+		this.triggeres = triggeres;
 	}
 
 	@Override

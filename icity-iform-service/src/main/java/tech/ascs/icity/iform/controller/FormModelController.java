@@ -449,7 +449,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 	private void setFormModel(FormModelEntity entity, List<FormModel> formModelList, Map<String, List<FormModel>> map){
 		FormModel formModel = new FormModel();
-		BeanUtils.copyProperties(entity, formModel, new String[] {"items","dataModels","permissions","submitChecks","functions"});
+		BeanUtils.copyProperties(entity, formModel, new String[] {"items","dataModels","permissions","submitChecks","functions", "triggeres"});
 		if(entity.getDataModels() != null){
 			List<DataModel> dateModels = new ArrayList<>();
 			for(DataModelEntity dataModelEntity : entity.getDataModels()){
@@ -702,7 +702,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	private FormModelEntity wrap(FormModel formModel) {
 		veryFormModel(formModel);
 		FormModelEntity entity = new FormModelEntity();
-		BeanUtils.copyProperties(formModel, entity, new String[] {"items","dataModels","permissions","submitChecks","functions"});
+		BeanUtils.copyProperties(formModel, entity, new String[] {"items","dataModels","permissions","submitChecks","functions","triggeres"});
 
 		if(formModel.getProcess() != null){
 			formModel.setFunctions(null);
@@ -774,6 +774,10 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 		if(formModel.getFunctions() != null && formModel.getFunctions().size() > 0){
 			wrapFormFunctions(entity, formModel);
+		}
+
+		if(formModel.getTriggeres() != null && formModel.getTriggeres().size() > 0){
+			wrapFormTriggeres(entity, formModel);
 		}
 
 		if(formModel.getSubmitChecks() != null && formModel.getSubmitChecks().size() > 0){
@@ -1028,7 +1032,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 	private FormModelEntity wrapProcessActivityBind(FormModel formModel) {
 		FormModelEntity entity = new FormModelEntity();
-		BeanUtils.copyProperties(formModel, entity, new String[] {"items","dataModels","permissions","submitChecks","functions"});
+		BeanUtils.copyProperties(formModel, entity, new String[] {"items","dataModels","permissions","submitChecks","functions", "triggeres"});
 
 		//流程
 		if(formModel.getProcess() != null){
@@ -1064,7 +1068,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 	private FormModelEntity wrapSubmitCheck(FormModel formModel) {
 		FormModelEntity entity = new FormModelEntity();
-		BeanUtils.copyProperties(formModel, entity, new String[] {"items","dataModels","permissions","submitChecks","functions"});
+		BeanUtils.copyProperties(formModel, entity, new String[] {"items","dataModels","permissions","submitChecks","functions", "triggeres"});
 
 		if(formModel.getSubmitChecks() != null){
 			List<FormSubmitCheckInfo> checkInfos = new ArrayList<>();
@@ -1082,7 +1086,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 	//设置表单功能
 	private void wrapFormFunctions(FormModelEntity entity, FormModel formModel) {
-		if(formModel.getSubmitChecks() != null){
+		if(formModel.getFunctions() != null){
 			List<ListFunction> functions = new ArrayList<>();
 			for (int i = 0; i < formModel.getFunctions().size(); i++) {
 			    FunctionModel model = formModel.getFunctions().get(i);
@@ -1096,6 +1100,22 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				functions.add(function);
 			}
 			entity.setFunctions(functions);
+		}
+	}
+
+	//设置表单业务触发
+	private void wrapFormTriggeres(FormModelEntity entity, FormModel formModel) {
+		if(formModel.getTriggeres() != null){
+			List<BusinessTriggerEntity> list = new ArrayList<>();
+			for (int i = 0; i < formModel.getTriggeres().size(); i++) {
+				BusinessTriggerModel model = formModel.getTriggeres().get(i);
+				BusinessTriggerEntity triggerEntity =  new BusinessTriggerEntity();
+				BeanUtils.copyProperties(model, triggerEntity, new String[]{"formModel"});
+				triggerEntity.setFormModel(entity);
+				triggerEntity.setOrderNo(i+1);
+				list.add(triggerEntity);
+			}
+			entity.setTriggeres(list);
 		}
 	}
 
@@ -1667,7 +1687,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 	private FormModel toDTO(FormModelEntity entity, boolean setFormProcessFlag) {
 		FormModel formModel = new FormModel();
-		BeanUtils.copyProperties(entity, formModel, new String[] {"items","dataModels","permissions","submitChecks","functions"});
+		BeanUtils.copyProperties(entity, formModel, new String[] {"items","dataModels","permissions","submitChecks","functions", "triggeres"});
 		if(entity.getDataModels() != null && entity.getDataModels().size() > 0){
 			List<DataModel> dataModelList = new ArrayList<>();
 			List<DataModelEntity> dataModelEntities = entity.getDataModels();
@@ -1761,7 +1781,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
                 FormSubmitCheckModel checkModel = new FormSubmitCheckModel();
                 BeanUtils.copyProperties(info, checkModel, new String[] {"formModel"});
 				FormModel submitCheckFormModel = new FormModel();
-				BeanUtils.copyProperties(entity, submitCheckFormModel, new String[] {"items","dataModels","permissions","submitChecks","functions"});
+				BeanUtils.copyProperties(entity, submitCheckFormModel, new String[] {"items","dataModels","permissions","submitChecks","functions", "triggeres"});
                 checkModel.setFormModel(submitCheckFormModel);
                 submitCheckModels.add(checkModel);
             }
@@ -1962,7 +1982,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
     }
 
 	private void entityToDTO(FormModelEntity entity, Object object, boolean isAnalysisForm, DeviceType deviceType){
-		BeanUtils.copyProperties(entity, object, new String[] {"dataModels","items","permissions","submitChecks","functions"});
+		BeanUtils.copyProperties(entity, object, new String[] {"dataModels","items","permissions","submitChecks","functions", "triggeres"});
 		if(entity.getFunctions() != null && entity.getFunctions().size() > 0){
 			List<ListFunction> functions = entity.getFunctions().parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
 			List<FunctionModel> functionModels = new ArrayList<>();
