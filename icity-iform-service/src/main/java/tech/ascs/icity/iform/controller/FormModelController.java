@@ -385,6 +385,18 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		return null;
 	}
 
+	public IdEntity findIdByTableName(@RequestParam(name = "tableName", defaultValue = "") String tableName) {
+		if(StringUtils.isEmpty(tableName)){
+			throw new IFormException("参数不能为空");
+		}
+		FormModelEntity formModelEntity = formModelService.query().filterEqual("dataModels.tableName", tableName).first();
+		if (formModelEntity!=null) {
+			return new IdEntity(formModelEntity.getId());
+		} else {
+			return null;
+		}
+	}
+
 	@Override
 	public FormModel findByIdAndTableName(@RequestParam(name = "id", required = false) String id, @RequestParam(name = "tableName", required = false) String tableName) {
 		if(!StringUtils.hasText(id) &&  !StringUtils.hasText(tableName)){
