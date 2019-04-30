@@ -37,11 +37,14 @@ public class FormModelEntity extends BaseEntity implements Serializable {
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "formModel")
 	private List<ItemModelEntity> items = new ArrayList<ItemModelEntity>();
 
-	@OneToMany(cascade = CascadeType.ALL, mappedBy = "formModel")
+	@OneToMany(cascade = {CascadeType.REFRESH,CascadeType.REMOVE }, mappedBy = "formModel")
 	private List<FormSubmitCheckInfo> submitChecks = new ArrayList<FormSubmitCheckInfo>();
 
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "formModel")
 	private List<ListFunction> functions = new ArrayList<>();
+
+	@OneToMany(cascade = {CascadeType.REFRESH,CascadeType.REMOVE }, mappedBy = "formModel")//业务触发
+	private List<BusinessTriggerEntity> triggeres = new ArrayList<>();
 
 	@Column(name="item_model_ids", length = 2048) // 数据标识：控件id集合
 	private String itemModelIds;
@@ -59,8 +62,6 @@ public class FormModelEntity extends BaseEntity implements Serializable {
 	@Enumerated(EnumType.STRING)
 	private FormType type = FormType.General;
 
-	@OneToMany(cascade = CascadeType.ALL, mappedBy = "formModel")//业务触发
-	private List<BusinessTriggerEntity> triggeres = new ArrayList<>();
 
 	public String getDescription() {
 		return description;
