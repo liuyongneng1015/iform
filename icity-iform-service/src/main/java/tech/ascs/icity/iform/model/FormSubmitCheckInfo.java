@@ -14,7 +14,7 @@ public class FormSubmitCheckInfo extends JPAEntity implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	@ManyToOne(cascade = {CascadeType.MERGE})
+	@ManyToOne(cascade = {CascadeType.REFRESH, CascadeType.MERGE})
 	@JoinColumn(name="form_id")
 	private FormModelEntity formModel;
 
