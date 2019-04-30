@@ -429,7 +429,10 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		FormModelEntity formModel = formModelService.find(formId);
 		FormDataSaveInstance formDataSaveInstance = formInstanceService.getFormDataSaveInstance(formModel, id);
 		if (formDataSaveInstance!=null) {
-			return toColumnNameValueDTO(formDataSaveInstance);
+		    Map map = toColumnNameValueDTO(formDataSaveInstance);
+            // 添加一个formId，如果在键值对的详情页面要编辑数据时，前端可以通过formId获取表单详情
+            map.put("formId", formDataSaveInstance.getFormId());
+			return map;
 		} else {
 			return null;
 		}
@@ -637,7 +640,10 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		if (results!=null && results.size()>0) {
 			List<Map> list = new ArrayList();
 			for (FormDataSaveInstance formDataSaveInstance:results) {
-				list.add(toColumnNameValueDTO(formDataSaveInstance));
+				Map map = toColumnNameValueDTO(formDataSaveInstance);
+				// 添加一个formId，如果在键值对的详情页面要编辑数据时，前端可以通过formId获取表单详情
+				map.put("formId", formDataSaveInstance.getFormId());
+				list.add(map);
 			}
 			pageInstance.setContent(list);
 		}
