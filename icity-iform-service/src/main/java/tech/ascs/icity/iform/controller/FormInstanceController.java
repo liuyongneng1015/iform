@@ -630,11 +630,11 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	}
 
 	@Override
-	public Page<Map> getColumnNameValue(@RequestParam(name="page", defaultValue = "1") int page,
-									    @RequestParam(name="pagesize", defaultValue = "10") int pagesize,
-									    @RequestParam(name="tableName", defaultValue = "") String tableName,
-									    @RequestParam(name="columnName", defaultValue = "") String columnName,
-								    	@RequestParam(name="columnValue", required = false) String columnValue) {
+	public Page<Map> getColumnNameValueByTable(@RequestParam(name="page", defaultValue = "1") int page,
+											   @RequestParam(name="pagesize", defaultValue = "10") int pagesize,
+											   @RequestParam(name="tableName", defaultValue = "") String tableName,
+											   @RequestParam(name="columnName", defaultValue = "") String columnName,
+											   @RequestParam(name="columnValue", required = false) String columnValue) {
 		Page pageInstance = findByTableNameAndColumnValue(page,  pagesize, tableName, columnName, columnValue);
 		List<FormDataSaveInstance> results = pageInstance.getResults();
 		if (results!=null && results.size()>0) {
