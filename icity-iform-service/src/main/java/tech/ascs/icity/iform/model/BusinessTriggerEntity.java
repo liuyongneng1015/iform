@@ -15,7 +15,7 @@ public class BusinessTriggerEntity extends BaseEntity implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	@ManyToOne(cascade = {CascadeType.REFRESH})
+	@ManyToOne(cascade = {CascadeType.REFRESH, CascadeType.MERGE})
 	@JoinColumn(name="form_id")
 	private FormModelEntity formModel;
 
