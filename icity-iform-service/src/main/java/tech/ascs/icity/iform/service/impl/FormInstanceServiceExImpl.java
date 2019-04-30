@@ -478,16 +478,18 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	private void sendWebService(FormModelEntity formModelEntity, BusinessTriggerType triggerType,  Map<String, Object> data, String id){
 		BusinessTriggerEntity triggerEntity = getBusinessTrigger(formModelEntity, triggerType);
-		if(triggerEntity.getParamCondition() == ParamCondition.FormCurrentData) {
-			okHttpLogService.sendOKHttpRequest(triggerEntity, formModelEntity, data);
-		}else{
-			Map<String, Object> dataMap = new HashMap<>();
-			dataMap.put("formId", formModelEntity.getId());
-			if(StringUtils.hasText(id)){
-				dataMap.put("id", id);
-			}
-			okHttpLogService.sendOKHttpRequest(triggerEntity, formModelEntity, dataMap);
-		}
+		if (triggerEntity!=null) {
+            if (triggerEntity.getParamCondition() == ParamCondition.FormCurrentData) {
+                okHttpLogService.sendOKHttpRequest(triggerEntity, formModelEntity, data);
+            } else {
+                Map<String, Object> dataMap = new HashMap<>();
+                dataMap.put("formId", formModelEntity.getId());
+                if (StringUtils.hasText(id)) {
+                    dataMap.put("id", id);
+                }
+                okHttpLogService.sendOKHttpRequest(triggerEntity, formModelEntity, dataMap);
+            }
+        }
 	}
 
 	private BusinessTriggerEntity getBusinessTrigger(FormModelEntity formModelEntity, BusinessTriggerType triggerType){
