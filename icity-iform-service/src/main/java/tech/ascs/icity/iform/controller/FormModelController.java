@@ -398,7 +398,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	}
 
 	@Override
-	public FormModel findByIdAndTableName(@RequestParam(name = "id", required = false) String id, @RequestParam(name = "tableName", required = false) String tableName) {
+	public AnalysisFormModel findByIdAndTableName(@RequestParam(name = "id", required = false) String id, @RequestParam(name = "tableName", required = false) String tableName) {
 		if(!StringUtils.hasText(id) &&  !StringUtils.hasText(tableName)){
 			throw new IFormException("参数不能为空");
 		}
@@ -413,7 +413,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 		try {
 			if (entity!=null) {
-				return toDTODetail(entity);
+				return toAnalysisDTO(entity, null);
 			} else {
 				return null;
 			}
