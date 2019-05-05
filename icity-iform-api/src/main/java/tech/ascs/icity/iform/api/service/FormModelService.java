@@ -201,6 +201,20 @@ public interface FormModelService {
                                                     @RequestParam(name="formModelId", required = false) String formModelId,
 													@RequestParam(name="type", required = false) String type);
 
+	/**
+	 * 流程建模表单模型
+	 *
+	 */
+	@ApiOperation(value = "流程建模表单模型", position = 3)
+	@ApiImplicitParams({
+			@ApiImplicitParam(paramType = "query", name = "applicationId", value = "应用id", required = true, dataType = "String"),
+			@ApiImplicitParam(paramType = "query", name = "key", value = "流程KEY", required = false, dataType = "String")
+	})
+	@GetMapping(value = "/process/form")
+	List<ApplicationModel> findProcessApplicationFormModel(@RequestParam(name="applicationId", required = true) String applicationId,
+													       @RequestParam(name="key", required = false) String key);
+
+
 
 	/**
 	 * 查询关联表单的控件模型

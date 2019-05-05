@@ -445,24 +445,34 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				formModels = formModelService.findAll();
 			}
 		}
-		List<FormModel> formModelList = new ArrayList<>();
-		Map<String, List<FormModel>> map = new HashMap<>();
 		List<FormModelEntity> formModelEntityList = formModels.parallelStream().sorted(Comparator.comparing(FormModelEntity::getId).reversed()).collect(Collectors.toList());
-		for(FormModelEntity entity : formModelEntityList){
-			setFormModel(entity, formModelList,  map);
-		}
-		List<ApplicationModel> applicationFormModels = new ArrayList<>();
-		if(map != null && map.size() > 0) {
-			setApplicationFormModels( map, applicationFormModels, applicationId);
-		}
-
-		return applicationFormModels;
+        return getApplicationModels(formModelEntityList, applicationId, true);
 	}
 
-	private void setFormModel(FormModelEntity entity, List<FormModel> formModelList, Map<String, List<FormModel>> map){
+    @Override
+    public List<ApplicationModel> findProcessApplicationFormModel(@RequestParam(name="applicationId", required = true) String applicationId,
+                                                                  @RequestParam(name="key", required = false) String key) {
+        List<FormModelEntity> formModelEntityList = formModelService.findProcessApplicationFormModel(key);
+        return getApplicationModels(formModelEntityList, applicationId, false);
+    }
+
+    private List<ApplicationModel> getApplicationModels(List<FormModelEntity> formModelEntityList, String applicationId, boolean isNeedDataModel){
+        List<FormModel> formModelList = new ArrayList<>();
+        Map<String, List<FormModel>> map = new HashMap<>();
+        for(FormModelEntity entity : formModelEntityList){
+            setFormModel(entity, formModelList,  map, isNeedDataModel);
+        }
+        List<ApplicationModel> applicationFormModels = new ArrayList<>();
+        if(map != null && map.size() > 0) {
+            setApplicationFormModels( map, applicationFormModels, applicationId);
+        }
+        return applicationFormModels;
+    }
+
+    private void setFormModel(FormModelEntity entity, List<FormModel> formModelList, Map<String, List<FormModel>> map, boolean isNeedDataModel){
 		FormModel formModel = new FormModel();
 		BeanUtils.copyProperties(entity, formModel, new String[] {"items","dataModels","permissions","submitChecks","functions", "triggeres"});
-		if(entity.getDataModels() != null){
+		if(entity.getDataModels() != null && isNeedDataModel){
 			List<DataModel> dateModels = new ArrayList<>();
 			for(DataModelEntity dataModelEntity : entity.getDataModels()){
 				DataModel dataModel = new DataModel();
@@ -1548,16 +1558,17 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 		if(itemModel.getType() != ItemType.ReferenceLabel && (!StringUtils.hasText(itemModel.getReferenceFormId())
 				|| itemModel.getReferenceList() == null || itemModel.getReferenceList().getId() == null)){
-			throw  new IFormException("关联控件【"+itemModel.getName()+"】未找到关联表单或列表模型");
+			throw  new IFormException("关联属性控件【"+itemModel.getName()+"】未找到关联表单或列表模型");
 		}
 
-		if(itemModel.getType() == ItemType.ReferenceLabel){
-			itemModel.setParentItem(null);
+		if(itemModel.getType() == ItemType.ReferenceLabel && itemModel.getParentItem() == null){
+            throw  new IFormException("关联控件【"+itemModel.getName()+"】未找到关联控件");
 		}
 
 		if(itemModel.getParentItem() != null) {
 			ItemModel parentItemModel = itemModel.getParentItem();
 			parentItemModel.setType(ItemType.ReferenceList);
+            parentItemModel.setSystemItemType(SystemItemType.ReferenceList);
 			entity.setParentItem((ReferenceItemModelEntity) getParentItemModel(parentItemModel));
 		}
 

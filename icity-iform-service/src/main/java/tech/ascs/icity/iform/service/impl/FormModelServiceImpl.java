@@ -1,8 +1,10 @@
 package tech.ascs.icity.iform.service.impl;
 
 import java.util.*;
+import java.util.logging.LogRecord;
 import java.util.stream.Collectors;
 
+import com.googlecode.genericdao.search.Filter;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -149,7 +151,6 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				itemModelEntities.add(newItemModelEntity);
 			}
 
-
 			for(ItemModelEntity item : allItems) {
 				if (!item.isNew()) {
 					if(oldMapItmes.containsKey(item.getId())) {
@@ -158,7 +159,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				}
 			}
 
-			//下拉数据字典联动控件
+			//下拉联动或关联动控件
 			setParentItem(itemModelEntities);
 
 			old.setItems(itemModelEntities);
@@ -187,13 +188,6 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 			setFormItemModelIds(formModelEntity);
 			setFormQrCodeItemModelIds(formModelEntity);
-
-			for(int i = 0 ;i <  itemModelEntityList.size() ; i++){
-				ItemModelEntity itemModelEntity = itemModelEntityList.get(i);
-				if(itemModelEntity instanceof ReferenceItemModelEntity){
-					setItemModelIds(itemModelEntity);
-				}
-			}
 
 			//保存表单建模
 			formModelManager.save(formModelEntity);
@@ -267,33 +261,6 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		formModelEntity.setQrCodeItemModelIds(String.join(",", list));
 	}
 
-	private void setItemModelIds(ItemModelEntity itemModelEntity){
-		if(((ReferenceItemModelEntity) itemModelEntity).getItemUuids() != null &&  itemModelEntity.getType() == ItemType.ReferenceList ){
-			((ReferenceItemModelEntity) itemModelEntity).setItemModelIds(String.join(",",
-					getReferenceItemModelList((ReferenceItemModelEntity)itemModelEntity).parallelStream().map(ItemModelEntity::getId).collect(Collectors.toList())));
-		}else{
-			((ReferenceItemModelEntity) itemModelEntity).setItemModelIds(null);
-		}
-		if(((ReferenceItemModelEntity) itemModelEntity).getSelectMode() == SelectMode.Attribute ){
-
-			if(itemModelEntity.getReferenceUuid() != null && ((ReferenceItemModelEntity) itemModelEntity).getParentItem() == null){
-				ItemModelEntity referenceItemModelEntity = itemManager.query().filterEqual("uuid", itemModelEntity.getReferenceUuid()).first();
-				((ReferenceItemModelEntity) itemModelEntity).setParentItem((ReferenceItemModelEntity)referenceItemModelEntity);
-			}
-
-			if(((ReferenceItemModelEntity) itemModelEntity).getParentItem() != null) {
-				FormModelEntity formModelEntity1 = formModelManager.find(((ReferenceItemModelEntity) itemModelEntity).getParentItem().getReferenceFormId());
-				if(formModelEntity1 != null) {
-					ItemModelEntity itemModelEntity1 = getItemModelByTableAndColumn(formModelEntity1, itemModelEntity.getUuid());
-					((ReferenceItemModelEntity) itemModelEntity).setReferenceItemId(itemModelEntity1 == null ? null : itemModelEntity1.getId());
-				}
-			}
-
-		}
-
-		itemManager.save(itemModelEntity);
-	}
-
 	@Override
 	public List<ItemModelEntity> getReferenceItemModelList(ReferenceItemModelEntity itemModelEntity){
 		List<ItemModelEntity> itemModelEntityList = getAllColumnItems(get(itemModelEntity.getReferenceFormId()).getItems());
@@ -313,13 +280,13 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		return list;
 	}
 
-	private ItemModelEntity getItemModelByTableAndColumn(FormModelEntity formModelEntity, String key){
+	private ItemModelEntity getItemModelByItemUUid(FormModelEntity formModelEntity, String uuid){
 		List<ItemModelEntity> itemModelEntityList = findAllItems(formModelEntity);
 		Map<String, ItemModelEntity> uuidItemModelEntityMap = new HashMap<>();
 		for(ItemModelEntity itemModelEntity1 : itemModelEntityList){
 			uuidItemModelEntityMap.put(itemModelEntity1.getUuid(), itemModelEntity1);
 		}
-		return uuidItemModelEntityMap.get(key);
+		return uuidItemModelEntityMap.get(uuid);
 	}
 
 	//设置关联关系
@@ -835,68 +802,80 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 	private ItemModelEntity getNewItemModelEntity(Map<String, ItemModelEntity> oldMapItmes, Map<String, ColumnModelEntity> modelEntityMap, ItemModelEntity paramerItemModelEntity){
 		ItemModelEntity newModelEntity = getNewItemModel(oldMapItmes, modelEntityMap, paramerItemModelEntity);
 		if(paramerItemModelEntity instanceof RowItemModelEntity){
-			RowItemModelEntity rowItemModelEntity = (RowItemModelEntity)paramerItemModelEntity;
-			List<ItemModelEntity> rowItems = new ArrayList<ItemModelEntity>();
-			for(int i = 0; i < rowItemModelEntity.getItems().size() ; i++) {
-				ItemModelEntity rowItem = rowItemModelEntity.getItems().get(i);
-				ItemModelEntity newRowItem = getNewItemModel(oldMapItmes, modelEntityMap, rowItem);
-				newRowItem.setFormModel(null);
-				if((newRowItem instanceof ReferenceItemModelEntity) && newRowItem.getType() != ItemType.ReferenceLabel) {
-					verifyReference((ReferenceItemModelEntity)rowItem);
-				}
-				newRowItem.setOrderNo(newModelEntity.getOrderNo() + i);
-				rowItems.add(newRowItem);
-			}
-			rowItemModelEntity.setItems(rowItems);
-			((RowItemModelEntity)newModelEntity).setItems(rowItems);
+            setRowItemModelEntity((RowItemModelEntity)paramerItemModelEntity, oldMapItmes, modelEntityMap, newModelEntity);
 		}else if(paramerItemModelEntity instanceof SubFormItemModelEntity){
-			List<SubFormRowItemModelEntity> subFormItems = new ArrayList<>();
-			SubFormItemModelEntity subFormItemModel  = (SubFormItemModelEntity)paramerItemModelEntity;
-			for (int i = 0; i < subFormItemModel.getItems().size() ; i++) {
-				SubFormRowItemModelEntity subFormRowItemModelEntity = subFormItemModel.getItems().get(i);
-				SubFormRowItemModelEntity subFormRowItemModel  = (SubFormRowItemModelEntity)getNewSubFormRowItemModel(oldMapItmes, subFormRowItemModelEntity);
-				subFormRowItemModel.setFormModel(null);
-				subFormRowItemModel.setOrderNo(newModelEntity.getOrderNo() + i);
-				List<ItemModelEntity> rowItems = new ArrayList<>();
-				for (int j = 0; j < subFormRowItemModelEntity.getItems().size() ; j ++) {
-					ItemModelEntity childRenItem = subFormRowItemModelEntity.getItems().get(j);
-					ItemModelEntity newRowItem = getNewItemModel(oldMapItmes, modelEntityMap, childRenItem);
-					newRowItem.setFormModel(null);
-					if((newRowItem instanceof ReferenceItemModelEntity) && newRowItem.getType() != ItemType.ReferenceLabel) {
-						verifyReference((ReferenceItemModelEntity)newRowItem);
-					}
-					newRowItem.setOrderNo(newModelEntity.getOrderNo() + j);
-					rowItems.add(getNewItemModel(oldMapItmes, modelEntityMap, newRowItem));
-				}
-				subFormRowItemModel.setParentItem((SubFormItemModelEntity)newModelEntity);
-				subFormRowItemModel.setItems(rowItems);
-				subFormItems.add(subFormRowItemModel);
-			}
-			((SubFormItemModelEntity)newModelEntity).setItems(subFormItems);
+            setSubFormItemModel((SubFormItemModelEntity)paramerItemModelEntity, oldMapItmes, modelEntityMap, newModelEntity);
 		}else if(paramerItemModelEntity instanceof TabsItemModelEntity){
-			TabsItemModelEntity tabPaneItemModelEntity = (TabsItemModelEntity)paramerItemModelEntity;
-			List<TabPaneItemModelEntity> tabPaneItemModelEntities = new ArrayList<>();
-			for (int j = 0; j < tabPaneItemModelEntity.getItems().size() ; j ++) {
-				TabPaneItemModelEntity childRenItem = tabPaneItemModelEntity.getItems().get(j);
-				TabPaneItemModelEntity newRowItem = getNewTabPaneItemModel(oldMapItmes, childRenItem);
-				List<ItemModelEntity> list = new ArrayList<>();
-				for(int k = 0 ; k < childRenItem.getItems().size() ; k++){
-					ItemModelEntity itemModelEntity = childRenItem.getItems().get(k);
-					ItemModelEntity itemModelEntity1 = getNewItemModelEntity(oldMapItmes, modelEntityMap, itemModelEntity);
-					itemModelEntity1.setFormModel(null);
-					itemModelEntity1.setOrderNo(newModelEntity.getOrderNo() + k);
-					list.add(itemModelEntity1);
-				}
-				newRowItem.setFormModel(null);
-				newRowItem.setParentItem((TabsItemModelEntity) newModelEntity);
-				newRowItem.setOrderNo(newModelEntity.getOrderNo()+ j);
-				newRowItem.setItems(list);
-				tabPaneItemModelEntities.add(newRowItem);
-			}
-			((TabsItemModelEntity)newModelEntity).setItems(tabPaneItemModelEntities);
+            setTabPaneItemModelEntity((TabsItemModelEntity)paramerItemModelEntity, oldMapItmes, modelEntityMap, newModelEntity);
 		}
 		return newModelEntity;
 	}
+
+	private void setRowItemModelEntity(RowItemModelEntity rowItemModelEntity, Map<String, ItemModelEntity> oldMapItmes,
+                                       Map<String, ColumnModelEntity> modelEntityMap, ItemModelEntity newModelEntity){
+        List<ItemModelEntity> rowItems = new ArrayList<ItemModelEntity>();
+        for(int i = 0; i < rowItemModelEntity.getItems().size() ; i++) {
+            ItemModelEntity rowItem = rowItemModelEntity.getItems().get(i);
+            ItemModelEntity newRowItem = getNewItemModel(oldMapItmes, modelEntityMap, rowItem);
+            newRowItem.setFormModel(null);
+            if((newRowItem instanceof ReferenceItemModelEntity) && newRowItem.getType() != ItemType.ReferenceLabel) {
+                verifyReference((ReferenceItemModelEntity)rowItem);
+            }
+            newRowItem.setOrderNo(newModelEntity.getOrderNo() + i);
+            rowItems.add(newRowItem);
+        }
+        rowItemModelEntity.setItems(rowItems);
+        ((RowItemModelEntity)newModelEntity).setItems(rowItems);
+    }
+
+    private void setSubFormItemModel(SubFormItemModelEntity subFormItemModel, Map<String, ItemModelEntity> oldMapItmes,
+                                       Map<String, ColumnModelEntity> modelEntityMap, ItemModelEntity newModelEntity){
+        List<SubFormRowItemModelEntity> subFormItems = new ArrayList<>();
+        for (int i = 0; i < subFormItemModel.getItems().size() ; i++) {
+            SubFormRowItemModelEntity subFormRowItemModelEntity = subFormItemModel.getItems().get(i);
+            SubFormRowItemModelEntity subFormRowItemModel  = (SubFormRowItemModelEntity)getNewSubFormRowItemModel(oldMapItmes, subFormRowItemModelEntity);
+            subFormRowItemModel.setFormModel(null);
+            subFormRowItemModel.setOrderNo(newModelEntity.getOrderNo() + i);
+            List<ItemModelEntity> rowItems = new ArrayList<>();
+            for (int j = 0; j < subFormRowItemModelEntity.getItems().size() ; j ++) {
+                ItemModelEntity childRenItem = subFormRowItemModelEntity.getItems().get(j);
+                ItemModelEntity newRowItem = getNewItemModel(oldMapItmes, modelEntityMap, childRenItem);
+                newRowItem.setFormModel(null);
+                if((newRowItem instanceof ReferenceItemModelEntity) && newRowItem.getType() != ItemType.ReferenceLabel) {
+                    verifyReference((ReferenceItemModelEntity)newRowItem);
+                }
+                newRowItem.setOrderNo(newModelEntity.getOrderNo() + j);
+                rowItems.add(getNewItemModel(oldMapItmes, modelEntityMap, newRowItem));
+            }
+            subFormRowItemModel.setParentItem((SubFormItemModelEntity)newModelEntity);
+            subFormRowItemModel.setItems(rowItems);
+            subFormItems.add(subFormRowItemModel);
+        }
+        ((SubFormItemModelEntity)newModelEntity).setItems(subFormItems);
+    }
+
+    private void setTabPaneItemModelEntity(TabsItemModelEntity tabPaneItemModelEntity, Map<String, ItemModelEntity> oldMapItmes,
+                                     Map<String, ColumnModelEntity> modelEntityMap, ItemModelEntity newModelEntity){
+        List<TabPaneItemModelEntity> tabPaneItemModelEntities = new ArrayList<>();
+        for (int j = 0; j < tabPaneItemModelEntity.getItems().size() ; j ++) {
+            TabPaneItemModelEntity childRenItem = tabPaneItemModelEntity.getItems().get(j);
+            TabPaneItemModelEntity newRowItem = getNewTabPaneItemModel(oldMapItmes, childRenItem);
+            List<ItemModelEntity> list = new ArrayList<>();
+            for(int k = 0 ; k < childRenItem.getItems().size() ; k++){
+                ItemModelEntity itemModelEntity = childRenItem.getItems().get(k);
+                ItemModelEntity itemModelEntity1 = getNewItemModelEntity(oldMapItmes, modelEntityMap, itemModelEntity);
+                itemModelEntity1.setFormModel(null);
+                itemModelEntity1.setOrderNo(newModelEntity.getOrderNo() + k);
+                list.add(itemModelEntity1);
+            }
+            newRowItem.setFormModel(null);
+            newRowItem.setParentItem((TabsItemModelEntity) newModelEntity);
+            newRowItem.setOrderNo(newModelEntity.getOrderNo()+ j);
+            newRowItem.setItems(list);
+            tabPaneItemModelEntities.add(newRowItem);
+        }
+        ((TabsItemModelEntity)newModelEntity).setItems(tabPaneItemModelEntities);
+    }
 
 	//获取item子item
 	@Override
@@ -1427,6 +1406,17 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			return null;
 		}
 		return query().filterIn("id", idlist).first();
+	}
+
+	@Override
+	public List<FormModelEntity> findProcessApplicationFormModel(String key) {
+		List<FormModelEntity>  list = null;
+		if(StringUtils.isNotBlank(key)) {
+			list = formModelManager.query().filterOr(Filter.isEmpty("process.key"), Filter.equal("process.key", key)).list();
+		}else{
+			list = formModelManager.query().filterEmpty("process.key").list();
+		}
+		return list;
 	}
 
 	@Override

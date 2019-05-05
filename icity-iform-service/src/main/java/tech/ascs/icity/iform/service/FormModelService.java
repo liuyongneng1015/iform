@@ -48,4 +48,6 @@ public interface FormModelService extends JPAService<FormModelEntity> {
 
      FormModelEntity findByTableName(String tableName);
 
+     //查询流程建模表单
+     List<FormModelEntity> findProcessApplicationFormModel(String key);
 }
