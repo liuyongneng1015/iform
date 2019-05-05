@@ -55,12 +55,12 @@ public class CurrentUserUtils implements ApplicationContextAware {
 
     public static UserInfo assemblyUserInfo() {
         try {
-            String token = Application.getRequest().getHeader("token");
             UserInfo userInfo = Application.getCurrentUser();
             if (userInfo != null) {
                 // token拼接的字符串作为redis的key，通过token可以定位到用户ID
                 // 用户ID拼接的字符串作为redis的Key，通过用户ID可以定位到用户数据，admin服务通过用户ID修改了用户数据，可以同步更新redis的用户数据
                 String userId = userInfo.getId();
+                String token = Application.getRequest().getHeader("token");
                 redisTemplate.opsForValue().set(Constants.GET_USERID_BY_TOKEN+token, userId, 60, TimeUnit.SECONDS);
                 redisTemplate.opsForValue().set(Constants.GET_USERINFO_BY_USERID+userId, userInfo, 60, TimeUnit.SECONDS);
                 return userInfo;
