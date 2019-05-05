@@ -108,6 +108,14 @@ public class ItemModelEntity extends  BaseEntity implements Serializable {
 		this.props = props;
 	}
 
+	public String getAppProps() {
+		return appProps;
+	}
+
+	public void setAppProps(String appProps) {
+		this.appProps = appProps;
+	}
+
 	public List<ItemActivityInfo> getActivities() {
 		return activities;
 	}

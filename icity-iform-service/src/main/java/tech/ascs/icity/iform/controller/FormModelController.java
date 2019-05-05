@@ -446,22 +446,30 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			}
 		}
 		List<FormModelEntity> formModelEntityList = formModels.parallelStream().sorted(Comparator.comparing(FormModelEntity::getId).reversed()).collect(Collectors.toList());
-        return getApplicationModels(formModelEntityList, applicationId, true);
+        return getApplicationModels(formModelEntityList, applicationId, true, null);
 	}
 
     @Override
     public List<ApplicationModel> findProcessApplicationFormModel(@RequestParam(name="applicationId", required = true) String applicationId,
                                                                   @RequestParam(name="key", required = false) String key) {
         List<FormModelEntity> formModelEntityList = formModelService.findProcessApplicationFormModel(key);
-        return getApplicationModels(formModelEntityList, applicationId, false);
+        return getApplicationModels(formModelEntityList, applicationId, false, key);
     }
 
-    private List<ApplicationModel> getApplicationModels(List<FormModelEntity> formModelEntityList, String applicationId, boolean isNeedDataModel){
+    private List<ApplicationModel> getApplicationModels(List<FormModelEntity> formModelEntityList, String applicationId, boolean isNeedDataModel, String processKey){
         List<FormModel> formModelList = new ArrayList<>();
         Map<String, List<FormModel>> map = new HashMap<>();
-        for(FormModelEntity entity : formModelEntityList){
-            setFormModel(entity, formModelList,  map, isNeedDataModel);
+        for(int i = 0; i < formModelEntityList.size(); i++){
+			FormModelEntity entity = formModelEntityList.get(i);
+        	if(StringUtils.hasText(processKey) && processKey.equals(entity.getProcess().getKey())) {
+				setFormModel(entity, formModelList, map, isNeedDataModel);
+				formModelEntityList.remove(entity);
+				i--;
+			}
         }
+		for(FormModelEntity entity : formModelEntityList){
+			setFormModel(entity, formModelList,  map, isNeedDataModel);
+		}
         List<ApplicationModel> applicationFormModels = new ArrayList<>();
         if(map != null && map.size() > 0) {
             setApplicationFormModels( map, applicationFormModels, applicationId);
