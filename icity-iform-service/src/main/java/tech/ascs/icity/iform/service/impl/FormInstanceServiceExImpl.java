@@ -324,6 +324,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		Map<String, Object> map = new HashMap<>();
 		try {
 			session = getSession(dataModel);
+			if(!StringUtils.hasText(instanceId)){
+				return map;
+			}
 			map = (Map<String, Object>) session.load(dataModel.getTableName(), instanceId);
 			if(map == null || map.keySet() == null){
 				throw new IFormException("没有查询到【" + dataModel.getTableName() + "】表，id【"+instanceId+"】的数据");
@@ -2013,12 +2016,16 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		String key =new ArrayList<>(keyMap.keySet()).get(0);
 		boolean flag = keyMap.get(key);
 		Object listMap = null;
-        if(fromItem.getSystemItemType() != null){
-            //关联人员
-            return;
-        }
 		if(flag) {
-			listMap = (Map<String, Object>) entity.get(key);
+			if(fromItem.getSystemItemType() == SystemItemType.Creator){
+				//关联人员
+				if(entity.get(key) != null) {
+					listMap = new HashMap<>();
+					((HashMap) listMap).put("id", entity.get(key));
+				}
+			}else {
+				listMap = (Map<String, Object>) entity.get(key);
+			}
 		}else{
 			listMap= (List<Map<String, Object>>) entity.get(key);
 		}
@@ -2204,6 +2211,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		String columnName = itemModelEntity.getColumnModel().getColumnName();
 		String key = fromItem.getParentItem().getColumnModel().getColumnName();
 
+		if(entity.get(key) == null){
+			return;
+		}
+
 		ItemInstance itemModelInstance = new ItemInstance();
 		itemModelInstance.setId(fromItem.getId());
 		itemModelInstance.setType(fromItem.getType());
@@ -2233,8 +2244,13 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			items.add(itemModelInstance);
 		}else{
             Map<String, Object> mapData = null;
-            if(fromItem.getSystemItemType() != null && fromItem.getReferenceTableName() != null && entity.get(key) != null){
-		        DataModelEntity dataModelEntity = dataModelManager.findUniqueByProperty("tableName", fromItem.getReferenceTableName());
+            if(fromItem.getParentItem() != null && (fromItem.getParentItem().getSystemItemType() == SystemItemType.Creator ||
+					(fromItem.getParentItem().getCreateForeignKey() != null && !fromItem.getParentItem().getCreateForeignKey())) ){
+            	FormModelEntity referenceFormModel = fromItem.getParentItem().getReferenceList().getMasterForm();
+            	if(referenceFormModel == null && StringUtils.hasText(fromItem.getParentItem().getReferenceFormId())){
+					referenceFormModel = formModelEntityJPAManager.find(fromItem.getParentItem().getReferenceFormId());
+				}
+		        DataModelEntity dataModelEntity = referenceFormModel.getDataModels().get(0);
                 mapData = getDataInfo(dataModelEntity, String.valueOf(entity.get(key)));
             }else{
                 mapData = (Map<String, Object>)entity.get(key);
