@@ -609,22 +609,35 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	}
 
 	@Override
-	public Page<FormDataSaveInstance> findByTableNameAndColumnValue(@RequestParam(name = "page", defaultValue = "1") int page,
+	public Page<FormDataSaveInstance> findByTableNameAndColumnValue(@RequestParam(name="page", defaultValue = "1") int page,
 																	@RequestParam(name="pagesize", defaultValue = "10") int pagesize,
 																	@RequestParam(name="tableName", defaultValue = "") String tableName,
-																	@RequestParam(name="columnName", defaultValue = "") String columnName,
-																	@RequestParam(name="columnValue", required = false) String columnValue) {
-		if (StringUtils.isEmpty(tableName) || StringUtils.isEmpty(columnName) || StringUtils.isEmpty(columnValue)) {
+																	@RequestParam Map<String, Object> parameters) {
+		if (StringUtils.isEmpty(tableName)) {
 			return Page.get(page, pagesize);
 		}
-		ItemModelEntity itemEntity = formModelService.findItemByTableAndColumName(tableName, columnName);
-		if (itemEntity!=null) {
-			FormModelEntity formModelEntity = itemEntity.getFormModel();
-			if (formModelEntity!=null) {
-				Map<String,Object> paramters = new HashMap();
-				paramters.put(itemEntity.getId(), columnValue);
-				return formInstanceService.pageFormInstance(formModelEntity, page, pagesize, paramters);
+		parameters = parameters==null? new HashMap():parameters;
+		parameters.remove(tableName);
+		FormModelEntity formModelEntity = formModelService.query().filterEqual("dataModels.tableName", tableName).first();
+		if (formModelEntity!=null) {
+			List<ItemModelEntity> items = formModelEntity.getItems();
+			if (items==null || items.size()==0) {
+				return Page.get(page, pagesize);
 			}
+			Map<String, String> columnNameAndItemIdMap = formInstanceService.columnNameAndItemIdMap(items);
+			if (columnNameAndItemIdMap==null || columnNameAndItemIdMap.size()==0) {
+				return Page.get(page, pagesize);
+			}
+			for (ItemModelEntity itemModelEntity:items) {
+				itemModelEntity.getColumnModel();
+			}
+			Map<String, Object> itemIdParameters = new HashMap();
+			for (String key:parameters.keySet()) {
+				if (columnNameAndItemIdMap.containsKey(key)) {
+					itemIdParameters.put(columnNameAndItemIdMap.get(key), parameters.get(key));
+				}
+			}
+			return formPage(formModelEntity.getId(), page, pagesize, itemIdParameters);
 		}
 		return Page.get(page, pagesize);
 	}
@@ -633,9 +646,8 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	public Page<Map> getColumnNameValueByTable(@RequestParam(name="page", defaultValue = "1") int page,
 											   @RequestParam(name="pagesize", defaultValue = "10") int pagesize,
 											   @RequestParam(name="tableName", defaultValue = "") String tableName,
-											   @RequestParam(name="columnName", defaultValue = "") String columnName,
-											   @RequestParam(name="columnValue", required = false) String columnValue) {
-		Page pageInstance = findByTableNameAndColumnValue(page,  pagesize, tableName, columnName, columnValue);
+											   @RequestParam Map<String, Object> parameters) {
+		Page pageInstance = findByTableNameAndColumnValue(page,  pagesize, tableName, parameters);
 		List<FormDataSaveInstance> results = pageInstance.getResults();
 		if (results!=null && results.size()>0) {
 			List<Map> list = new ArrayList();
