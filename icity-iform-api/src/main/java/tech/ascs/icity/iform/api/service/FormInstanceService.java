@@ -293,7 +293,7 @@ public interface FormInstanceService {
 	FileUploadModel resetQrCode(@PathVariable(name="listId", required = true) String listId, @PathVariable(name="id", required = true) String id);
 
 	/**
-	 * 通过表名和该表的字段对应的value获取表单实例
+	 * 通过表名和该表的itemModel的columnName字段的取值分页搜索表单实例
 	 */
 	@ApiOperation(value = "通过表名和该表的字段对应的value获取表单实例，columnValues的columnName必须是属于该表的字段", position = 6)
 	@ApiImplicitParams({
@@ -308,7 +308,7 @@ public interface FormInstanceService {
 															 @RequestParam Map<String, Object> parameters);
 
 	/**
-	 * 根据表单实例ID获取表单columnName与对应的取值value
+	 * 根据表名获取表单columnName与对应的取值，即columnName与columnValue
 	 *
 	 * @param page
 	 * @param pagesize

@@ -628,9 +628,6 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			if (columnNameAndItemIdMap==null || columnNameAndItemIdMap.size()==0) {
 				return Page.get(page, pagesize);
 			}
-			for (ItemModelEntity itemModelEntity:items) {
-				itemModelEntity.getColumnModel();
-			}
 			Map<String, Object> itemIdParameters = new HashMap();
 			for (String key:parameters.keySet()) {
 				if (columnNameAndItemIdMap.containsKey(key)) {
