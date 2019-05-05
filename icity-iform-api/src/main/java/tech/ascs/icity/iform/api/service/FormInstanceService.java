@@ -293,13 +293,11 @@ public interface FormInstanceService {
 	FileUploadModel resetQrCode(@PathVariable(name="listId", required = true) String listId, @PathVariable(name="id", required = true) String id);
 
 	/**
-	 * 通过表名和该表的字段对应的value获取表单实例
+	 * 通过表名和该表的itemModel的columnName字段的取值分页搜索表单实例
 	 */
-	@ApiOperation(value = "通过表名和该表的字段对应的value获取表单实例，columnValues的columnName必须是属于该表的字段，不能是子表或者管理属性的字段", position = 6)
+	@ApiOperation(value = "通过表名和该表的字段对应的value获取表单实例，columnValues的columnName必须是属于该表的字段", position = 6)
 	@ApiImplicitParams({
 		@ApiImplicitParam(paramType = "query", name = "tableName", value = "表名", required = false),
-		@ApiImplicitParam(paramType = "query", name = "columnName", value = "字段名称", required = false),
-		@ApiImplicitParam(paramType = "query", name = "columnValue", value = "字段取值", required = false),
 		@ApiImplicitParam(paramType = "query", name = "page", value = "页码", required = false, defaultValue = "1"),
 		@ApiImplicitParam(paramType = "query", name = "pagesize", value = "每页记录数", required = false, defaultValue = "10")
 	})
@@ -307,24 +305,20 @@ public interface FormInstanceService {
 	Page<FormDataSaveInstance> findByTableNameAndColumnValue(@RequestParam(name="page", defaultValue = "1") int page,
 															 @RequestParam(name="pagesize", defaultValue = "10") int pagesize,
 															 @RequestParam(name="tableName", defaultValue = "") String tableName,
-															 @RequestParam(name="columnName", defaultValue = "") String columnName,
-															 @RequestParam(name="columnValue", required = false) String columnValue);
+															 @RequestParam Map<String, Object> parameters);
 
 	/**
-	 * 根据表单实例ID获取表单columnName与对应的取值value
+	 * 根据表名获取表单columnName与对应的取值，即columnName与columnValue
 	 *
 	 * @param page
 	 * @param pagesize
 	 * @param tableName
-	 * @param columnName
-	 * @param columnValue
+	 * @param parameters
 	 * @return
 	 */
 	@ApiOperation(value = "根据表名和列名取值查询表单columnName与对应的取值value", position = 2)
 	@ApiImplicitParams({
 		@ApiImplicitParam(paramType = "query", name = "tableName", value = "表名", required = false),
-		@ApiImplicitParam(paramType = "query", name = "columnName", value = "字段名称", required = false),
-		@ApiImplicitParam(paramType = "query", name = "columnValue", value = "字段取值", required = false),
 		@ApiImplicitParam(paramType = "query", name = "page", value = "页码", required = false, defaultValue = "1"),
 		@ApiImplicitParam(paramType = "query", name = "pagesize", value = "每页记录数", required = false, defaultValue = "10")
 	})
@@ -332,8 +326,7 @@ public interface FormInstanceService {
 	Page<Map> getColumnNameValueByTable(@RequestParam(name="page", defaultValue = "1") int page,
 										@RequestParam(name="pagesize", defaultValue = "10") int pagesize,
 										@RequestParam(name="tableName", defaultValue = "") String tableName,
-										@RequestParam(name="columnName", defaultValue = "") String columnName,
-										@RequestParam(name="columnValue", required = false) String columnValue);
+										@RequestParam Map<String, Object> parameters);
 
 	/**
 	 * 静态的策略组接口

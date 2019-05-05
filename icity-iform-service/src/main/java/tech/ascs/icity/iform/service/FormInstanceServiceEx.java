@@ -46,4 +46,6 @@ public interface FormInstanceServiceEx {
     List<String> setSelectItemDisplayValue(ItemInstance itemInstance, SelectItemModelEntity selectItemModelEntity, List<String> list);
 
 	List<TreeSelectData> getTreeSelectData(TreeSelectDataSource dataSourceType, String[] ids);
+
+	Map<String,String> columnNameAndItemIdMap(List<ItemModelEntity> items);
 }

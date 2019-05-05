@@ -2811,4 +2811,22 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 		return formInstance;
 	}
+
+	@Override
+	public Map<String, String> columnNameAndItemIdMap(List<ItemModelEntity> items) {
+		Map<String, String> columnNameAndItemIdMap = new HashMap();
+		if (items==null || items.size()==0) {
+			return columnNameAndItemIdMap;
+		}
+		Set<String> itemIds = items.stream().map(item->item.getId()).collect(Collectors.toSet());
+		String idArrStr = String.join("','", itemIds);
+		List<Map<String, Object>> list = jdbcTemplate.queryForList("select ifm.column_name, iim.id item_id from ifm_item_model iim LEFT JOIN ifm_column_model ifm ON iim.column_id=ifm.id where iim.id in ('"+idArrStr+"')");
+		if (list==null || list.size()==0) {
+			return columnNameAndItemIdMap;
+		}
+		for (Map<String, Object> map:list) {
+			columnNameAndItemIdMap.put((String)map.get("column_name"), (String)map.get("item_id"));
+		}
+		return columnNameAndItemIdMap;
+	}
 }
