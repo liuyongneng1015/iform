@@ -12,7 +12,6 @@ import tech.ascs.icity.iform.config.Constants;
 import tech.ascs.icity.rbac.feign.model.UserInfo;
 import tech.ascs.icity.rbac.util.Application;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.concurrent.TimeUnit;
 
 @Component
@@ -38,28 +37,38 @@ public class CurrentUserUtils implements ApplicationContextAware {
         if (StringUtils.isEmpty(token)) {
             throw new ICityException(401, 401, "未登录");
         }
-        String userTokenKey = Constants.TOKEN_GET_USERINFO_PREFIX +token;
-        UserInfo user = (UserInfo) redisTemplate.opsForValue().get(userTokenKey);
-        if (user==null) {
-            HttpServletRequest request = Application.getRequest();
-            if (request == null) {
-                throw new ICityException("无法获取请求");
-            }
-            try {
-                UserInfo userInfo = Application.getCurrentUser();
-                if (userInfo != null) {
-                    // 用户ID作为缓存的key，通过用户ID可以直接找到token，若后台编辑了用户信息，通过用户ID定位到token，然后通过定位到缓存的用户信息，把缓存的用户信息更改过来
-                    redisTemplate.opsForValue().set(Constants.USERID_GET_TOKEN_PREFIX+userInfo.getId(), token, 300, TimeUnit.SECONDS);
-                    redisTemplate.opsForValue().set(userTokenKey, userInfo, 300, TimeUnit.SECONDS);
-                    return userInfo;
-                } else {
-                    throw new ICityException(401, 401, "您的登录已失效，请重新登录");
-                }
-            } catch (Exception e) {
-                throw new ICityException(401, 401, "您的登录已失效，请重新登录");
+
+        String getUserIdByTokenKey =  Constants.GET_USERID_BY_TOKEN + token;
+        String userId = (String)redisTemplate.opsForValue().get(getUserIdByTokenKey);
+        if (StringUtils.hasText(userId)) {
+            String getUserInfoByUserIdKey = Constants.GET_USERINFO_BY_USERID + userId;
+            UserInfo user = (UserInfo) redisTemplate.opsForValue().get(getUserInfoByUserIdKey);
+            if (user!=null) {
+                return user;
+            } else {
+                return assemblyUserInfo();
             }
         } else {
-            return user;
+            return assemblyUserInfo();
+        }
+    }
+
+    public static UserInfo assemblyUserInfo() {
+        try {
+            UserInfo userInfo = Application.getCurrentUser();
+            if (userInfo != null) {
+                // token拼接的字符串作为redis的key，通过token可以定位到用户ID
+                // 用户ID拼接的字符串作为redis的Key，通过用户ID可以定位到用户数据，admin服务通过用户ID修改了用户数据，可以同步更新redis的用户数据
+                String userId = userInfo.getId();
+                String token = Application.getRequest().getHeader("token");
+                redisTemplate.opsForValue().set(Constants.GET_USERID_BY_TOKEN+token, userId, 60, TimeUnit.SECONDS);
+                redisTemplate.opsForValue().set(Constants.GET_USERINFO_BY_USERID+userId, userInfo, 60, TimeUnit.SECONDS);
+                return userInfo;
+            } else {
+                throw new ICityException(401, 401, "您的登录已失效，请重新登录");
+            }
+        } catch (Exception e) {
+            throw new ICityException(401, 401, "您的登录已失效，请重新登录");
         }
     }
 
