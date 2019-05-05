@@ -1564,6 +1564,11 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			}
 		}
 
+		if(StringUtils.hasText(itemModel.getItemUuids())){
+			ItemModelEntity itemModelEntity = itemModelService.findUniqueByProperty("uuid", itemModel.getItemUuids());
+			entity.setReferenceItemId(itemModelEntity == null ? null : itemModelEntity.getId());
+		}
+
 		if(itemModel.getType() != ItemType.ReferenceLabel && (!StringUtils.hasText(itemModel.getReferenceFormId())
 				|| itemModel.getReferenceList() == null || itemModel.getReferenceList().getId() == null)){
 			throw  new IFormException("关联属性控件【"+itemModel.getName()+"】未找到关联表单或列表模型");

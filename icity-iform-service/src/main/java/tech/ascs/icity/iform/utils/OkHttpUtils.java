@@ -7,6 +7,7 @@ import okhttp3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.ResponseResult;
 
 import java.math.BigDecimal;
@@ -32,6 +33,9 @@ public class OkHttpUtils {
             responseResult.setMessage(response.message());
             if (response.body() != null) {
                 Map<String, Object> result =  json2map(response.body().string());
+                if(result == null){
+                    throw new IFormException("业务触发服务异常，请稍后再试");
+                }
                 responseResult.setResult(result);
                 int code = new BigDecimal(String.valueOf(result.get("code"))).intValue();
                 if( code != 200){
