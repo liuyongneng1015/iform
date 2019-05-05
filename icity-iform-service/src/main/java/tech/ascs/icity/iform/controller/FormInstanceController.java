@@ -497,7 +497,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		if (!formId.equals(formInstance.getFormId())) {
 			throw new IFormException("表单id不一致");
 		}
-		formInstance.setId(formId);
+		formInstance.setFormId(formId);
 		FormModelEntity formModel = formModelService.find(formId);
 		if (formModel == null) {
 			throw new IFormException(404, "表单模型【" + formId + "】不存在");

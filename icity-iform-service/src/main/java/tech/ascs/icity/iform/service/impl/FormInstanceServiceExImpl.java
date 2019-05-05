@@ -205,7 +205,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			if(e instanceof ICityException){
 				throw e;
 			}
-			new IFormException(e.getLocalizedMessage(), e);
+			throw new IFormException(e.getLocalizedMessage(), e);
 		} finally {
 			if (session!=null) {
 				session.close();

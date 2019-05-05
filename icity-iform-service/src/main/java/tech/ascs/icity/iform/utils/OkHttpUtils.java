@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import tech.ascs.icity.iform.api.model.ResponseResult;
 
+import java.math.BigDecimal;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -32,6 +33,11 @@ public class OkHttpUtils {
             if (response.body() != null) {
                 Map<String, Object> result =  json2map(response.body().string());
                 responseResult.setResult(result);
+                int code = new BigDecimal(String.valueOf(result.get("code"))).intValue();
+                if( code != 200){
+                    responseResult.setCode(code);
+                    responseResult.setMessage((String)result.get("message"));
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();

@@ -20,13 +20,13 @@ public class OKHttpLogEntity extends BaseEntity implements Serializable {
 	@JoinColumn(name="url")//请求url
 	private String url;
 
-	@Column(name="parameter", length = 2048)//请求json参数
+	@Column(name="parameter", length = 4096)//请求json参数
 	private String parameter;
 
 	@Column(name="result_code")//结果编码
 	private int resultCode;
 
-	@Column(name="result", length = 2048)//返回结果
+	@Column(name="result", length = 4096)//返回结果
 	private String result;
 
 	//来源
