@@ -56,7 +56,8 @@ public class OKHttpLogServiceImpl extends DefaultJPAService<OKHttpLogEntity> imp
 		//结果编码
 		okHttpLogEntity.setResultCode(responseResult.getCode());
 		//返回结果
-		okHttpLogEntity.setResult(OkHttpUtils.mapToJson(responseResult.getResult()));
+		String result = OkHttpUtils.mapToJson(responseResult.getResult());
+		okHttpLogEntity.setResult(result.substring(0,result.length() > 4096 ? 4088 : result.length()));
 		okHttpLogManager.save(okHttpLogEntity);
 
 		throwWebException(responseResult, triggerEntity);
@@ -70,11 +71,13 @@ public class OKHttpLogServiceImpl extends DefaultJPAService<OKHttpLogEntity> imp
 
 		if(businessTriggerTypes.contains(triggerEntity.getType())) {
 			if (responseResult.getCode() != 200) {
-				new IFormException(responseResult.getMessage());
-			} else if (responseResult.getCode() == 200 && !(Boolean) responseResult.getResult().get("continue")) {
-				new IFormException((String) responseResult.getResult().get("message"));
-			} else if (responseResult.getCode() == 200 && responseResult.getResult() == null && triggerEntity.getReturnResult() == ReturnResult.HAS) {
-				new IFormException("系统错误，请稍后再试");
+				throw new IFormException(responseResult.getMessage());
+			}  else if (responseResult.getCode() == 200 && triggerEntity.getReturnResult() == ReturnResult.HAS) {
+				if(responseResult.getResult() == null || responseResult.getResult().get("continue") == null) {
+					throw new IFormException("系统错误，请稍后再试");
+				}else if(!(Boolean) responseResult.getResult().get("continue")){
+					throw new IFormException((String) responseResult.getResult().get("message"));
+				}
 			}
 		}
 	}
