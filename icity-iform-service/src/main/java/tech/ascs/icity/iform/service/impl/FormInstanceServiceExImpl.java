@@ -1924,10 +1924,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		//主表字段
 		ReferenceItemModelEntity fromItem = (ReferenceItemModelEntity)itemModel;
 
-		if(fromItem.getSystemItemType() == SystemItemType.Creator){
-			return;//创建者不需要显示
-		}
-
 		//关联表数据模型
 		if (StringUtils.isEmpty(((ReferenceItemModelEntity) itemModel).getReferenceFormId())) {
 			return;
@@ -1986,10 +1982,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	private void setFormDataReferenceItemInstance( boolean isQrCodeFlag, ItemModelEntity itemModel, Map<String, Object> entity, List<ReferenceDataInstance> referenceDataModelList, List<ItemInstance> items, boolean referenceFlag){
 		//主表字段
 		ReferenceItemModelEntity fromItem = (ReferenceItemModelEntity)itemModel;
-		//创建者
-		if(fromItem.getSystemItemType() == SystemItemType.Creator){
-			return;
-		}
 
 		//设置关联属性
 		if(fromItem.getSelectMode() == SelectMode.Attribute || fromItem.getType() == ItemType.ReferenceLabel){
