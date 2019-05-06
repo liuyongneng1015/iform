@@ -2,7 +2,8 @@ package tech.ascs.icity.iform.api.model;
 
 public enum ControlType {
     Select("Select"),//选择框
-    List("List");//列表
+    List("List"),//列表
+    Input("Input");//输入框
 
     private String value;
 
