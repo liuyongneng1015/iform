@@ -138,7 +138,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 						SelectItemModelEntity selectItem = (SelectItemModelEntity) statusItem;
 						int status = assemblyActivitiStatus(selectItem, valueId);
 						if (status != -2) { // -1表示查所有，0表示查未处理，1表示已处理，若最后status的值还是-2，表示不用查工作流
-							assemblyIflowQueryParams(items, queryParameters, selectItem);
+							Map<String, Object> iflowQueryParams = assemblyIflowQueryParams(items, queryParameters, selectItem);
 							// 查工作流
 							Page<ProcessInstance> pageProcess = processInstanceService.page(page, pagesize, formModelEntity.getProcess().getKey(), status, iflowQueryParams);
 							Map<String, ProcessInstance> instanceIdAndEditMap = pageProcess.getResults().stream().collect(Collectors.toMap(ProcessInstance::getBusinessKey, processInstance -> processInstance));
