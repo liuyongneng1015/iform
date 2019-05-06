@@ -1369,7 +1369,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			itemModel.setReferenceList(listModel);
 			itemModel.setReferenceFormId(listModel == null || listModel.getMasterForm() == null ? null : listModel.getMasterForm().getId());
 			itemModel.setCreateForeignKey(false);
-			itemModel.setType(ItemType.ReferenceList);
 			itemModel.setReferenceType(ReferenceType.ManyToOne);
 			itemModel.setSelectMode(SelectMode.Single);
 		}
