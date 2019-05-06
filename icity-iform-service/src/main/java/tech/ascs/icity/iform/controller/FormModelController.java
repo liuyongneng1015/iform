@@ -461,7 +461,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
         Map<String, List<FormModel>> map = new HashMap<>();
         for(int i = 0; i < formModelEntityList.size(); i++){
 			FormModelEntity entity = formModelEntityList.get(i);
-        	if(StringUtils.hasText(processKey) && processKey.equals(entity.getProcess().getKey())) {
+        	if(StringUtils.hasText(processKey) && entity.getProcess() != null &&  processKey.equals(entity.getProcess().getKey())) {
 				setFormModel(entity, formModelList, map, isNeedDataModel);
 				formModelEntityList.remove(entity);
 				i--;
