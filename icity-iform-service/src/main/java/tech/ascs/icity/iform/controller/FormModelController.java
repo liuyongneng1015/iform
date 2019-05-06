@@ -1914,7 +1914,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	private List<ItemModelEntity> getColumnItem(List<ItemModelEntity> allItems){
 		List<ItemModelEntity> itemModels = new ArrayList<>();
 		for(ItemModelEntity itemModelEntity : allItems) {
-			if (itemModelEntity.getColumnModel() != null && !itemModelEntity.getColumnModel().getColumnName().equals("id")	) {
+			if (itemModelEntity.getColumnModel() != null && !org.apache.commons.lang3.StringUtils.equalsIgnoreCase("id",itemModelEntity.getColumnModel().getColumnName())) {
 				itemModels.add(itemModelEntity);
 			}
 		}
