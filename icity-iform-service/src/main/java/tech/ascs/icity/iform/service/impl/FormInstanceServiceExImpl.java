@@ -1116,14 +1116,14 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					if(fileUploadModelMap == null || fileUploadModelMap.values() == null || fileUploadModelMap.values().size() < 1){
 						continue;
 					}
-					FileUploadEntity fileUploadEntity = getFileUploadEntity( fileUploadModelMap, fileUploadEntityMap, itemModel.getId());
+					FileUploadEntity fileUploadEntity = saveFileUploadEntity( fileUploadModelMap, fileUploadEntityMap, itemModel.getId());
 					newList.add(fileUploadEntity);
 				}
 				value = String.join(",", newList.parallelStream().map(FileUploadEntity::getId).collect(Collectors.toList()));
 			}else{
 				Map<String, String> fileUploadModel = o == null || o == "" ? null : (Map<String, String>)o;
 				if(fileUploadModel != null && fileUploadModel.values() != null && fileUploadModel.values().size() > 0){
-					FileUploadEntity fileUploadEntity = getFileUploadEntity( fileUploadModel, fileUploadEntityMap, itemModel.getId());
+					FileUploadEntity fileUploadEntity = saveFileUploadEntity( fileUploadModel, fileUploadEntityMap, itemModel.getId());
 					value = fileUploadEntity.getId();
 				}
 			}
@@ -1139,14 +1139,14 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					if(geographicalMap == null || geographicalMap.values() == null || geographicalMap.values().size() < 1){
 						continue;
 					}
-					GeographicalMapEntity fileUploadEntity = getGeographicalMapEntity( geographicalMap, itemModel.getId());
+					GeographicalMapEntity fileUploadEntity = saveGeographicalMapEntity( geographicalMap, itemModel.getId());
 					newList.add(fileUploadEntity);
 				}
 				value = String.join(",", newList.parallelStream().map(GeographicalMapEntity::getId).collect(Collectors.toList()));
 			}else{
 				Map<String, Object> fileUploadModel = o == null || o == "" ? null : (Map<String, Object>)o;
 				if(fileUploadModel != null && fileUploadModel.values() != null && fileUploadModel.values().size() > 0){
-					GeographicalMapEntity fileUploadEntity = getGeographicalMapEntity( fileUploadModel, itemModel.getId());
+					GeographicalMapEntity fileUploadEntity = saveGeographicalMapEntity( fileUploadModel, itemModel.getId());
 					value = fileUploadEntity.getId();
 				}
 			}
@@ -1159,7 +1159,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 	}
 
-	private FileUploadEntity getFileUploadEntity(Map<String, String> fileUploadModelMap, Map<String, FileUploadEntity> fileUploadEntityMap, String itemId){
+	private FileUploadEntity saveFileUploadEntity(Map<String, String> fileUploadModelMap, Map<String, FileUploadEntity> fileUploadEntityMap, String itemId){
 		FileUploadEntity fileUploadEntity = null;
 		if(fileUploadModelMap.get("id") != null){
 			fileUploadEntity = fileUploadEntityMap.remove(fileUploadModelMap.get("id"));
@@ -1185,7 +1185,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		return fileUploadEntity;
 	}
 
-	private GeographicalMapEntity getGeographicalMapEntity(Map<String, Object> geographicalMap, String itemId){
+	private GeographicalMapEntity saveGeographicalMapEntity(Map<String, Object> geographicalMap, String itemId){
 		GeographicalMapEntity geographicalMapEntity = null;
 		if(geographicalMap.get("id") != null){
 			geographicalMapEntity = mapEntityJPAManager.get((String)geographicalMap.get("id"));
@@ -2572,7 +2572,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				}else {
 					itemInstance.setDisplayValue(valueStr);
 				}
-
 				break;
 		}
 	}
@@ -2767,9 +2766,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	private void setLocationItemInstance(Object value, ItemInstance itemInstance){
 		String valueStr = value == null || StringUtils.isEmpty(value) ?  null : String.valueOf(value);
 		if(valueStr != null) {
-			List<String> listv = Arrays.asList(valueStr.split(","));
+			List<String> idlist = Arrays.asList(valueStr.split(","));
 			GeographicalMapModel mapModel = new GeographicalMapModel();
-			List<GeographicalMapEntity> entityList = mapEntityJPAManager.query().filterIn("id", listv).list();
+			List<GeographicalMapEntity> entityList = mapEntityJPAManager.query().filterIn("id", idlist).list();
 			for(GeographicalMapEntity entity : entityList){
 				GeographicalMapModel geographicalMapModel = new GeographicalMapModel();
 				BeanUtils.copyProperties(entity, geographicalMapModel);

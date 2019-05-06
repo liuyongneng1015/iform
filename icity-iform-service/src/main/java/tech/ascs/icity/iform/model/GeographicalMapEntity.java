@@ -100,6 +100,10 @@ public class GeographicalMapEntity extends BaseEntity implements Serializable {
 		this.landmark = landmark;
 	}
 
+	public int getLevel() {
+		return level;
+	}
+
 	public void setLevel(int level) {
 		this.level = level;
 	}
