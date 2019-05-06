@@ -830,6 +830,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 
 		ReferenceItemModelEntity referenceItemModelEntity = (ReferenceItemModelEntity) itemModelManager.get(dataModelInstance.getId());
+
+		if(referenceItemModelEntity.getSystemItemType() == SystemItemType.Creator){
+			return;
+		}
+
 		FormModelEntity formModelEntity = formModelService.get(referenceItemModelEntity.getReferenceFormId());
 		DataModelEntity dataModelEntity = formModelEntity.getDataModels().get(0);
 
@@ -1919,6 +1924,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		//主表字段
 		ReferenceItemModelEntity fromItem = (ReferenceItemModelEntity)itemModel;
 
+		if(fromItem.getSystemItemType() == SystemItemType.Creator){
+			return;//创建者不需要显示
+		}
+
 		//关联表数据模型
 		if (StringUtils.isEmpty(((ReferenceItemModelEntity) itemModel).getReferenceFormId())) {
 			return;
@@ -1977,6 +1986,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	private void setFormDataReferenceItemInstance( boolean isQrCodeFlag, ItemModelEntity itemModel, Map<String, Object> entity, List<ReferenceDataInstance> referenceDataModelList, List<ItemInstance> items, boolean referenceFlag){
 		//主表字段
 		ReferenceItemModelEntity fromItem = (ReferenceItemModelEntity)itemModel;
+		//创建者
+		if(fromItem.getSystemItemType() == SystemItemType.Creator){
+			return;
+		}
 
 		//设置关联属性
 		if(fromItem.getSelectMode() == SelectMode.Attribute || fromItem.getType() == ItemType.ReferenceLabel){
@@ -2337,7 +2350,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			subFormItemInstance.setId(itemModelEntity.getId());
 			subFormItemInstance.setItemInstances(subFormItemInstances);
 			subFormItemInstance.setTableName(itemModelEntity.getTableName());
-			List<DataModelInstance> referenceDataModelList = new ArrayList<>();
 			int row = 1;
 			for(Map<String, Object> map : listMap) {
 				SubFormDataItemInstance subFormDataItemInstance = new SubFormDataItemInstance();
