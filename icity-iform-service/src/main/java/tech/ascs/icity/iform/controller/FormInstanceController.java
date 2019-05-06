@@ -138,58 +138,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 						SelectItemModelEntity selectItem = (SelectItemModelEntity) statusItem;
 						int status = assemblyActivitiStatus(selectItem, valueId);
 						if (status != -2) { // -1表示查所有，0表示查未处理，1表示已处理，若最后status的值还是-2，表示不用查工作流
-							queryParameters.remove(selectItem.getId());
-							Map<String, Object> iflowQueryParams = new HashMap<>();
-							for (ItemModelEntity item : items) {
-								Object value = queryParameters.get(item.getId());
-								if (value == null || item.getColumnModel() == null) {
-									continue;
-								}
-								ColumnModelEntity columnModel = item.getColumnModel();
-								if (isCommonItemType(item)) {
-									iflowQueryParams.put(columnModel.getColumnName(), value);
-								} else if (item instanceof SelectItemModelEntity) {
-									// 如果是单选框，多选框，下拉框，手动提取对应的中文出来
-									selectItem = (SelectItemModelEntity) item;
-									if (value instanceof String[]) {
-										String[] valueArr = (String[]) value;
-										StringBuffer queryNames = new StringBuffer();
-										for (String itemValue : valueArr) {
-											if (SelectReferenceType.Table == selectItem.getSelectReferenceType()) {
-												List<ItemSelectOption> options = selectItem.getOptions();
-												for (ItemSelectOption selectOption : options) {
-													if (selectOption.getId().equals(itemValue)) {
-														queryNames.append(selectOption.getLabel() + ",");
-													}
-												}
-											} else if (SelectReferenceType.Dictionary == selectItem.getSelectReferenceType()) {
-												DictionaryItemEntity dictionaryItem = dictionaryService.getDictionaryItemById(itemValue);
-												if (dictionaryItem != null) {
-													queryNames.append(dictionaryItem.getName() + ",");
-												}
-											}
-										}
-										if (queryNames.toString().length() > 0) {
-											iflowQueryParams.put(columnModel.getColumnName(), queryNames.toString());
-										}
-									} else {
-										String valueStr = value.toString();
-										if (SelectReferenceType.Table == selectItem.getSelectReferenceType()) {
-											List<ItemSelectOption> options = selectItem.getOptions();
-											for (ItemSelectOption selectOption : options) {
-												if (selectOption.getId().equals(valueStr)) {
-													iflowQueryParams.put(columnModel.getColumnName(), selectOption.getLabel());
-												}
-											}
-										} else if (SelectReferenceType.Dictionary == selectItem.getSelectReferenceType()) {
-											DictionaryItemEntity dictionaryItem = dictionaryService.getDictionaryItemById(valueStr);
-											if (dictionaryItem != null) {
-												iflowQueryParams.put(columnModel.getColumnName(), dictionaryItem.getName());
-											}
-										}
-									}
-								}
-							}
+							assemblyIflowQueryParams(items, queryParameters, selectItem);
 							// 查工作流
 							Page<ProcessInstance> pageProcess = processInstanceService.page(page, pagesize, formModelEntity.getProcess().getKey(), status, iflowQueryParams);
 							Map<String, ProcessInstance> instanceIdAndEditMap = pageProcess.getResults().stream().collect(Collectors.toMap(ProcessInstance::getBusinessKey, processInstance -> processInstance));
@@ -221,6 +170,62 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		}
 		Page<FormDataSaveInstance> formDataSaveInstancePage = formInstanceService.pageFormInstance(listModel, page, pagesize, queryParameters);
 		return formDataSaveInstancePage;
+	}
+
+	private Map<String, Object> assemblyIflowQueryParams(List<ItemModelEntity> items, Map<String, Object> queryParameters, SelectItemModelEntity selectItem) {
+		queryParameters.remove(selectItem.getId());
+		Map<String, Object> iflowQueryParams = new HashMap<>();
+		for (ItemModelEntity item : items) {
+			Object value = queryParameters.get(item.getId());
+			if (value == null || item.getColumnModel() == null) {
+				continue;
+			}
+			ColumnModelEntity columnModel = item.getColumnModel();
+			if (isCommonItemType(item)) {
+				iflowQueryParams.put(columnModel.getColumnName(), value);
+			} else if (item instanceof SelectItemModelEntity) {
+				// 如果是单选框，多选框，下拉框，手动提取对应的中文出来
+				selectItem = (SelectItemModelEntity) item;
+				if (value instanceof String[]) {
+					String[] valueArr = (String[]) value;
+					StringBuffer queryNames = new StringBuffer();
+					for (String itemValue : valueArr) {
+						if (SelectReferenceType.Table == selectItem.getSelectReferenceType()) {
+							List<ItemSelectOption> options = selectItem.getOptions();
+							for (ItemSelectOption selectOption : options) {
+								if (selectOption.getId().equals(itemValue)) {
+									queryNames.append(selectOption.getLabel() + ",");
+								}
+							}
+						} else if (SelectReferenceType.Dictionary == selectItem.getSelectReferenceType()) {
+							DictionaryItemEntity dictionaryItem = dictionaryService.getDictionaryItemById(itemValue);
+							if (dictionaryItem != null) {
+								queryNames.append(dictionaryItem.getName() + ",");
+							}
+						}
+					}
+					if (queryNames.toString().length() > 0) {
+						iflowQueryParams.put(columnModel.getColumnName(), queryNames.toString());
+					}
+				} else {
+					String valueStr = value.toString();
+					if (SelectReferenceType.Table == selectItem.getSelectReferenceType()) {
+						List<ItemSelectOption> options = selectItem.getOptions();
+						for (ItemSelectOption selectOption : options) {
+							if (selectOption.getId().equals(valueStr)) {
+								iflowQueryParams.put(columnModel.getColumnName(), selectOption.getLabel());
+							}
+						}
+					} else if (SelectReferenceType.Dictionary == selectItem.getSelectReferenceType()) {
+						DictionaryItemEntity dictionaryItem = dictionaryService.getDictionaryItemById(valueStr);
+						if (dictionaryItem != null) {
+							iflowQueryParams.put(columnModel.getColumnName(), dictionaryItem.getName());
+						}
+					}
+				}
+			}
+		}
+		return iflowQueryParams;
 	}
 
 	public int assemblyActivitiStatus(SelectItemModelEntity selectItem, String valueId) {
