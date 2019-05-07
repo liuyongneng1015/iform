@@ -297,9 +297,15 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		try {
 			DataModelEntity dataModel = formModel.getDataModels().get(0);
 			Map<String, Object> map =  getDataInfo(dataModel, instanceId);
+			if(map == null || map.keySet() == null){
+				throw new IFormException("没有查询到【" + dataModel.getTableName() + "】表，id【"+instanceId+"】的数据");
+			}
 			formInstance = wrapEntity(formModel, map, instanceId, true);
 		} catch (Exception e) {
 			e.printStackTrace();
+			if(e instanceof ICityException){
+				throw e;
+			}
 			throw new IFormException("没有查询到【" + formModel.getName() + "】表单，instanceId【"+instanceId+"】的数据");
 		}
 		return formInstance;
@@ -311,9 +317,15 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		try {
 			DataModelEntity dataModel = listModel.getMasterForm().getDataModels().get(0);
 			Map<String, Object> map =  getDataInfo(dataModel, instanceId);
+			if(map == null || map.keySet() == null){
+				throw new IFormException("没有查询到【" + dataModel.getTableName() + "】表，id【"+instanceId+"】的数据");
+			}
 			formInstance = wrapQrCodeFormDataEntity(true, listModel, map, instanceId, true);
 		} catch (Exception e) {
 			e.printStackTrace();
+			if(e instanceof ICityException){
+				throw e;
+			}
 			throw new IFormException("没有查询到【" + listModel.getMasterForm().getName() + "】表单，instanceId【"+instanceId+"】的数据");
 		}
 		return formInstance;
@@ -332,6 +344,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				throw new IFormException("没有查询到【" + dataModel.getTableName() + "】表，id【"+instanceId+"】的数据");
 			}
 		} catch (Exception e) {
+			e.printStackTrace();
 			throw e;
 		} finally {
 			if(session != null){
@@ -2138,7 +2151,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	private ReferenceDataInstance createDataModelInstance(boolean isQrCodeFlag, ReferenceItemModelEntity fromItem, FormModelEntity toModelEntity, String id, List<String> stringList, boolean referenceFlag){
 		ReferenceDataInstance dataModelInstance = new ReferenceDataInstance();
 		dataModelInstance.setValue(id);
-		Map<String, Object> map = getDataInfo(toModelEntity.getDataModels().get(0), id);
+		DataModelEntity dataModel = toModelEntity.getDataModels().get(0);
+		Map<String, Object> map = getDataInfo(dataModel, id);
 		FormDataSaveInstance formDataSaveInstance = wrapFormDataEntity(isQrCodeFlag, null, fromItem.getReferenceList(), map, id, referenceFlag);
 
 		List<String> valueList = new ArrayList<>();
@@ -2810,9 +2824,15 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		try {
 			DataModelEntity dataModel = formModel.getDataModels().get(0);
 			Map<String, Object> map =  getDataInfo(dataModel, id);
+			if(map == null || map.keySet() == null){
+				throw new IFormException("没有查询到【" + dataModel.getTableName() + "】表，id【"+id+"】的数据");
+			}
 			formInstance = wrapFormDataEntity(false, formModel, null, map, id,true);
 		} catch (Exception e) {
 			e.printStackTrace();
+			if(e instanceof ICityException){
+				throw e;
+			}
 			throw new IFormException("没有查询到【" + formModel.getName() + "】表单，instanceId【"+id+"】的数据");
 		}
 		return formInstance;
