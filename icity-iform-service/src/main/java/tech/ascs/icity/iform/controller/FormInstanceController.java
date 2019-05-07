@@ -173,7 +173,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 						}
 					}
 					return pageInstance;
-				} else { //如果在iflow查出的表单实例为空，直接返回
+				} else {
 					return Page.get(page, pagesize);
 				}
 			}
