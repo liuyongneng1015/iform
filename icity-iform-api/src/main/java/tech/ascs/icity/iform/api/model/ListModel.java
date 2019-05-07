@@ -36,6 +36,9 @@ public class ListModel extends NameEntity {
 		}
 	}
 
+	@ApiModelProperty(value = "唯一编码", position = 1)
+	private String uniqueCode;
+
 	@ApiModelProperty(value = "描述", position = 2)
 	private String description;
 
@@ -78,6 +81,14 @@ public class ListModel extends NameEntity {
 	@ApiModelProperty(value="关联关系控件集合",position = 10)
 	@JsonInclude(JsonInclude.Include.NON_EMPTY)
 	private List<ItemModel> relevanceItemModelList = new ArrayList();
+
+	public String getUniqueCode() {
+		return uniqueCode;
+	}
+
+	public void setUniqueCode(String uniqueCode) {
+		this.uniqueCode = uniqueCode;
+	}
 
 	public String getDescription() {
 		return description;
