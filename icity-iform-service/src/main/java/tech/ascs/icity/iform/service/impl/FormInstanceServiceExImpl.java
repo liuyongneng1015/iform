@@ -339,9 +339,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			if(!StringUtils.hasText(instanceId)){
 				return map;
 			}
-			map = (Map<String, Object>) session.load(dataModel.getTableName(), instanceId);
+			map = (Map<String, Object>) session.get(dataModel.getTableName(), instanceId);
 			if(map == null || map.keySet() == null || map.keySet().size() < 1){
-				throw new IFormException("没有查询到【" + dataModel.getTableName() + "】表，id【"+instanceId+"】的数据");
+				map = new HashMap<>();
+				//throw new IFormException("没有查询到【" + dataModel.getTableName() + "】表，id【"+instanceId+"】的数据");
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -2824,7 +2825,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		try {
 			DataModelEntity dataModel = formModel.getDataModels().get(0);
 			Map<String, Object> map =  getDataInfo(dataModel, id);
-			if(map == null || map.keySet() == null){
+			if(map == null || map.keySet() == null ||  map.keySet().size() < 1){
 				throw new IFormException("没有查询到【" + dataModel.getTableName() + "】表，id【"+id+"】的数据");
 			}
 			formInstance = wrapFormDataEntity(false, formModel, null, map, id,true);
