@@ -80,6 +80,19 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		}
 	}
 
+	@Override
+	public ListModel find(@RequestParam(name = "uniqueCode") String uniqueCode) {
+		if (StringUtils.isEmpty(uniqueCode)) {
+			throw new ICityException("uniqueCode不允许为空");
+		}
+		ListModelEntity entity = listModelService.query().filterEqual("uniqueCode", uniqueCode).first();
+		if (entity!=null) {
+			return toDTO(entity);
+		} else {
+			return null;
+		}
+	}
+
 	// 新增列表的时候，自动创建新增、批量删除，为系统自带功能
 	private DefaultFunctionType[] functionDefaultActions = {DefaultFunctionType.Add, DefaultFunctionType.BatchDelete};
 	private String[] functionDefaultIcons = new String[]{null, "icon-xuanzhong"};

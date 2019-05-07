@@ -67,6 +67,18 @@ public interface ListModelService {
 
 
 	/**
+	 * 根据唯一编码查询列表建模
+	 *
+	 * @return
+	 */
+	@ApiOperation(value = "根据唯一编码查询列表建模", position = 2)
+	@ApiImplicitParams({
+		@ApiImplicitParam(paramType = "query", name = "id", value = "唯一编码", required = true, dataType = "String")
+	})
+	@GetMapping("/find")
+	ListModel find(@RequestParam(name = "uniqueCode") String uniqueCode);
+
+	/**
 	 * 新建列表模型
 	 * 
 	 * @param listModel 列表模型
