@@ -200,7 +200,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 					assemblyReferenceArrParams(valueArr, selectItem, iflowQueryParams, columnModel);
 				} else {
 					String valueStr = value.toString();
-					assemblyReferenceStringParams(valueStr, selectItem,, iflowQueryParams, columnModel);
+					assemblyReferenceStringParams(valueStr, selectItem, iflowQueryParams, columnModel);
 				}
 			}
 		}
