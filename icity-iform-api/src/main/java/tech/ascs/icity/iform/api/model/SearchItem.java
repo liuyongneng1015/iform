@@ -45,8 +45,14 @@ public class SearchItem extends ItemModel implements Comparable<SearchItem> {
 		}
 	}
 
+	@ApiModelProperty(value = "全文搜索", position = 6)
+	private Boolean fullTextSearch = false;
+	@ApiModelProperty(value = "app端使用的查询条件", position = 7)
+	private Boolean appUse = false;
+	@ApiModelProperty(value = "pc端使用的查询条件", position = 8)
+	private Boolean pcUse = false;
 	private String referenceListId;
-	@ApiModelProperty(value = "查询定义，用于列表中的查询条件", position = 6)
+	@ApiModelProperty(value = "查询定义，用于列表中的查询条件", position = 9)
 	private Search search;
 
 	@ApiModelProperty("搜索框排序号")//排序号
@@ -58,6 +64,30 @@ public class SearchItem extends ItemModel implements Comparable<SearchItem> {
 
 	public void setReferenceListId(String referenceListId) {
 		this.referenceListId = referenceListId;
+	}
+
+	public Boolean getFullTextSearch() {
+		return fullTextSearch;
+	}
+
+	public void setFullTextSearch(Boolean fullTextSearch) {
+		this.fullTextSearch = fullTextSearch;
+	}
+
+	public Boolean getAppUse() {
+		return appUse;
+	}
+
+	public void setAppUse(Boolean appUse) {
+		this.appUse = appUse;
+	}
+
+	public Boolean getPcUse() {
+		return pcUse;
+	}
+
+	public void setPcUse(Boolean pcUse) {
+		this.pcUse = pcUse;
 	}
 
 	public Search getSearch() {
