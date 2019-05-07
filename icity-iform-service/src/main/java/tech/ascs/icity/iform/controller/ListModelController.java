@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.annotations.Api;
+import tech.ascs.icity.ICityException;
 import tech.ascs.icity.admin.api.model.Application;
 import tech.ascs.icity.admin.api.model.TreeSelectData;
 import tech.ascs.icity.admin.client.ApplicationService;
@@ -93,6 +94,11 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		if (ListModel.getMasterForm()==null || StringUtils.isEmpty(ListModel.getMasterForm().getId())) {
 			throw new IFormException("关联表单的ID不能为空");
 		}
+		if (StringUtils.hasText(ListModel.getUniqueCode())) {
+			if (listModelService.query().filterEqual("uniqueCode", ListModel.getUniqueCode()).count()>0) {
+				throw new ICityException("唯一编码与已存在的列表建模有重复");
+			}
+		}
 		try {
 			ListModel.setDataPermissions(DataPermissionsType.AllPeople);
 			ListModelEntity entity = wrap(ListModel);
@@ -127,6 +133,11 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		}
 		if (ListModel.getMasterForm()==null || StringUtils.isEmpty(ListModel.getMasterForm().getId())) {
 			throw new IFormException("关联表单的ID不能为空");
+		}
+		if (StringUtils.hasText(ListModel.getUniqueCode())) {
+			if (listModelService.query().filterEqual("uniqueCode", ListModel.getUniqueCode()).filterNotEqual("id", ListModel.getId()).count()>0) {
+				throw new ICityException("唯一编码与已存在的列表建模有重复");
+			}
 		}
 		// 校验默认的功能按钮是否被删除
 		checkDefaultFuncExists(ListModel);

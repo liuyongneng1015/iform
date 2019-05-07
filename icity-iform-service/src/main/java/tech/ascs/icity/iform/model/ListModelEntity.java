@@ -13,7 +13,8 @@ import tech.ascs.icity.jpa.dao.model.BaseEntity;
  * 列表模型
  */
 @Entity
-@Table(name = "ifm_list_model")
+@Table(name = "ifm_list_model",
+    indexes={@Index(name="ifm_list_model_unique_code_index", columnList = "uniqueCode", unique=false)})
 public class ListModelEntity extends BaseEntity implements Serializable {
 
 	private static final long serialVersionUID = 1L;
@@ -28,6 +29,8 @@ public class ListModelEntity extends BaseEntity implements Serializable {
 
 	@Column(name = "application_id")
 	private String applicationId;//应用id
+
+	private String uniqueCode;
 
 	@ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
 	@JoinTable(
@@ -98,6 +101,14 @@ public class ListModelEntity extends BaseEntity implements Serializable {
 
 	public void setApplicationId(String applicationId) {
 		this.applicationId = applicationId;
+	}
+
+	public String getUniqueCode() {
+		return uniqueCode;
+	}
+
+	public void setUniqueCode(String uniqueCode) {
+		this.uniqueCode = uniqueCode;
 	}
 
 	public List<FormModelEntity> getSlaverForms() {
