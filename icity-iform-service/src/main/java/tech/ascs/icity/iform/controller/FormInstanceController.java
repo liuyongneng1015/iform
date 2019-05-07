@@ -78,7 +78,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		ItemModelEntity itemModelEntity = itemModelService.get(itemId);
 		List<DataInstance> dataInstances = new ArrayList<>();
 		if(itemModelEntity != null && itemModelEntity instanceof ReferenceItemModelEntity){
-			List<FormInstance> list = formInstanceService.listFormInstance(listModel, parameters);
+			List<FormInstance> list = formInstanceService.listInstance(listModel, parameters);
 			List<ItemModelEntity> itemModelEntities = formModelService.getReferenceItemModelList((ReferenceItemModelEntity)itemModelEntity);
 			if(itemModelEntities != null && itemModelEntities.size() > 0){
 				Map<String, ItemModelEntity> map = new HashMap<>();
@@ -397,8 +397,9 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			if (value instanceof String) {
 				if (!StringUtils.isEmpty(value)) {
 					String valueStr = value.toString();
-					// 如果传过来的参数是数组且以逗号划分开的话,组件ID的长度是32位，若第33位是逗号，当作数组处理
-					if (valueStr.length()>32 && valueStr.substring(32,33).equals(",")) {
+					if ("fullTextSearch".equals(entry.getKey())) {
+						queryParameters.put("fullTextSearch", entry.getValue());
+					} else if (valueStr.length()>32 && valueStr.substring(32,33).equals(",")) { // 如果传过来的参数是数组且以逗号划分开的话,组件ID的长度是32位，若第33位是逗号，当作数组处理
 						queryParameters.put(entry.getKey(), valueStr.split(","));
 					} else {
 						queryParameters.put(entry.getKey(), valueStr);

@@ -14,9 +14,9 @@ import tech.ascs.icity.model.Page;
 
 public interface FormInstanceServiceEx {
 
-	List<FormInstance> listFormInstance(ListModelEntity listModel, Map<String, Object> queryParameters);
+	List<FormInstance> listInstance(ListModelEntity listModel, Map<String, Object> queryParameters);
 
-	List<FormDataSaveInstance> listFormInstance(FormModelEntity formModel, Map<String, Object> queryParameters);
+	List<FormDataSaveInstance> formInstance(FormModelEntity formModel, Map<String, Object> queryParameters);
 
 	Page<FormDataSaveInstance> pageFormInstance(FormModelEntity formModel, int page, int pagesize, Map<String, Object> queryParameters);
 
