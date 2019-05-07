@@ -115,11 +115,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public List<FormInstance> listFormInstance(ListModelEntity listModel, Map<String, Object> queryParameters) {
+	public List<FormInstance> listInstance(ListModelEntity listModel, Map<String, Object> queryParameters) {
 		Session session = getSession(listModel.getMasterForm().getDataModels().get(0));
 		List<FormInstance> list = new ArrayList<>();
 		try {
-			Criteria criteria = generateCriteria(session, listModel.getMasterForm(), queryParameters);
+			Criteria criteria = generateCriteria(session, listModel.getMasterForm(), null, queryParameters);
 			addSort(listModel, criteria);
 			list = wrapList(listModel, criteria.list());
 		} catch (Exception e) {
@@ -135,11 +135,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	}
 
 	@Override
-	public List<FormDataSaveInstance> listFormInstance(FormModelEntity formModel, Map<String, Object> queryParameters) {
+	public List<FormDataSaveInstance> formInstance(FormModelEntity formModel, Map<String, Object> queryParameters) {
 		Session session = getSession(formModel.getDataModels().get(0));
 		List<FormDataSaveInstance> list = new ArrayList<>();
 		try {
-			Criteria criteria = generateCriteria(session, formModel, queryParameters);
+			Criteria criteria = generateCriteria(session, formModel, null, queryParameters);
 			list = wrapFormDataList(formModel, null, criteria.list());
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -159,7 +159,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		Page<FormDataSaveInstance> result = Page.get(page, pagesize);
 		Session session = getSession(formModel.getDataModels().get(0));
 		try {
-			Criteria criteria = generateCriteria(session, formModel, queryParameters);
+			Criteria criteria = generateCriteria(session, formModel, null, queryParameters);
 			criteria.setFirstResult((page - 1) * pagesize);
 			criteria.setMaxResults(pagesize);
 			List<FormDataSaveInstance> list = wrapFormDataList(formModel, null, criteria.list());
@@ -186,7 +186,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		Page<FormDataSaveInstance> result = Page.get(page, pagesize);
 		Session session = getSession(listModel.getMasterForm().getDataModels().get(0));
 		try {
-			Criteria criteria = generateCriteria(session, listModel.getMasterForm(), queryParameters);
+			Criteria criteria = generateCriteria(session, listModel.getMasterForm(), listModel, queryParameters);
 			addCreatorCriteria(criteria, listModel);
 			addSort(listModel, criteria);
 
@@ -1407,23 +1407,27 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 	}
 
-	public Criteria generateCriteria(Session session, FormModelEntity formModelEntity, Map<String, Object> queryParameters) {
-		DataModelEntity dataModel = formModelEntity.getDataModels().get(0);
+	public Criteria generateCriteria(Session session, FormModelEntity formModel, ListModelEntity listModel, Map<String, Object> queryParameters) {
+		DataModelEntity dataModel = formModel.getDataModels().get(0);
 
 		Criteria criteria = session.createCriteria(dataModel.getTableName());
 
-		Map<String, ItemModelEntity> idAndItemMap = assemblyFormAllItems(formModelEntity);
+		Map<String, ItemModelEntity> idAndItemMap = assemblyFormAllItems(formModel);
 
 		for (String id:queryParameters.keySet()) {
-			ItemModelEntity itemModel = idAndItemMap.get(id);
-			if (itemModel==null) {
-				continue;
-			}
-			// queryParameters的value可能是数组
 			Object value = queryParameters.get(id);
 			if (value==null) {
 				continue;
 			}
+			if ("fullTextSearch".equals(id) && listModel!=null) {
+				fullTextSearchCriteria(criteria, value, listModel);
+				continue;
+			}
+			ItemModelEntity itemModel = idAndItemMap.get(id);
+			if (itemModel==null) {
+				continue;
+			}
+
 			Object[] values = null;
 			if (value instanceof String[]) {
 				values = (String[])value;
@@ -1532,16 +1536,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					criteria.add(Restrictions.or(conditions));
 				}
 			} else {
-				// 要查询的属性是一对多中多的一方或者是多对多中的Collection对象集合(List对象集合或者Set对象集合)
 				if (propertyIsCollection) {
-//                  // 方案一
 					criteria.createCriteria(propertyName).add(Restrictions.in("id", values));
-//			        // 方案二
-//                    Disjunction disjunction = Restrictions.disjunction();
-//                    criteria.createAlias(propertyName, "mr",CriteriaSpecification.LEFT_JOIN);
-//                    disjunction.add(Restrictions.in("mr.id", values));
-//                    criteria.add(disjunction);
-
 				} else {
 					Criterion[] conditions = new Criterion[values.length];
 					for (int i = 0; i < values.length; i++) {
@@ -1552,6 +1548,13 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}
 		}
 		return criteria;
+	}
+
+	private void fullTextSearchCriteria(Criteria criteria, Object value, ListModelEntity listModel) {
+		if (value!=null && value instanceof String) {
+			String valueStr = value.toString();
+
+		}
 	}
 
 	private Object[] getTimeParams(ItemType itemType, String strValue){
