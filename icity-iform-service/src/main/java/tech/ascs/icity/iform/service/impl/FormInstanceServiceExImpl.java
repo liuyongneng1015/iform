@@ -328,7 +328,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				return map;
 			}
 			map = (Map<String, Object>) session.load(dataModel.getTableName(), instanceId);
-			if(map == null || map.keySet() == null){
+			if(map == null || map.keySet() == null || map.keySet().size() < 1){
 				throw new IFormException("没有查询到【" + dataModel.getTableName() + "】表，id【"+instanceId+"】的数据");
 			}
 		} catch (Exception e) {
@@ -407,7 +407,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			if(itemMap.keySet().contains(itemModelEntity.getId())){
 				list.remove(itemMap.get(itemModelEntity.getId()));
 			}
-			list.add(getItemInstance(itemModelEntity.getId(), user != null ? user.getId() : "-1"));
+			list.add(getItemInstance(itemModelEntity.getId(), user != null ? user.getId() : null));
 		}else if(itemModelEntity.getSystemItemType() == SystemItemType.SerialNumber){
 			if(itemMap.keySet().contains(itemModelEntity.getId())){
 				list.remove(itemMap.get(itemModelEntity.getId()));
@@ -437,7 +437,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			//主表数据
 			setMasterFormItemInstances(formInstance, data, DisplayTimingType.Add);
 			data.put("create_at", new Date());
-			data.put("create_by",  user != null ? user.getId() : "-1");
+			data.put("create_by",  user != null ? user.getId() : null);
 			//流程参数
 			data.put("PROCESS_ID", formInstance.getProcessId());
 			data.put("PROCESS_INSTANCE", formInstance.getProcessInstanceId());
@@ -590,7 +590,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			if(itemMap.keySet().contains(itemModelEntity.getId())){
 				list.remove(itemMap.get(itemModelEntity.getId()));
 			}
-			list.add(getItemInstance(itemModelEntity.getId(), user != null ? user.getId() : "-1"));
+			list.add(getItemInstance(itemModelEntity.getId(), user != null ? user.getId() : null));
 		}
 	}
 
@@ -606,7 +606,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			//主表数据
 			setMasterFormItemInstances(formInstance, data, DisplayTimingType.Update);
 			data.put("update_at", new Date());
-			data.put("update_by",  user != null ? user.getId() : "-1");
+			data.put("update_by",  user != null ? user.getId() : null);
 
 			setSubFormReferenceData(session, user, formInstance, data, DisplayTimingType.Update);
 			//关联表数据
@@ -738,12 +738,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 			if(displayTimingType == DisplayTimingType.Add){
 				map.put("create_at", new Date());
-				map.put("create_by", user != null ? user.getId() : "-1" );
+				map.put("create_by", user != null ? user.getId() : null );
 				map.put("update_at", new Date());
-				map.put("update_by", user != null ? user.getId() : "-1");
 			}else{
 				map.put("update_at", new Date());
-				map.put("update_by", user != null ? user.getId() : "-1");
+				map.put("update_by", user != null ? user.getId() : null);
 			}
 			String id = map.get("id") == null ? null : String.valueOf(map.get("id"));
 			if (StringUtils.hasText(id)) {
@@ -936,6 +935,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	private void setReferenceDataModel(ItemModelEntity itemModelEntity, Map<String, ReferenceDataModel> referenceMap){
 		if(itemModelEntity instanceof ReferenceItemModelEntity && itemModelEntity.getType() != ItemType.ReferenceLabel) {
 			ReferenceItemModelEntity referenceItemModelEntity = (ReferenceItemModelEntity)itemModelEntity;
+			//创建者更新者不走关联
+			if(referenceItemModelEntity.getSystemItemType() == SystemItemType.Creator){
+				return;
+			}
 			ReferenceDataModel referenceDataModel = new ReferenceDataModel();
 			FormModelEntity formModelEntity = formModelService.get(referenceItemModelEntity.getReferenceFormId());
 			//主表关联的key
@@ -996,7 +999,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 						}
 					}
 					subFormData.put("update_at", new Date());
-					subFormData.put("update_by", user != null ? user.getId() : "-1");
+					subFormData.put("update_by", user != null ? user.getId() : null);
 				} else {
 					Map<String, Object> dataMap = new HashMap<>();
 					for (String keyString : newMap.keySet()) {
@@ -1005,7 +1008,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 						}
 					}
 					dataMap.put("create_at", new Date());
-					dataMap.put("create_by", user != null ? user.getId() : "-1");
+					dataMap.put("create_by", user != null ? user.getId() : null);
 					subFormData = (Map<String, Object>) session.merge(dataModelEntity.getTableName(), dataMap);
 				}
 
