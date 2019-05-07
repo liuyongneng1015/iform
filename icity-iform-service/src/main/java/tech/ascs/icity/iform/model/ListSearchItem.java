@@ -4,7 +4,6 @@ import java.io.Serializable;
 
 import javax.persistence.*;
 
-import org.hibernate.annotations.Cascade;
 import tech.ascs.icity.jpa.dao.model.BaseEntity;
 
 /**
@@ -26,6 +25,10 @@ public class ListSearchItem extends BaseEntity implements Serializable {
 
 	@Embedded
 	private ItemSearchInfo search;
+
+	private Boolean fullTextSearch;
+	private Boolean appUse;
+	private Boolean pcUse;
 
 	@Column(name="order_no",columnDefinition = "int default 0")//排序号
 	private Integer orderNo = 0;
@@ -52,6 +55,30 @@ public class ListSearchItem extends BaseEntity implements Serializable {
 
 	public void setSearch(ItemSearchInfo search) {
 		this.search = search;
+	}
+
+	public Boolean getFullTextSearch() {
+		return fullTextSearch;
+	}
+
+	public void setFullTextSearch(Boolean fullTextSearch) {
+		this.fullTextSearch = fullTextSearch;
+	}
+
+	public Boolean getAppUse() {
+		return appUse;
+	}
+
+	public void setAppUse(Boolean appUse) {
+		this.appUse = appUse;
+	}
+
+	public Boolean getPcUse() {
+		return pcUse;
+	}
+
+	public void setPcUse(Boolean pcUse) {
+		this.pcUse = pcUse;
 	}
 
 	public Integer getOrderNo() {
