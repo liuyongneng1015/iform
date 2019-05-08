@@ -110,7 +110,7 @@ public interface FormModelService {
 	 * @param formModel 表单模型
 	 */
 	@ApiOperation(value = "更新表单模型流程", position = 3)
-	@PostMapping(value = "/process", consumes = {MediaType.APPLICATION_JSON_UTF8_VALUE})
+	@PostMapping(value = "/process")
 	void saveFormModelProcess(@RequestBody FormModel formModel);
 
 	/**
