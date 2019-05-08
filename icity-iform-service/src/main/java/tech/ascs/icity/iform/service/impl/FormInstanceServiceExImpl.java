@@ -1572,14 +1572,25 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				if (searchItem==null) {
 					continue;
 				}
-				ItemModelEntity itemModel = searchItem.getItemModel();
-				if (itemModel==null) {
+				ItemModelEntity itemModelEntity = searchItem.getItemModel();
+				if (itemModelEntity==null) {
 					continue;
 				}
-				ColumnModelEntity columnModel = itemModel.getColumnModel();
-				if (itemModel.getType()==ItemType.Input || itemModel.getType()==ItemType.Editor) {  // 单行文本控件,多行文本控件,富文本控件
+				ColumnModelEntity columnModel = itemModelEntity.getColumnModel();
+				if (itemModelEntity.getType()==ItemType.Input || itemModelEntity.getType()==ItemType.Editor) {  // 单行文本控件,多行文本控件,富文本控件
 					if (columnModel!=null) {
 						conditions.add(Restrictions.like(columnModel.getColumnName(), "%" + valueStr + "%"));
+					}
+				} else if (itemModelEntity instanceof SelectItemModelEntity) {
+					SelectItemModelEntity selectItemModelEntity = (SelectItemModelEntity)itemModelEntity;
+					List<ItemSelectOption> options = selectItemModelEntity.getOptions();
+					if (options!=null && options.size()>0) {
+						Set<String> optionIds = options.stream().filter(item-> StringUtils.hasText(item.getLabel())&&item.getLabel().contains(valueStr)).map(item->item.getId()).collect(Collectors.toSet());
+						if (optionIds!=null && optionIds.size()>0) {
+							for (String optionId:optionIds) {
+								conditions.add(Restrictions.like(columnModel.getColumnName(), "%" + optionId + "%"));
+							}
+						}
 					}
 				}
 			}
