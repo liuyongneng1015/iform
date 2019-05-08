@@ -1577,14 +1577,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					continue;
 				}
 				ColumnModelEntity columnModel = itemModel.getColumnModel();
-				if (itemModel.getType() == ItemType.InputNumber) { // 数字控件的搜索是用等号
-					if (columnModel!=null) {
-						Object number = getNumberParams(itemModel, columnModel, valueStr);
-						if (number != null) {
-							conditions.add(Restrictions.eq(columnModel.getColumnName(), number));
-						}
-					}
-				} else if (itemModel.getType() == ItemType.InputNumber) {  // 单行文本控件,多行文本控件,富文本控件
+				if (itemModel.getType()==ItemType.Input || itemModel.getType()==ItemType.Editor) {  // 单行文本控件,多行文本控件,富文本控件
 					if (columnModel!=null) {
 						conditions.add(Restrictions.like(columnModel.getColumnName(), "%" + valueStr + "%"));
 					}
