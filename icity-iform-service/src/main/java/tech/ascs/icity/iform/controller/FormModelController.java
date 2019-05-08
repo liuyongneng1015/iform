@@ -158,7 +158,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 	@Override
 	public IdEntity saveFormDataModel(@RequestBody FormModel formModel) {
-        String key = formModel.getId()+"_"+formModel.getName();
+        String key = formModel.getId() + "_" + formModel.getName() + "_saveFormDataModel";
         FormModelEntity oldEntity = null;
         try {
             if(concurrentmap.get(key) != null){
@@ -195,7 +195,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		if (StringUtils.hasText(formModel.getId())) {
 			throw new IFormException("表单模型ID不为空，请使用更新操作");
 		}
-        String key = formModel.getId()+"_"+formModel.getName();
+        String key = formModel.getId()+"_"+formModel.getName() + "_createFormModel";
         try {
             if(concurrentmap.get(key) != null){
                 throw  new IFormException("请不要重复提交");
@@ -218,7 +218,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		if (!StringUtils.hasText(formModel.getId()) || !id.equals(formModel.getId())) {
 			throw new IFormException("表单模型ID不一致");
 		}
-        String key = formModel.getId()+"_"+formModel.getName();
+        String key = formModel.getId() + "_" + formModel.getName() + "_updateFormModel";
         try {
             if(concurrentmap.get(key) != null){
                 throw  new IFormException("请不要重复提交");
@@ -234,6 +234,24 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
                 concurrentmap.remove(key);
             }
         }
+	}
+
+	@Override
+	public void saveFormModelProcess(@RequestBody FormModel formModel) {
+		String key = formModel.getId() + "_" + formModel.getName() +"_updateFormModelProcess";
+		try {
+			if(concurrentmap.get(key) != null){
+				throw  new IFormException("请不要重复提交");
+			}
+			concurrentmap.put(key, System.currentTimeMillis());
+			formModelService.saveFormModelProcess(formModel);
+		} catch (Exception e) {
+			throw new IFormException("保存表单模型列表失败：" + e.getMessage(), e);
+		}finally {
+			if(concurrentmap.containsKey(key)){
+				concurrentmap.remove(key);
+			}
+		}
 	}
 
 	@Override
