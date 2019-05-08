@@ -158,7 +158,14 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 						if (itemModelEntity!=null && itemModelEntity.getSystemItemType()!=null && "ID".equals(itemModelEntity.getSystemItemType().getValue())) {
 							continue;
 						}
-						searchItemEntity.setItemModel(itemModelService.find(searchItem.getItemModel().getId()));
+						ItemModelEntity searchItemModelEntity = itemModelService.find(searchItem.getItemModel().getId());
+						if (true == searchItem.getFullTextSearch()) {
+							ItemType itemType = searchItemModelEntity.getType();
+							if (ItemType.InputNumber== itemType || ItemType.DatePicker==itemType || ItemType.TimePicker==itemType) {
+								throw new ICityException("数字控件和时间控件不能加到全文索引");
+							}
+						}
+						searchItemEntity.setItemModel(searchItemModelEntity);
 					}
 					searchItemEntity.setListModel(old);
 					if (searchItem.getSearch() == null) {
