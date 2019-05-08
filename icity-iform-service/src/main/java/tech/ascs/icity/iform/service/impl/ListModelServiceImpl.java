@@ -155,11 +155,8 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 					BeanUtils.copyProperties(searchItem, searchItemEntity, "listModel", "itemModel", "search");
 					if(searchItem.getItemModel() != null) {
 						ItemModelEntity itemModelEntity = searchItemEntity.getItemModel();
-						if (itemModelEntity!=null) {
-							SystemItemType systemItemType = itemModelEntity.getSystemItemType();
-							if (systemItemType!=null && "ID".equals(systemItemType.getValue())) {
-								continue;
-							}
+						if (itemModelEntity!=null && itemModelEntity.getSystemItemType()!=null && "ID".equals(itemModelEntity.getSystemItemType().getValue())) {
+							continue;
 						}
 						searchItemEntity.setItemModel(itemModelService.find(searchItem.getItemModel().getId()));
 					}

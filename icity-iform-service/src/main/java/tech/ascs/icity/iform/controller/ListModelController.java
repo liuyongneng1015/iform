@@ -157,7 +157,6 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		try {
 			ListModelEntity entity = wrap(ListModel);
 			listModelService.save(entity);
-			System.out.println("");
 		} catch (Exception e) {
 		    throw new IFormException("保存列表模型列表失败：" + e.getMessage(), e);
 		}
@@ -504,12 +503,12 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		return listModels;
 	}
 
-	private ListModel toDTO(ListModelEntity entity) {
+	private ListModel toDTO(ListModelEntity listModelEntity) {
 		ListModel listModel = new ListModel();
-		BeanUtils.copyProperties(entity, listModel, new String[] {"masterForm", "slaverForms", "sortItems", "searchItems", "functions", "displayItems", "quickSearchItems"});
+		BeanUtils.copyProperties(listModelEntity, listModel, new String[] {"masterForm", "slaverForms", "sortItems", "searchItems", "functions", "displayItems", "quickSearchItems"});
 
-		if(entity.getMasterForm() != null){
-			FormModelEntity formModelEntity = entity.getMasterForm();
+		if(listModelEntity.getMasterForm() != null){
+			FormModelEntity formModelEntity = listModelEntity.getMasterForm();
 			FormModel masterForm = new FormModel();
 			BeanUtils.copyProperties(formModelEntity, masterForm, new String[] {"items","dataModels","permissions","submitChecks","functions", "triggeres"});
 			listModel.setMasterForm(masterForm);
@@ -530,11 +529,31 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			}
 		}
 
-		Set<String> masterFormItemIds = formModelService.findAllItems(entity.getMasterForm()).stream().map(item->item.getId()).collect(Collectors.toSet());
+		Set<String> masterFormItemIds = formModelService.findAllItems(listModelEntity.getMasterForm()).stream().map(item->item.getId()).collect(Collectors.toSet());
 
-		if(entity.getDisplayItems() != null){
+		setDisplayItems(listModelEntity, listModel, masterFormItemIds);
+		setFunctions(listModelEntity, listModel);
+		setSortItems(listModelEntity, listModel, masterFormItemIds);
+		setQuickSearchItems(listModelEntity, listModel, masterFormItemIds);
+		setSearchItems(listModelEntity, listModel, masterFormItemIds);
+
+		if(listModelEntity.getSlaverForms() != null){
+			List<FormModel> list = new ArrayList<>();
+			for(FormModelEntity formModelEntity : listModelEntity.getSlaverForms()) {
+				FormModel slaverForm = new FormModel();
+				BeanUtils.copyProperties(formModelEntity, slaverForm, new String[]{"items", "dataModels", "permissions", "submitChecks","functions", "triggeres"});
+				list.add(slaverForm);
+			}
+			listModel.setSlaverForms(list);
+		}
+
+		return listModel;
+	}
+
+	private void setDisplayItems(ListModelEntity listModelEntity, ListModel listModel, Set<String> masterFormItemIds) {
+		if(listModelEntity.getDisplayItems() != null){
 			List<ItemModel> list = new ArrayList<>();
-			for(ItemModelEntity itemModelEntity : entity.getDisplayItems()) {
+			for(ItemModelEntity itemModelEntity : listModelEntity.getDisplayItems()) {
 				if (masterFormItemIds.contains(itemModelEntity.getId())) {
 					ItemModel itemModel = new ItemModel();
 					BeanUtils.copyProperties(itemModelEntity, itemModel, new String[]{"defaultValue", "formModel", "columnModel", "activities", "options", "searchItems", "sortItems", "permissions", "referenceList", "items", "parentItem"});
@@ -542,8 +561,8 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				}
 			}
 			// displayItem是有排序的，排序的ID全部拼接到displayItemsSort这个字段
-			if (!StringUtils.isEmpty(entity.getDisplayItemsSort())) {
-				List<String> ids = Arrays.asList(entity.getDisplayItemsSort().split(","));
+			if (!StringUtils.isEmpty(listModelEntity.getDisplayItemsSort())) {
+				List<String> ids = Arrays.asList(listModelEntity.getDisplayItemsSort().split(","));
 				List<ItemModel> displaySortList = new ArrayList<>();
 				for (String id:ids) {
 					Optional<ItemModel> optional = list.stream().filter(item->id.equals(item.getId())).findFirst();
@@ -556,38 +575,32 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				listModel.setDisplayItems(list);
 			}
 		}
+	}
 
-		if(entity.getSlaverForms() != null){
-			List<FormModel> list = new ArrayList<>();
-			for(FormModelEntity formModelEntity : entity.getSlaverForms()) {
-				FormModel slaverForm = new FormModel();
-				BeanUtils.copyProperties(formModelEntity, slaverForm, new String[]{"items", "dataModels", "permissions", "submitChecks","functions", "triggeres"});
-				list.add(slaverForm);
-			}
-			listModel.setSlaverForms(list);
-		}
-
-		if(entity.getFunctions() != null){
+	private void setFunctions(ListModelEntity listModelEntity, ListModel listModel) {
+		if(listModelEntity.getFunctions() != null){
 			List<FunctionModel> functions = new ArrayList();
-			for(ListFunction listFunction : entity.getFunctions()) {
+			for(ListFunction listFunction : listModelEntity.getFunctions()) {
 				FunctionModel function = new FunctionModel();
 				BeanUtils.copyProperties(listFunction, function, new String[]{"listModel", "formModel", "parseArea"});
 				if (StringUtils.hasText(listFunction.getParseArea())) {
-				    function.setParseArea(listFunction.getParseArea().split(","));
-                }
-                function.setListActionBarVisible(null);
-                function.setUpdatePageVisible(null);
+					function.setParseArea(listFunction.getParseArea().split(","));
+				}
+				function.setListActionBarVisible(null);
+				function.setUpdatePageVisible(null);
 				function.setCheckPageVisible(null);
 				function.setAddPageVisible(null);
 				functions.add(function);
 			}
-            Collections.sort(functions);
+			Collections.sort(functions);
 			listModel.setFunctions(functions);
 		}
+	}
 
-		if (entity.getSortItems().size() > 0) {
+	private void setSortItems(ListModelEntity listModelEntity, ListModel listModel, Set<String> masterFormItemIds) {
+		if (listModelEntity.getSortItems().size() > 0) {
 			List<SortItem> sortItems = new ArrayList();
-			for (ListSortItem sortItemEntity: entity.getSortItems()) {
+			for (ListSortItem sortItemEntity: listModelEntity.getSortItems()) {
 				if(sortItemEntity.getItemModel() != null) {
 					if (masterFormItemIds.contains(sortItemEntity.getItemModel().getId())==false) {
 						continue;
@@ -602,10 +615,36 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			}
 			listModel.setSortItems(sortItems);
 		}
+	}
 
-		if (entity.getSearchItems().size() > 0) {
+	private void setQuickSearchItems(ListModelEntity listModelEntity, ListModel listModel, Set<String> masterFormItemIds) {
+		if (listModelEntity.getQuickSearchItems().size() > 0) {
+			List<QuickSearchItem> quickSearches = new ArrayList<>();
+			for (QuickSearchEntity quickSearchEntity:listModelEntity.getQuickSearchItems()) {
+				if (quickSearchEntity.getItemModel() != null && masterFormItemIds.contains(quickSearchEntity.getItemModel().getId())==false) {
+					continue;
+				}
+				QuickSearchItem quickSearch = new QuickSearchItem();
+				BeanUtils.copyProperties(quickSearchEntity, quickSearch, new String[]{"listModel", "itemModel", "searchValues"});
+				if (!StringUtils.isEmpty(quickSearchEntity.getSearchValues())) {
+					quickSearch.setSearchValues(Arrays.asList(quickSearchEntity.getSearchValues().split(",")));
+				}
+				if (quickSearchEntity.getItemModel() != null) {
+					ItemModel itemModel = new ItemModel();
+					BeanUtils.copyProperties(quickSearchEntity.getItemModel(), itemModel, new String[]{"formModel", "columnModel", "activities", "options", "searchItems", "sortItems", "permissions", "items", "parentItem", "referenceList"});
+					quickSearch.setItemModel(itemModel);
+				}
+				quickSearches.add(quickSearch);
+			}
+			Collections.sort(quickSearches);
+			listModel.setQuickSearchItems(quickSearches);
+		}
+	}
+
+	private void setSearchItems(ListModelEntity listModelEntity, ListModel listModel, Set<String> masterFormItemIds) {
+		if (listModelEntity.getSearchItems().size() > 0) {
 			List<SearchItem> searchItems = new ArrayList();
-			for (ListSearchItem searchItemEntity : entity.getSearchItems()) {
+			for (ListSearchItem searchItemEntity : listModelEntity.getSearchItems()) {
 				ItemModelEntity itemModelEntity = searchItemEntity.getItemModel();
 				if (itemModelEntity != null) {
 					if (masterFormItemIds.contains(itemModelEntity.getId())==false) {
@@ -619,7 +658,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 						} else if (referenceItemModelEntity.getReferenceType() == ReferenceType.OneToOne) {
 							searchItem.setMultiple(false);
 						} else if (referenceItemModelEntity.getReferenceType() == ReferenceType.ManyToOne ||
-								   referenceItemModelEntity.getReferenceType() == ReferenceType.OneToMany) {
+								referenceItemModelEntity.getReferenceType() == ReferenceType.OneToMany) {
 							if (itemModelEntity.getType() == ItemType.ReferenceLabel) {
 								searchItem.setMultiple(true);
 							} else {
@@ -627,7 +666,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 							}
 						}
 					}
-					searchItem.setOrderNo(searchItemEntity.getOrderNo());
+					BeanUtils.copyProperties(searchItemEntity, searchItem, "listModel", "itemModel", "search");
 					BeanUtils.copyProperties(itemModelEntity, searchItem, new String[]{"defaultValue", "formModel", "columnModel", "activities", "options","searchItems","sortItems", "permissions","items","parentItem","referenceList"});
 					List<ItemSelectOption> options = itemModelEntity.getOptions();
 					// 自定义的下拉框，在列表建模的渲染页面，要返回options属性
@@ -695,77 +734,57 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 						}
 					}
 
-					if (searchItemEntity.getSearch() != null) {
-						Search search = new Search();
-						BeanUtils.copyProperties(searchItemEntity.getSearch(), search, new String[] {"search", "defaultValue"});
-						String defaultValue = searchItemEntity.getSearch().getDefaultValue();
-						if(StringUtils.hasText(defaultValue)) {
-							ItemType itemType = searchItem.getType();
-							// ItemType.InputNumber和ItemType.DatePicker返回的是数字，不是字符串数组格式
-							if (searchItem.getSystemItemType() == SystemItemType.CreateDate ||
-									(ItemType.InputNumber == itemType && (searchItem.getDecimalDigits() == null ||searchItem.getDecimalDigits() == 0 ))) {
-								try {
-									search.setDefaultValue(Long.valueOf(defaultValue));
-								} catch (Exception e) {
-									e.printStackTrace();
-									search.setDefaultValue(null);
-								}
-							// ItemType.Input，ItemType.RadioGroup和ItemType.Editor返回的defaultValue是字符串格式，不是字符串数组格式
-							} else if (ItemType.Input.equals(itemType) || ItemType.RadioGroup.equals(itemType) || ItemType.Editor.equals(itemType)) {
-								search.setDefaultValue(defaultValue);
-							} else if (itemModelEntity instanceof TreeSelectItemModelEntity) {
-								TreeSelectItemModelEntity treeSelectItem = (TreeSelectItemModelEntity)itemModelEntity;
-								Boolean multiple = treeSelectItem.getMultiple();
-								TreeSelectDataSource dataSource = treeSelectItem.getDataSource();
-								Set<String> set = new HashSet(Arrays.asList("Department", "Position", "Personnel", "PositionIdentify"));
-								if (dataSource!=null && set.contains(dataSource.getValue()) && multiple!=null && multiple) {
-									search.setDefaultValue(defaultValue.split(","));
-									List<TreeSelectData> list = formInstanceServiceEx.getTreeSelectData(dataSource, defaultValue.split(","));
-									if (list!=null) {
-										search.setDefaultValueName(list.stream().map(item->item.getName()).collect(Collectors.toList()));
-									}
-								} else if (dataSource!=null && set.contains(dataSource.getValue()) && multiple!=null && multiple==false) {
-									List<TreeSelectData> list = formInstanceServiceEx.getTreeSelectData(dataSource, new String[]{defaultValue});
-									search.setDefaultValue(defaultValue);
-									if (list!=null && list.size()>0) {
-										search.setDefaultValueName(list.get(0).getName());
-									}
-								}
-							} else {
-								search.setDefaultValue(Arrays.asList(defaultValue.split(",")));
-							}
-						}
-						searchItem.setSearch(search);
-					}
+					setSearch(searchItemEntity, searchItem, itemModelEntity);
 					searchItems.add(searchItem);
 				}
 			}
 			Collections.sort(searchItems);
 			listModel.setSearchItems(searchItems);
 		}
+	}
 
-		if (entity.getQuickSearchItems().size() > 0) {
-		    List<QuickSearchItem> quickSearches = new ArrayList<>();
-		    for (QuickSearchEntity quickSearchEntity:entity.getQuickSearchItems()) {
-				if (quickSearchEntity.getItemModel() != null && masterFormItemIds.contains(quickSearchEntity.getItemModel().getId())==false) {
-					continue;
+	private void setSearch(ListSearchItem searchItemEntity, SearchItem searchItem, ItemModelEntity itemModelEntity) {
+		if (searchItemEntity.getSearch() != null) {
+			Search search = new Search();
+			BeanUtils.copyProperties(searchItemEntity.getSearch(), search, new String[]{"search", "defaultValue"});
+			String defaultValue = searchItemEntity.getSearch().getDefaultValue();
+			if (StringUtils.hasText(defaultValue)) {
+				ItemType itemType = searchItem.getType();
+				// ItemType.InputNumber和ItemType.DatePicker返回的是数字，不是字符串数组格式
+				if (searchItem.getSystemItemType() == SystemItemType.CreateDate ||
+						(ItemType.InputNumber == itemType && (searchItem.getDecimalDigits() == null || searchItem.getDecimalDigits() == 0))) {
+					try {
+						search.setDefaultValue(Long.valueOf(defaultValue));
+					} catch (Exception e) {
+						e.printStackTrace();
+						search.setDefaultValue(null);
+					}
+					// ItemType.Input，ItemType.RadioGroup和ItemType.Editor返回的defaultValue是字符串格式，不是字符串数组格式
+				} else if (ItemType.Input.equals(itemType) || ItemType.RadioGroup.equals(itemType) || ItemType.Editor.equals(itemType)) {
+					search.setDefaultValue(defaultValue);
+				} else if (itemModelEntity instanceof TreeSelectItemModelEntity) {
+					TreeSelectItemModelEntity treeSelectItem = (TreeSelectItemModelEntity) itemModelEntity;
+					Boolean multiple = treeSelectItem.getMultiple();
+					TreeSelectDataSource dataSource = treeSelectItem.getDataSource();
+					Set<String> set = new HashSet(Arrays.asList("Department", "Position", "Personnel", "PositionIdentify"));
+					if (dataSource != null && set.contains(dataSource.getValue()) && multiple != null && multiple) {
+						search.setDefaultValue(defaultValue.split(","));
+						List<TreeSelectData> list = formInstanceServiceEx.getTreeSelectData(dataSource, defaultValue.split(","));
+						if (list != null) {
+							search.setDefaultValueName(list.stream().map(item -> item.getName()).collect(Collectors.toList()));
+						}
+					} else if (dataSource != null && set.contains(dataSource.getValue()) && multiple != null && multiple == false) {
+						List<TreeSelectData> list = formInstanceServiceEx.getTreeSelectData(dataSource, new String[]{defaultValue});
+						search.setDefaultValue(defaultValue);
+						if (list != null && list.size() > 0) {
+							search.setDefaultValueName(list.get(0).getName());
+						}
+					}
+				} else {
+					search.setDefaultValue(Arrays.asList(defaultValue.split(",")));
 				}
-				QuickSearchItem quickSearch = new QuickSearchItem();
-				BeanUtils.copyProperties(quickSearchEntity, quickSearch, new String[]{"listModel", "itemModel", "searchValues"});
-				if (!StringUtils.isEmpty(quickSearchEntity.getSearchValues())) {
-					quickSearch.setSearchValues(Arrays.asList(quickSearchEntity.getSearchValues().split(",")));
-				}
-				if (quickSearchEntity.getItemModel() != null) {
-					ItemModel itemModel = new ItemModel();
-					BeanUtils.copyProperties(quickSearchEntity.getItemModel(), itemModel, new String[]{"formModel", "columnModel", "activities", "options", "searchItems", "sortItems", "permissions", "items", "parentItem", "referenceList"});
-					quickSearch.setItemModel(itemModel);
-				}
-				quickSearches.add(quickSearch);
-            }
-            Collections.sort(quickSearches);
-            listModel.setQuickSearchItems(quickSearches);
-        }
-		return listModel;
+			}
+		}
 	}
 
 	private List<ItemModel> getItemModelList(List<String> idResultList){
