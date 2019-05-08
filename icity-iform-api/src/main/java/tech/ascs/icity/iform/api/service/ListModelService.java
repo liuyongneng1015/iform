@@ -87,7 +87,6 @@ public interface ListModelService {
 	@PostMapping
 	IdEntity createListModel(@RequestBody ListModel listModel);
 
-
 	/**
 	 * 更新列表模型
 	 * 

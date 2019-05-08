@@ -1843,8 +1843,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
             formModel.setSubmitChecks(formSubmitCheckModels);
         }
 
-
-
 		if(entity.getDataModels() != null && entity.getDataModels().size() > 0){
 			List<DataModel> dataModelList = new ArrayList<>();
 			List<DataModelEntity> dataModelEntities = new ArrayList<>();
