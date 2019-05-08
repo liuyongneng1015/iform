@@ -157,6 +157,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		try {
 			ListModelEntity entity = wrap(ListModel);
 			listModelService.save(entity);
+			System.out.println("");
 		} catch (Exception e) {
 		    throw new IFormException("保存列表模型列表失败：" + e.getMessage(), e);
 		}
@@ -644,7 +645,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 						ListModelEntity searchReferenceListEntity = referenceItemModelEntity.getReferenceList();
 						searchReferenceList.setId(searchReferenceListEntity.getId());
 						searchReferenceList.setName(searchReferenceListEntity.getName());
-						searchReferenceList.setMultiSelect(searchReferenceListEntity.isMultiSelect());
+						searchReferenceList.setMultiSelect(searchReferenceListEntity.getMultiSelect());
 						searchReferenceList.setDescription(searchReferenceListEntity.getDescription());
 						searchReferenceList.setApplicationId(searchReferenceListEntity.getApplicationId());
 						searchItem.setReferenceList(searchReferenceList);

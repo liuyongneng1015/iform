@@ -21,7 +21,7 @@ public class ListModelEntity extends BaseEntity implements Serializable {
 
 	private String description;
 
-	private boolean multiSelect = true;
+	private Boolean multiSelect = true;
 
 	@ManyToOne(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
 	@JoinColumn(name="master_form")
@@ -79,11 +79,11 @@ public class ListModelEntity extends BaseEntity implements Serializable {
 		this.description = description;
 	}
 
-	public boolean isMultiSelect() {
+	public Boolean getMultiSelect() {
 		return multiSelect;
 	}
 
-	public void setMultiSelect(boolean multiSelect) {
+	public void setMultiSelect(Boolean multiSelect) {
 		this.multiSelect = multiSelect;
 	}
 

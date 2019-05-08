@@ -26,9 +26,12 @@ public class ListSearchItem extends BaseEntity implements Serializable {
 	@Embedded
 	private ItemSearchInfo search;
 
-	private Boolean fullTextSearch;
-	private Boolean appUse;
-	private Boolean pcUse;
+	@Column(name="full_text_search")
+	private Boolean fullTextSearch = false;
+	@Column(name="app_use")
+	private Boolean appUse = false;
+	@Column(name="pc_use")
+	private Boolean pcUse = false;
 
 	@Column(name="order_no",columnDefinition = "int default 0")//排序号
 	private Integer orderNo = 0;

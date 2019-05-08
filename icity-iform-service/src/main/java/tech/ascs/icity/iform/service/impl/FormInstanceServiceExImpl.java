@@ -1557,7 +1557,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				return Double.parseDouble(strValue);
 			}
 		} catch (NumberFormatException e) {
-			throw new NumberFormatException(itemModel.getName() + "数字格式不正确");
+			throw new ICityException(itemModel.getName() + "格式不正确");
 		}
 		return null;
 	}
