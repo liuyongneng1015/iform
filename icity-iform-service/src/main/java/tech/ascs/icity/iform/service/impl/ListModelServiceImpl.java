@@ -152,8 +152,8 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 				for (int i = 0; i < entity.getSearchItems().size(); i++) {
 					ListSearchItem searchItem = entity.getSearchItems().get(i);
 					ListSearchItem searchItemEntity =  new ListSearchItem();
+					BeanUtils.copyProperties(searchItem, searchItemEntity, "listModel", "itemModel", "search");
 					if(searchItem.getItemModel() != null) {
-						// 排序字段过滤掉ID组件
 						ItemModelEntity itemModelEntity = searchItemEntity.getItemModel();
 						if (itemModelEntity!=null) {
 							SystemItemType systemItemType = itemModelEntity.getSystemItemType();
@@ -168,10 +168,8 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 						throw new IFormException("控件【" + searchItemEntity.getItemModel().getName() + "】未定义搜索属性");
 					}
 					ItemSearchInfo searchInfo = new ItemSearchInfo();
-					ItemSearchInfo dbSearch = searchItem.getSearch();
-					BeanUtils.copyProperties(dbSearch, searchInfo);
+					BeanUtils.copyProperties(searchItem.getSearch(), searchInfo);
 					searchItemEntity.setSearch(searchInfo);
-					searchItemEntity.setOrderNo(i);
 					searchItems.add(searchItemEntity);
 				}
 				old.setSearchItems(searchItems);
