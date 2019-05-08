@@ -1416,7 +1416,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 		for (String id:queryParameters.keySet()) {
 			Object value = queryParameters.get(id);
-			if (value==null) {
+			if (value==null || "".equals(value.toString())) {
 				continue;
 			}
 			if ("fullTextSearch".equals(id) && listModel!=null) {
@@ -1453,7 +1453,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 						continue;
 					}
 					columnModel = referenceItemModel.getColumnModel();
-					propertyName = referenceItemModel.getColumnModel().getColumnName()+".id";
+					propertyName = columnModel.getColumnName()+".id";
 				}else if (referenceItemModel.getSelectMode() == SelectMode.Inverse && (referenceItemModel.getReferenceType() == ReferenceType.ManyToOne
 						|| referenceItemModel.getReferenceType() == ReferenceType.OneToOne)) {
 					ReferenceItemModelEntity referenceItemModelEntity1 = (ReferenceItemModelEntity)itemModelManager.get(referenceItemModel.getReferenceItemId());
@@ -1462,7 +1462,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					}
 					propertyIsCollection = true;
 					columnModel = referenceItemModelEntity1.getColumnModel();
-					propertyName = referenceItemModelEntity1.getColumnModel().getDataModel().getTableName()+"_"+referenceItemModelEntity1.getColumnModel().getColumnName()+"_list";
+					propertyName = columnModel.getDataModel().getTableName()+"_"+referenceItemModelEntity1.getColumnModel().getColumnName()+"_list";
 				}else if(referenceItemModel.getSelectMode() == SelectMode.Multiple){
 					columnModel = new ColumnModelEntity();
 					columnModel.setDataType(ColumnType.String);
@@ -1492,15 +1492,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					}
 				} else if (itemModel.getType() == ItemType.InputNumber) {
 					equalsFlag = true;
-					String strValue = String.valueOf(value);
-					if (columnModel.getDataType() == ColumnType.Integer) {
-						values[i] = Integer.parseInt(strValue);
-					} else if (columnModel.getDataType() == ColumnType.Long) {
-						values[i] = Long.parseLong(strValue);
-					} else if (columnModel.getDataType() == ColumnType.Float) {
-						values[i] = Float.parseFloat(strValue);
-					} else if (columnModel.getDataType() == ColumnType.Double) {
-						values[i] = Double.parseDouble(strValue);
+					Object number = getNumberParams(itemModel, columnModel, value);
+					if (number!=null) {
+						values[i] = number;
 					}
 				} else if (columnModel.getDataType() == ColumnType.Boolean) {
 					equalsFlag = true;
@@ -1550,10 +1544,53 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		return criteria;
 	}
 
-	private void fullTextSearchCriteria(Criteria criteria, Object value, ListModelEntity listModel) {
+	private Object getNumberParams(ItemModelEntity itemModel, ColumnModelEntity columnModel, Object value) {
+		String strValue = String.valueOf(value);
+		try {
+			if (columnModel.getDataType() == ColumnType.Integer) {
+				return Integer.parseInt(strValue);
+			} else if (columnModel.getDataType() == ColumnType.Long) {
+				return Long.parseLong(strValue);
+			} else if (columnModel.getDataType() == ColumnType.Float) {
+				return Float.parseFloat(strValue);
+			} else if (columnModel.getDataType() == ColumnType.Double) {
+				return Double.parseDouble(strValue);
+			}
+		} catch (NumberFormatException e) {
+			throw new NumberFormatException(itemModel.getName() + "数字格式不正确");
+		}
+		return null;
+	}
+
+	private void fullTextSearchCriteria(Criteria criteria, Object value, ListModelEntity listModelEntity) {
 		if (value!=null && value instanceof String) {
 			String valueStr = value.toString();
-
+			List<Criterion> conditions = new ArrayList();
+			List<ListSearchItem> searchItems = listModelEntity.getSearchItems();
+			searchItems = searchItems.stream().filter(item->(item.getFullTextSearch()!=null && item.getFullTextSearch()==true)).collect(Collectors.toList());
+			for (ListSearchItem searchItem:searchItems) {
+				if (searchItem==null) {
+					continue;
+				}
+				ItemModelEntity itemModel = searchItem.getItemModel();
+				if (itemModel==null) {
+					continue;
+				}
+				ColumnModelEntity columnModel = itemModel.getColumnModel();
+				if (itemModel.getType() == ItemType.InputNumber) { // 数字控件的搜索是用等号
+					if (columnModel!=null) {
+						Object number = getNumberParams(itemModel, columnModel, valueStr);
+						if (number != null) {
+							conditions.add(Restrictions.eq(columnModel.getColumnName(), number));
+						}
+					}
+				} else if (itemModel.getType() == ItemType.InputNumber) {  // 单行文本控件,多行文本控件,富文本控件
+					if (columnModel!=null) {
+						conditions.add(Restrictions.like(columnModel.getColumnName(), "%" + valueStr + "%"));
+					}
+				}
+			}
+			criteria.add(Restrictions.or(conditions.toArray(new SimpleExpression[]{})));
 		}
 	}
 

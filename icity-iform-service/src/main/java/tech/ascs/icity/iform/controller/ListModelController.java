@@ -381,15 +381,19 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				if (searchItem==null || StringUtils.isEmpty(searchItem.getId())) {
 					throw new IFormException("查询条件勾选的item的ID不能为空");
 				}
+				if (searchItem.getSearch() == null) {
+					throw new IFormException("控件【" + searchItem.getName() + "】未定义搜索属性");
+				}
 				ItemModelEntity itemModelEntity = new ItemModelEntity();
 				itemModelEntity.setId(searchItem.getId());
 				itemModelEntity.setName(searchItem.getName());
 				ListSearchItem searchItemEntity =  new ListSearchItem();
-				searchItemEntity.setItemModel(itemModelEntity);
 				searchItemEntity.setListModel(entity);
-				if (searchItem.getSearch() == null) {
-					throw new IFormException("控件【" + searchItemEntity.getItemModel().getName() + "】未定义搜索属性");
-				}
+				searchItemEntity.setItemModel(itemModelEntity);
+				searchItemEntity.setPcUse(searchItem.getPcUse());
+				searchItemEntity.setAppUse(searchItem.getAppUse());
+				searchItemEntity.setFullTextSearch(searchItem.getFullTextSearch());
+
 				ItemSearchInfo searchInfo = new ItemSearchInfo();
 				BeanUtils.copyProperties(searchItem.getSearch(), searchInfo, new String[]{"defaultValue", "defaultValueName"});
 				Object defalueValue = searchItem.getSearch().getDefaultValue();
