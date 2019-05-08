@@ -50,4 +50,7 @@ public interface FormModelService extends JPAService<FormModelEntity> {
 
      //查询流程建模表单
      List<FormModelEntity> findProcessApplicationFormModel(String key);
+
+     //更新表单模型流程
+    void saveFormModelProcess(FormModel formModel);
 }

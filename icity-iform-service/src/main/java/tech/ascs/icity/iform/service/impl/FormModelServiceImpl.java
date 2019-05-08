@@ -1432,6 +1432,21 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 	}
 
 	@Override
+	public void saveFormModelProcess(FormModel formModel) {
+		FormModelEntity formModelEntity = formModel.isNew() ? new FormModelEntity() : formModelManager.get(formModel.getId());
+		if(formModelEntity == null){
+			throw  new IFormException("未找到【"+formModel.getId()+"】对应的表单模型");
+		}
+		FormProcessInfo processInfo = null;
+		if(formModel.getProcess() != null) {
+			processInfo = new FormProcessInfo();
+			BeanUtils.copyProperties(formModel.getProcess(), processInfo);
+		}
+		formModelEntity.setProcess(processInfo);
+		formModelManager.save(formModelEntity);
+	}
+
+	@Override
 	public List<ItemModel> findAllItemModels(List<ItemModel> itemModels) {
 		List<ItemModel> itemModelList = new ArrayList<>();
 		itemModelList.addAll(itemModels);
