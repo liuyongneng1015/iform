@@ -1631,6 +1631,8 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				if (process.getActivities() != null && process.getActivities().size() > 0) {
 					entity.getProcess().setStartActivity(process.getActivities().get(0).getId());
 				}
+			}else{
+				entity.setProcess(null);
 			}
 		}
 	}
