@@ -525,11 +525,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			}
 		}
 
-//		Set<String> masterFormItemIds = new HashSet<>();
-//		if (entity.getMasterForm()!=null && entity.getMasterForm().getItems()!=null && entity.getMasterForm().getItems().size()>0) {
-//			masterFormItemIds = entity.getMasterForm().getItems().stream().map(item->item.getId()).collect(Collectors.toSet());
-//		}
-		Set<String> masterFormItemIds = getMasterFormItems(entity.getMasterForm()).stream().map(item->item.getId()).collect(Collectors.toSet());
+		Set<String> masterFormItemIds = formModelService.findAllItems(entity.getMasterForm()).stream().map(item->item.getId()).collect(Collectors.toSet());
 
 		if(entity.getDisplayItems() != null){
 			List<ItemModel> list = new ArrayList<>();
@@ -794,67 +790,41 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		return list;
 	}
 
-	/**
-	 *
-	 * 获取主表单包含的普通控件item集合
-	 * @param masterForm
-	 * @return
-	 */
-	public Set<ItemModelEntity> getMasterFormItems(FormModelEntity masterForm) {
-		Set<ItemModelEntity> items = new HashSet<>();
-		if (masterForm!=null && masterForm.getItems()!=null) {
-			for (ItemModelEntity item:masterForm.getItems()) {
-				if (item.getType()!=null) {
-					items.add(item);
-					items.addAll(getItemsInItem(item));
-				}
-			}
-		}
-		return items;
-	}
-
-	/**
-	 * 获取标签页里面嵌套保存的子Item
-	 * @param tabsItemModelEntity
-	 * @return
-	 */
-	public List<ItemModelEntity> getTabsInsideItems(TabsItemModelEntity tabsItemModelEntity) {
-		List<ItemModelEntity> items = new ArrayList<>();
-		if (tabsItemModelEntity.getItems()!=null && tabsItemModelEntity.getItems().size()>0) {
-			List<TabPaneItemModelEntity> tabPaneItems = tabsItemModelEntity.getItems();
-			for (TabPaneItemModelEntity tabPaneItem:tabPaneItems) {
-				List<ItemModelEntity> tabPaneReferenceItems = tabPaneItem.getItems();
-				if (tabPaneReferenceItems!=null && tabPaneReferenceItems.size()>0) {
-					items.addAll(tabPaneReferenceItems);
-				}
-			}
-		}
-		return items;
-	}
-
-	public List<ItemModelEntity> getItemsInItem(ItemModelEntity itemModelEntity) {
-		List<ItemModelEntity> list = new ArrayList<>();
-		if (itemModelEntity!=null) {
-			list.add(itemModelEntity);
-			Class clazz = itemModelEntity.getClass();  //得到类对象
-			Field[] fs = clazz.getDeclaredFields();    //得到属性集合
-			for (Field f:fs) {                         //遍历属性
-				if (f.getName().equals("items")) {
-					f.setAccessible(true);             //设置属性是可以访问的(私有的也可以)
-					try {
-						Object itemValues = f.get(itemModelEntity);
-						if (itemValues!=null && itemValues instanceof List) {
-							List<ItemModelEntity> items = (List<ItemModelEntity>)itemValues;
-							for (ItemModelEntity subItem:items) {
-								list.addAll(getItemsInItem(subItem));
-							}
-						}
-					} catch (IllegalAccessException e) {
-						e.printStackTrace();
-					}
-				}
-			}
-		}
-		return list;
-	}
+//	/**
+//	 * 获取表单的所有item控件
+//	 * @param formModelEntity
+//	 * @return
+//	 */
+//	public List<ItemModelEntity> getFormAllItems(FormModelEntity formModelEntity) throws IllegalAccessException {
+//		List<ItemModelEntity> items = new ArrayList<>();
+//		if (formModelEntity!=null && formModelEntity.getItems()!=null) {
+//			for (ItemModelEntity item:formModelEntity.getItems()) {
+//				if (item!=null) {
+//					items.add(item);
+//					items.addAll(getItemsInItem(item));
+//				}
+//			}
+//		}
+//		return items;
+//	}
+//
+//	public List<ItemModelEntity> getItemsInItem(ItemModelEntity itemModelEntity) throws IllegalAccessException {
+//		List<ItemModelEntity> list = new ArrayList<>();
+//		for (Field field:itemModelEntity.getClass().getDeclaredFields()) {   //遍历属性
+//			if (field.getName().equals("items")) {
+//				field.setAccessible(true);
+//				Object itemValues = field.get(itemModelEntity);
+//				if (itemValues!=null && itemValues instanceof List) {
+//					List<ItemModelEntity> items = (List<ItemModelEntity>)itemValues;
+//					for (ItemModelEntity subItem:items) {
+//						if (subItem!=null) {
+//							list.add(subItem);
+//							list.addAll(getItemsInItem(subItem));
+//						}
+//					}
+//				}
+//			}
+//		}
+//		return list;
+//	}
 }
