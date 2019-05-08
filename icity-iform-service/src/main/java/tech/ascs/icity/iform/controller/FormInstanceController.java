@@ -110,9 +110,6 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	private ProcessInstanceService processInstanceService;
 
 	// url?param1=value1&param2=value2&param2=value3,value4&param2=value5
-	// @RequestParam Map<String, Object> parameters 有两个问题
-	// 1) 因为Object没有指定具体类型，接收后会变成字符串
-	// 2) 接收数组时，相同的Key会被覆盖掉，接收 param1=value1&param2=value2 的 param1参数，map的键值对会覆盖掉相同的Key
 	@Override
 	public Page<FormDataSaveInstance> page(@PathVariable(name="listId") String listId,
 										   @RequestParam(name="page", defaultValue = "1") int page,
@@ -162,7 +159,6 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 					if (idItemOption.isPresent()) {
 						queryParameters.put(idItemOption.get().getId(), formInstanceIds);
 					}
-					// 封装ID在iform里面查询
 					Page<FormDataSaveInstance> pageInstance = formInstanceService.pageFormInstance(listModel, page, pagesize, queryParameters);
 					for (FormDataSaveInstance instance:pageInstance) {
 						ProcessInstance processInstance = instanceIdAndEditMap.get(instance.getId());
