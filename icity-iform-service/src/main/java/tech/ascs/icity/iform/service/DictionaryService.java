@@ -8,6 +8,8 @@ import tech.ascs.icity.iform.model.DictionaryEntity;
 import tech.ascs.icity.iform.model.DictionaryItemEntity;
 import tech.ascs.icity.jpa.service.JPAService;
 
+import javax.validation.constraints.NotNull;
+
 
 public interface DictionaryService extends JPAService<DictionaryEntity> {
 
@@ -77,5 +79,13 @@ public interface DictionaryService extends JPAService<DictionaryEntity> {
 	List<DictionaryItemEntity> findByItemIds(String[] itemIds);
 
     DictionaryModel getDictionaryByNameAndCode(String name, String code);
+
+	/**
+	 * 模糊搜索字典表,返回结构不是树形结构,是平铺的集合
+	 *
+	 * @param dictionaryId 父数据字典id
+	 * @return
+	 */
+	List<DictionaryItemEntity> findDictionaryItems(String dictionaryId, @NotNull String itemName);
 }
 
