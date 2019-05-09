@@ -741,22 +741,32 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 	@Override
 	public void deleteItemOtherReferenceEntity(ItemModelEntity itemModelEntity){
 		List<ListSearchItem> listSearchItems = listSearchItemManager.query().filterEqual("itemModel.id", itemModelEntity.getId()).list();
-		for(ListSearchItem listSearchItem : listSearchItems){
+		for(int i = 0 ; i < listSearchItems.size() ; i++){
+			ListSearchItem listSearchItem = listSearchItems.get(i);
 			listSearchItem.setItemModel(null);
-			listSearchItemManager.save(listSearchItem);
+			listSearchItems.remove(listSearchItem);
+			i--;
+			listSearchItemManager.delete(listSearchItem);
 		}
 
 		List<ListSortItem> listSortItems = listSortItemManager.query().filterEqual("itemModel.id", itemModelEntity.getId()).list();
-		for(ListSortItem ListSortItem : listSortItems){
-			ListSortItem.setItemModel(null);
-			listSortItemManager.save(ListSortItem);
+		for(int i = 0 ; i < listSortItems.size() ; i++){
+			ListSortItem listSortItem = listSortItems.get(i);
+			listSortItem.setItemModel(null);
+			listSortItems.remove(listSortItem);
+			i--;
+			listSortItemManager.delete(listSortItem);
 		}
 
 		List<QuickSearchEntity> quickSearchEntities = quickSearchEntityManager.query().filterEqual("itemModel.id", itemModelEntity.getId()).list();
-		for(QuickSearchEntity quickSearch : quickSearchEntities){
+		for(int i = 0 ; i < quickSearchEntities.size() ; i++){
+			QuickSearchEntity quickSearch = quickSearchEntities.get(i);
 			quickSearch.setItemModel(null);
-			quickSearchEntityManager.save(quickSearch);
+			quickSearchEntities.remove(quickSearch);
+			i--;
+			quickSearchEntityManager.delete(quickSearch);
 		}
+
 		List<String> ids = new ArrayList<>();
 		ids.add(itemModelEntity.getId());
 		List<ListModelEntity> listModelEntities = listModelService.findListModelsByItemModelId(itemModelEntity.getId());
@@ -768,7 +778,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				if(itemModelEntity1.getId().equals(itemModelEntity.getId())){
 					listModelEntity.getDisplayItems().remove(itemModelEntity1);
 					i--;
-					listModelService.save(listModelEntity);
+					listModelManager.save(listModelEntity);
 				}
 			}
 		}

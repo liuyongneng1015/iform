@@ -19,7 +19,7 @@ public class ListSearchItem extends BaseEntity implements Serializable {
 	@JoinColumn(name="list_id")
 	private ListModelEntity listModel;
 
-	@ManyToOne(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
+	@ManyToOne(cascade = {CascadeType.MERGE})
 	@JoinColumn(name="item_id")
 	private ItemModelEntity itemModel;
 
