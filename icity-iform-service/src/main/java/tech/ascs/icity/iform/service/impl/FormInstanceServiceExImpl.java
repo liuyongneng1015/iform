@@ -1581,27 +1581,56 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					if (columnModel!=null) {
 						conditions.add(Restrictions.like(columnModel.getColumnName(), "%" + valueStr + "%"));
 					}
-				} else if (itemModelEntity instanceof SelectItemModelEntity) {
-					SelectItemModelEntity selectItemModelEntity = (SelectItemModelEntity)itemModelEntity;
-					List<ItemSelectOption> options = selectItemModelEntity.getOptions();
-					String referenceDictionaryId = selectItemModelEntity.getReferenceDictionaryId();
-					if (options!=null && options.size()>0) {
-						Set<String> optionIds = options.stream().filter(item-> StringUtils.hasText(item.getLabel())&&item.getLabel().contains(valueStr)).map(item->item.getId()).collect(Collectors.toSet());
-						if (optionIds!=null && optionIds.size()>0) {
-							for (String optionId:optionIds) {
-								conditions.add(Restrictions.like(columnModel.getColumnName(), "%" + optionId + "%"));
-							}
-						}
-					} else if (StringUtils.hasText(referenceDictionaryId)) {
-						List<DictionaryItemModel> list = dictionaryService.findDictionaryItems(referenceDictionaryId, valueStr);
-						for (DictionaryItemModel item:list) {
-							conditions.add(Restrictions.like(columnModel.getColumnName(), "%" + item.getId() + "%"));
-						}
-					}
+				} else if (itemModelEntity instanceof SelectItemModelEntity && columnModel!=null && StringUtils.hasText(columnModel.getColumnName())) {
+					fullTextSearchSelectItemCriteria(valueStr, conditions, columnModel, (SelectItemModelEntity)itemModelEntity);
+				} else if (itemModelEntity instanceof ReferenceItemModelEntity) {
+					fullTextSearchReferenceItemCriteria(valueStr, conditions, columnModel, (ReferenceItemModelEntity)itemModelEntity);
+				} else if (itemModelEntity instanceof TreeSelectItemModelEntity && columnModel!=null && StringUtils.hasText(columnModel.getColumnName())) {
+					fullTextSearchTreeSelectItemCriteria(valueStr, conditions, columnModel, (TreeSelectItemModelEntity)itemModelEntity);
 				}
 			}
 			criteria.add(Restrictions.or(conditions.toArray(new SimpleExpression[]{})));
 		}
+	}
+
+	private void fullTextSearchSelectItemCriteria(String valueStr, List<Criterion> conditions, ColumnModelEntity columnModel, SelectItemModelEntity selectItemModelEntity) {
+		List<ItemSelectOption> options = selectItemModelEntity.getOptions();
+		String referenceDictionaryId = selectItemModelEntity.getReferenceDictionaryId();
+		if (options!=null && options.size()>0) {
+			Set<String> optionIds = options.stream().filter(item-> StringUtils.hasText(item.getLabel())&&item.getLabel().contains(valueStr)).map(item->item.getId()).collect(Collectors.toSet());
+			if (optionIds!=null && optionIds.size()>0) {
+				for (String optionId:optionIds) {
+					conditions.add(Restrictions.like(columnModel.getColumnName(), "%" + optionId + "%"));
+				}
+			}
+		} else if (StringUtils.hasText(referenceDictionaryId)) {
+			List<DictionaryItemModel> list = dictionaryService.findDictionaryItems(referenceDictionaryId, valueStr);
+			for (DictionaryItemModel item:list) {
+				conditions.add(Restrictions.like(columnModel.getColumnName(), "%" + item.getId() + "%"));
+			}
+		}
+	}
+
+	private void fullTextSearchTreeSelectItemCriteria(String valueStr, List<Criterion> conditions, ColumnModelEntity columnModel, TreeSelectItemModelEntity treeSelectItemModelEntity) {
+		TreeSelectDataSource dataSource = treeSelectItemModelEntity.getDataSource();
+		if (dataSource!=null) {
+			if (TreeSelectDataSource.SystemCode==dataSource) {
+				String dictionaryId = treeSelectItemModelEntity.getReferenceDictionaryId();
+				if (StringUtils.hasText(dictionaryId)) {
+					List<DictionaryItemModel> list = dictionaryService.findDictionaryItems(dictionaryId, valueStr);
+					for (DictionaryItemModel item:list) {
+						conditions.add(Restrictions.like(columnModel.getColumnName(), "%" + item.getId() + "%"));
+					}
+				}
+			} else if (TreeSelectDataSource.Department==dataSource || TreeSelectDataSource.Position==dataSource
+					|| TreeSelectDataSource.Personnel==dataSource || TreeSelectDataSource.PositionIdentify==dataSource) {
+
+			}
+		}
+	}
+
+	private void fullTextSearchReferenceItemCriteria(String valueStr, List<Criterion> conditions, ColumnModelEntity columnModel, ReferenceItemModelEntity referenceItemModelEntity) {
+
 	}
 
 	private Object[] getTimeParams(ItemType itemType, String strValue){
@@ -2906,4 +2935,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 		return columnNameAndItemIdMap;
 	}
+
+
 }
