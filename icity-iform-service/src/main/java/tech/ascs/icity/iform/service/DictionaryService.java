@@ -86,6 +86,6 @@ public interface DictionaryService extends JPAService<DictionaryEntity> {
 	 * @param dictionaryId 父数据字典id
 	 * @return
 	 */
-	List<DictionaryItemEntity> findDictionaryItems(String dictionaryId, @NotNull String itemName);
+	List<DictionaryItemModel> findDictionaryItems(String dictionaryId, @NotNull String itemName);
 }
 
