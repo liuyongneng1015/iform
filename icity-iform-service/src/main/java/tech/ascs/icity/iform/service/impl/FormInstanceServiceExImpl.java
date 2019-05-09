@@ -1633,6 +1633,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	}
 
+	private void fullTextSearchPeopleReferenceItemCriteria(String valueStr, List<Criterion> conditions, ColumnModelEntity columnModel, ReferenceItemModelEntity referenceItemModelEntity) {
+
+	}
+
+
 	private Object[] getTimeParams(ItemType itemType, String strValue){
 		boolean flag = strValue.startsWith(",");
 		if(flag){
