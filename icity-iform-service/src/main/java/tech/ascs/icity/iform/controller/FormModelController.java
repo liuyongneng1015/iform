@@ -1434,16 +1434,23 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			}
 			entity.setActivities(activities);
 		}
-
+		List<ItemSelectOption> options = new ArrayList<>();
 		if (itemModel.getOptions() != null) {
-			List<ItemSelectOption> options = new ArrayList<>();
 			for (Option option : itemModel.getOptions()) {
 				ItemSelectOption itemSelectOption = new ItemSelectOption();
 				BeanUtils.copyProperties(option, itemSelectOption, new String[]{"itemModel"});
 				itemSelectOption.setItemModel(entity);
 				options.add(itemSelectOption);
 			}
-			entity.setOptions(options);
+		}
+		entity.setOptions(options);
+
+		if(entity instanceof SelectItemModelEntity ){
+			if(options.size() > 0) {
+				((SelectItemModelEntity) entity).setSelectReferenceType(SelectReferenceType.Fixed);
+			}else if(((SelectItemModelEntity) entity).getReferenceDictionaryId() != null){
+				((SelectItemModelEntity) entity).setSelectReferenceType(SelectReferenceType.Dictionary);
+			}
 		}
 
 		if(itemModel.getColumnModel() != null && itemModel.getColumnModel().getColumnName() != null && itemModel.getColumnModel().getTableName() != null) {
