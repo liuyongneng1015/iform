@@ -15,6 +15,8 @@ import tech.ascs.icity.jpa.dao.exception.NotFoundException;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 
+import javax.validation.constraints.NotNull;
+
 public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> implements DictionaryService {
 
 	private JPAManager<DictionaryItemEntity> dictionaryItemManager;
@@ -250,5 +252,10 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 			dictionaryModel.setResources(list);
 		}
 		return dictionaryModel;
+	}
+
+	@Override
+	public List<DictionaryItemEntity> findDictionaryItems(String dictionaryId, @NotNull String itemName) {
+		return dictionaryItemManager.query().filterEqual("dictionary.id", dictionaryId).filterLike("name", "%"+itemName+"%").list();
 	}
 }

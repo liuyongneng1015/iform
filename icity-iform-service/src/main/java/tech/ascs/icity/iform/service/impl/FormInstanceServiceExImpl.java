@@ -1584,12 +1584,18 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				} else if (itemModelEntity instanceof SelectItemModelEntity) {
 					SelectItemModelEntity selectItemModelEntity = (SelectItemModelEntity)itemModelEntity;
 					List<ItemSelectOption> options = selectItemModelEntity.getOptions();
+					String referenceDictionaryId = selectItemModelEntity.getReferenceDictionaryId();
 					if (options!=null && options.size()>0) {
 						Set<String> optionIds = options.stream().filter(item-> StringUtils.hasText(item.getLabel())&&item.getLabel().contains(valueStr)).map(item->item.getId()).collect(Collectors.toSet());
 						if (optionIds!=null && optionIds.size()>0) {
 							for (String optionId:optionIds) {
 								conditions.add(Restrictions.like(columnModel.getColumnName(), "%" + optionId + "%"));
 							}
+						}
+					} else if (StringUtils.hasText(referenceDictionaryId)) {
+						List<DictionaryItemEntity> list = dictionaryService.findDictionaryItems(referenceDictionaryId, valueStr);
+						for (DictionaryItemEntity item:list) {
+							conditions.add(Restrictions.like(columnModel.getColumnName(), "%" + item.getId() + "%"));
 						}
 					}
 				}
