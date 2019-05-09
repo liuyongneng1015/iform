@@ -793,7 +793,6 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				options.add(newOption);
 			}
 		}
-
 		newEntity.setOptions(options);
 		for(String key : itemSelectOptionMap.keySet()){
 			itemSelectOptionManager.deleteById(key);
