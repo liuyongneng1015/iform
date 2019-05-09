@@ -647,9 +647,9 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 						continue;
 					}
 					SearchItem searchItem = new SearchItem();
+					BeanUtils.copyProperties(searchItemEntity, searchItem, "listModel", "itemModel", "search");
 					if(itemModelEntity instanceof ReferenceItemModelEntity) {
 						ReferenceItemModelEntity referenceItemModelEntity = (ReferenceItemModelEntity)itemModelEntity;
-						BeanUtils.copyProperties(searchItemEntity, searchItem, "listModel", "itemModel", "search");
 						if (referenceItemModelEntity.getReferenceType() == ReferenceType.ManyToMany) {
 							searchItem.setMultiple(true);
 						} else if (referenceItemModelEntity.getReferenceType() == ReferenceType.OneToOne) {
