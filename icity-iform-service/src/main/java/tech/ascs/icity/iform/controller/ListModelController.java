@@ -386,7 +386,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				ItemModelEntity itemModelEntity = new ItemModelEntity();
 				itemModelEntity.setId(searchItem.getId());
 				ListSearchItem searchItemEntity =  new ListSearchItem();
-				BeanUtils.copyProperties(searchItemEntity, searchItem, "listModel", "itemModel", "search", "id", "name");
+				BeanUtils.copyProperties(searchItem, searchItemEntity, "listModel", "itemModel", "search", "id", "name");
 				searchItemEntity.setListModel(listModelEntity);
 				searchItemEntity.setItemModel(itemModelEntity);
 
