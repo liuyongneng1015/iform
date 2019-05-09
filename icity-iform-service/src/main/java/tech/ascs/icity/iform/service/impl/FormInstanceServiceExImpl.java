@@ -1593,8 +1593,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 							}
 						}
 					} else if (StringUtils.hasText(referenceDictionaryId)) {
-						List<DictionaryItemEntity> list = dictionaryService.findDictionaryItems(referenceDictionaryId, valueStr);
-						for (DictionaryItemEntity item:list) {
+						List<DictionaryItemModel> list = dictionaryService.findDictionaryItems(referenceDictionaryId, valueStr);
+						for (DictionaryItemModel item:list) {
 							conditions.add(Restrictions.like(columnModel.getColumnName(), "%" + item.getId() + "%"));
 						}
 					}

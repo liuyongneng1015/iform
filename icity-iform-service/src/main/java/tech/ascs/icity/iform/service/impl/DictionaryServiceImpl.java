@@ -1,6 +1,7 @@
 package tech.ascs.icity.iform.service.impl;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import com.googlecode.genericdao.search.Sort;
 import org.apache.commons.lang3.StringUtils;
@@ -255,7 +256,28 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 	}
 
 	@Override
-	public List<DictionaryItemEntity> findDictionaryItems(String dictionaryId, @NotNull String itemName) {
-		return dictionaryItemManager.query().filterEqual("dictionary.id", dictionaryId).filterLike("name", "%"+itemName+"%").list();
+	public List<DictionaryItemModel> findDictionaryItems(String dictionaryId, @NotNull String itemName) {
+		DictionaryEntity dictionaryEntity = find(dictionaryId);
+		if (dictionaryEntity!=null) {
+			List<DictionaryItemModel> list = itemTreeToList(getByEntity(dictionaryEntity).getResources());
+			return list.stream().filter(item->item.getName()!=null && item.getName().contains(itemName)).collect(Collectors.toList());
+		}
+		return new ArrayList();
+	}
+
+	/**
+	 * 树形结构转成平铺的List结构
+	 * @param list
+	 * @return
+	 */
+	private List<DictionaryItemModel> itemTreeToList(List<DictionaryItemModel> list) {
+		List<DictionaryItemModel> returnList = new ArrayList<>();
+		for (DictionaryItemModel item:list) {
+			returnList.add(item);
+			if (item.getResources()!=null && item.getResources().size()>0) {
+				returnList.addAll(itemTreeToList(item.getResources()));
+			}
+		}
+		return returnList;
 	}
 }
