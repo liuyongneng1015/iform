@@ -780,6 +780,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 					search.setDefaultValue(Arrays.asList(defaultValue.split(",")));
 				}
 			}
+			searchItem.setSearch(search);
 		}
 	}
 
