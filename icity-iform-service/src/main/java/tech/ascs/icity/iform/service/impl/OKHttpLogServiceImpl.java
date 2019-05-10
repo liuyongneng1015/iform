@@ -46,6 +46,7 @@ public class OKHttpLogServiceImpl extends DefaultJPAService<OKHttpLogEntity> imp
 
 		//来源
 		okHttpLogEntity.setFromSource(formModelEntity.getId());
+		okHttpLogEntity.setFormInstanceId(map == null || map.get("id") == null ? null : (String)map.get("id"));
 		//来源对象类型
 		okHttpLogEntity.setSourceType(DataSourceType.FormModel);
 		//业务触发类型
