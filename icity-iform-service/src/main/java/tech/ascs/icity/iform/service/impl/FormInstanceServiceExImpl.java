@@ -1624,7 +1624,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				}
 			} else if (TreeSelectDataSource.Department==dataSource || TreeSelectDataSource.Position==dataSource
 					|| TreeSelectDataSource.Personnel==dataSource || TreeSelectDataSource.PositionIdentify==dataSource) {
-
+				List<TreeSelectData> list = groupService.queryTreeSelectDataSourceList(dataSource.getValue(), valueStr, treeSelectItemModelEntity.getDataRange(), treeSelectItemModelEntity.getDataDepth());
+				for (TreeSelectData item:list) {
+					conditions.add(Restrictions.like(columnModel.getColumnName(), "%" + item.getId() + "%"));
+				}
 			}
 		}
 	}
