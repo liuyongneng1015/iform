@@ -1219,10 +1219,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 		geographicalMapEntity.setLandmark((String)geographicalMap.get("landmark"));
 		geographicalMapEntity.setDetailAddress((String)geographicalMap.get("detailAddress"));
-		geographicalMapEntity.setLatitude(new BigDecimal(String.valueOf(geographicalMap.get("latitude"))).doubleValue());
-		geographicalMapEntity.setLongitude(new BigDecimal(String.valueOf(geographicalMap.get("longitude"))).doubleValue());
-		geographicalMapEntity.setMapType(GeographicalMapType.getByType(String.valueOf(geographicalMap.get("mapType"))));
-		geographicalMapEntity.setPositionType(PositionType.getByType(String.valueOf(geographicalMap.get("positionType"))));
+		geographicalMapEntity.setLat(new BigDecimal(String.valueOf(geographicalMap.get("lat"))).doubleValue());
+		geographicalMapEntity.setLng(new BigDecimal(String.valueOf(geographicalMap.get("lng"))).doubleValue());
 		geographicalMapEntity.setFromSource(itemId);
 		mapEntityJPAManager.save(geographicalMapEntity);
 		return geographicalMapEntity;

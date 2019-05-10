@@ -249,6 +249,19 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
 	public void deleteTableColumnIndex(String tableName, String columnName) {
 		String indexSql = "show index from if_"+tableName;
 		List<Map<String, Object>> indexList = listIndexBySql(indexSql);
+        for(Map<String, Object> map : indexList){
+            if(columnName.equals(map.get("Column_name")) && map.get("Key_name") != null){
+                try {
+                    if(!"PRIMARY".equals(map.get("Key_name"))) {
+                        String deleteIndexSql = "alter table  if_" + tableName + " drop index " + map.get("Key_name");
+                        jdbcTemplate.execute(deleteIndexSql);
+                    }
+                } catch (DataAccessException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
         String foreignIndexSql =" select  CONSTRAINT_NAME, COLUMN_NAME   from INFORMATION_SCHEMA.KEY_COLUMN_USAGE  where TABLE_NAME = 'if_"+tableName+"' AND REFERENCED_TABLE_NAME is not null";
         List<Map<String, Object>> foreignIndexList = listForeginIndexBySql(foreignIndexSql);
         for(Map<String, Object> map : foreignIndexList) {
@@ -261,17 +274,6 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
                 }
             }
         }
-
-        for(Map<String, Object> map : indexList){
-			if(columnName.equals(map.get("Column_name"))){
-				try {
-					String deleteIndexSql = "alter table  if_"+tableName +" drop index "+map.get("Key_name");
-					jdbcTemplate.execute(deleteIndexSql);
-				} catch (DataAccessException e) {
-					e.printStackTrace();
-				}
-			}
-		}
 	}
 
     @Override
