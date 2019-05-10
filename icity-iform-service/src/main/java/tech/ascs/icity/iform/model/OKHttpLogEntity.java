@@ -33,6 +33,10 @@ public class OKHttpLogEntity extends BaseEntity implements Serializable {
 	@Column(name = "from_source", length = 64)
 	private String fromSource;
 
+	//表单实例id
+	@Column(name = "from_instance_id", length = 64)
+	private String formInstanceId;
+
 	//来源对象类型
 	@JoinColumn(name="source_type")
 	@Enumerated(EnumType.STRING)
@@ -74,6 +78,14 @@ public class OKHttpLogEntity extends BaseEntity implements Serializable {
 
 	public void setFromSource(String fromSource) {
 		this.fromSource = fromSource;
+	}
+
+	public String getFormInstanceId() {
+		return formInstanceId;
+	}
+
+	public void setFormInstanceId(String formInstanceId) {
+		this.formInstanceId = formInstanceId;
 	}
 
 	public String getResult() {
