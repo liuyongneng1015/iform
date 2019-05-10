@@ -1370,8 +1370,8 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 	private ItemModelEntity wrap(String sourceFormModelId, ItemModel itemModel) {
 		if(itemModel.getType() == ItemType.ReferenceLabel){
-			if(itemModel.getParentItem() == null || (itemModel.getReferenceItemId() == null && itemModel.getReferenceUuid() == null)){
-				throw  new IFormException("关联属性控件"+itemModel.getName()+"没有对应关联表单控件或关联控件");
+			if(itemModel.getParentItem() == null || (!StringUtils.hasText(itemModel.getReferenceItemId()) && !StringUtils.hasText(itemModel.getReferenceUuid()))){
+				throw  new IFormException(itemModel.getName()+"没有对应关联表单控件或关联控件");
 			}
 			itemModel.setSelectMode(SelectMode.Attribute);
 		}
