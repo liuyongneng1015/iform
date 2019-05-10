@@ -20,19 +20,11 @@ public class GeographicalMapEntity extends BaseEntity implements Serializable {
 	@Column(name = "from_source", length = 64)
 	private String fromSource;
 
-	@Column(name="map_type")//地理地图类型
-	@Enumerated(EnumType.STRING)
-	private GeographicalMapType mapType;
-
-	@Column(name="position_type")//定位类型
-	@Enumerated(EnumType.STRING)
-	private PositionType positionType;
-
-	@Column(name="longitude")//级度
-	private Double longitude;
+	@Column(name="longitude")//经度
+	private Double lng;
 
 	@Column(name="latitude")//纬度
-	private Double latitude;
+	private Double lat;
 
 	@Column(name="detail_address")//详细地址
 	private String detailAddress;
@@ -52,36 +44,20 @@ public class GeographicalMapEntity extends BaseEntity implements Serializable {
 		this.fromSource = fromSource;
 	}
 
-	public GeographicalMapType getMapType() {
-		return mapType;
+	public Double getLng() {
+		return lng;
 	}
 
-	public void setMapType(GeographicalMapType mapType) {
-		this.mapType = mapType;
+	public void setLng(Double lng) {
+		this.lng = lng;
 	}
 
-	public PositionType getPositionType() {
-		return positionType;
+	public Double getLat() {
+		return lat;
 	}
 
-	public void setPositionType(PositionType positionType) {
-		this.positionType = positionType;
-	}
-
-	public Double getLongitude() {
-		return longitude;
-	}
-
-	public void setLongitude(Double longitude) {
-		this.longitude = longitude;
-	}
-
-	public Double getLatitude() {
-		return latitude;
-	}
-
-	public void setLatitude(Double latitude) {
-		this.latitude = latitude;
+	public void setLat(Double lat) {
+		this.lat = lat;
 	}
 
 	public String getDetailAddress() {

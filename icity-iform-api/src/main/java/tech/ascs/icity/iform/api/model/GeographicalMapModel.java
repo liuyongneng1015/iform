@@ -11,18 +11,11 @@ public class GeographicalMapModel extends NameEntity {
 	@ApiModelProperty(value = "来源控件id", position = 5)
 	private String fromSource;
 
-	@ApiModelProperty(value = "地理地图类型", position = 6)
-	private GeographicalMapType mapType;
-
-	@ApiModelProperty(value = "定位类型", position = 7)
-	private PositionType positionType;
-
-
 	@ApiModelProperty(value = "经度", position = 8)
-	private Double longitude;
+	private Double lng;
 
 	@ApiModelProperty(value = "纬度", position = 9)
-	private Double latitude;
+	private Double lat;
 
 	@ApiModelProperty(value = "详细地址", position = 10)
 	private String detailAddress;
@@ -41,36 +34,20 @@ public class GeographicalMapModel extends NameEntity {
 		this.fromSource = fromSource;
 	}
 
-	public GeographicalMapType getMapType() {
-		return mapType;
+	public Double getLng() {
+		return lng;
 	}
 
-	public void setMapType(GeographicalMapType mapType) {
-		this.mapType = mapType;
+	public void setLng(Double lng) {
+		this.lng = lng;
 	}
 
-	public PositionType getPositionType() {
-		return positionType;
+	public Double getLat() {
+		return lat;
 	}
 
-	public void setPositionType(PositionType positionType) {
-		this.positionType = positionType;
-	}
-
-	public Double getLongitude() {
-		return longitude;
-	}
-
-	public void setLongitude(Double longitude) {
-		this.longitude = longitude;
-	}
-
-	public Double getLatitude() {
-		return latitude;
-	}
-
-	public void setLatitude(Double latitude) {
-		this.latitude = latitude;
+	public void setLat(Double lat) {
+		this.lat = lat;
 	}
 
 	public String getDetailAddress() {
