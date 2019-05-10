@@ -1468,7 +1468,10 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 	private void setTreeSelectItemModel(ItemModel itemModel, TreeSelectItemModelEntity entity){
 		if (itemModel.getDataSource()==null) {
-			throw new ICityException("必须设置数据源的类型");
+			throw new ICityException(itemModel.getName()+" 树形下拉框控件必须设置数据源");
+		}
+		if (StringUtils.isEmpty(itemModel.getDataRange())) {
+			throw new ICityException(itemModel.getName()+" 树形下拉框控件必须设置数据范围");
 		}
 		Object defaultValue = itemModel.getDefaultValue();
 		if (defaultValue!=null && defaultValue instanceof List) {
