@@ -1441,7 +1441,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			ColumnModelEntity columnModel = itemModel.getColumnModel();
 
 			String propertyName = null;
-			// 要查询的属性是一对多中多的一方或者是多对多中的Collection对象集合(List对象集合或者Set对象集合)
 			Boolean propertyIsCollection = false;
 			if (itemModel instanceof ReferenceItemModelEntity) {
 				ReferenceItemModelEntity referenceItemModel = (ReferenceItemModelEntity)itemModel;
@@ -1575,16 +1574,24 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					continue;
 				}
 				ColumnModelEntity columnModel = itemModelEntity.getColumnModel();
-				if (itemModelEntity.getType()==ItemType.Input || itemModelEntity.getType()==ItemType.Editor) {  // 单行文本控件,多行文本控件,富文本控件
+				if (itemModelEntity.getSystemItemType()==SystemItemType.Input || itemModelEntity.getSystemItemType()==SystemItemType.MoreInput
+						|| itemModelEntity.getSystemItemType()==SystemItemType.Editor) {  // 单行文本控件,多行文本控件,富文本控件
 					if (columnModel!=null) {
 						conditions.add(Restrictions.like(columnModel.getColumnName(), "%" + valueStr + "%"));
 					}
 				} else if (itemModelEntity instanceof SelectItemModelEntity && columnModel!=null && StringUtils.hasText(columnModel.getColumnName())) {
 					fullTextSearchSelectItemCriteria(valueStr, conditions, columnModel, (SelectItemModelEntity)itemModelEntity);
-				} else if (itemModelEntity instanceof ReferenceItemModelEntity) {
-					fullTextSearchReferenceItemCriteria(valueStr, conditions, columnModel, (ReferenceItemModelEntity)itemModelEntity);
 				} else if (itemModelEntity instanceof TreeSelectItemModelEntity && columnModel!=null && StringUtils.hasText(columnModel.getColumnName())) {
 					fullTextSearchTreeSelectItemCriteria(valueStr, conditions, columnModel, (TreeSelectItemModelEntity)itemModelEntity);
+				} else if (itemModelEntity instanceof ReferenceItemModelEntity) {
+					ReferenceItemModelEntity referenceItemModelEntity = (ReferenceItemModelEntity)itemModelEntity;
+					ReferenceItemModelEntity parentItem = referenceItemModelEntity.getParentItem();
+					if (referenceItemModelEntity.getSystemItemType()==SystemItemType.Creator ||
+							(parentItem!=null && parentItem.getSystemItemType()==SystemItemType.Creator)) {
+						fullTextSearchPeopleReferenceItemCriteria(valueStr, conditions, referenceItemModelEntity);
+					} else {
+						fullTextSearchReferenceItemCriteria(valueStr, conditions, columnModel, referenceItemModelEntity);
+					}
 				}
 			}
 			criteria.add(Restrictions.or(conditions.toArray(new SimpleExpression[]{})));
@@ -1631,15 +1638,69 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	}
 
 	private void fullTextSearchReferenceItemCriteria(String valueStr, List<Criterion> conditions, ColumnModelEntity columnModel, ReferenceItemModelEntity referenceItemModelEntity) {
-
+		String columnName = columnModel.getColumnName();
+		if (referenceItemModelEntity.getSelectMode() == SelectMode.Single && (referenceItemModelEntity.getReferenceType() == ReferenceType.ManyToOne
+				|| referenceItemModelEntity.getReferenceType() == ReferenceType.OneToOne)) {
+			if(referenceItemModelEntity.getColumnModel() == null){
+				return;
+			}
+			columnModel = referenceItemModelEntity.getColumnModel();
+//			propertyName = columnModel.getColumnName()+".id";
+		}else if (referenceItemModelEntity.getSelectMode() == SelectMode.Inverse && (referenceItemModelEntity.getReferenceType() == ReferenceType.ManyToOne
+				|| referenceItemModelEntity.getReferenceType() == ReferenceType.OneToOne)) {
+			ReferenceItemModelEntity referenceItemModelEntity1 = (ReferenceItemModelEntity)itemModelManager.get(referenceItemModelEntity.getReferenceItemId());
+			if(referenceItemModelEntity1.getColumnModel() == null){
+				return;
+			}
+			columnModel = referenceItemModelEntity1.getColumnModel();
+//			propertyName = columnModel.getDataModel().getTableName()+"_"+referenceItemModelEntity1.getColumnModel().getColumnName()+"_list";
+		}else if(referenceItemModelEntity.getSelectMode() == SelectMode.Multiple){
+			columnModel = new ColumnModelEntity();
+			columnModel.setDataType(ColumnType.String);
+			FormModelEntity toModelEntity = formModelService.find(referenceItemModelEntity.getReferenceFormId());
+			if (toModelEntity == null) {
+				return;
+			}
+//			propertyName = toModelEntity.getDataModels().get(0).getTableName()+"_list";
+		}
 	}
 
-	private void fullTextSearchPeopleReferenceItemCriteria(String valueStr, List<Criterion> conditions, ColumnModelEntity columnModel, ReferenceItemModelEntity referenceItemModelEntity) {
-
+	private void fullTextSearchPeopleReferenceItemCriteria(String valueStr, List<Criterion> conditions, ReferenceItemModelEntity referenceItemModelEntity) {
+		String referenceItemId = referenceItemModelEntity.getReferenceItemId();
+		if (StringUtils.hasText(referenceItemId)) {
+			ReferenceItemModelEntity parentItem = referenceItemModelEntity.getParentItem();
+			if (parentItem==null) {
+				return;
+			}
+			ItemModelEntity itemModelEntity = itemModelService.find(referenceItemId);
+			ColumnModelEntity columnModelEntity = itemModelEntity.getColumnModel();
+			if (columnModelEntity!=null) {
+				String columnName = columnModelEntity.getColumnName();
+				// 通过 valueStr 查询admin服务的用户的 columnName, 查询出用户ID
+				// 先留空
+				List<String> userIds = new ArrayList<>();
+				if (userIds==null || userIds.size()==0) {
+					return;
+				}
+				for (String userId:userIds) {
+					conditions.add(Restrictions.like(parentItem.getColumnModel().getColumnName(), "%" + userId + "%"));
+				}
+			}
+		} else if (referenceItemModelEntity.getSystemItemType()==SystemItemType.Creator) {
+			ColumnModelEntity columnModel = referenceItemModelEntity.getColumnModel();
+			// 通过 valueStr 查询admin服务的用户的 username和nickname, 查询出用户ID
+			// 先留空
+			List<String> userIds = new ArrayList<>();
+			if (userIds==null || userIds.size()==0) {
+				return;
+			}
+			for (String userId:userIds) {
+				conditions.add(Restrictions.like(columnModel.getColumnName(), "%" + userId + "%"));
+			}
+		}
 	}
 
-
-	private Object[] getTimeParams(ItemType itemType, String strValue){
+	private Object[] getTimeParams(ItemType itemType, String strValue) {
 		boolean flag = strValue.startsWith(",");
 		if(flag){
 			strValue = strValue.substring(1);
