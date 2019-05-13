@@ -1675,22 +1675,19 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			ItemModelEntity itemModelEntity = itemModelService.find(referenceItemId);
 			ColumnModelEntity columnModelEntity = itemModelEntity.getColumnModel();
 			if (columnModelEntity!=null) {
-				String columnName = columnModelEntity.getColumnName();
-				// 通过 valueStr 查询admin服务的用户的 columnName, 查询出用户ID
-				// 先留空
-				List<String> userIds = new ArrayList<>();
+				String userInfoColumnName = columnModelEntity.getColumnName();
+				List<String> userIds = fullTextSearchUserId(userInfoColumnName, valueStr);
 				if (userIds==null || userIds.size()==0) {
 					return;
 				}
+				String columnName = parentItem.getColumnModel().getColumnName();
 				for (String userId:userIds) {
-					conditions.add(Restrictions.like(parentItem.getColumnModel().getColumnName(), "%" + userId + "%"));
+					conditions.add(Restrictions.like(columnName, "%" + userId + "%"));
 				}
 			}
 		} else if (referenceItemModelEntity.getSystemItemType()==SystemItemType.Creator) {
 			ColumnModelEntity columnModel = referenceItemModelEntity.getColumnModel();
-			// 通过 valueStr 查询admin服务的用户的 username和nickname, 查询出用户ID
-			// 先留空
-			List<String> userIds = new ArrayList<>();
+            List<String> userIds = fullTextSearchUserId(columnModel.getColumnName(), valueStr);
 			if (userIds==null || userIds.size()==0) {
 				return;
 			}
@@ -1699,6 +1696,43 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}
 		}
 	}
+
+    /**
+     * columnName的取值范围是 username(账号), phone(电话), nickname(昵称), position(岗位), group(部门)
+     * @param columnName
+     * @param value
+     * @return
+     */
+    private Set<String> userColumnNames = new HashSet<>(Arrays.asList("username", "phone", "nickname", "position", "group"));
+	private List<String> fullTextSearchUserId(String columnName, String value) {
+	    List<String> list = new ArrayList<>();
+	    List<String> groupIds = new ArrayList<>();
+	    if (userColumnNames.contains(columnName)==false) {
+	        return list;
+        }
+	    value = "%" + value + "%";
+	    if ("position".equals(columnName) || "group".equals(columnName)) {
+	        String groupType = "position".equals(columnName)? "2":"1";
+            List<Map<String, Object>> data = jdbcTemplate.queryForList("select id FORM sys_group WHERE type='"+groupType+"' AND group_name LIKE "+value);
+            for (Map<String, Object> item:data) {
+                groupIds.add(item.get("id").toString());
+            }
+            if (groupIds.size()>0) {
+                columnName = "position".equals(columnName)? "position_id":"group_id";
+                String idArrStr = String.join("','", groupIds);
+                data = jdbcTemplate.queryForList("select id FROM sys_user where " + columnName + " in ('"+idArrStr+"')");
+                for (Map<String, Object> item:data) {
+                    list.add(item.get("id").toString());
+                }
+            }
+        } else {
+            List<Map<String, Object>> data = jdbcTemplate.queryForList("select id FORM sys_group WHERE columnName LIKE "+value);
+            for (Map<String, Object> item:data) {
+                list.add(item.get("id").toString());
+            }
+        }
+	    return list;
+    }
 
 	private Object[] getTimeParams(ItemType itemType, String strValue) {
 		boolean flag = strValue.startsWith(",");
