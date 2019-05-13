@@ -1581,9 +1581,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 						conditions.add(Restrictions.like(columnModel.getColumnName(), "%" + valueStr + "%"));
 					}
 				} else if (itemModelEntity instanceof SelectItemModelEntity && columnModel!=null && StringUtils.hasText(columnModel.getColumnName())) {
-					fullTextSearchSelectItemCriteria(valueStr, conditions, columnModel, (SelectItemModelEntity)itemModelEntity);
+					fullTextSearchSelectItemCriteria(valueStr, conditions, columnModel.getColumnName(), (SelectItemModelEntity)itemModelEntity);
 				} else if (itemModelEntity instanceof TreeSelectItemModelEntity && columnModel!=null && StringUtils.hasText(columnModel.getColumnName())) {
-					fullTextSearchTreeSelectItemCriteria(valueStr, conditions, columnModel, (TreeSelectItemModelEntity)itemModelEntity);
+					fullTextSearchTreeSelectItemCriteria(valueStr, conditions, columnModel.getColumnName(), (TreeSelectItemModelEntity)itemModelEntity);
 				} else if (itemModelEntity instanceof ReferenceItemModelEntity) {
 					ReferenceItemModelEntity referenceItemModelEntity = (ReferenceItemModelEntity)itemModelEntity;
 					ReferenceItemModelEntity parentItem = referenceItemModelEntity.getParentItem();
@@ -1596,12 +1596,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				}
 			}
 			criteria.add(Restrictions.or(conditions.toArray(new SimpleExpression[]{})));
-		}
-	}
-
-	private void fullTextSearchSelectItemCriteria(String valueStr, List<Criterion> conditions, ColumnModelEntity columnModel, SelectItemModelEntity selectItemModelEntity) {
-		if (columnModel!=null) {
-			fullTextSearchSelectItemCriteria(valueStr, conditions, columnModel.getColumnName(), selectItemModelEntity);
 		}
 	}
 
@@ -1623,12 +1617,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			for (DictionaryItemModel item:list) {
 				conditions.add(Restrictions.like(columnFullname, "%" + item.getId() + "%"));
 			}
-		}
-	}
-
-	private void fullTextSearchTreeSelectItemCriteria(String valueStr, List<Criterion> conditions, ColumnModelEntity columnModel, TreeSelectItemModelEntity treeSelectItemModelEntity) {
-		if (columnModel!=null) {
-			fullTextSearchTreeSelectItemCriteria(valueStr, conditions, columnModel.getColumnName(), treeSelectItemModelEntity);
 		}
 	}
 
@@ -1682,9 +1670,12 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					if (columnModel != null) {
 						conditions.add(Restrictions.like(parentReferenceColumnName+"."+columnName, "%" + valueStr + "%"));
 					}
+				} else if (realItemModelEntity instanceof SelectItemModelEntity && columnModel!=null && StringUtils.hasText(columnModel.getColumnName())) {
+					fullTextSearchSelectItemCriteria(valueStr, conditions, parentReferenceColumnName+"."+columnName, (SelectItemModelEntity)realItemModelEntity);
+				} else if (realItemModelEntity instanceof TreeSelectItemModelEntity && columnModel!=null && StringUtils.hasText(columnModel.getColumnName())) {
+					fullTextSearchTreeSelectItemCriteria(valueStr, conditions, parentReferenceColumnName+"."+columnName, (TreeSelectItemModelEntity)realItemModelEntity);
 				}
 			}
-
 		}else if (referenceItemModelEntity.getSelectMode() == SelectMode.Inverse && (referenceItemModelEntity.getReferenceType() == ReferenceType.ManyToOne
 				|| referenceItemModelEntity.getReferenceType() == ReferenceType.OneToOne)) {
 			ReferenceItemModelEntity referenceItemModelEntity1 = (ReferenceItemModelEntity)itemModelManager.get(referenceItemModelEntity.getReferenceItemId());
@@ -1765,7 +1756,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
                 }
             }
         } else {
-            List<Map<String, Object>> data = jdbcTemplate.queryForList("select id FORM sys_group WHERE columnName LIKE "+value);
+            List<Map<String, Object>> data = jdbcTemplate.queryForList("select id FORM sys_user WHERE columnName LIKE "+value);
             for (Map<String, Object> item:data) {
                 list.add(item.get("id").toString());
             }
