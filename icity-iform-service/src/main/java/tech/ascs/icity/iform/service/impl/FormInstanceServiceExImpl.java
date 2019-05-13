@@ -1756,7 +1756,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
                 }
             }
         } else {
-            List<Map<String, Object>> data = jdbcTemplate.queryForList("select id FORM sys_group WHERE columnName LIKE "+value);
+            List<Map<String, Object>> data = jdbcTemplate.queryForList("select id FORM sys_user WHERE columnName LIKE "+value);
             for (Map<String, Object> item:data) {
                 list.add(item.get("id").toString());
             }
