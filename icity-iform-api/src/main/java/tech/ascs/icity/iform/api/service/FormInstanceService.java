@@ -69,9 +69,9 @@ public interface FormInstanceService {
 	})
 	@GetMapping("/{listId}/page")
 	Page<FormDataSaveInstance> page(
-			@PathVariable(name="listId") String listId,
+			@PathVariable(name = "listId") String listId,
 			@RequestParam(name = "page", defaultValue = "1") int page,
-			@RequestParam(name="pagesize", defaultValue = "10") int pagesize,
+			@RequestParam(name = "pagesize", defaultValue = "10") int pagesize,
 			@RequestParam Map<String, Object> parameters);
 
 	/**
