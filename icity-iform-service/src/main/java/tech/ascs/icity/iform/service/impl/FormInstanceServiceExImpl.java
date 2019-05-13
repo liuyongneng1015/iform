@@ -193,7 +193,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			criteria.setFirstResult((page - 1) * pagesize);
 			criteria.setMaxResults(pagesize);
 
-			List<FormDataSaveInstance> list = wrapFormDataList(null, listModel, criteria.list());
+			List data = criteria.list();
+			List<FormDataSaveInstance> list = wrapFormDataList(null, listModel, data);
 
 			criteria.setFirstResult(0);
 			criteria.setProjection(Projections.rowCount());
@@ -1638,14 +1639,34 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	}
 
 	private void fullTextSearchReferenceItemCriteria(String valueStr, List<Criterion> conditions, ColumnModelEntity columnModel, ReferenceItemModelEntity referenceItemModelEntity) {
-		String columnName = columnModel.getColumnName();
 		if (referenceItemModelEntity.getSelectMode() == SelectMode.Single && (referenceItemModelEntity.getReferenceType() == ReferenceType.ManyToOne
 				|| referenceItemModelEntity.getReferenceType() == ReferenceType.OneToOne)) {
-			if(referenceItemModelEntity.getColumnModel() == null){
-				return;
+//			if(referenceItemModelEntity.getColumnModel() == null){
+//				return;
+//			}
+			String referenceItemId = referenceItemModelEntity.getReferenceItemId();
+			if (StringUtils.hasText(referenceItemId)) {
+				ItemModelEntity realItemModelEntity = itemModelManager.find(referenceItemId);
+				if (realItemModelEntity==null) {
+					return;
+				}
+				ReferenceItemModelEntity parentReferenceItemModelEntity = referenceItemModelEntity.getParentItem();
+				if (parentReferenceItemModelEntity==null) {
+					return;
+				}
+				String parentReferenceColumnName = parentReferenceItemModelEntity.getColumnModel().getColumnName();
+				String columnName = realItemModelEntity.getColumnModel().getColumnName();
+				if (StringUtils.isEmpty(parentReferenceColumnName) || StringUtils.isEmpty(columnName)) {
+					return;
+				}
+				if (realItemModelEntity.getSystemItemType() == SystemItemType.Input || realItemModelEntity.getSystemItemType() == SystemItemType.MoreInput
+						|| realItemModelEntity.getSystemItemType() == SystemItemType.Editor) {  // 单行文本控件,多行文本控件,富文本控件
+					if (columnModel != null) {
+						conditions.add(Restrictions.like(parentReferenceColumnName+"."+columnName, "%" + valueStr + "%"));
+					}
+				}
 			}
-			columnModel = referenceItemModelEntity.getColumnModel();
-//			propertyName = columnModel.getColumnName()+".id";
+
 		}else if (referenceItemModelEntity.getSelectMode() == SelectMode.Inverse && (referenceItemModelEntity.getReferenceType() == ReferenceType.ManyToOne
 				|| referenceItemModelEntity.getReferenceType() == ReferenceType.OneToOne)) {
 			ReferenceItemModelEntity referenceItemModelEntity1 = (ReferenceItemModelEntity)itemModelManager.get(referenceItemModelEntity.getReferenceItemId());
