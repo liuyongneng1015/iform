@@ -1633,7 +1633,12 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		}
 
 		if (entity.getProcess() != null && entity.getProcess().getKey() != null) {
-			tech.ascs.icity.iflow.api.model.Process process = processService.get(entity.getProcess().getKey());
+			tech.ascs.icity.iflow.api.model.Process process = null;
+			try {
+				process =processService.get(entity.getProcess().getKey());
+			} catch (Exception e){
+				e.printStackTrace();
+			}
 			if(process != null) {
 				entity.getProcess().setId(process.getId());
 				entity.getProcess().setName(process.getName());
