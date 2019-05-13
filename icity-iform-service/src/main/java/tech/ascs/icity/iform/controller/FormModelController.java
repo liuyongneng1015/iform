@@ -1817,9 +1817,13 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		entityToDTO( entity,  formModel, false, null);
 		List<Activity> activities = new ArrayList<>();
 		if(entity.getProcess() != null && StringUtils.hasText(entity.getProcess().getKey())){
-			Process process = processService.get(entity.getProcess().getKey());
-			if(process != null){
-				activities.addAll(process.getActivities());
+			try {
+				Process process = processService.get(entity.getProcess().getKey());
+				if(process != null){
+					activities.addAll(process.getActivities());
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 		}
 
