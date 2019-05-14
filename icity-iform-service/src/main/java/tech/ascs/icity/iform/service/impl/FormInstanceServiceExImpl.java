@@ -1479,7 +1479,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					propertyName = columnModel.getDataModel().getTableName()+"_"+referenceItemModelEntity1.getColumnModel().getColumnName()+"_list";
 				}else if(referenceItemModel.getSelectMode() == SelectMode.Multiple){
 					columnModel = new ColumnModelEntity();
-					columnModel.setDataType(ColumnType.String);
 					propertyIsReferenceCollection = true;
 					FormModelEntity toModelEntity = formModelService.find(((ReferenceItemModelEntity) itemModel).getReferenceFormId());
 					if (toModelEntity == null) {
@@ -1607,7 +1606,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 							(parentItem!=null && parentItem.getSystemItemType()==SystemItemType.Creator)) {
 						fullTextSearchPeopleReferenceItemCriteria(valueStr, conditions, referenceItemModelEntity);
 					} else {
-						fullTextSearchReferenceItemCriteria(valueStr, conditions, columnModel, referenceItemModelEntity);
+						fullTextSearchReferenceItemCriteria(criteria, valueStr, conditions, columnModel, referenceItemModelEntity);
 					}
 				}
 			}
@@ -1660,31 +1659,32 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 	}
 
-	private void fullTextSearchReferenceItemCriteria(String valueStr, List<Criterion> conditions, ColumnModelEntity columnModel, ReferenceItemModelEntity referenceItemModelEntity) {
+	private void fullTextSearchReferenceItemCriteria(Criteria criteria, String valueStr, List<Criterion> conditions, ColumnModelEntity columnModel, ReferenceItemModelEntity referenceItemModelEntity) {
 		if (referenceItemModelEntity.getSelectMode() == SelectMode.Single && (referenceItemModelEntity.getReferenceType() == ReferenceType.ManyToOne
 				|| referenceItemModelEntity.getReferenceType() == ReferenceType.OneToOne)) {
 			fullTextSearchSingleReferenceItemCriteria(valueStr, conditions, columnModel, referenceItemModelEntity);
 		} else if (referenceItemModelEntity.getSelectMode() == SelectMode.Inverse && (referenceItemModelEntity.getReferenceType() == ReferenceType.ManyToOne
 				|| referenceItemModelEntity.getReferenceType() == ReferenceType.OneToOne)) {
-			ReferenceItemModelEntity referenceItemModelEntity1 = (ReferenceItemModelEntity)itemModelManager.get(referenceItemModelEntity.getReferenceItemId());
-			if(referenceItemModelEntity1.getColumnModel() == null) {
-				return;
-			}
-			columnModel = referenceItemModelEntity1.getColumnModel();
-//			propertyName = columnModel.getDataModel().getTableName()+"_"+referenceItemModelEntity1.getColumnModel().getColumnName()+"_list";
+			fullTextSearchInverseReferenceItemCriteria(criteria, valueStr, conditions, referenceItemModelEntity);
 		} else if(referenceItemModelEntity.getSelectMode() == SelectMode.Multiple){
-			columnModel = new ColumnModelEntity();
-			columnModel.setDataType(ColumnType.String);
-			FormModelEntity toModelEntity = formModelService.find(referenceItemModelEntity.getReferenceFormId());
-			if (toModelEntity == null) {
-				return;
-			}
-//			propertyName = toModelEntity.getDataModels().get(0).getTableName()+"_list";
+			fullTextSearchMultipleReferenceItemCriteria(criteria, valueStr, conditions, columnModel, referenceItemModelEntity);
 		}
 	}
 
+	// criteria.createCriteria(propertyName).add(Restrictions.in("id", values));
+	// 关联表单多选
+	private void fullTextSearchMultipleReferenceItemCriteria(Criteria criteria, String valueStr, List<Criterion> conditions, ColumnModelEntity columnModel, ReferenceItemModelEntity referenceItemModelEntity) {
+		columnModel = new ColumnModelEntity();
+		FormModelEntity toModelEntity = formModelService.find(referenceItemModelEntity.getReferenceFormId());
+		if (toModelEntity == null) {
+			return;
+		}
+		String propertyName = toModelEntity.getDataModels().get(0).getTableName()+"_list";
+		criteria.createCriteria(propertyName).add(Restrictions.ilike(columnModel.getColumnName(), valueStr));
+	}
+
 	// 反向关联属性
-	private void fullTextSearchInverseReferenceItemCriteria(String valueStr, List<Criterion> conditions, ReferenceItemModelEntity referenceItemModelEntity) {
+	private void fullTextSearchInverseReferenceItemCriteria(Criteria criteria, String valueStr, List<Criterion> conditions, ReferenceItemModelEntity referenceItemModelEntity) {
 		ItemModelEntity itemModelEntity = itemModelManager.get(referenceItemModelEntity.getReferenceItemId());
 		ColumnModelEntity columnModel = itemModelEntity.getColumnModel();
 		if(columnModel == null) {
@@ -1694,10 +1694,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		if (dataModelEntity==null) {
 			return;
 		}
-//		conditions.add(criteria.createCriteria(propertyName).add(Restrictions.in("id", values)));
-//		criteria.createCriteria(propertyName).add(Restrictions.in("id", values));
-//		criteria.createCriteria("").add(Restrictions.in("id", new String[]{}));
-//		String propertyName = dataModelEntity.getTableName()+"_"+columnModel.getColumnName()+"_list";
+		String propertyName = dataModelEntity.getTableName()+"_"+columnModel.getColumnName()+"_list";
+		criteria.createCriteria(propertyName).add(Restrictions.ilike(columnModel.getColumnName(), valueStr));
 	}
 
 	// 正向关联属性
