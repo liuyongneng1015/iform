@@ -76,6 +76,9 @@ public class ItemModelEntity extends  BaseEntity implements Serializable {
 	@Column(name="type_key") // 前端用的控件类型key
 	private String typeKey;
 
+	@Column(name="icon") // 控件图片
+	private String icon;
+
 	public FormModelEntity getFormModel() {
 		return formModel;
 	}
@@ -202,5 +205,13 @@ public class ItemModelEntity extends  BaseEntity implements Serializable {
 
 	public void setTypeKey(String typeKey) {
 		this.typeKey = typeKey;
+	}
+
+	public String getIcon() {
+		return icon;
+	}
+
+	public void setIcon(String icon) {
+		this.icon = icon;
 	}
 }

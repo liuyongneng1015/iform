@@ -217,11 +217,17 @@ public class ItemModel extends NameEntity {
 	@ApiModelProperty(value = "来源的表单建模id", position = 53)
 	private String sourceFormModelId;
 
-	@ApiModelProperty(value = "关联控件的唯一标识", position = 53)
+	@ApiModelProperty(value = "关联控件的唯一标识", position = 54)
 	private String itemUuids;
 
-	@ApiModelProperty(value = "前端用的控件类型key", position = 53)
+	@ApiModelProperty(value = "前端用的控件类型key", position = 55)
 	private String typeKey;
+
+	@ApiModelProperty(value = "控件图片", position = 56)
+	private String icon;
+
+	@ApiModelProperty(value = "文件格式", position = 57)
+	private String fileFormat;
 
 	public ItemType getType() {
 		return type;
@@ -820,6 +826,22 @@ public class ItemModel extends NameEntity {
 
 	public void setTypeKey(String typeKey) {
 		this.typeKey = typeKey;
+	}
+
+	public String getIcon() {
+		return icon;
+	}
+
+	public void setIcon(String icon) {
+		this.icon = icon;
+	}
+
+	public String getFileFormat() {
+		return fileFormat;
+	}
+
+	public void setFileFormat(String fileFormat) {
+		this.fileFormat = fileFormat;
 	}
 
 	@Override
