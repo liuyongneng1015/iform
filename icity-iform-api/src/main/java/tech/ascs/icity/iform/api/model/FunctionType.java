@@ -11,6 +11,9 @@ public enum FunctionType {
     /** 工作流列表 */
     activitiList("activitiList"),
 
+    /** 报表 */
+    report("report"),
+
     /** URL */
     url("url");
 
