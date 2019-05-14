@@ -1689,16 +1689,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		if (toModelEntity == null) {
 			return;
 		}
-		String propertyName = toModelEntity.getDataModels().get(0).getTableName()+"_list";
-		if (referenceItemModelEntity.getSystemItemType() == SystemItemType.Input || referenceItemModelEntity.getSystemItemType() == SystemItemType.MoreInput
-				|| referenceItemModelEntity.getSystemItemType() == SystemItemType.Editor) {  // 单行文本控件,多行文本控件,富文本控件
-			conditions.add(Restrictions.like(propertyName+"."+columnModel.getColumnName(), "%" + valueStr + "%"));
-				referenceItemModelEntity.getColumnModel();
-		} else if (realItemModelEntity instanceof SelectItemModelEntity && columnModel!=null && StringUtils.hasText(columnModel.getColumnName())) {
-			fullTextSearchSelectItemCriteria(valueStr, conditions, propertyName+"."+columnModel.getColumnName(), (SelectItemModelEntity)realItemModelEntity);
-		} else if (realItemModelEntity instanceof TreeSelectItemModelEntity && columnModel!=null && StringUtils.hasText(columnModel.getColumnName())) {
-			fullTextSearchTreeSelectItemCriteria(valueStr, conditions, propertyName+"."+columnModel.getColumnName(), (TreeSelectItemModelEntity)realItemModelEntity);
-		}
+		String columnFullname = toModelEntity.getDataModels().get(0).getTableName()+"_list"+"."+columnModel.getColumnName();
+		fullTextSearchMultipleOrInverseReferenceItemCriteria(valueStr, conditions, columnFullname, realItemModelEntity);
 	}
 
 	// 反向关联属性
@@ -1719,15 +1711,19 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		if (dataModelEntity==null) {
 			return;
 		}
-		String propertyName = dataModelEntity.getTableName()+"_"+columnModel.getColumnName()+"_list";
-		if (referenceItemModelEntity.getSystemItemType() == SystemItemType.Input || referenceItemModelEntity.getSystemItemType() == SystemItemType.MoreInput
-				|| referenceItemModelEntity.getSystemItemType() == SystemItemType.Editor) {  // 单行文本控件,多行文本控件,富文本控件
-			conditions.add(Restrictions.like(propertyName+"."+columnModel.getColumnName(), "%" + valueStr + "%"));
-			referenceItemModelEntity.getColumnModel();
-		} else if (realItemModelEntity instanceof SelectItemModelEntity && columnModel!=null && StringUtils.hasText(columnModel.getColumnName())) {
-			fullTextSearchSelectItemCriteria(valueStr, conditions, propertyName+"."+columnModel.getColumnName(), (SelectItemModelEntity)realItemModelEntity);
-		} else if (realItemModelEntity instanceof TreeSelectItemModelEntity && columnModel!=null && StringUtils.hasText(columnModel.getColumnName())) {
-			fullTextSearchTreeSelectItemCriteria(valueStr, conditions, propertyName+"."+columnModel.getColumnName(), (TreeSelectItemModelEntity)realItemModelEntity);
+		String columnFullname = dataModelEntity.getTableName()+"_"+columnModel.getColumnName()+"_list"+"."+columnModel.getColumnName();
+		fullTextSearchMultipleOrInverseReferenceItemCriteria(valueStr, conditions, columnFullname, realItemModelEntity);
+	}
+
+	// 反向关联属性和关联表单多选
+	private void fullTextSearchMultipleOrInverseReferenceItemCriteria(String valueStr, List<Criterion> conditions, String columnFullname, ItemModelEntity itemModelEntity) {
+		if (itemModelEntity.getSystemItemType() == SystemItemType.Input || itemModelEntity.getSystemItemType() == SystemItemType.MoreInput
+				|| itemModelEntity.getSystemItemType() == SystemItemType.Editor) {  // 单行文本控件,多行文本控件,富文本控件
+			conditions.add(Restrictions.like(columnFullname, "%" + valueStr + "%"));
+		} else if (itemModelEntity instanceof SelectItemModelEntity) {
+			fullTextSearchSelectItemCriteria(valueStr, conditions, columnFullname, (SelectItemModelEntity)itemModelEntity);
+		} else if (itemModelEntity instanceof TreeSelectItemModelEntity) {
+			fullTextSearchTreeSelectItemCriteria(valueStr, conditions, columnFullname, (TreeSelectItemModelEntity)itemModelEntity);
 		}
 	}
 
