@@ -63,10 +63,12 @@ public class FileUploadController implements FileUploadService {
 		if(files != null && files.size() > 0) {
 			for (MultipartFile file : files){
 				verifyFileFormat(file, request);
+			}
+			for (MultipartFile file : files){
 				try {
 					list.add(uploadService.uploadOneFileReturnUrl(null, sourceType, size, file));
 				} catch (Exception e) {
-					throw new IFormException("上传文件失败" + e.getMessage());
+					throw new IFormException("上传文件失败:" + e.getMessage());
 				}
 			}
 		}
