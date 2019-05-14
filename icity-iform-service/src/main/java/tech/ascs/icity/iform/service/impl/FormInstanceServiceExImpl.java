@@ -1122,7 +1122,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		} else if (itemModel.getType() == ItemType.Media || itemModel.getType() == ItemType.Attachment) {
             Object o = itemInstance.getValue();
 			Map<String, FileUploadEntity> fileUploadEntityMap = new HashMap<>();
+			//文件数
 			Integer numberLimit = ((FileItemModelEntity)itemModel).getFileNumberLimit();
+			//文件类型
+			String fileFormat = ((FileItemModelEntity)itemModel).getFileFormat();
 			if(data.get("id") != null && data.get("id") != "") {
 				List<FileUploadEntity> fileUploadList = fileUploadManager.query().filterEqual("fromSourceDataId", data.get("id")).filterEqual("fromSource", itemModel.getId()).filterEqual("sourceType", DataSourceType.ItemModel).list();
 				for (FileUploadEntity fileUploadEntity : fileUploadList) {
@@ -1139,14 +1142,14 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					if(fileUploadModelMap == null || fileUploadModelMap.values() == null || fileUploadModelMap.values().size() < 1){
 						continue;
 					}
-					FileUploadEntity fileUploadEntity = saveFileUploadEntity( fileUploadModelMap, fileUploadEntityMap, itemModel.getId());
+					FileUploadEntity fileUploadEntity = saveFileUploadEntity( fileUploadModelMap, fileUploadEntityMap, itemModel);
 					newList.add(fileUploadEntity);
 				}
 				value = String.join(",", newList.parallelStream().map(FileUploadEntity::getId).collect(Collectors.toList()));
 			}else{
 				Map<String, String> fileUploadModel = o == null || o == "" ? null : (Map<String, String>)o;
 				if(fileUploadModel != null && fileUploadModel.values() != null && fileUploadModel.values().size() > 0){
-					FileUploadEntity fileUploadEntity = saveFileUploadEntity( fileUploadModel, fileUploadEntityMap, itemModel.getId());
+					FileUploadEntity fileUploadEntity = saveFileUploadEntity( fileUploadModel, fileUploadEntityMap, itemModel);
 					value = fileUploadEntity.getId();
 				}
 			}
@@ -1182,7 +1185,20 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 	}
 
-	private FileUploadEntity saveFileUploadEntity(Map<String, String> fileUploadModelMap, Map<String, FileUploadEntity> fileUploadEntityMap, String itemId){
+	public static void main(String[] args) {
+		String fileKey = "2019-03-26/jpg/6e538e3812bd4107908903c875ab7d1f.jpg";
+		String format = fileKey.substring(fileKey.lastIndexOf(".")+1);
+		System.out.println(format);
+	}
+
+	private FileUploadEntity saveFileUploadEntity(Map<String, String> fileUploadModelMap, Map<String, FileUploadEntity> fileUploadEntityMap, ItemModelEntity itemModel){
+		String fileKey = fileUploadModelMap.get("fileKey");
+		String format = fileKey.substring(fileKey.lastIndexOf(".")+1);
+		String fileFormat = ((FileItemModelEntity)itemModel).getFileFormat();
+		if(StringUtils.hasText(fileFormat) && !fileFormat.contains(format)){
+			throw new IFormException("未找到【"+fileUploadModelMap.get("id")+"】对应的文件格式类型不对");
+		}
+
 		FileUploadEntity fileUploadEntity = null;
 		if(fileUploadModelMap.get("id") != null){
 			fileUploadEntity = fileUploadEntityMap.remove(fileUploadModelMap.get("id"));
@@ -1195,7 +1211,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}else {
 			fileUploadEntity = new FileUploadEntity();
 			FileUploadModel fileUploadModel = new FileUploadModel();
-			fileUploadModel.setFileKey(fileUploadModelMap.get("fileKey"));
+			fileUploadModel.setFileKey(fileKey);
 			fileUploadModel.setName(fileUploadModelMap.get("name"));
 			fileUploadModel.setUrl(fileUploadModelMap.get("url"));
 			fileUploadModel.setThumbnail(fileUploadModelMap.get("thumbnail"));
@@ -1203,7 +1219,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			BeanUtils.copyProperties(fileUploadModel, fileUploadEntity);
 		}
 		fileUploadEntity.setSourceType(DataSourceType.ItemModel);
-		fileUploadEntity.setFromSource(itemId);
+		fileUploadEntity.setFromSource(itemModel.getId());
 		fileUploadManager.save(fileUploadEntity);
 		return fileUploadEntity;
 	}

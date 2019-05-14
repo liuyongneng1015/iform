@@ -37,6 +37,7 @@ public class FileUploadController implements FileUploadService {
 		MultipartFile file = ((MultipartHttpServletRequest)request).getFile("file");
 		String fileSizeLimit = request.getParameter("fileSizeLimit");
 		String sourceTypeStr = request.getParameter("sourceType");
+		verifyFileFormat(file, request);
 		DataSourceType sourceType = DataSourceType.getDataSourceType(sourceTypeStr);
 		Integer size = null;
 		if(StringUtils.isNoneBlank(fileSizeLimit)){
@@ -45,7 +46,7 @@ public class FileUploadController implements FileUploadService {
 		try {
 			return uploadService.uploadOneFileReturnUrl(null, sourceType, size, file);
 		} catch (Exception e) {
-			throw new IFormException("上传文件失败" + e.getMessage());
+			throw new IFormException("上传文件失败:" + e.getMessage());
 		}
 	}
 
@@ -61,6 +62,7 @@ public class FileUploadController implements FileUploadService {
 		List<FileUploadModel> list = new ArrayList<>();
 		if(files != null && files.size() > 0) {
 			for (MultipartFile file : files){
+				verifyFileFormat(file, request);
 				try {
 					list.add(uploadService.uploadOneFileReturnUrl(null, sourceType, size, file));
 				} catch (Exception e) {
@@ -69,6 +71,15 @@ public class FileUploadController implements FileUploadService {
 			}
 		}
 		return list;
+	}
+
+	private void verifyFileFormat(MultipartFile file, HttpServletRequest request){
+		String filename = file.getOriginalFilename();
+		String format = filename.substring(filename.lastIndexOf(".")+1);
+		String fileFormat = request.getParameter("fileFormat");
+		if(StringUtils.isNotBlank(fileFormat) && !fileFormat.contains(format)){
+			throw new IFormException("上传文件失败:文件类型错误");
+		}
 	}
 
 

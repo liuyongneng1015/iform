@@ -27,6 +27,9 @@ public class FileItemModelEntity extends ItemModelEntity  {
 	@Column(name="file_number_limit")//文件数量限制
 	private Integer fileNumberLimit;
 
+	@Column(name="file_format")//文件格式
+	private String fileFormat;
+
 	public FileReferenceType getFileReferenceType() {
 		return fileReferenceType;
 	}
@@ -57,5 +60,13 @@ public class FileItemModelEntity extends ItemModelEntity  {
 
 	public void setFileNumberLimit(Integer fileNumberLimit) {
 		this.fileNumberLimit = fileNumberLimit;
+	}
+
+	public String getFileFormat() {
+		return fileFormat;
+	}
+
+	public void setFileFormat(String fileFormat) {
+		this.fileFormat = fileFormat;
 	}
 }
