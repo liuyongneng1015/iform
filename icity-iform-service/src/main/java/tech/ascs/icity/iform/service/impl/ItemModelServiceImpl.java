@@ -74,6 +74,26 @@ public class ItemModelServiceImpl extends DefaultJPAService<ItemModelEntity> imp
 		itemModelEntity.setType(ItemType.Input);
 		itemModelEntity.setSystemItemType(SystemItemType.Input);
 		itemModelEntity.setUuid(UUID.randomUUID().toString().replace("-",""));
+		if("流程状态".equals(itemModelName)){
+			List<ItemSelectOption> options = new ArrayList<>();
+			ItemSelectOption itemSelectOptionA = new ItemSelectOption();
+			itemSelectOptionA.setItemModel(itemModelEntity);
+			itemSelectOptionA.setValue("ALL");
+			itemSelectOptionA.setLabel("全部");
+			ItemSelectOption itemSelectOptionW = new ItemSelectOption();
+			itemSelectOptionW.setItemModel(itemModelEntity);
+			itemSelectOptionW.setValue("WORK");
+			itemSelectOptionW.setLabel("待处理");
+			ItemSelectOption itemSelectOptionD = new ItemSelectOption();
+			itemSelectOptionD.setItemModel(itemModelEntity);
+			itemSelectOptionD.setValue("DONE");
+			itemSelectOptionD.setLabel("已处理");
+			options.add(itemSelectOptionA);
+			options.add(itemSelectOptionW);
+			options.add(itemSelectOptionD);
+			itemModelEntity.setOptions(options);
+		}
+
 		formModelEntity.getItems().add(itemModelEntity);
 		return itemModelEntity;
 	}
