@@ -70,6 +70,32 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	}
 
 	@Override
+	public List<FormDataSaveInstance> simplifyList(@PathVariable(name="listId") String listId, @RequestParam Map<String, Object> parameters) {
+		ListModelEntity listModel = listModelService.find(listId);
+		if (listModel == null) {
+			throw new IFormException(404, "列表模型【" + listId + "】不存在");
+		}
+
+		Page<FormDataSaveInstance> page = formInstanceService.pageFormInstance(listModel,1,Integer.MAX_VALUE, parameters);
+		List<FormDataSaveInstance> list = new ArrayList<>();
+		for(FormDataSaveInstance instance : page.getResults()){
+			instance.setFormId(null);
+			instance.setReferenceData(null);
+			instance.setFileUploadModel(null);
+			instance.setCanEdit(null);
+			instance.setActivityId(null);
+			instance.setActivityInstanceId(null);
+			instance.setProcessId(null);
+			instance.setProcessInstanceId(null);
+			instance.setData(null);
+			instance.setItems(null);
+			instance.setSubFormData(null);
+			list.add(instance);
+		}
+		return list;
+	}
+
+	@Override
 	public List<DataInstance> listRefereceData(@PathVariable(name="listId") String listId, @PathVariable(name="itemId") String itemId, @RequestParam Map<String, Object> parameters) {
 		ListModelEntity listModel = listModelService.find(listId);
 		if (listModel == null) {

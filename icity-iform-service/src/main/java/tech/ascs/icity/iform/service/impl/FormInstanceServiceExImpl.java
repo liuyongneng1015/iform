@@ -2065,6 +2065,17 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					subFormItems, items, formInstance);
 		}
 
+		List<String> labelIdList = null;
+		if(StringUtils.hasText(formModel.getItemModelIds())){
+			labelIdList = new ArrayList<>();
+			for(String str : formModel.getItemModelIds().split(",")) {
+				labelIdList.add(str);
+			}
+		}
+		Map<String, ItemInstance> labelItemMap = null;
+		if(labelIdList != null) {
+			labelItemMap = new HashMap<>();
+		}
 		//展示字段
 		List<String> displayIds = new ArrayList<>();
 		if (!isQrCodeFlag && listModelEntity != null) {
@@ -2087,6 +2098,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 		for(ItemInstance itemInstance : items){
             newDisplayItems.add(itemInstance);
+            if(labelIdList != null) {
+				if (labelIdList.contains(itemInstance.getId())) {
+					labelItemMap.put(itemInstance.getId(), itemInstance);
+				}
+			}
 		}
 
 		copyDisplayIds.removeAll(copyItemIds);
@@ -2112,6 +2128,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}
 		}
 
+		if(labelIdList != null) {
+			formInstance.setLabel( getLabel( labelIdList, labelItemMap));
+		}
+
 		formInstance.getItems().addAll(newDisplayItems);
 
 
@@ -2125,6 +2145,61 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}
 		}
 		return formInstance;
+	}
+
+	private String getLabel(List<String> labelIdList, Map<String , ItemInstance> labelItemMap){
+		StringBuffer label = new StringBuffer();
+		for (int i = 0; i < labelIdList.size(); i++) {
+			String labelItemId = labelIdList.get(i);
+			ItemInstance itemInstance = labelItemMap.get(labelItemId);
+			if (itemInstance == null || itemInstance.getDisplayValue() == null || !StringUtils.hasText(String.valueOf(itemInstance.getDisplayValue())) || itemInstance.getSystemItemType() == SystemItemType.ID) {
+				labelIdList.remove(labelItemId);
+				i--;
+				continue;
+			}
+			String value =  getDisplayValue(itemInstance);
+			if (i == 0) {
+				label.append(value);
+			} else {
+				label.append("," + value);
+			}
+		}
+		return label.toString();
+	}
+
+	private String getDisplayValue(ItemInstance itemInstance){
+		Object displayVlaue = itemInstance.getDisplayValue();
+		String value = null;
+		if(itemInstance.getType() == ItemType.Attachment || itemInstance.getType() == ItemType.Media){
+			List<FileUploadModel> listModels = (List<FileUploadModel>)displayVlaue;
+			StringBuffer sub = new StringBuffer();
+			for(int j = 0; j < listModels.size(); j ++){
+				if(j == 0){
+					sub.append(listModels.get(j));
+				}else{
+					sub.append(","+listModels.get(j));
+				}
+			}
+			value = sub.toString();
+		}else if(itemInstance.getType() == ItemType.Select || itemInstance.getType() == ItemType.Treeselect){
+			if(displayVlaue instanceof List){
+				List<String> valueList = (List<String>)displayVlaue;
+				StringBuffer sub = new StringBuffer();
+				for(int j = 0; j < valueList.size(); j ++){
+					if(j == 0){
+						sub.append(valueList.get(j));
+					}else{
+						sub.append(","+valueList.get(j));
+					}
+				}
+				value = sub.toString();
+			}else{
+				value = (String)displayVlaue;
+			}
+		}else{
+			value = (String)displayVlaue;
+		}
+		return value;
 	}
 
 

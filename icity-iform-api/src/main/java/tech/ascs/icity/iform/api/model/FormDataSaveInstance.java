@@ -46,6 +46,9 @@ public class FormDataSaveInstance extends IdEntity {
 	@ApiModelProperty(value = "是否能编辑", position = 10)
 	private Boolean canEdit = true;
 
+	@ApiModelProperty(value = "数据标识集合", position = 10)
+	private String label;
+
 	public String getFormId() {
 		return formId;
 	}
@@ -140,6 +143,14 @@ public class FormDataSaveInstance extends IdEntity {
 
 	public void setCanEdit(Boolean canEdit) {
 		this.canEdit = canEdit;
+	}
+
+	public String getLabel() {
+		return label;
+	}
+
+	public void setLabel(String label) {
+		this.label = label;
 	}
 
 	@ApiModelProperty(value = "表单实例ID", position = 0)

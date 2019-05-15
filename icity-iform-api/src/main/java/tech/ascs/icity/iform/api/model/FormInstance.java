@@ -42,6 +42,9 @@ public class FormInstance extends IdEntity {
 	@ApiModelProperty(value = "表单实例ID", hidden = true)
 	private Map<String, Object> data = new HashMap<String, Object>();
 
+	@ApiModelProperty(value = "数据标识集合", position = 10)
+	private String label;
+
 	public String getFormId() {
 		return formId;
 	}
@@ -120,6 +123,14 @@ public class FormInstance extends IdEntity {
 
 	public void setSubFormData(List<SubFormItemInstance> subFormData) {
 		this.subFormData = subFormData;
+	}
+
+	public String getLabel() {
+		return label;
+	}
+
+	public void setLabel(String label) {
+		this.label = label;
 	}
 
 	@ApiModelProperty(value = "表单实例ID", position = 0)
