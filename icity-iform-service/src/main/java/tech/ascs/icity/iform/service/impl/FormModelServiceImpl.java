@@ -71,6 +71,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 	@Autowired
 	JdbcTemplate jdbcTemplate;
 
+	@Autowired
+	ItemModelService itemModelService;
+
 	public FormModelServiceImpl() {
 		super(FormModelEntity.class);
 	}
@@ -1333,6 +1336,11 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			i--;
 		}
 
+		DataModelEntity dataModelEntity = oldFormModelEntity.getDataModels().get(0);
+		ColumnModelEntity columnModelEntity = columnModelService.saveColumnModelEntity(dataModelEntity, "process_state");
+		ItemModelEntity itemModelEntity = itemModelService.saveItemModelEntity(oldFormModelEntity, "流程状态");
+		itemModelEntity.setColumnModel(columnModelEntity);
+
 		formModelManager.save(oldFormModelEntity);
 		return oldFormModelEntity;
 	}
@@ -1446,6 +1454,12 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		if(formModelEntity == null){
 			throw  new IFormException("未找到【"+formModel.getId()+"】对应的表单模型");
 		}
+
+		DataModelEntity dataModelEntity = formModelEntity.getDataModels().get(0);
+		ColumnModelEntity columnModelEntity = columnModelService.saveColumnModelEntity(dataModelEntity, "process_state");
+		ItemModelEntity itemModelEntity = itemModelService.saveItemModelEntity(formModelEntity, "流程状态");
+		itemModelEntity.setColumnModel(columnModelEntity);
+
 		FormProcessInfo processInfo = null;
 		if(formModel.getProcess() != null) {
 			processInfo = new FormProcessInfo();

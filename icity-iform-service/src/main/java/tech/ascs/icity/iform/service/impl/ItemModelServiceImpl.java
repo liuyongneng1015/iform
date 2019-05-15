@@ -32,7 +32,7 @@ public class ItemModelServiceImpl extends DefaultJPAService<ItemModelEntity> imp
 
 
 	@Autowired
-	private JdbcTemplate jdbcTemplate;
+	private FormModelService formModelService;
 
 
 	public ItemModelServiceImpl() {
@@ -49,5 +49,32 @@ public class ItemModelServiceImpl extends DefaultJPAService<ItemModelEntity> imp
 	@Override
 	public List<ReferenceItemModelEntity> findRefenceItemByFormModelId(String formModelId) {
 		return referenceItemModelEntityManager.query().filterEqual("referenceFormId", formModelId).list();
+	}
+
+	@Override
+	public ItemModelEntity saveItemModelEntity(FormModelEntity formModelEntity, String itemModelName) {
+		List<ItemModelEntity> list = formModelService.findAllItems(formModelEntity);
+		if (list != null) {
+			for (ItemModelEntity itemModelEntity : list) {
+				if(itemModelEntity.getName() == null){
+					continue;
+				}
+				if (itemModelEntity.getName().equals(itemModelName)) {
+					return itemModelEntity;
+				}
+			}
+		}
+		return saveItem(formModelEntity, itemModelName);
+	}
+
+	private ItemModelEntity saveItem(FormModelEntity formModelEntity, String itemModelName) {
+		ItemModelEntity itemModelEntity = new ItemModelEntity();
+		itemModelEntity.setName(itemModelName);
+		itemModelEntity.setFormModel(formModelEntity);
+		itemModelEntity.setType(ItemType.Input);
+		itemModelEntity.setSystemItemType(SystemItemType.Input);
+		itemModelEntity.setUuid(UUID.randomUUID().toString().replace("-",""));
+		formModelEntity.getItems().add(itemModelEntity);
+		return itemModelEntity;
 	}
 }
