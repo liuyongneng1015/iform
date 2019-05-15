@@ -2072,10 +2072,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				labelIdList.add(str);
 			}
 		}
-		Map<String, ItemInstance> labelItemMap = null;
-		if(labelIdList != null) {
-			labelItemMap = new HashMap<>();
-		}
+
 		//展示字段
 		List<String> displayIds = new ArrayList<>();
 		if (!isQrCodeFlag && listModelEntity != null) {
@@ -2098,11 +2095,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 		for(ItemInstance itemInstance : items){
             newDisplayItems.add(itemInstance);
-            if(labelIdList != null) {
-				if (labelIdList.contains(itemInstance.getId())) {
-					labelItemMap.put(itemInstance.getId(), itemInstance);
-				}
-			}
 		}
 
 		copyDisplayIds.removeAll(copyItemIds);
@@ -2129,7 +2121,13 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 
 		if(labelIdList != null) {
-			formInstance.setLabel( getLabel( labelIdList, labelItemMap));
+			Map<String, ItemInstance> labelItemMap = new HashMap<>();
+			for(ItemInstance itemInstance : newDisplayItems) {
+				if (labelIdList.contains(itemInstance.getId())) {
+					labelItemMap.put(itemInstance.getId(), itemInstance);
+				}
+			}
+			formInstance.setLabel(getLabel(labelIdList, labelItemMap));
 		}
 
 		formInstance.getItems().addAll(newDisplayItems);
@@ -2181,7 +2179,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				}
 			}
 			value = sub.toString();
-		}else if(itemInstance.getType() == ItemType.Select || itemInstance.getType() == ItemType.Treeselect){
+		}else {
 			if(displayVlaue instanceof List){
 				List<String> valueList = (List<String>)displayVlaue;
 				StringBuffer sub = new StringBuffer();
@@ -2196,8 +2194,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}else{
 				value = (String)displayVlaue;
 			}
-		}else{
-			value = (String)displayVlaue;
 		}
 		return value;
 	}
