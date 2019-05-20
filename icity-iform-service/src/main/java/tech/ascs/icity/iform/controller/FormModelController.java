@@ -1977,7 +1977,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			AnalysisDataModel dataModel = dataModelService.transitionToModel(formId, dataModelEntities.get(formId), columnsMap.get(formId));
 			dataModelList.add(dataModel);
 		}
-		formModel.setDataModels(dataModelList);
+		formModel.setDataModels(dataModelList.size() < 1 ? null : dataModelList);
 
 		String tableName = entity.getDataModels() == null || entity.getDataModels().size() < 1 ? null :  entity.getDataModels().get(0).getTableName();
 		if (entity.getItems().size() > 0) {
@@ -1987,6 +1987,8 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				items.add(toDTO(itemModelEntity, true, tableName));
 			}
 			formModel.setItems(items);
+		}else{
+			formModel.setItems(null);
 		}
 		/*//联动控件
 		List<LinkedItemModel> linkedItemModelList = new ArrayList<>();
@@ -2069,9 +2071,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				functionModels.add(functionModel);
 			}
 			if(isAnalysisForm) {
-				((AnalysisFormModel) object).setFunctions(functionModels);
+				((AnalysisFormModel) object).setFunctions(functionModels.size() < 1 ? null : functionModels);
 			}else{
-				((FormModel) object).setFunctions(functionModels);
+				((FormModel) object).setFunctions(functionModels.size() < 1 ? null : functionModels);
 			}
 		}
 
@@ -2085,9 +2087,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				triggerModels.add(model);
 			}
 			if(isAnalysisForm) {
-				((AnalysisFormModel) object).setTriggeres(triggerModels);
+				((AnalysisFormModel) object).setTriggeres(triggerModels.size() < 1 ? null : triggerModels);
 			}else{
-				((FormModel) object).setTriggeres(triggerModels);
+				((FormModel) object).setTriggeres(triggerModels.size() < 1 ? null : triggerModels);
 			}
 		}
 

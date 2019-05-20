@@ -195,6 +195,18 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 						}
 						instance.setMyTask(processInstance.isMyTask());
 						instance.setFunctions(processInstance.getOperations());
+						Map<String, Object> stringObjectMap = OkHttpUtils.jsonToMap(processInstance.getFormDefinition());
+						if(stringObjectMap != null) {
+							for(ItemInstance itemInstance : instance.getItems()){
+								Object o = stringObjectMap.get(itemInstance.getId());
+								if(o != null) {
+									Map<String, Object> map = (Map<String, Object>)o;
+									itemInstance.setVisible(map.get("visible") == null ? false : (Boolean)map.get("visible"));
+									itemInstance.setCanFill(map.get("canFill") == null ? false : (Boolean)map.get("canFill"));
+									itemInstance.setRequired(map.get("required") == null ? false : (Boolean)map.get("required"));
+								}
+							}
+						}
 						instance.setPermissions(processInstance.getFormDefinition());
 					}
 					return pageInstance;

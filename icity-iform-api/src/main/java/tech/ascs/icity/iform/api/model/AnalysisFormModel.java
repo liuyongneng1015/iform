@@ -44,7 +44,7 @@ public class AnalysisFormModel extends NameEntity {
 	private List<ItemModel> items = new ArrayList<ItemModel>();
 
 	@ApiModelProperty(value = "控件权限", position = 5)
-	private List<ItemPermissionModel> permissions = new ArrayList<ItemPermissionModel>();
+	private List<ItemPermissionModel> permissions ;
 
 	@ApiModelProperty(value = "表单功能按钮", position = 8)
 	private List<FunctionModel> functions = new ArrayList<FunctionModel>();
@@ -53,19 +53,19 @@ public class AnalysisFormModel extends NameEntity {
 	private String applicationId;
 
 	@ApiModelProperty(value="数据标识:控件集合",position = 10)
-	private List<ItemModel> itemModelList = new ArrayList<ItemModel>();
+	private List<ItemModel> itemModelList;
 
 	@ApiModelProperty(value="二维码数据标识:控件集合",position = 10)
-	private List<ItemModel> qrCodeItemModelList = new ArrayList<ItemModel>();
+	private List<ItemModel> qrCodeItemModelList;
 
 	@ApiModelProperty(value="关联表单模型集合",position = 11)
-	private List<AnalysisFormModel> referenceFormModel = new ArrayList<AnalysisFormModel>();
+	private List<AnalysisFormModel> referenceFormModel;
 
 	@ApiModelProperty(value="联动控件集合",position = 12)
 	private List<LinkedItemModel> linkedItemModelList;
 
 	@ApiModelProperty(value = "业务触发器", position = 9)
-	private List<BusinessTriggerModel> triggeres = new ArrayList<BusinessTriggerModel>();
+	private List<BusinessTriggerModel> triggeres;
 
 	public AnalysisProceeeModel getProcess() {
 		return process;

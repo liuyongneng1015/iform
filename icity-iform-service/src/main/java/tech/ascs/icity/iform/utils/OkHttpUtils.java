@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import okhttp3.*;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +33,7 @@ public class OkHttpUtils {
             responseResult.setCode(response.code());
             responseResult.setMessage(response.message());
             if (response.body() != null) {
-                Map<String, Object> result =  json2map(response.body().string());
+                Map<String, Object> result =  jsonToMap(response.body().string());
                 if(result == null){
                     throw new IFormException("业务触发服务异常，请稍后再试");
                 }
@@ -51,8 +52,11 @@ public class OkHttpUtils {
         return responseResult;
     }
 
-    public static Map<String, Object> json2map(String str_json) {
+    public static Map<String, Object> jsonToMap(String str_json) {
         Map<String, Object> res = null;
+        if(StringUtils.isBlank(str_json)){
+            return res;
+        }
         try {
             Gson gson = new Gson();
             res = gson.fromJson(str_json, new TypeToken<Map<String, Object>>() {
