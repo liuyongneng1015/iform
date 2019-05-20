@@ -27,6 +27,12 @@ public class ItemInstance extends IdEntity {
 	@ApiModelProperty(value = "是否只读", position = 4)
 	private Boolean readonly = false;
 
+	@ApiModelProperty(value = "可填", position = 4)
+	private Boolean canFill;
+
+	@ApiModelProperty(value = "必填", position = 4)
+	private Boolean required;
+
 	@ApiModelProperty(value = "对应数据模型字段id", position = 5)
 	private String columnModelId;
 
@@ -93,6 +99,22 @@ public class ItemInstance extends IdEntity {
 
 	public void setReadonly(Boolean readonly) {
 		this.readonly = readonly;
+	}
+
+	public Boolean getCanFill() {
+		return canFill;
+	}
+
+	public void setCanFill(Boolean canFill) {
+		this.canFill = canFill;
+	}
+
+	public Boolean getRequired() {
+		return required;
+	}
+
+	public void setRequired(Boolean required) {
+		this.required = required;
 	}
 
 	public String getColumnModelId() {

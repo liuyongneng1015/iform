@@ -1,5 +1,6 @@
 package tech.ascs.icity.iform.api.model;
 
+import com.fasterxml.jackson.annotation.JsonRawValue;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import org.apache.commons.lang3.StringUtils;
@@ -48,6 +49,20 @@ public class FormDataSaveInstance extends IdEntity {
 
 	@ApiModelProperty(value = "数据标识集合", position = 10)
 	private String label;
+
+	/** 当前环节操作 */
+	@ApiModelProperty(value = "当前环节操作", position = 14)
+	@JsonRawValue
+	protected String functions;
+
+	/** 当前环节表单配置 */
+	@ApiModelProperty(value = "当前环节表单配置", position = 14)
+	@JsonRawValue
+	protected String permissions;
+
+	/** 当前用户是否当前流程环节处理人 */
+	@ApiModelProperty(value = "当前用户是否当前流程环节处理人", position = 13)
+	private Boolean myTask;
 
 	public String getFormId() {
 		return formId;
@@ -151,6 +166,30 @@ public class FormDataSaveInstance extends IdEntity {
 
 	public void setLabel(String label) {
 		this.label = label;
+	}
+
+	public String getFunctions() {
+		return functions;
+	}
+
+	public void setFunctions(String functions) {
+		this.functions = functions;
+	}
+
+	public String getPermissions() {
+		return permissions;
+	}
+
+	public void setPermissions(String permissions) {
+		this.permissions = permissions;
+	}
+
+	public Boolean getMyTask() {
+		return myTask;
+	}
+
+	public void setMyTask(Boolean myTask) {
+		this.myTask = myTask;
 	}
 
 	@ApiModelProperty(value = "表单实例ID", position = 0)
