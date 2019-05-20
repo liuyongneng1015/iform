@@ -148,78 +148,77 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		Map<String, Object> queryParameters = assemblyQueryParameters(parameters);
 		FormModelEntity formModelEntity = listModel.getMasterForm();
 		if (formModelHasProcess(formModelEntity)) {
-			Set<String> itemIds = queryParameters.keySet();
-			if (itemIds != null && itemIds.size() > 0) {
-				List<ItemModelEntity> items = itemModelService.query().filterIn("id", itemIds).list();
-				Optional<ItemModelEntity> optional = items.stream().filter(item -> (
-						(item instanceof SelectItemModelEntity && (((SelectItemModelEntity) item).getMultiple() == null || ((SelectItemModelEntity) item).getMultiple() == false))
-				) && "处理状态".equals(item.getName())).findFirst();
-				if (optional.isPresent()) {
-					ItemModelEntity statusItem = optional.get();
-					Page<FormDataSaveInstance> pageInstance = queryIflowList(queryParameters, statusItem, items, page, pagesize, formModelEntity, listModel);
-					if (pageInstance!=null) {
-						return pageInstance;
+			return queryIflowList(queryParameters, page, pagesize, formModelEntity, listModel);
+		}
+		return formInstanceService.pageFormInstance(listModel, page, pagesize, queryParameters);
+	}
+
+	private  Page<FormDataSaveInstance> queryIflowList(Map<String, Object> queryParameters,  int page, int pagesize, FormModelEntity formModelEntity, ListModelEntity listModel) {
+		List<ItemModelEntity> items = formModelEntity.getItems();
+		Optional<ItemModelEntity> optional = items.stream().filter(item-> (item.getColumnModel()!=null&&"process_state".equals(item.getColumnModel().getColumnName()))).findFirst();
+		int status = -1;
+		if (optional.isPresent()) {
+			ItemModelEntity itemModelEntity = optional.get();
+			if (itemModelEntity instanceof SelectItemModelEntity) {
+				SelectItemModelEntity selectItem = (SelectItemModelEntity)itemModelEntity;
+				Object value = queryParameters.get(selectItem.getId());
+				if (value!=null && StringUtils.hasText(value.toString())) {
+					queryParameters.remove(selectItem.getId());
+					List<ItemSelectOption> options = selectItem.getOptions();
+					if (options!=null) {
+						Map<String, String> map = options.stream().collect(Collectors.toMap(ItemSelectOption::getId, ItemSelectOption::getValue));
+						if (map.get(value.toString())!=null) {
+							status = assemblyProcessDictionaryStatus(map.get(value.toString()));
+						}
 					}
 				}
 			}
 		}
-		Page<FormDataSaveInstance> formDataSaveInstancePage = formInstanceService.pageFormInstance(listModel, page, pagesize, queryParameters);
-		return formDataSaveInstancePage;
-	}
 
-	private  Page<FormDataSaveInstance> queryIflowList(Map<String, Object> queryParameters, ItemModelEntity statusItem, List<ItemModelEntity> items,
-													   int page, int pagesize, FormModelEntity formModelEntity, ListModelEntity listModel) {
-		String valueId = queryParameters.get(statusItem.getId()) != null ? queryParameters.get(statusItem.getId()).toString() : null;
-		if (StringUtils.hasText(valueId)) {
-			SelectItemModelEntity selectItem = (SelectItemModelEntity) statusItem;
-			int status = assemblyActivitiStatus(selectItem, valueId);
-			if (status != -2) { // -1表示查所有，0表示查未处理，1表示已处理，若最后status的值还是-2，表示不用查工作流
-				Map<String, Object> iflowQueryParams = assemblyIflowQueryParams(items, queryParameters, selectItem);
-				// 查工作流
-				Page<ProcessInstance> pageProcess = processInstanceService.page(page, pagesize, formModelEntity.getProcess().getKey(), status, iflowQueryParams);
-				Map<String, ProcessInstance> instanceIdAndEditMap = pageProcess.getResults().stream().collect(Collectors.toMap(ProcessInstance::getBusinessKey, processInstance -> processInstance));
-				String[] formInstanceIds = pageProcess.getResults().stream().map(item->item.getBusinessKey()).toArray(String[]::new);
-				if (formInstanceIds!=null && formInstanceIds.length>0) {
-					Optional<ItemModelEntity> idItemOption = formModelEntity.getItems().stream().filter(item->SystemItemType.ID == item.getSystemItemType()).findFirst();
-					queryParameters = new HashMap<>();
-					if (idItemOption.isPresent()) {
-						queryParameters.put(idItemOption.get().getId(), formInstanceIds);
-					}
-					Page<FormDataSaveInstance> pageInstance = formInstanceService.pageFormInstance(listModel, page, pagesize, queryParameters);
-					for (FormDataSaveInstance instance:pageInstance) {
-						ProcessInstance processInstance = instanceIdAndEditMap.get(instance.getId());
-						if (processInstance.getStatus()==ProcessInstance.Status.Running && processInstance.isMyTask()) {
-							instance.setCanEdit(true);
-						} else {
-							instance.setCanEdit(false);
-						}
-						instance.setMyTask(processInstance.isMyTask());
-						instance.setFunctions(processInstance.getOperations());
-						Map<String, Object> stringObjectMap = OkHttpUtils.jsonToMap(processInstance.getFormDefinition());
-						if(stringObjectMap != null) {
-							for(ItemInstance itemInstance : instance.getItems()){
-								Object o = stringObjectMap.get(itemInstance.getId());
-								if(o != null) {
-									Map<String, Object> map = (Map<String, Object>)o;
-									itemInstance.setVisible(map.get("visible") == null ? false : (Boolean)map.get("visible"));
-									itemInstance.setCanFill(map.get("canFill") == null ? false : (Boolean)map.get("canFill"));
-									itemInstance.setRequired(map.get("required") == null ? false : (Boolean)map.get("required"));
-								}
-							}
-						}
-						instance.setPermissions(processInstance.getFormDefinition());
-					}
-					return pageInstance;
+		Map<String, Object> iflowQueryParams = assemblyIflowQueryParams(items, queryParameters);
+		// 查工作流
+		Page<ProcessInstance> pageProcess = processInstanceService.page(page, pagesize, formModelEntity.getProcess().getKey(), status, iflowQueryParams);
+		Map<String, ProcessInstance> instanceIdAndEditMap = pageProcess.getResults().stream().collect(Collectors.toMap(ProcessInstance::getBusinessKey, processInstance -> processInstance));
+		String[] formInstanceIds = pageProcess.getResults().stream().map(item->item.getBusinessKey()).toArray(String[]::new);
+		if (formInstanceIds!=null && formInstanceIds.length>0) {
+			Optional<ItemModelEntity> idItemOption = formModelEntity.getItems().stream().filter(item->SystemItemType.ID == item.getSystemItemType()).findFirst();
+			queryParameters = new HashMap<>();
+			if (idItemOption.isPresent()) {
+				queryParameters.put(idItemOption.get().getId(), formInstanceIds);
+			}
+			List<FormDataSaveInstance> list = formInstanceService.formInstance(formModelEntity, queryParameters);
+			for (FormDataSaveInstance instance:list) {
+				ProcessInstance processInstance = instanceIdAndEditMap.get(instance.getId());
+				if (processInstance.getStatus()==ProcessInstance.Status.Running && processInstance.isMyTask()) {
+					instance.setCanEdit(true);
 				} else {
-					return Page.get(page, pagesize);
+					instance.setCanEdit(false);
 				}
+				instance.setMyTask(processInstance.isMyTask());
+				instance.setFunctions(processInstance.getOperations());
+				Map<String, Object> stringObjectMap = OkHttpUtils.jsonToMap(processInstance.getFormDefinition());
+				if(stringObjectMap != null) {
+					for(ItemInstance itemInstance : instance.getItems()){
+						Object o = stringObjectMap.get(itemInstance.getId());
+						if(o != null) {
+							Map<String, Object> map = (Map<String, Object>)o;
+							itemInstance.setVisible(map.get("visible") == null ? false : (Boolean)map.get("visible"));
+							itemInstance.setCanFill(map.get("canFill") == null ? false : (Boolean)map.get("canFill"));
+							itemInstance.setRequired(map.get("required") == null ? false : (Boolean)map.get("required"));
+						}
+					}
+				}
+				instance.setPermissions(processInstance.getFormDefinition());
 			}
+			Page<FormDataSaveInstance> pageInstance = Page.get(page, pagesize);
+			pageInstance.data(pageProcess.getTotalCount(), list);
+			return pageInstance;
+		} else {
+			return Page.get(page, pagesize);
 		}
-		return null;
 	}
 
-	private Map<String, Object> assemblyIflowQueryParams(List<ItemModelEntity> items, Map<String, Object> queryParameters, SelectItemModelEntity selectItem) {
-		queryParameters.remove(selectItem.getId());
+	private Map<String, Object> assemblyIflowQueryParams(List<ItemModelEntity> items, Map<String, Object> queryParameters) {
 		Map<String, Object> iflowQueryParams = new HashMap<>();
 		for (ItemModelEntity item : items) {
 			Object value = queryParameters.get(item.getId());
@@ -231,7 +230,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 				iflowQueryParams.put(columnModel.getColumnName(), value);
 			} else if (item instanceof SelectItemModelEntity) {
 				// 如果是单选框，多选框，下拉框，手动提取对应的中文出来
-				selectItem = (SelectItemModelEntity) item;
+				SelectItemModelEntity selectItem = (SelectItemModelEntity) item;
 				if (value instanceof String[]) {
 					String[] valueArr = (String[]) value;
 					assemblyReferenceArrParams(valueArr, selectItem, iflowQueryParams, columnModel);
@@ -287,7 +286,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		if (SelectReferenceType.Dictionary == selectItem.getSelectReferenceType()) {
 			DictionaryItemEntity dictionaryItem = dictionaryService.getDictionaryItemById(valueId);
 			if (dictionaryItem != null) {
-				status = assemblyProcesDictionaryStatus(dictionaryItem.getName());
+				status = assemblyProcessDictionaryStatus(dictionaryItem.getName());
 			}
 		} else {
 			List<ItemSelectOption> options = selectItem.getOptions();
@@ -384,19 +383,19 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		}
 	}
 
-	public int assemblyProcesDictionaryStatus(String valueStr) {
+	public int assemblyProcessDictionaryStatus(String valueStr) {
 		if (StringUtils.isEmpty(valueStr)) {
-			return -2;
+			return -1;
 		}
 		switch (valueStr) {
-			case "全部":
+			case "ALL":
 				return -1;
-			case "待处理":
+			case "WORK":
 				return 0;
-			case "已处理":
+			case "DONE":
 				return 1;
 		}
-		return -2;
+		return -1;
 	}
 
 	public int assemblyProcessStatus(String valueStr) {
