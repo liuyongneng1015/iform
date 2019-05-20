@@ -194,8 +194,8 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 							instance.setCanEdit(false);
 						}
 						instance.setMyTask(processInstance.isMyTask());
-						instance.setOperations(processInstance.getOperations());
-						instance.setFormDefinition(processInstance.getFormDefinition());
+						instance.setFunctions(processInstance.getOperations());
+						instance.setPermissions(processInstance.getFormDefinition());
 					}
 					return pageInstance;
 				} else {
