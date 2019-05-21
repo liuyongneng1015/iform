@@ -53,4 +53,7 @@ public interface FileUploadService {
 	@PostMapping("/parseExcel")
 	List<Map<String, Object>> parseExcel(HttpServletRequest request);
 
+	@ApiOperation("批量下载压缩文件")
+    @PostMapping("/download-files")
+	void downloadManyFiles(HttpServletResponse response, @RequestBody List<FileUploadModel> files);
 }

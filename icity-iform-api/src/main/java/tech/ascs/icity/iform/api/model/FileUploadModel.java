@@ -29,6 +29,12 @@ public class FileUploadModel extends NameEntity {
 	@ApiModelProperty(value = "数据来源类型", position = 9)
 	private DataSourceType sourceType = DataSourceType.ItemModel;
 
+	public FileUploadModel() { }
+
+	public FileUploadModel(String id, String name) {
+		super(id, name);
+	}
+
 	public String getFileKey() {
 		return fileKey;
 	}
