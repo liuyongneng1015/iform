@@ -362,19 +362,46 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 	@Override
 	public List<ListModel> findListModelSimpleByIds(List<String> ids) {
 		List<ListModel> list = new ArrayList();
-		if (ids!=null && ids.size()>0) {
-			ids = ids.stream().filter(item->!StringUtils.isEmpty(item)).collect(Collectors.toList());
-			if (ids!=null && ids.size()>0) {
-				String idArrStr = String.join("','", ids);
-				list = jdbcTemplate.query("select id,name from ifm_list_model where master_form IS NOT NULL AND id in ('"+idArrStr+"')",
-					(rs, rowNum) -> {
-						ListModel item = new ListModel();
-						item.setId(rs.getString("id"));
-						item.setName(rs.getString("name"));
-						return item;
-					}
-				);
+		if (ids==null || ids.size()==0) {
+			return list;
+		}
+		ids = ids.stream().filter(item->!StringUtils.isEmpty(item)).collect(Collectors.toList());
+		if (ids==null || ids.size()==0) {
+			return list;
+		}
+		String idArrStr = String.join("','", ids);
+		List<Map<String, Object>> data = jdbcTemplate.queryForList("select id, name, master_form from ifm_list_model where master_form IS NOT NULL AND id in ('"+idArrStr+"')");
+		if (data.size()==0) {
+			return list;
+		}
+		List<String> formIds = new ArrayList();
+		for (Map<String, Object> map:data) {
+			formIds.add(map.get("master_form").toString());
+		}
+		List<FormModelEntity> forms = formModelService.query().filterIn("id", formIds).list();
+		Map<String,FormModel> formModelMap = new HashMap();
+		for (FormModelEntity formModelEntity:forms) {
+			String id = formModelEntity.getId();
+			FormModel formModel = new FormModel();
+			formModel.setId(id);
+			formModel.setName(formModelEntity.getName());
+			FormProcessInfo processEntity = formModelEntity.getProcess();
+			if (processEntity!=null) {
+				FormModel.ProceeeModel process = new FormModel.ProceeeModel();
+				process.setId(processEntity.getId());
+				process.setKey(processEntity.getKey());
+				process.setName(processEntity.getName());
+				formModel.setProcess(process);
 			}
+			formModelMap.put(id, formModel);
+		}
+
+		for (Map<String, Object> map:data) {
+			ListModel item = new ListModel();
+			item.setId(map.get("id")==null?"":map.get("id").toString());
+			item.setName(map.get("name")==null?"":map.get("name").toString());
+			item.setMasterForm(formModelMap.get(map.get("master_form").toString()));
+			list.add(item);
 		}
 		return list;
 	}
