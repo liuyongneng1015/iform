@@ -5,12 +5,17 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import okhttp3.*;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.format.FormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.ResponseResult;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.Iterator;
 import java.util.Map;
@@ -18,12 +23,7 @@ import java.util.Map;
 public class OkHttpUtils {
     private static final Logger logger = LoggerFactory.getLogger(OkHttpUtils.class);
 
-    private static OkHttpClient  okHttpClient;
-
-    @Autowired
-    public OkHttpUtils(OkHttpClient  okHttpClient) {
-        OkHttpUtils.okHttpClient= okHttpClient;
-    }
+    private static OkHttpClient okHttpClient = new OkHttpClient.Builder().build();
 
     public static ResponseResult execute(Request request){
         ResponseResult responseResult = new ResponseResult();
@@ -86,6 +86,7 @@ public class OkHttpUtils {
                 .build();
         return  execute(request);
     }
+
     public static ResponseResult doPost(String url, Map<String,Object> map){
         RequestBody requestBody = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), mapToJson(map));
         Request request = new Request.Builder()
@@ -156,4 +157,36 @@ public class OkHttpUtils {
         return execute(request);
     }
 
+    public static void downloadFile(String fileUrl, String path, String fileName) {
+        File file = new File(path+File.separator+fileName);
+        InputStream is = null;
+        FileOutputStream fos = null;
+        try {
+            Request request = new Request.Builder().url(fileUrl).build();
+            Call call = okHttpClient.newCall(request);
+            Response response = call.execute();
+            byte[] buf = new byte[2048];
+            int len = 0;
+            is = response.body().byteStream();
+            fos = new FileOutputStream(file);
+            while ((len = is.read(buf)) != -1) {
+                fos.write(buf, 0, len);
+            }
+            fos.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new IFormException("下载文件过程中失败：" + e.getMessage(), e);
+        } finally {
+            try {
+                if (is != null) {
+                    is.close();
+                }
+                if (fos != null) {
+                    fos.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }
