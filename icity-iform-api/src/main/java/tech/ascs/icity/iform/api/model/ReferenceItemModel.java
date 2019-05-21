@@ -40,7 +40,7 @@ public class ReferenceItemModel extends ItemModel {
 	private String referenceDictionaryItemName;
 
 	@ApiModelProperty(value = " 关联字典默认选项", position = 13)
-	private List<DictionaryItemModel> referenceDictionaryItemList;
+	private List<DictionaryDataItemModel> referenceDictionaryItemList;
 
 	@ApiModelProperty(value = "默认值(数据字典的默认值)", position = 15)
 	private Object defaultValue;
@@ -196,12 +196,12 @@ public class ReferenceItemModel extends ItemModel {
 
 	@Override
 	@JsonIgnore
-	public List<DictionaryItemModel> getReferenceDictionaryItemList() {
+	public List<DictionaryDataItemModel> getReferenceDictionaryItemList() {
 		return referenceDictionaryItemList;
 	}
 
 	@Override
-	public void setReferenceDictionaryItemList(List<DictionaryItemModel> referenceDictionaryItemList) {
+	public void setReferenceDictionaryItemList(List<DictionaryDataItemModel> referenceDictionaryItemList) {
 		this.referenceDictionaryItemList = referenceDictionaryItemList;
 	}
 

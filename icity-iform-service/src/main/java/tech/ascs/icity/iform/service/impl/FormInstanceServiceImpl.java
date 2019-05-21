@@ -371,7 +371,7 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 					//valueMap.put(key, tableValues);
 				}else if(((SelectItemModelEntity)itemModelEntity).getSelectReferenceType() == SelectReferenceType.Dictionary){
 					//TODO 根据类型查找对应的值
-					List<DictionaryItemModel> tableValues = jdbcTemplate.queryForList(" select *  from ifm_dictionary_item where parent_id = "+((SelectItemModelEntity) itemModelEntity).getReferenceDictionaryId(),DictionaryItemModel.class);
+					List<DictionaryDataItemModel> tableValues = jdbcTemplate.queryForList(" select *  from ifm_dictionary_item where parent_id = "+((SelectItemModelEntity) itemModelEntity).getReferenceDictionaryId(), DictionaryDataItemModel.class);
 					choiceMap.put(itemModelEntity.getId(), tableValues);
 					valueMap.put(key, tableValues);
 				}else if(((SelectItemModelEntity)itemModelEntity).getSelectReferenceType() == SelectReferenceType.Fixed){
@@ -396,8 +396,8 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 				//List<String> tableValues = jdbcTemplate.queryForList(" select " + ((SelectItemModelEntity) itemModelEntity).getReferenceValueColumn() + " from " + ((SelectItemModelEntity) itemModelEntity).getReferenceTable(),String.class);
 			}else if(((SelectItemModelEntity)itemModelEntity).getSelectReferenceType() == SelectReferenceType.Dictionary){
 				//TODO 根据类型查找对应的值
-				List<DictionaryItemModel> tableValues = jdbcTemplate.queryForList(" select *  from ifm_dictionary_item where parent_id = "+((SelectItemModelEntity) itemModelEntity).getReferenceDictionaryId(),DictionaryItemModel.class);
-				for(DictionaryItemModel model : tableValues){
+				List<DictionaryDataItemModel> tableValues = jdbcTemplate.queryForList(" select *  from ifm_dictionary_item where parent_id = "+((SelectItemModelEntity) itemModelEntity).getReferenceDictionaryId(), DictionaryDataItemModel.class);
+				for(DictionaryDataItemModel model : tableValues){
 					if(model.getCode().equals(value)){
 						return model.getName();
 					}

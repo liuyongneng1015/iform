@@ -48,6 +48,9 @@ public class ItemModel extends NameEntity {
 	@ApiModelProperty(value="选择关系",position = 11)
 	private SelectReferenceType selectReferenceType;
 
+	@ApiModelProperty(value="选择框数据源",position = 11)
+	private SelectDataSourceType selectDataSourceType;
+
 	@ApiModelProperty(value="是否多选、是否允许多传",position = 11)
 	private Boolean multiple;
 
@@ -64,7 +67,7 @@ public class ItemModel extends NameEntity {
 	private String referenceDictionaryItemName;
 
 	@ApiModelProperty(value = " 关联字典默认选项", position = 13)
-	private List<DictionaryItemModel> referenceDictionaryItemList;
+	private List<DictionaryDataItemModel> referenceDictionaryItemList;
 
 	@ApiModelProperty(value = " 关联表单(如表名、表单名)", position = 14)
 	private String referenceTable;
@@ -360,6 +363,14 @@ public class ItemModel extends NameEntity {
 		this.selectReferenceType = selectReferenceType;
 	}
 
+	public SelectDataSourceType getSelectDataSourceType() {
+		return selectDataSourceType;
+	}
+
+	public void setSelectDataSourceType(SelectDataSourceType selectDataSourceType) {
+		this.selectDataSourceType = selectDataSourceType;
+	}
+
 	public Boolean getMultiple() {
 		return multiple;
 	}
@@ -392,11 +403,11 @@ public class ItemModel extends NameEntity {
 		this.referenceDictionaryName = referenceDictionaryName;
 	}
 
-	public List<DictionaryItemModel> getReferenceDictionaryItemList() {
+	public List<DictionaryDataItemModel> getReferenceDictionaryItemList() {
 		return referenceDictionaryItemList;
 	}
 
-	public void setReferenceDictionaryItemList(List<DictionaryItemModel> referenceDictionaryItemList) {
+	public void setReferenceDictionaryItemList(List<DictionaryDataItemModel> referenceDictionaryItemList) {
 		this.referenceDictionaryItemList = referenceDictionaryItemList;
 	}
 

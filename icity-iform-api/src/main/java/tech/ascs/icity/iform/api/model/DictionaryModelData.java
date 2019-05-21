@@ -2,23 +2,33 @@ package tech.ascs.icity.iform.api.model;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import org.apache.commons.lang3.StringUtils;
-import tech.ascs.icity.model.Codeable;
-import tech.ascs.icity.model.NameEntity;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
- * 数据字典项
+ * 字典建模数据项
  */
-@ApiModel("数据字典项")
-public class DictionaryItemModel extends NameEntity implements Codeable {
-	
+@ApiModel("字典建模数据项")
+public class DictionaryModelData implements Serializable {
+
 	/**
-	 * 所属数据字典id
+	 * 所属字典建模id
 	 */
-    @ApiModelProperty(value = "分类id", position = 3)
+	@ApiModelProperty(value = "字典建模id", position = 3)
 	private String dictionaryId;
+
+	/**
+	 * 主键id
+	 */
+	@ApiModelProperty(value = "主键id", position = 3)
+	private Integer id;
+
+	/**
+	 * 名称
+	 */
+	@ApiModelProperty(value = "名称", position = 3)
+	private String name;
 
 	/**
 	 * 编码
@@ -49,13 +59,14 @@ public class DictionaryItemModel extends NameEntity implements Codeable {
 	 * 父选项
 	 */
 	@ApiModelProperty(value = "父选项", position = 6)
-	private String parentId;
+	private Integer parentId;
 
 	/**
 	 * 子选项描述
 	 */
 	@ApiModelProperty(value = "子选项描述", position = 7)
-	private List<DictionaryItemModel> resources;
+	private List<DictionaryModelData> resources;
+
 
 	public String getDictionaryId() {
 		return dictionaryId;
@@ -65,7 +76,22 @@ public class DictionaryItemModel extends NameEntity implements Codeable {
 		this.dictionaryId = dictionaryId;
 	}
 
-	@Override
+	public Integer getId() {
+		return id;
+	}
+
+	public void setId(Integer id) {
+		this.id = id;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
 	public String getCode() {
 		return code;
 	}
@@ -98,28 +124,19 @@ public class DictionaryItemModel extends NameEntity implements Codeable {
 		this.orderNo = orderNo;
 	}
 
-	public String getParentId() {
+	public Integer getParentId() {
 		return parentId;
 	}
 
-	public void setParentId(String parentId) {
+	public void setParentId(Integer parentId) {
 		this.parentId = parentId;
 	}
 
-	public List<DictionaryItemModel> getResources() {
+	public List<DictionaryModelData> getResources() {
 		return resources;
 	}
 
-	public void setResources(List<DictionaryItemModel> resources) {
+	public void setResources(List<DictionaryModelData> resources) {
 		this.resources = resources;
-	}
-
-	@Override
-	public String getId() {
-		String id = super.getId();
-		if(StringUtils.isBlank(id)){
-			return null;
-		}
-		return id;
 	}
 }

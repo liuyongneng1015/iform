@@ -1,80 +1,49 @@
 package tech.ascs.icity.iform.api.model;
 
-import java.util.List;
-
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import org.apache.commons.lang3.StringUtils;
-import tech.ascs.icity.model.Codeable;
 import tech.ascs.icity.model.NameEntity;
 
+import java.io.Serializable;
+
 /**
- * 数据字典
+ * 字典建模
  */
-@ApiModel("字典表")
-public class DictionaryModel extends NameEntity implements Codeable {
+@ApiModel("字典建模")
+public class DictionaryModel extends NameEntity implements Serializable {
 
 	/**
-	 * 描述
+	 * 数据表
 	 */
-	@ApiModelProperty(value = "描述", position = 4)
-	private String description;
+	@ApiModelProperty(value = "数据表", position = 4)
+	private String tableName;
 
-	/**
-	 * 编码
-	 */
-	@ApiModelProperty(value = "编码", position = 2)
-	private String code;
 
-	/**
-	 * 按钮icon
-	 */
-	@ApiModelProperty(value = "按钮icon", position = 4)
-	private String icon;
+	@ApiModelProperty(value = "应用id", position = 4)
+	private String applicationId;
 
 	/**
 	 * 排序号
 	 */
 	@ApiModelProperty(value = "排序号", position = 4)
-	private Integer orderNo;
+	private Integer orderNo = 0;
 
-	/**
-	 * 数据字典项
-	 */
-	@ApiModelProperty(value = "数据字典项", position = 5)
-	private List<DictionaryItemModel> resources;
 
-	public List<DictionaryItemModel> getResources() {
-		return resources;
+	public String getTableName() {
+		return tableName;
 	}
 
-	public void setResources(List<DictionaryItemModel> resources) {
-		this.resources = resources;
+	public void setTableName(String tableName) {
+		this.tableName = tableName;
 	}
 
-	@Override
-	public String getCode() {
-		return code;
+	public String getApplicationId() {
+		return applicationId;
 	}
 
-	public void setCode(String code) {
-		this.code = code;
-	}
-
-	public String getDescription() {
-		return description;
-	}
-
-	public void setDescription(String description) {
-		this.description = description;
-	}
-
-	public String getIcon() {
-		return icon;
-	}
-
-	public void setIcon(String icon) {
-		this.icon = icon;
+	public void setApplicationId(String applicationId) {
+		this.applicationId = applicationId;
 	}
 
 	public Integer getOrderNo() {
@@ -93,4 +62,5 @@ public class DictionaryModel extends NameEntity implements Codeable {
 		}
 		return id;
 	}
+
 }

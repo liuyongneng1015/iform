@@ -39,7 +39,7 @@ public class SubFormItemModel extends ItemModel {
 	private String referenceDictionaryItemName;
 
 	@ApiModelProperty(value = " 关联字典默认选项", position = 13)
-	private List<DictionaryItemModel> referenceDictionaryItemList;
+	private List<DictionaryDataItemModel> referenceDictionaryItemList;
 
 	@ApiModelProperty(value = " 关联表单(如表名、表单名)", position = 14)
 	private String referenceTable;
@@ -208,12 +208,12 @@ public class SubFormItemModel extends ItemModel {
 
 	@Override
 	@JsonIgnore
-	public List<DictionaryItemModel> getReferenceDictionaryItemList() {
+	public List<DictionaryDataItemModel> getReferenceDictionaryItemList() {
 		return referenceDictionaryItemList;
 	}
 
 	@Override
-	public void setReferenceDictionaryItemList(List<DictionaryItemModel> referenceDictionaryItemList) {
+	public void setReferenceDictionaryItemList(List<DictionaryDataItemModel> referenceDictionaryItemList) {
 		this.referenceDictionaryItemList = referenceDictionaryItemList;
 	}
 

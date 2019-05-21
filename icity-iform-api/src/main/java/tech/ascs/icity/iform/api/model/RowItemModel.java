@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import org.apache.commons.lang3.StringUtils;
-import tech.ascs.icity.model.NameEntity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +43,7 @@ public class RowItemModel extends ItemModel {
 	private String referenceDictionaryItemName;
 
 	@ApiModelProperty(value = " 关联字典默认选项", position = 13)
-	private List<DictionaryItemModel> referenceDictionaryItemList;
+	private List<DictionaryDataItemModel> referenceDictionaryItemList;
 
 	@ApiModelProperty(value = " 关联表单(如表名、表单名)", position = 14)
 	private String referenceTable;
@@ -230,12 +229,12 @@ public class RowItemModel extends ItemModel {
 
 	@Override
 	@JsonIgnore
-	public List<DictionaryItemModel> getReferenceDictionaryItemList() {
+	public List<DictionaryDataItemModel> getReferenceDictionaryItemList() {
 		return referenceDictionaryItemList;
 	}
 
 	@Override
-	public void setReferenceDictionaryItemList(List<DictionaryItemModel> referenceDictionaryItemList) {
+	public void setReferenceDictionaryItemList(List<DictionaryDataItemModel> referenceDictionaryItemList) {
 		this.referenceDictionaryItemList = referenceDictionaryItemList;
 	}
 

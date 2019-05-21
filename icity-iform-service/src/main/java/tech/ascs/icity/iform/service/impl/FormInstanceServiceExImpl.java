@@ -46,7 +46,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	private static final Random random = new Random();
 
 	@Autowired
-	private DictionaryService dictionaryService;
+	private DictionaryDataService dictionaryService;
 
 	@Autowired
 	private IFormSessionFactoryBuilder sessionFactoryBuilder;
@@ -66,11 +66,14 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
     @Autowired
     private ListModelService listModelService;
 
+	@Autowired
+	private DictionaryModelService dictionaryModelService;
+
 	private JPAManager<FormModelEntity> formModelEntityJPAManager;
 
-	private JPAManager<DictionaryEntity> dictionaryEntityJPAManager;
+	private JPAManager<DictionaryDataEntity> dictionaryEntityJPAManager;
 
-	private JPAManager<DictionaryItemEntity> dictionaryItemManager;
+	private JPAManager<DictionaryDataItemEntity> dictionaryItemManager;
 
 	private JPAManager<ItemModelEntity> itemModelManager;
 
@@ -105,8 +108,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	protected void initManager() {
 		super.initManager();
 		formModelEntityJPAManager = getJPAManagerFactory().getJPAManager(FormModelEntity.class);
-		dictionaryEntityJPAManager = getJPAManagerFactory().getJPAManager(DictionaryEntity.class);
-		dictionaryItemManager = getJPAManagerFactory().getJPAManager(DictionaryItemEntity.class);
+		dictionaryEntityJPAManager = getJPAManagerFactory().getJPAManager(DictionaryDataEntity.class);
+		dictionaryItemManager = getJPAManagerFactory().getJPAManager(DictionaryDataItemEntity.class);
 		itemModelManager = getJPAManagerFactory().getJPAManager(ItemModelEntity.class);
 		dataModelManager = getJPAManagerFactory().getJPAManager(DataModelEntity.class);
 		fileUploadManager = getJPAManagerFactory().getJPAManager(FileUploadEntity.class);
@@ -1628,8 +1631,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				}
 			}
 		} else if (StringUtils.hasText(referenceDictionaryId)) {
-			List<DictionaryItemModel> list = dictionaryService.findDictionaryItems(referenceDictionaryId, valueStr);
-			for (DictionaryItemModel item:list) {
+			List<DictionaryDataItemModel> list = dictionaryService.findDictionaryItems(referenceDictionaryId, valueStr);
+			for (DictionaryDataItemModel item:list) {
 				conditions.add(Restrictions.like(columnFullname, "%" + item.getId() + "%"));
 			}
 		}
@@ -1644,8 +1647,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			if (TreeSelectDataSource.SystemCode==dataSource) {
 				String dictionaryId = treeSelectItemModelEntity.getReferenceDictionaryId();
 				if (StringUtils.hasText(dictionaryId)) {
-					List<DictionaryItemModel> list = dictionaryService.findDictionaryItems(dictionaryId, valueStr);
-					for (DictionaryItemModel item:list) {
+					List<DictionaryDataItemModel> list = dictionaryService.findDictionaryItems(dictionaryId, valueStr);
+					for (DictionaryDataItemModel item:list) {
 						conditions.add(Restrictions.like(columnFullname, "%" + item.getId() + "%"));
 					}
 				}
@@ -2978,9 +2981,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			list = groupService.getTreeSelectDataSourceByIds(dataSourceType.getValue(), ids);
 		// 系统代码
 		} else if (TreeSelectDataSource.SystemCode==dataSourceType){
-			List<DictionaryItemEntity> dictionaryItems = dictionaryService.findByItemIds(ids);
+			List<DictionaryDataItemEntity> dictionaryItems = dictionaryService.findByItemIds(ids);
 			if (dictionaryItems!=null && dictionaryItems.size()>0) {
-				for (DictionaryItemEntity dictionaryItem:dictionaryItems) {
+				for (DictionaryDataItemEntity dictionaryItem:dictionaryItems) {
 					TreeSelectData treeSelectData = new TreeSelectData();
 					treeSelectData.setType(TreeSelectDataSource.SystemCode.getValue());
 					treeSelectData.setId(dictionaryItem.getId());
@@ -3049,14 +3052,14 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		List<Object> displayObjectList = new ArrayList<>();
 		if((selectItemModelEntity.getSelectReferenceType() == SelectReferenceType.Dictionary ||
 				selectItemModelEntity.getReferenceDictionaryItemId() != null || checkParentSelectItemHasDictionaryItem(selectItemModelEntity)) && list != null && list.size() > 0){
-			List<DictionaryItemEntity> dictionaryItemEntities = dictionaryItemManager.query().filterIn("id",list).list();
+			List<DictionaryDataItemEntity> dictionaryItemEntities = dictionaryItemManager.query().filterIn("id",list).list();
 			if(dictionaryItemEntities != null) {
-				Map<String, DictionaryItemEntity> map = new HashMap<>();
-				for (DictionaryItemEntity dictionaryItemEntity : dictionaryItemEntities) {
+				Map<String, DictionaryDataItemEntity> map = new HashMap<>();
+				for (DictionaryDataItemEntity dictionaryItemEntity : dictionaryItemEntities) {
 					map.put(dictionaryItemEntity.getId(), dictionaryItemEntity);
 				}
 				for(String str : list){
-					DictionaryItemEntity dictionaryItemEntity = map.get(str);
+					DictionaryDataItemEntity dictionaryItemEntity = map.get(str);
 					if(dictionaryItemEntity != null) {
 						SelectItemModelValue selectItemModelValue = new SelectItemModelValue();
 						selectItemModelValue.setCode(dictionaryItemEntity.getCode());
@@ -3077,6 +3080,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					displayValuelist.add(option.getLabel());
 				}
 			}
+		}else if(selectItemModelEntity.getSelectDataSourceType() == SelectDataSourceType.Dictionary_Model){
+			//字典模型数据
+			displayValuelist.add(dictionaryModelService.getDictionaryModelDataName(selectItemModelEntity.getReferenceDictionaryId(), Integer.parseInt(itemInstance.getId())));
 		}else if(list != null){
 			displayValuelist.add(String.join(",", list));
 		}

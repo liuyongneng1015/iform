@@ -20,27 +20,27 @@ public class SystemCodeModel extends NameEntity {
 	 * 系统代码分类
 	 */
 	@ApiModelProperty(value = "系统代码分类", position = 4)
-	private List<DictionaryModel> dictionaryModels = new ArrayList<>();
+	private List<DictionaryDataModel> dictionaryModels = new ArrayList<>();
 
 	/**
 	 * 数据字典项
 	 */
 	@ApiModelProperty(value = "系统代码数据字典项", position = 5)
-	private DictionaryItemModel dictionaryItemModel;
+	private DictionaryDataItemModel dictionaryItemModel;
 
-	public List<DictionaryModel> getDictionaryModels() {
+	public List<DictionaryDataModel> getDictionaryModels() {
 		return dictionaryModels;
 	}
 
-	public void setDictionaryModels(List<DictionaryModel> dictionaryModels) {
+	public void setDictionaryModels(List<DictionaryDataModel> dictionaryModels) {
 		this.dictionaryModels = dictionaryModels;
 	}
 
-	public DictionaryItemModel getDictionaryItemModel() {
+	public DictionaryDataItemModel getDictionaryItemModel() {
 		return dictionaryItemModel;
 	}
 
-	public void setDictionaryItemModel(DictionaryItemModel dictionaryItemModel) {
+	public void setDictionaryItemModel(DictionaryDataItemModel dictionaryItemModel) {
 		this.dictionaryItemModel = dictionaryItemModel;
 	}
 
