@@ -131,7 +131,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	}
 
 	@Autowired
-	private DictionaryService dictionaryService;
+	private DictionaryDataService dictionaryService;
 	@Autowired
 	private ProcessInstanceService processInstanceService;
 
@@ -254,7 +254,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 					}
 				}
 			} else if (SelectReferenceType.Dictionary == selectItem.getSelectReferenceType()) {
-				DictionaryItemEntity dictionaryItem = dictionaryService.getDictionaryItemById(itemValue);
+				DictionaryDataItemEntity dictionaryItem = dictionaryService.getDictionaryItemById(itemValue);
 				if (dictionaryItem != null) {
 					queryNames.append(dictionaryItem.getName() + ",");
 				}
@@ -274,7 +274,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 				}
 			}
 		} else if (SelectReferenceType.Dictionary == selectItem.getSelectReferenceType()) {
-			DictionaryItemEntity dictionaryItem = dictionaryService.getDictionaryItemById(valueStr);
+			DictionaryDataItemEntity dictionaryItem = dictionaryService.getDictionaryItemById(valueStr);
 			if (dictionaryItem != null) {
 				iflowQueryParams.put(columnModel.getColumnName(), dictionaryItem.getName());
 			}
@@ -284,7 +284,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	public int assemblyActivitiStatus(SelectItemModelEntity selectItem, String valueId) {
 		int status = -2; // -1表示查所有，0表示查未处理，1表示已处理，若最后status的值还是-2，表示不用查工作流
 		if (SelectReferenceType.Dictionary == selectItem.getSelectReferenceType()) {
-			DictionaryItemEntity dictionaryItem = dictionaryService.getDictionaryItemById(valueId);
+			DictionaryDataItemEntity dictionaryItem = dictionaryService.getDictionaryItemById(valueId);
 			if (dictionaryItem != null) {
 				status = assemblyProcessDictionaryStatus(dictionaryItem.getName());
 			}

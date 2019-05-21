@@ -1,6 +1,7 @@
 package tech.ascs.icity.iform.model;
 
 import tech.ascs.icity.iform.api.model.DictionaryValueType;
+import tech.ascs.icity.iform.api.model.SelectDataSourceType;
 import tech.ascs.icity.iform.api.model.SelectReferenceType;
 
 import javax.persistence.*;
@@ -16,6 +17,10 @@ import java.util.List;
 public class SelectItemModelEntity extends ItemModelEntity  {
 
 	private static final long serialVersionUID = 1L;
+
+	@Column(name="select_data_source_type")
+	@Enumerated(EnumType.STRING)
+	private SelectDataSourceType selectDataSourceType;
 
 	@Column(name="select_reference_type")
 	@Enumerated(EnumType.STRING)
@@ -57,6 +62,14 @@ public class SelectItemModelEntity extends ItemModelEntity  {
 	/** 被关联字典联动目标 */
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "parentItem")
 	private List<SelectItemModelEntity> items = new ArrayList<SelectItemModelEntity>();
+
+	public SelectDataSourceType getSelectDataSourceType() {
+		return selectDataSourceType;
+	}
+
+	public void setSelectDataSourceType(SelectDataSourceType selectDataSourceType) {
+		this.selectDataSourceType = selectDataSourceType;
+	}
 
 	public SelectReferenceType getSelectReferenceType() {
 		return selectReferenceType;

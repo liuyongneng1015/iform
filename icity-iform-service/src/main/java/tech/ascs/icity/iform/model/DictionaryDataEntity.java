@@ -8,11 +8,11 @@ import javax.persistence.*;
 import tech.ascs.icity.jpa.dao.model.BaseEntity;
 
 /**
- * 数据字典
+ * 字典数据
  */
 @Entity
 @Table(name = "ifm_dictionary")
-public class DictionaryEntity extends BaseEntity {
+public class DictionaryDataEntity extends BaseEntity {
 	private static final long serialVersionUID = 1L;
 	
 	/**
@@ -43,13 +43,13 @@ public class DictionaryEntity extends BaseEntity {
 	 * 数据字典项
 	 */
 	@OneToMany(mappedBy = "dictionary", fetch = FetchType.LAZY, cascade = {CascadeType.ALL})
-	private List<DictionaryItemEntity> dictionaryItems = new ArrayList<DictionaryItemEntity>();
+	private List<DictionaryDataItemEntity> dictionaryItems = new ArrayList<DictionaryDataItemEntity>();
 
-	public List<DictionaryItemEntity> getDictionaryItems() {
+	public List<DictionaryDataItemEntity> getDictionaryItems() {
 		return dictionaryItems;
 	}
 
-	public void setDictionaryItems(List<DictionaryItemEntity> dictionaryItems) {
+	public void setDictionaryItems(List<DictionaryDataItemEntity> dictionaryItems) {
 		this.dictionaryItems = dictionaryItems;
 	}
 

@@ -4,9 +4,8 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
-import tech.ascs.icity.iform.api.model.DataModel;
-import tech.ascs.icity.iform.api.model.DictionaryItemModel;
-import tech.ascs.icity.iform.api.model.DictionaryModel;
+import tech.ascs.icity.iform.api.model.DictionaryDataItemModel;
+import tech.ascs.icity.iform.api.model.DictionaryDataModel;
 import tech.ascs.icity.iform.api.model.SystemCodeModel;
 import tech.ascs.icity.model.Page;
 
@@ -15,7 +14,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/dictionary")
-public interface DictionaryService {
+public interface DictionaryDataService {
 
 	@ApiOperation(value = "获取所有字典表")
 	@GetMapping
@@ -24,15 +23,17 @@ public interface DictionaryService {
 	@ApiOperation(value = "查询所有节点")
 	@ApiImplicitParam(paramType="path", name = "id", value = "系统分类字典id", required = true, dataType = "String")
 	@GetMapping("/{id}/dictionary-items")
-	List<DictionaryItemModel> listDictionaryItemModel(@PathVariable(name = "id", required = true) String id);
+	List<DictionaryDataItemModel> listDictionaryItemModel(@PathVariable(name = "id", required = true) String id);
 
 	@ApiOperation("获取字典表分页数据")
 	@ApiImplicitParams({
 			@ApiImplicitParam(paramType = "query", name = "page", value = "页码", required = false, defaultValue = "1"),
-			@ApiImplicitParam(paramType = "query", name = "pagesize", value = "每页记录数", required = false, defaultValue = "12")
+			@ApiImplicitParam(paramType = "query", name = "pagesize", value = "每页记录数", required = false, defaultValue = "12"),
+			@ApiImplicitParam(paramType = "query", name = "name", value = "字典名称", required = false)
 	})
 	@GetMapping("/page")
-    Page<DictionaryModel> page(@RequestParam(name = "page", defaultValue = "1") int page, @RequestParam(name="pagesize", defaultValue = "12") int pagesize);
+    Page<DictionaryDataModel> page(@RequestParam(name = "page", defaultValue = "1") int page, @RequestParam(name="pagesize", defaultValue = "12") int pagesize,
+								   @RequestParam(name = "name",required = false) String name);
 
 	@ApiOperation("获取字典表及子项数据")
 	@ApiImplicitParams({
@@ -40,18 +41,18 @@ public interface DictionaryService {
 			@ApiImplicitParam(paramType = "query", name = "code", value = "编码", required = false)
 	})
 	@GetMapping("/model")
-	DictionaryModel getByNameAndCode(@RequestParam(name = "name", required = false) String name, @RequestParam(name="code", required = false) String code);
+    DictionaryDataModel getByNameAndCode(@RequestParam(name = "name", required = false) String name, @RequestParam(name="code", required = false) String code);
 
 	@ApiOperation("新增字典表")
 	@PostMapping
-	void add(@RequestBody(required = true) DictionaryModel dictionaryModel);
+	void add(@RequestBody(required = true) DictionaryDataModel dictionaryModel);
 
 	@ApiOperation("更新字典表")
 	@ApiImplicitParams({
 			@ApiImplicitParam(paramType="path", name = "id", value = "字典表ID", required = true, dataType = "String")
 	})
 	@PutMapping("/{id}")
-	void update(@PathVariable(name="id") String id,@RequestBody(required = true) DictionaryModel dictionaryModel);
+	void update(@PathVariable(name="id") String id,@RequestBody(required = true) DictionaryDataModel dictionaryModel);
 
 	@ApiOperation("删除字典表")
 	@ApiImplicitParam(paramType="path", name = "id", value = "字典表ID", required = true, dataType = "String")
@@ -61,12 +62,12 @@ public interface DictionaryService {
 	@ApiOperation("获取字典表选项列表")
 	@ApiImplicitParam(paramType="path", name = "id", value = "字典表ID", required = true, dataType = "String")
 	@GetMapping("/{id}/items")
-	List<DictionaryItemModel> listItem(@PathVariable(name="id",required = true) String id);
+	List<DictionaryDataItemModel> listItem(@PathVariable(name="id",required = true) String id);
 
 	@ApiOperation("新增字典表选项")
 	@ApiImplicitParams({})
 	@PostMapping("/add/items")
-	void addItem(@RequestBody DictionaryItemModel dictionaryItemModel);
+	void addItem(@RequestBody DictionaryDataItemModel dictionaryItemModel);
 
 	@ApiOperation("更新字典表选项")
 	@ApiImplicitParams({
@@ -74,7 +75,7 @@ public interface DictionaryService {
 	})
 	@PutMapping("/items/{id}")
 	void updateItem(@PathVariable(name="id", required = true) String id,
-					@RequestBody(required = true) DictionaryItemModel dictionaryItemModel);
+					@RequestBody(required = true) DictionaryDataItemModel dictionaryItemModel);
 
 	@ApiOperation("删除字典表选项")
 	@ApiImplicitParams({
@@ -102,7 +103,7 @@ public interface DictionaryService {
 	@ApiOperation(value = "查询第一级子节点")
 	@ApiImplicitParam(paramType="path", name = "id", value = "查询第一级子节点", required = true, dataType = "String")
 	@GetMapping("/items/{id}/children")
-	List<DictionaryItemModel> childrenDictionaryItemModel(@PathVariable(name = "id", required = true) String id);
+	List<DictionaryDataItemModel> childrenDictionaryItemModel(@PathVariable(name = "id", required = true) String id);
 
 	@ApiOperation("获取数据字典表选项列表")
 	@ApiImplicitParams({
@@ -110,11 +111,11 @@ public interface DictionaryService {
 		@ApiImplicitParam(paramType="path", name = "itemId", value = "字典表选项ID", required = true, dataType = "String")
 	})
 	@GetMapping("/{id}/{itemId}/items")
-	List<DictionaryItemModel> findItems(@PathVariable(name="id",required = true) String id, @PathVariable(name="itemId",required = true) String itemId);
+	List<DictionaryDataItemModel> findItems(@PathVariable(name="id",required = true) String id, @PathVariable(name="itemId",required = true) String itemId);
 
 
 	@ApiOperation(value = "通过批量ID获取字典表选项的详情")
 	@ApiImplicitParam(paramType = "query", name = "ids",  value = "ID集合", allowMultiple=true)
 	@GetMapping("/items/batch-simple-info")
-	List<DictionaryItemModel> batchSimpleInfo(@RequestParam(name = "ids", required = false) String[] ids);
+	List<DictionaryDataItemModel> batchSimpleInfo(@RequestParam(name = "ids", required = false) String[] ids);
 }

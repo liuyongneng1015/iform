@@ -7,62 +7,62 @@ import com.googlecode.genericdao.search.Sort;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import tech.ascs.icity.iform.IFormException;
-import tech.ascs.icity.iform.api.model.DictionaryItemModel;
-import tech.ascs.icity.iform.api.model.DictionaryModel;
-import tech.ascs.icity.iform.model.DictionaryEntity;
-import tech.ascs.icity.iform.model.DictionaryItemEntity;
-import tech.ascs.icity.iform.service.DictionaryService;
+import tech.ascs.icity.iform.api.model.DictionaryDataItemModel;
+import tech.ascs.icity.iform.api.model.DictionaryDataModel;
+import tech.ascs.icity.iform.model.DictionaryDataEntity;
+import tech.ascs.icity.iform.model.DictionaryDataItemEntity;
+import tech.ascs.icity.iform.service.DictionaryDataService;
 import tech.ascs.icity.jpa.dao.exception.NotFoundException;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 
 import javax.validation.constraints.NotNull;
 
-public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> implements DictionaryService {
+public class DictionaryDataServiceImpl extends DefaultJPAService<DictionaryDataEntity> implements DictionaryDataService {
 
-	private JPAManager<DictionaryItemEntity> dictionaryItemManager;
+	private JPAManager<DictionaryDataItemEntity> dictionaryItemManager;
 
-	public DictionaryServiceImpl() {
-		super(DictionaryEntity.class);
+	public DictionaryDataServiceImpl() {
+		super(DictionaryDataEntity.class);
 	}
 
 	@Override
 	protected void initManager() {
 		super.initManager();
-		dictionaryItemManager = getJPAManagerFactory().getJPAManager(DictionaryItemEntity.class);
+		dictionaryItemManager = getJPAManagerFactory().getJPAManager(DictionaryDataItemEntity.class);
 	}
 
 	@Override
-	public List<DictionaryItemEntity> findDictionaryItems(String dictionaryId) {
-		DictionaryEntity dictionary = get(dictionaryId);
+	public List<DictionaryDataItemEntity> findDictionaryItems(String dictionaryId) {
+		DictionaryDataEntity dictionary = get(dictionaryId);
 		return dictionary.getDictionaryItems();
 	}
 
 	@Override
-	public void updateDictionaryItem(DictionaryItemModel dictionaryItemModel) {
-		DictionaryItemEntity parentItemEntity = null;
+	public void updateDictionaryItem(DictionaryDataItemModel dictionaryItemModel) {
+		DictionaryDataItemEntity parentItemEntity = null;
 		if (StringUtils.isNoneBlank(dictionaryItemModel.getParentId())) {
 			parentItemEntity = getDictionaryItemById(dictionaryItemModel.getParentId());
 		}
-		DictionaryEntity dictionary = null;
+		DictionaryDataEntity dictionary = null;
 		if (StringUtils.isNoneBlank(dictionaryItemModel.getDictionaryId())) {
 			dictionary = get(dictionaryItemModel.getDictionaryId());
 		}
 		if (parentItemEntity == null && dictionary == null) {
 			throw new IFormException("查询关联对象失败");
 		}
-		DictionaryItemEntity   root = findRootDictionaryItem();
+		DictionaryDataItemEntity root = findRootDictionaryItem();
 		if (parentItemEntity != null && !root.getId().equals(dictionaryItemModel.getParentId())) {
 			dictionary = null;
 		}
-		DictionaryItemEntity item = getDictionaryItemById(dictionaryItemModel.getId());
+		DictionaryDataItemEntity item = getDictionaryItemById(dictionaryItemModel.getId());
 		item.setCode(StringUtils.isBlank(dictionaryItemModel.getCode()) ? "key_"+System.currentTimeMillis() : dictionaryItemModel.getCode());
 
 		item.setName(dictionaryItemModel.getName());
 		item.setDescription(dictionaryItemModel.getDescription());
 		item.setIcon(dictionaryItemModel.getIcon());
 		for (int i = 0; i < root.getChildrenItem().size(); i++) {
-			DictionaryItemEntity itemEntity = root.getChildrenItem().get(i);
+			DictionaryDataItemEntity itemEntity = root.getChildrenItem().get(i);
 			if(itemEntity.getId().equals(dictionaryItemModel.getId())){
 				root.getChildrenItem().remove(itemEntity);
 				i--;
@@ -71,7 +71,7 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 
 		if (dictionary != null) {
 			for (int i = 0; i < dictionary.getDictionaryItems().size(); i++) {
-				DictionaryItemEntity itemEntity = dictionary.getDictionaryItems().get(i);
+				DictionaryDataItemEntity itemEntity = dictionary.getDictionaryItems().get(i);
 				if(itemEntity.getId().equals(dictionaryItemModel.getId())){
 					dictionary.getDictionaryItems().remove(itemEntity);
 					i--;
@@ -82,7 +82,7 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 			dictionary.getDictionaryItems().add(item);
 		}else{
 			for (int i = 0; i < parentItemEntity.getChildrenItem().size(); i++) {
-				DictionaryItemEntity itemEntity = parentItemEntity.getChildrenItem().get(i);
+				DictionaryDataItemEntity itemEntity = parentItemEntity.getChildrenItem().get(i);
 				if (itemEntity.getId().equals(dictionaryItemModel.getId())) {
 					parentItemEntity.getChildrenItem().remove(itemEntity);
 					i--;
@@ -97,19 +97,19 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 
 	@Override
 	public void deleteDictionaryItem(String itemId) {
-		DictionaryItemEntity item = dictionaryItemManager.get(itemId);
+		DictionaryDataItemEntity item = dictionaryItemManager.get(itemId);
 		if (item == null) {
-			throw new NotFoundException(DictionaryItemEntity.class, itemId, null);
+			throw new NotFoundException(DictionaryDataItemEntity.class, itemId, null);
 		}
 		dictionaryItemManager.delete(item);
 	}
 
 	@Override
-	public DictionaryItemEntity getDictionaryItemById(String itemId) {
+	public DictionaryDataItemEntity getDictionaryItemById(String itemId) {
 		if (StringUtils.isBlank(itemId)) {
 			return null;
 		}
-		DictionaryItemEntity item = dictionaryItemManager.find(itemId);
+		DictionaryDataItemEntity item = dictionaryItemManager.find(itemId);
 		/* if (item == null) {
 			throw new IFormException("未找到对应的数据字典【" + itemId + "】");
 		}
@@ -118,7 +118,7 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 	}
 
 	@Override
-	public DictionaryItemEntity saveDictionaryItem(DictionaryItemEntity itemEntity) {
+	public DictionaryDataItemEntity saveDictionaryItem(DictionaryDataItemEntity itemEntity) {
 		return dictionaryItemManager.save(itemEntity);
 	}
 
@@ -142,7 +142,7 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 	}
 
 	@Override
-	public List<DictionaryItemEntity> findAllDictionaryItems(String dictionaryId) {
+	public List<DictionaryDataItemEntity> findAllDictionaryItems(String dictionaryId) {
 		if(StringUtils.isNoneBlank(dictionaryId)){
 			return dictionaryItemManager.query().filterEqual("dictionary.id", dictionaryId).sort(Sort.asc("orderNo")).list();
 		}
@@ -150,12 +150,12 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 	}
 
 	@Override
-	public DictionaryItemEntity findRootDictionaryItem() {
+	public DictionaryDataItemEntity findRootDictionaryItem() {
 		return getRootItem();
 	}
 
 	@Override
-	public List<DictionaryItemEntity> findByItemIds(String[] itemIds) {
+	public List<DictionaryDataItemEntity> findByItemIds(String[] itemIds) {
 		if (itemIds==null || itemIds.length==0) {
 			return new ArrayList<>();
 		}
@@ -163,8 +163,8 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 	}
 
 	@Override
-	public DictionaryModel getDictionaryByNameAndCode(String name, String code) {
-		DictionaryEntity dictionaryEntity = null;
+	public DictionaryDataModel getDictionaryByNameAndCode(String name, String code) {
+		DictionaryDataEntity dictionaryEntity = null;
 		if(StringUtils.isNotEmpty(name) && StringUtils.isNotEmpty(code)) {
 			dictionaryEntity = query().filterEqual("name", name).filterEqual("code", code).first();
 		}else if(StringUtils.isNotEmpty(name)){
@@ -178,11 +178,11 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 		return getByEntity(dictionaryEntity);
 	}
 
-	private synchronized DictionaryItemEntity getRootItem(){
-		List<DictionaryItemEntity> dictionaryItems = dictionaryItemManager.findAll();
-		DictionaryItemEntity rootDictionaryItemEntity = null;
+	private synchronized DictionaryDataItemEntity getRootItem(){
+		List<DictionaryDataItemEntity> dictionaryItems = dictionaryItemManager.findAll();
+		DictionaryDataItemEntity rootDictionaryItemEntity = null;
 		if(dictionaryItems != null) {
-			for (DictionaryItemEntity dictionaryItemEntity : dictionaryItems){
+			for (DictionaryDataItemEntity dictionaryItemEntity : dictionaryItems){
 				if(dictionaryItemEntity.getParentItem() == null && dictionaryItemEntity.getDictionary() == null && "root".equals(dictionaryItemEntity.getCode())){
 					rootDictionaryItemEntity = dictionaryItemEntity;
 					break;
@@ -190,7 +190,7 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 			}
 		}
 		if(rootDictionaryItemEntity == null) {
-			rootDictionaryItemEntity = new DictionaryItemEntity();
+			rootDictionaryItemEntity = new DictionaryDataItemEntity();
 			rootDictionaryItemEntity.setCode("root");
 			rootDictionaryItemEntity.setName("根节点");
 			rootDictionaryItemEntity.setDescription("根节点");
@@ -200,7 +200,7 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 		return rootDictionaryItemEntity;
 	}
 
-	private void setItems(Set<DictionaryItemEntity> items, DictionaryItemEntity item){
+	private void setItems(Set<DictionaryDataItemEntity> items, DictionaryDataItemEntity item){
 		if(item.getDictionary() != null){
 			//根节点
 			if(item.getParentItem() != null){
@@ -209,7 +209,7 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 		}else {
 			//子节点
 			if(item.getChildrenItem() != null || item.getChildrenItem().size() > 0) {
-				for(DictionaryItemEntity dictionaryItemEntity : item.getChildrenItem()) {
+				for(DictionaryDataItemEntity dictionaryItemEntity : item.getChildrenItem()) {
 					setItems(items, dictionaryItemEntity);
 				}
 			}else{
@@ -218,8 +218,8 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 		}
 	}
 
-	private DictionaryItemModel getByEntity(DictionaryItemEntity dictionaryItemEntity) {
-		DictionaryItemModel dictionaryItemModel = new DictionaryItemModel();
+	private DictionaryDataItemModel getByEntity(DictionaryDataItemEntity dictionaryItemEntity) {
+		DictionaryDataItemModel dictionaryItemModel = new DictionaryDataItemModel();
 		BeanUtils.copyProperties(dictionaryItemEntity, dictionaryItemModel, new String[]{"dictionary", "paraentItem", "childrenItem"});
 
 		if (dictionaryItemEntity.getDictionary() != null) {
@@ -231,8 +231,8 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 		}
 
 		if (dictionaryItemEntity.getChildrenItem() != null) {
-			List<DictionaryItemModel> list = new ArrayList<>();
-			for (DictionaryItemEntity childDictionaryItemEntity : dictionaryItemEntity.getChildrenItem()) {
+			List<DictionaryDataItemModel> list = new ArrayList<>();
+			for (DictionaryDataItemEntity childDictionaryItemEntity : dictionaryItemEntity.getChildrenItem()) {
 				list.add(getByEntity(childDictionaryItemEntity));
 			}
 			dictionaryItemModel.setResources(list.size() < 1 ? null : list);
@@ -240,26 +240,26 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 		return dictionaryItemModel;
 	}
 
-	private DictionaryModel getByEntity(DictionaryEntity dictionaryEntity) {
-		DictionaryModel dictionaryModel = new DictionaryModel();
+	private DictionaryDataModel getByEntity(DictionaryDataEntity dictionaryEntity) {
+		DictionaryDataModel dictionaryModel = new DictionaryDataModel();
 		BeanUtils.copyProperties(dictionaryEntity, dictionaryModel, new String[]{"dictionaryItems"});
-		List<DictionaryItemEntity> dictionaryItems = dictionaryEntity.getDictionaryItems();
+		List<DictionaryDataItemEntity> dictionaryItems = dictionaryEntity.getDictionaryItems();
 		if (dictionaryItems!= null && dictionaryItems.size() > 0) {
-			List<DictionaryItemModel> list = new ArrayList<>();
-			for (DictionaryItemEntity childDictionaryItemEntity : dictionaryItems) {
+			List<DictionaryDataItemModel> list = new ArrayList<>();
+			for (DictionaryDataItemEntity childDictionaryItemEntity : dictionaryItems) {
 				list.add(getByEntity(childDictionaryItemEntity));
 			}
-			list.stream().sorted(Comparator.comparing(DictionaryItemModel::getOrderNo));
+			list.stream().sorted(Comparator.comparing(DictionaryDataItemModel::getOrderNo));
 			dictionaryModel.setResources(list);
 		}
 		return dictionaryModel;
 	}
 
 	@Override
-	public List<DictionaryItemModel> findDictionaryItems(String dictionaryId, @NotNull String itemName) {
-		DictionaryEntity dictionaryEntity = find(dictionaryId);
+	public List<DictionaryDataItemModel> findDictionaryItems(String dictionaryId, @NotNull String itemName) {
+		DictionaryDataEntity dictionaryEntity = find(dictionaryId);
 		if (dictionaryEntity!=null) {
-			List<DictionaryItemModel> list = itemTreeToList(getByEntity(dictionaryEntity).getResources());
+			List<DictionaryDataItemModel> list = itemTreeToList(getByEntity(dictionaryEntity).getResources());
 			return list.stream().filter(item->item.getName()!=null && item.getName().contains(itemName)).collect(Collectors.toList());
 		}
 		return new ArrayList();
@@ -270,9 +270,9 @@ public class DictionaryServiceImpl extends DefaultJPAService<DictionaryEntity> i
 	 * @param list
 	 * @return
 	 */
-	private List<DictionaryItemModel> itemTreeToList(List<DictionaryItemModel> list) {
-		List<DictionaryItemModel> returnList = new ArrayList<>();
-		for (DictionaryItemModel item:list) {
+	private List<DictionaryDataItemModel> itemTreeToList(List<DictionaryDataItemModel> list) {
+		List<DictionaryDataItemModel> returnList = new ArrayList<>();
+		for (DictionaryDataItemModel item:list) {
 			returnList.add(item);
 			if (item.getResources()!=null && item.getResources().size()>0) {
 				returnList.addAll(itemTreeToList(item.getResources()));

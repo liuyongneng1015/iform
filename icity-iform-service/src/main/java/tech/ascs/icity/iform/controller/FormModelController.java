@@ -61,7 +61,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	private ApplicationService applicationService;
 
 	@Autowired
-	private DictionaryService dictionaryService;
+	private DictionaryDataService dictionaryService;
 
 	@Autowired
 	private GroupService groupService;
@@ -2341,7 +2341,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		itemModel.setReferenceList(getItemModelByEntity(entity));
 
 		if(((SelectItemModelEntity) entity).getReferenceDictionaryId() != null){
-			DictionaryEntity dictionaryEntity = dictionaryService.get(((SelectItemModelEntity) entity).getReferenceDictionaryId());
+			DictionaryDataEntity dictionaryEntity = dictionaryService.get(((SelectItemModelEntity) entity).getReferenceDictionaryId());
 			itemModel.setReferenceDictionaryName(dictionaryEntity == null ? null : dictionaryEntity.getName());
 		}
 
