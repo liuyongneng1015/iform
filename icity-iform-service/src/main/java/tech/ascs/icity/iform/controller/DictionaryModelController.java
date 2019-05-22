@@ -16,7 +16,7 @@ import tech.ascs.icity.model.Page;
 import java.util.List;
 
 
-@Api(tags = "字典数据表管理",description = "字典数据表管理服务")
+@Api(tags = "字典建模表管理",description = "字典建模表管理服务")
 @RestController
 public class DictionaryModelController implements tech.ascs.icity.iform.api.service.DictionaryModelService {
 
