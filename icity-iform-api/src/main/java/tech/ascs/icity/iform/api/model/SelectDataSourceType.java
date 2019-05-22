@@ -14,10 +14,10 @@ public enum SelectDataSourceType {
 	Option("Option"),
 
 	/** 系统代码 */
-	Dictionary_Data("Dictionary_Data"),
+	DictionaryData("DictionaryData"),
 
 	/** 字典模型 */
-	Dictionary_Model("Dictionary_Model"),
+	DictionaryModel("DictionaryModel"),
 
 	/** 其他方式 */
 	Other("Other");

@@ -215,7 +215,7 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 		DictionaryModelEntity upEntity = null;
 		if("up".equals(status) && j > 0){
 			upEntity = list.get(j-1);
-		}else if("down".equals(status) && j < list.size() - 2){
+		}else if("down".equals(status) && j < list.size() - 1){
 			upEntity = list.get(j+1);
 		}
 		if(upEntity != null){
@@ -278,7 +278,7 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 				Map<String, Object> newDataMap = null;
 				if("up".equals(status) && j != null && j > 0) {
 					newDataMap = ((Map<String, Object>)dataMap.get(j-1));
-				}else if("down".equals(status) && j != null && j < mapList.size() -2){
+				}else if("down".equals(status) && j != null && j < mapList.size() -1){
 					newDataMap = ((Map<String, Object>)dataMap.get(j+1));
 				}
 				if(newDataMap != null){
@@ -290,13 +290,28 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 	}
 
 	@Override
-	public String getDictionaryModelDataName(String dictionaryId, Integer id) {
+	public String getDictionaryModelDataName(String dictionaryId, List<Integer> ids) {
+
 		DictionaryModel dictionaryModelModel = getDictionaryById(dictionaryId);
-		Map<String, Object> map = dictionaryManager.getJdbcTemplate().queryForMap("select * from "+dictionaryModelModel.getTableName()+" where id="+id);
-		if (map != null && map.get("name") != null) {
-			return String.valueOf(map.get("name"));
+		StringBuffer sub = new StringBuffer("(");
+		for(int i = 0 ; i < ids.size() ; i++){
+			if(i == 0){
+				sub.append(ids.get(i));
+			}else{
+				sub.append(","+ids.get(i));
+			}
 		}
-		return "";
+		sub.append(")");
+
+		List<Map<String, Object>> mapList = dictionaryManager.getJdbcTemplate().queryForList("select name from "+dictionaryModelModel.getTableName()+" where id in "+sub.toString());
+		if (mapList == null || mapList.size() < 1) {
+			return "";
+		}
+		List<String> list = new ArrayList<>();
+		for(Map<String, Object> map  : mapList){
+			list.add(map.get("name") == null ? "" : (String)map.get("name"));
+		}
+		return String.join(",", list);
 	}
 
 	@Override

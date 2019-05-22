@@ -6,6 +6,7 @@ public enum TreeSelectDataSource {
     Personnel("Personnel"),//人员
     PositionIdentify("PositionIdentify"),//岗位标识
     SystemCode("SystemCode"),//系统代码
+    DictionaryModel("DictionaryModel"),//字典建模
     Other("Other");//其他
     private String value;
     private TreeSelectDataSource(String value) {

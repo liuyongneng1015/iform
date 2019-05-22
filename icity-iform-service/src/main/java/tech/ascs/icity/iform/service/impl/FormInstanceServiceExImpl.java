@@ -3080,9 +3080,13 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					displayValuelist.add(option.getLabel());
 				}
 			}
-		}else if(selectItemModelEntity.getSelectDataSourceType() == SelectDataSourceType.Dictionary_Model){
+		}else if(selectItemModelEntity.getSelectDataSourceType() == SelectDataSourceType.DictionaryModel){
+			List<Integer> idlist = new ArrayList<>();
+			for(String str : list){
+				idlist.add(Integer.parseInt(str));
+			}
 			//字典模型数据
-			displayValuelist.add(dictionaryModelService.getDictionaryModelDataName(selectItemModelEntity.getReferenceDictionaryId(), Integer.parseInt(itemInstance.getId())));
+			displayValuelist.add(dictionaryModelService.getDictionaryModelDataName(selectItemModelEntity.getReferenceDictionaryId(), idlist));
 		}else if(list != null){
 			displayValuelist.add(String.join(",", list));
 		}

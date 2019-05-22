@@ -5,7 +5,7 @@ import tech.ascs.icity.iform.api.model.TreeSelectDataSource;
 import javax.persistence.*;
 
 /**
- * 时间表单控件模型
+ * 树形下拉控件模型
  */
 @Entity
 @Table(name = "ifm_tree_select_item_model")

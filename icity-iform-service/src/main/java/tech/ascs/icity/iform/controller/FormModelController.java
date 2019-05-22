@@ -1544,9 +1544,14 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 	private void setSelectItemModel(SelectItemModelEntity selectItemModelEntity, ItemModel itemModel ){
 		if(itemModel.getDefaultValue() != null && itemModel.getDefaultValue() instanceof List){
-			selectItemModelEntity.setDefaultReferenceValue(String.join(",",(List)itemModel.getDefaultValue()));
-		}else{
-			selectItemModelEntity.setDefaultReferenceValue((String)itemModel.getDefaultValue());
+			List<Object> objects = (List<Object>)itemModel.getDefaultValue();
+			List<String> stringList = new ArrayList<>();
+			for(Object o : objects){
+				stringList.add(String.valueOf(o));
+			}
+			selectItemModelEntity.setDefaultReferenceValue(String.join(",",stringList));
+		}else if(itemModel.getDefaultValue() != null){
+			selectItemModelEntity.setDefaultReferenceValue(String.valueOf(itemModel.getDefaultValue()));
 		}
 		if(itemModel.getMultiple() != null && itemModel.getMultiple() && itemModel.getOptions() != null && itemModel.getOptions().size() > 0 ){
 			int i = 0;
@@ -2316,8 +2321,17 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		String defaultValue = ((SelectItemModelEntity) entity).getDefaultReferenceValue();
 		if(StringUtils.hasText(defaultValue) && (entity.getType() == ItemType.CheckboxGroup
 				||entity.getType() == ItemType.RadioGroup ||entity.getType() == ItemType.Select)) {
-			itemModel.setDefaultValue(Arrays.asList(defaultValue.split(",")));
-			itemModel.setDefaultValueName(formInstanceServiceEx.setSelectItemDisplayValue(null, (SelectItemModelEntity) entity, Arrays.asList(defaultValue.split(","))));
+			List<String> list = Arrays.asList(defaultValue.split(","));
+			if(((SelectItemModelEntity) entity).getSelectDataSourceType() == SelectDataSourceType.DictionaryModel){
+				List<Integer> ids = new ArrayList<>();
+				for(String str : list){
+					ids.add(Integer.parseInt(str));
+				}
+				itemModel.setDefaultValue(ids);
+			}else {
+				itemModel.setDefaultValue(list);
+			}
+			itemModel.setDefaultValueName(formInstanceServiceEx.setSelectItemDisplayValue(null, (SelectItemModelEntity) entity, list));
 		}else if(StringUtils.hasText(defaultValue)){
 			itemModel.setDefaultValue(defaultValue);
 			List<String> list = new ArrayList<>();

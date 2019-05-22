@@ -76,7 +76,7 @@ public interface DictionaryModelService extends JPAService<DictionaryModelEntity
 	void updateDictionaryModelDataOrderNo(String dictionaryId, Integer id, String status);
 
 	//查询字典模型数据名称
-	String getDictionaryModelDataName(String dictionaryId, Integer id);
+	String getDictionaryModelDataName(String dictionaryId, List<Integer> ids);
 
 	/**
 	 * 根据字典模型id获取模型数据
