@@ -64,9 +64,11 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 		if(dictionaryModelEntity == null){
 			throw  new IFormException("未找到【"+dictionaryModel.getId()+"】对应的字典建模");
 		}
+		String oldTableName = dictionaryModelEntity.getTableName();
+		verifyTableName(dictionaryModel);
 		BeanUtils.copyProperties(dictionaryModel, dictionaryModelEntity);
-		if(!StringUtils.equalsIgnoreCase(dictionaryModel.getTableName(), dictionaryModelEntity.getTableName())){
-			updateTableName(dictionaryModelEntity.getTableName(), dictionaryModel.getTableName());
+		if(!StringUtils.equalsIgnoreCase(dictionaryModel.getTableName(), oldTableName)){
+			updateTableName(oldTableName, dictionaryModel.getTableName());
 		}
 		dictionaryManager.save(dictionaryModelEntity);
 	}
@@ -89,6 +91,7 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 
 	@Override
 	public IdEntity addDictionary(DictionaryModel dictionaryModel) {
+		verifyTableName(dictionaryModel);
 		DictionaryModelEntity dictionaryModelEntity = new DictionaryModelEntity();
 		BeanUtils.copyProperties(dictionaryModel, dictionaryModelEntity);
 		dictionaryModelEntity.setOrderNo(maxDictionaryOrderNo()+1);
@@ -97,13 +100,39 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 		return new IdEntity(dictionaryModelEntity.getId());
 	}
 
+	//校验数据表名
+	private void verifyTableName(DictionaryModel dictionaryModel){
+		if(StringUtils.isBlank(dictionaryModel.getTableName()) || StringUtils.isBlank(dictionaryModel.getName())){
+			throw new IFormException("数据表或字典名称为空了");
+		}
+		List<DictionaryModelEntity> list = dictionaryManager.query().filterEqual("tableName", dictionaryModel.getTableName()).list();
+		if(list == null || list.size() < 1){
+			return;
+		}
+		if(StringUtils.isBlank(dictionaryModel.getId())){
+			throw new IFormException("数据表名【" + dictionaryModel.getTableName() + "】已经存在");
+		}
+		for(DictionaryModelEntity entity : list){
+			if(!entity.getId().equals(dictionaryModel.getId())){
+				throw new IFormException("数据表名【" + dictionaryModel.getTableName() + "】已经存在");
+			}
+		}
+	}
+
 	//更新表名
 	private void updateTableName(String oldTableName, String newTableName){
 		if(StringUtils.isBlank(oldTableName) || StringUtils.isBlank(newTableName)){
 			return;
 		}
-		dictionaryManager.getJdbcTemplate().execute("alter table "+oldTableName+" rename "+newTableName);
-
+		List<Map<String, Object>> mapList = dictionaryManager.getJdbcTemplate().queryForList("select table_name from information_schema.tables where table_schema='iform'");
+		if(mapList == null || mapList.size() < 1) {
+			return;
+		}
+		for(Map<String, Object> map : mapList){
+			if(map.get("table_name").equals(oldTableName)){
+				dictionaryManager.getJdbcTemplate().execute("alter table `" + oldTableName + "` rename `" + newTableName + "`");
+			}
+		}
 	}
 
 	//删除表
@@ -111,7 +140,7 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 		if(StringUtils.isBlank(tableName)){
 			return;
 		}
-		dictionaryManager.getJdbcTemplate().execute("DROP TABLE IF EXISTS `"+tableName);
+		dictionaryManager.getJdbcTemplate().execute("DROP TABLE IF EXISTS `"+tableName+"`");
 	}
 
 	//创建一个数据库表
@@ -132,7 +161,7 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 				"  PRIMARY KEY (`id`)\n" +
 				") ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4\n");
 		dictionaryManager.getJdbcTemplate().execute(sub.toString());
-		dictionaryManager.getJdbcTemplate().execute("INSERT INTO `ifm_dictionary_itedsfsfsm` VALUES ('1', '根节点', 'root', '根节点', null, '0', null)");
+		dictionaryManager.getJdbcTemplate().execute("INSERT INTO `"+tableName+"` VALUES ('1', '根节点', 'root', '根节点', null, '0', null)");
 	}
 
 	@Override
@@ -208,7 +237,7 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 					dataMap.put(i, mapList.get(i));
 					if(mapList.get(i).get("id") == id){
 						j = i;
-						orderNo =Integer.parseInt(String.valueOf(mapList.get(i).get("order_no")));
+						orderNo = mapList.get(i).get("order_no") == null ? 0 : Integer.parseInt(String.valueOf(mapList.get(i).get("order_no")));
 					}
 				}
 				Map<String, Object> newDataMap = null;
@@ -247,6 +276,9 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 		if(mapList != null && mapList.size() > 0){
 			Map<Integer, List<Map<String, Object>>> dataListMap = new HashMap<>();
 			for(Map<String, Object> dataMap : mapList){
+				if(dataMap.get("parent_id") == null){
+					continue;
+				}
 				List<Map<String, Object>> mapList2 = dataListMap.get(dataMap.get("parent_id"));
 				if(mapList2 == null){
 					mapList2 = new ArrayList<>();
@@ -293,8 +325,8 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 		dictionaryModelData.setCode((String)map.get("code"));
 		dictionaryModelData.setDescription((String)map.get("description"));
 		dictionaryModelData.setIcon((String)map.get("icon"));
-		dictionaryModelData.setOrderNo(Integer.parseInt(String.valueOf(map.get("order_no"))));
-		dictionaryModelData.setParentId(Integer.parseInt(String.valueOf(map.get("parent_id"))));
+		dictionaryModelData.setOrderNo(map.get("order_no") == null ? null : Integer.parseInt(String.valueOf(map.get("order_no"))));
+		dictionaryModelData.setParentId(map.get("parent_id") == null ? null : Integer.parseInt(String.valueOf(map.get("parent_id"))));
 		return dictionaryModelData;
 	}
 

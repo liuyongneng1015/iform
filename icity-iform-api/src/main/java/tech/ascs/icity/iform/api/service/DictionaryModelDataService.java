@@ -11,14 +11,14 @@ import tech.ascs.icity.iform.api.model.DictionaryModelData;
 @RequestMapping("/dictionary-models/data/")
 public interface DictionaryModelDataService {
 
-	@ApiOperation(value = "获取所有字典建模数据")
+	@ApiOperation(value = "获取树形结构字典建模数据")
 	@ApiImplicitParams({
 			@ApiImplicitParam(paramType="path", name = "dictionaryId", value = "字典建模ID", required = true, dataType = "String")
 	})
 	@GetMapping("/all/{dictionaryId}")
 	DictionaryModelData findAll(@PathVariable(name = "dictionaryId", required = true) String dictionaryId);
 
-	@ApiOperation(value = "获取所有字典建模数据")
+	@ApiOperation(value = "获取单条字典建模数据")
 	@ApiImplicitParams({
 			@ApiImplicitParam(paramType="path", name = "dictionaryId", value = "字典建模ID", required = true, dataType = "String"),
 			@ApiImplicitParam(paramType="path", name = "id", value = "字典建模数据ID", required = true, dataType = "Integer")
