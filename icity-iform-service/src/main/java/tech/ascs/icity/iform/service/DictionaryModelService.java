@@ -75,7 +75,7 @@ public interface DictionaryModelService extends JPAService<DictionaryModelEntity
 	 * @param dictionaryId
 	 * @return
 	 */
-	DictionaryModelData getDictionaryModelDataByDictionaryId(String dictionaryId);
+	DictionaryModelData findDictionaryModelDataByDictionaryId(String dictionaryId);
 
 	/**
 	 * 根据id获取模型数据

@@ -265,7 +265,7 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 	}
 
 	@Override
-	public DictionaryModelData getDictionaryModelDataByDictionaryId(String dictionaryId) {
+	public DictionaryModelData findDictionaryModelDataByDictionaryId(String dictionaryId) {
 		DictionaryModel dictionaryModelModel = getDictionaryById(dictionaryId);
 		Map<String, Object> map = dictionaryManager.getJdbcTemplate().queryForMap("select * from "+dictionaryModelModel.getTableName()+" where id="+1);
 		if (map == null) {

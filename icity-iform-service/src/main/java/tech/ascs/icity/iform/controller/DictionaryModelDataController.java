@@ -1,7 +1,6 @@
 package tech.ascs.icity.iform.controller;
 
 import io.swagger.annotations.Api;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +10,9 @@ import org.springframework.web.bind.annotation.RestController;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.service.DictionaryModelService;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 @Api(tags = "字典建模数据表管理",description = "字典建模数据表管理服务")
@@ -25,8 +27,13 @@ public class DictionaryModelDataController implements tech.ascs.icity.iform.api.
 
 
 	@Override
-	public DictionaryModelData findAll(@PathVariable(name = "dictionaryId", required = true) String dictionaryId) {
-		return dictionaryService.getDictionaryModelDataByDictionaryId(dictionaryId);
+	public List<DictionaryModelData> findAll(@PathVariable(name = "dictionaryId", required = true) String dictionaryId) {
+		List<DictionaryModelData> list = new ArrayList<>();
+		DictionaryModelData dictionaryModelData = dictionaryService.findDictionaryModelDataByDictionaryId(dictionaryId);
+		if(dictionaryModelData != null) {
+			list.add(dictionaryModelData);
+		}
+		return list;
 	}
 
 	@Override

@@ -6,6 +6,8 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
 import tech.ascs.icity.iform.api.model.DictionaryModelData;
 
+import java.util.List;
+
 
 @RestController
 @RequestMapping("/dictionary-models/data/")
@@ -16,7 +18,7 @@ public interface DictionaryModelDataService {
 			@ApiImplicitParam(paramType="path", name = "dictionaryId", value = "字典建模ID", required = true, dataType = "String")
 	})
 	@GetMapping("/all/{dictionaryId}")
-	DictionaryModelData findAll(@PathVariable(name = "dictionaryId", required = true) String dictionaryId);
+	List<DictionaryModelData> findAll(@PathVariable(name = "dictionaryId", required = true) String dictionaryId);
 
 	@ApiOperation(value = "获取单条字典建模数据")
 	@ApiImplicitParams({
