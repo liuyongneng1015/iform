@@ -57,4 +57,12 @@ public interface DictionaryModelService {
 	@DeleteMapping("/{id}")
 	void delete(@PathVariable(name = "id") String id);
 
+	@ApiOperation("上下移动字典建模")
+	@ApiImplicitParams({
+			@ApiImplicitParam(paramType="path", name = "id", value = "字典建模ID", required = true, dataType = "String"),
+			@ApiImplicitParam(paramType="path", name = "status", value = "上移up，下移down", required = true)
+	})
+	@PutMapping("/{id}/{status}")
+	void updateOrderNo(@PathVariable(name = "id", required = true) String id, @PathVariable(name = "status", required = true) String status);
+
 }

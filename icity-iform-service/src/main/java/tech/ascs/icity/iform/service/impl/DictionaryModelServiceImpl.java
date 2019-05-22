@@ -193,6 +193,40 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 	}
 
 	@Override
+	public void updateDictionaryModelOrderNo(String id, String status) {
+		List<DictionaryModelEntity> list = query().sort(Sort.asc("orderNo")).list();
+		if(list == null || list.size() < 1){
+			return;
+		}
+		Integer orderNo = null;
+		Integer j = null;
+		DictionaryModelEntity oldEntity = null;
+		for(int i = 0; i < list.size(); i++){
+			DictionaryModelEntity entity = list.get(i);
+			if(entity.getId().equals(id)){
+				j = i;
+				orderNo = entity.getOrderNo();
+				oldEntity = list.get(i);
+			}
+		}
+		if(oldEntity == null){
+			return;
+		}
+		DictionaryModelEntity upEntity = null;
+		if("up".equals(status) && j > 0){
+			upEntity = list.get(j-1);
+		}else if("down".equals(status) && j < list.size() - 2){
+			upEntity = list.get(j+1);
+		}
+		if(upEntity != null){
+			oldEntity.setOrderNo(upEntity.getOrderNo());
+			save(oldEntity);
+			upEntity.setOrderNo(orderNo);
+			save(upEntity);
+		}
+	}
+
+	@Override
 	public void saveDictionaryModelData(DictionaryModelData dictionaryModelData) {
 		DictionaryModel dictionaryModelModel = getDictionaryById(dictionaryModelData.getDictionaryId());
 		if(dictionaryModelData.getId() == null){
@@ -208,10 +242,11 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 	private void saveData(DictionaryModelData dictionaryModelData){
 		DictionaryModel dictionaryModelModel = getDictionaryById(dictionaryModelData.getDictionaryId());
 		String sql = null;
+		String icon = dictionaryModelData.getIcon() == null ? null : "'"+dictionaryModelData.getIcon()+"'";
 		if(dictionaryModelData.getId() == null){
-			sql = "INSERT INTO `"+dictionaryModelModel.getTableName()+"` VALUES (null, '"+dictionaryModelData.getName()+"', '"+dictionaryModelData.getCode()+"', '"+dictionaryModelData.getDescription()+"', "+dictionaryModelData.getParentId()+", "+dictionaryModelData.getOrderNo()+", '"+dictionaryModelData.getIcon()+"')";
+			sql = "INSERT INTO `"+dictionaryModelModel.getTableName()+"` VALUES (null, '"+dictionaryModelData.getName()+"', '"+dictionaryModelData.getCode()+"', '"+dictionaryModelData.getDescription()+"', "+dictionaryModelData.getParentId()+", "+dictionaryModelData.getOrderNo()+","+icon+")";
 		}else{
-			sql = "update `"+dictionaryModelModel.getTableName()+"` set name ='"+dictionaryModelData.getName()+"', code ='"+dictionaryModelData.getCode()+"', description ='"+dictionaryModelData.getDescription()+"', parent_id = "+dictionaryModelData.getParentId()+", order_no = "+dictionaryModelData.getOrderNo()+", icon = '"+dictionaryModelData.getIcon()+"')";
+			sql = "update `"+dictionaryModelModel.getTableName()+"` set name ='"+dictionaryModelData.getName()+"', code ='"+dictionaryModelData.getCode()+"', description ='"+dictionaryModelData.getDescription()+"', parent_id = "+dictionaryModelData.getParentId()+", order_no = "+dictionaryModelData.getOrderNo()+", icon = "+icon+")";
 		}
 		dictionaryManager.getJdbcTemplate().execute(sql);
 	}
@@ -247,8 +282,8 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 					newDataMap = ((Map<String, Object>)dataMap.get(j+1));
 				}
 				if(newDataMap != null){
-					dictionaryManager.getJdbcTemplate().execute("update "+dictionaryModelModel.getTableName()+" set order_no = "+newDataMap.get("order_no")+ "where id = "+id);
-					dictionaryManager.getJdbcTemplate().execute("update "+dictionaryModelModel.getTableName()+" set order_no = "+orderNo+ "where id = "+newDataMap.get("id"));
+					dictionaryManager.getJdbcTemplate().execute("update "+dictionaryModelModel.getTableName()+" set order_no = "+newDataMap.get("order_no")+ " where id = "+id);
+					dictionaryManager.getJdbcTemplate().execute("update "+dictionaryModelModel.getTableName()+" set order_no = "+orderNo+ " where id = "+newDataMap.get("id"));
 				}
 			}
 		}
@@ -272,7 +307,7 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 			return null;
 		}
 		DictionaryModelData rootDictionaryModelData = dictionaryModelData(dictionaryId, 1, map);
-		List<Map<String, Object>> mapList = dictionaryManager.getJdbcTemplate().queryForList("select * from "+dictionaryModelModel.getTableName()+" where id != 1 order by parent_id desc, order_no asc");
+		List<Map<String, Object>> mapList = dictionaryManager.getJdbcTemplate().queryForList("select * from "+dictionaryModelModel.getTableName()+" where id != 1 order by order_no asc,parent_id desc,id desc ");
 		if(mapList != null && mapList.size() > 0){
 			Map<Integer, List<Map<String, Object>>> dataListMap = new HashMap<>();
 			for(Map<String, Object> dataMap : mapList){

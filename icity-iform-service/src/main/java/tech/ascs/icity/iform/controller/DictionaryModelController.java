@@ -57,4 +57,9 @@ public class DictionaryModelController implements tech.ascs.icity.iform.api.serv
 	public void delete(@PathVariable(name = "id") String id) {
 		dictionaryService.deleteDictionary(id);
 	}
+
+	@Override
+	public void updateOrderNo(@PathVariable(name = "id", required = true) String id, @PathVariable(name = "status", required = true) String status) {
+		dictionaryService.updateDictionaryModelOrderNo(id, status);
+	}
 }

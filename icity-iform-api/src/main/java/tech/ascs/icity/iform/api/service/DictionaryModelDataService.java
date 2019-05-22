@@ -3,6 +3,7 @@ package tech.ascs.icity.iform.api.service;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import tech.ascs.icity.iform.api.model.DictionaryModelData;
 
@@ -10,7 +11,7 @@ import java.util.List;
 
 
 @RestController
-@RequestMapping("/dictionary-models/data/")
+@RequestMapping("/dictionary-models/data")
 public interface DictionaryModelDataService {
 
 	@ApiOperation(value = "获取树形结构字典建模数据")
@@ -29,9 +30,8 @@ public interface DictionaryModelDataService {
 	DictionaryModelData get(@PathVariable(name = "dictionaryId") String dictionaryId, @PathVariable(name = "id") Integer id);
 
 	@ApiOperation("新增字典建模数据")
-	@ApiImplicitParams({})
-	@PostMapping
-	void add(@RequestBody DictionaryModelData dictionaryModel);
+	@PostMapping(consumes = {MediaType.APPLICATION_JSON_UTF8_VALUE})
+	void add(@RequestBody(required = true) DictionaryModelData dictionaryModel);
 
 	@ApiOperation("更新字典建模数据")
 	@ApiImplicitParams({

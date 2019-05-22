@@ -42,7 +42,7 @@ public class DictionaryModelDataController implements tech.ascs.icity.iform.api.
 	}
 
 	@Override
-	public void add(@RequestBody DictionaryModelData dictionaryModel) {
+	public void add(@RequestBody(required = true) DictionaryModelData dictionaryModel) {
 		dictionaryService.saveDictionaryModelData(dictionaryModel);
 	}
 

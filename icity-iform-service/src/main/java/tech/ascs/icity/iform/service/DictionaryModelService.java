@@ -57,6 +57,15 @@ public interface DictionaryModelService extends JPAService<DictionaryModelEntity
 	//查找字典建模数据表最大排序号
 	Integer maxTableOrderNo(String tableName);
 
+	/**
+	 * 上线移动模型
+	 *
+	 * @param id
+	 * @return
+	 */
+	void updateDictionaryModelOrderNo(String id, String status);
+
+
 	//保存字典建模数据表
 	void saveDictionaryModelData(DictionaryModelData dictionaryModelData);
 
@@ -84,5 +93,6 @@ public interface DictionaryModelService extends JPAService<DictionaryModelEntity
 	 * @return
 	 */
 	DictionaryModelData getDictionaryModelDataById(String dictionaryId, Integer id);
+
 }
 
