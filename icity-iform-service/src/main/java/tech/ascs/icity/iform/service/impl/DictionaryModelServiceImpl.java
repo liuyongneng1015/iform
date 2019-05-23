@@ -254,8 +254,22 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 	@Override
 	public void deleteDictionaryModelData(DictionaryModelData dictionaryModelData) {
 		DictionaryModel dictionaryModelModel = getDictionaryById(dictionaryModelData.getDictionaryId());
-		dictionaryManager.getJdbcTemplate().execute("delete from "+dictionaryModelModel.getTableName()+" where id = "+dictionaryModelData.getId());
+		List<Integer> idList = new ArrayList<>();
+		idList.add(dictionaryModelData.getId());
+		findAllChildrenId(idList, dictionaryModelModel.getTableName(), dictionaryModelData.getId());
+		StringBuffer sub = new StringBuffer("(");
+		for(int i = 0 ; i < idList.size() ; i++){
+			if(i == 0){
+				sub.append(idList.get(i));
+			}else{
+				sub.append(","+ idList.get(i));
+			}
+		}
+		sub.append(")");
+		dictionaryManager.getJdbcTemplate().execute("delete from '"+dictionaryModelModel.getTableName()+"' where id in "+sub.toString());
 	}
+
+
 
 	@Override
 	public void updateDictionaryModelDataOrderNo(String dictionaryId, Integer id, String status) {
@@ -363,8 +377,58 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 		if (map == null) {
 			return null;
 		}
-		return dictionaryModelData(dictionaryId, id, map);
+		List<Map<String, Object>> mapList = dictionaryManager.getJdbcTemplate().queryForList("select * from "+dictionaryModelModel.getTableName()+" where parent_id="+map.get("parent_id") + " order by order_no asc");
+		DictionaryModelData dictionaryModelData = dictionaryModelData(dictionaryId, id, map);
+		if(mapList != null && mapList.size() > 0){
+			List<DictionaryModelData> list = new ArrayList<>();
+			for(Map<String, Object> mapData : mapList){
+				list.add(dictionaryModelData(dictionaryId, (Integer)mapData.get("id"), mapData));
+			}
+			dictionaryModelData.setResources(list);
+		}
+		return dictionaryModelData;
 	}
+
+	@Override
+	public List<Integer> getAllParentIdsById(String dictionaryId, Integer id) {
+		DictionaryModelData dictionaryModelData = getDictionaryModelDataById(dictionaryId, id);
+		List<Integer> idList = new ArrayList<>();
+		idList.add(id);
+		findAllParentIds( idList,dictionaryModelData.getName(), id);
+		return idList;
+	}
+
+	@Override
+	public List<Integer> getAllChildrenIdById(String dictionaryId, Integer id) {
+		DictionaryModelData dictionaryModelData = getDictionaryModelDataById(dictionaryId, id);
+		List<Integer> idList = new ArrayList<>();
+		idList.add(id);
+		findAllChildrenId( idList,dictionaryModelData.getName(), id);
+		return idList;
+	}
+
+	private void findAllParentIds(List<Integer> idList, String tableName, Integer id){
+		List<Map<String, Object>> mapList = dictionaryManager.getJdbcTemplate().queryForList("select parent_id from "+tableName+" where id="+id);
+		if(mapList != null && mapList.size() > 0){
+			for(Map<String, Object> map : mapList){
+				Integer intId = (Integer)map.get("parent_id");
+				idList.add(intId);
+				findAllChildrenId(idList, tableName, intId);
+			}
+		}
+	}
+
+	private void findAllChildrenId(List<Integer> idList, String tableName, Integer id){
+		List<Map<String, Object>> mapList = dictionaryManager.getJdbcTemplate().queryForList("select id from "+tableName+" where parent_id="+id);
+		if(mapList != null && mapList.size() > 0){
+			for(Map<String, Object> map : mapList){
+				Integer parentId = (Integer)map.get("id");
+				idList.add(parentId);
+				findAllChildrenId(idList, tableName, parentId);
+			}
+		}
+	}
+
 
 	private DictionaryModelData dictionaryModelData(String dictionaryId, Integer id, Map<String, Object> map){
 		DictionaryModelData dictionaryModelData = new DictionaryModelData();

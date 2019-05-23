@@ -69,12 +69,14 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
         columnModelEntity.setDataModel(dataModel);
         columnModelEntity.setColumnName(columnName);
         columnModelEntity.setDataType(ColumnType.String);
-        columnModelEntity.setLength(32);
-        columnModelEntity.setPrecision(32);
+        columnModelEntity.setLength(255);
+        columnModelEntity.setPrecision(255);
         columnModelEntity.setNotNull(false);
         if ("id".equals(columnName)) {
             columnModelEntity.setDescription("主键（自动生成无法删改）");
             columnModelEntity.setName("主键id");
+            columnModelEntity.setLength(32);
+            columnModelEntity.setPrecision(32);
             columnModelEntity.setNotNull(true);
         } else if ("master_id".equals(columnName)) {
             columnModelEntity.setDescription("关联字段");
@@ -100,6 +102,9 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
         } else if ("process_state".equals(columnName)) {
             columnModelEntity.setDescription("流程状态");
             columnModelEntity.setName("流程状态");
+        } else{
+            columnModelEntity.setDescription("其他");
+            columnModelEntity.setName("其他");
         }
         columnModelEntity.setScale(null);
         columnModelEntity.setKey(true);
