@@ -1578,9 +1578,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		return null;
 	}
 
-	private void fullTextSearchCriteria(Criteria criteria, Object value, ListModelEntity listModelEntity) {
-		if (value!=null && value instanceof String) {
-			String valueStr = value.toString();
+	private void fullTextSearchCriteria(Criteria criteria, Object queryValue, ListModelEntity listModelEntity) {
+		if (queryValue!=null && queryValue instanceof String) {
+			String queryValueStr = queryValue.toString();
 			List<Criterion> conditions = new ArrayList();
 			List<ListSearchItem> searchItems = listModelEntity.getSearchItems();
 			searchItems = searchItems.stream().filter(item->(item.getFullTextSearch()!=null && item.getFullTextSearch()==true)).collect(Collectors.toList());
@@ -1596,20 +1596,20 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				if (itemModelEntity.getSystemItemType()==SystemItemType.Input || itemModelEntity.getSystemItemType()==SystemItemType.MoreInput
 						|| itemModelEntity.getSystemItemType()==SystemItemType.Editor) {  // 单行文本控件,多行文本控件,富文本控件
 					if (columnModel!=null) {
-						conditions.add(Restrictions.like(columnModel.getColumnName(), "%" + valueStr + "%"));
+						conditions.add(Restrictions.like(columnModel.getColumnName(), "%" + queryValueStr + "%"));
 					}
 				} else if (itemModelEntity instanceof SelectItemModelEntity && columnModel!=null && StringUtils.hasText(columnModel.getColumnName())) {
-					fullTextSearchSelectItemCriteria(valueStr, conditions, columnModel.getColumnName(), (SelectItemModelEntity)itemModelEntity);
+					fullTextSearchSelectItemCriteria(queryValueStr, conditions, columnModel.getColumnName(), (SelectItemModelEntity)itemModelEntity);
 				} else if (itemModelEntity instanceof TreeSelectItemModelEntity && columnModel!=null && StringUtils.hasText(columnModel.getColumnName())) {
-					fullTextSearchTreeSelectItemCriteria(valueStr, conditions, columnModel.getColumnName(), (TreeSelectItemModelEntity)itemModelEntity);
+					fullTextSearchTreeSelectItemCriteria(queryValueStr, conditions, columnModel.getColumnName(), (TreeSelectItemModelEntity)itemModelEntity);
 				} else if (itemModelEntity instanceof ReferenceItemModelEntity) {
 					ReferenceItemModelEntity referenceItemModelEntity = (ReferenceItemModelEntity)itemModelEntity;
 					ReferenceItemModelEntity parentItem = referenceItemModelEntity.getParentItem();
 					if (referenceItemModelEntity.getSystemItemType()==SystemItemType.Creator ||
 							(parentItem!=null && parentItem.getSystemItemType()==SystemItemType.Creator)) {
-						fullTextSearchPeopleReferenceItemCriteria(valueStr, conditions, referenceItemModelEntity);
+						fullTextSearchPeopleReferenceItemCriteria(queryValueStr, conditions, referenceItemModelEntity);
 					} else {
-						fullTextSearchReferenceItemCriteria(valueStr, conditions, columnModel, referenceItemModelEntity);
+						fullTextSearchReferenceItemCriteria(queryValueStr, conditions, columnModel, referenceItemModelEntity);
 					}
 				}
 			}
@@ -1623,6 +1623,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 		List<ItemSelectOption> options = selectItemModelEntity.getOptions();
 		String referenceDictionaryId = selectItemModelEntity.getReferenceDictionaryId();
+
 		if (options!=null && options.size()>0) {
 			Set<String> optionIds = options.stream().filter(item-> StringUtils.hasText(item.getLabel())&&item.getLabel().contains(valueStr)).map(item->item.getId()).collect(Collectors.toSet());
 			if (optionIds!=null && optionIds.size()>0) {
@@ -1644,7 +1645,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 		TreeSelectDataSource dataSource = treeSelectItemModelEntity.getDataSource();
 		if (dataSource!=null) {
-			if (TreeSelectDataSource.SystemCode==dataSource) {
+			if (TreeSelectDataSource.DictionaryData==dataSource) {
 				String dictionaryId = treeSelectItemModelEntity.getReferenceDictionaryId();
 				if (StringUtils.hasText(dictionaryId)) {
 					List<DictionaryDataItemModel> list = dictionaryService.findDictionaryItems(dictionaryId, valueStr);
@@ -2980,12 +2981,12 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			TreeSelectDataSource.Position==dataSourceType || TreeSelectDataSource.PositionIdentify==dataSourceType) {
 			list = groupService.getTreeSelectDataSourceByIds(dataSourceType.getValue(), ids);
 		// 系统代码
-		} else if (TreeSelectDataSource.SystemCode==dataSourceType){
+		} else if (TreeSelectDataSource.DictionaryData==dataSourceType){
 			List<DictionaryDataItemEntity> dictionaryItems = dictionaryService.findByItemIds(ids);
 			if (dictionaryItems!=null && dictionaryItems.size()>0) {
 				for (DictionaryDataItemEntity dictionaryItem:dictionaryItems) {
 					TreeSelectData treeSelectData = new TreeSelectData();
-					treeSelectData.setType(TreeSelectDataSource.SystemCode.getValue());
+					treeSelectData.setType(TreeSelectDataSource.DictionaryData.getValue());
 					treeSelectData.setId(dictionaryItem.getId());
 					treeSelectData.setName(dictionaryItem.getName());
 					list.add(treeSelectData);
