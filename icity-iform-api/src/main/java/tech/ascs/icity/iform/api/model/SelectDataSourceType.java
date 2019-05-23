@@ -13,7 +13,7 @@ public enum SelectDataSourceType {
 	/** 自定义选项 */
 	Option("Option"),
 
-	/** 系统代码 */
+	/** 字典系统代码 */
 	DictionaryData("DictionaryData"),
 
 	/** 字典模型 */

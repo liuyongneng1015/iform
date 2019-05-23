@@ -1644,7 +1644,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 		TreeSelectDataSource dataSource = treeSelectItemModelEntity.getDataSource();
 		if (dataSource!=null) {
-			if (TreeSelectDataSource.SystemCode==dataSource) {
+			if (TreeSelectDataSource.DictionaryData==dataSource) {
 				String dictionaryId = treeSelectItemModelEntity.getReferenceDictionaryId();
 				if (StringUtils.hasText(dictionaryId)) {
 					List<DictionaryDataItemModel> list = dictionaryService.findDictionaryItems(dictionaryId, valueStr);
@@ -2980,12 +2980,12 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			TreeSelectDataSource.Position==dataSourceType || TreeSelectDataSource.PositionIdentify==dataSourceType) {
 			list = groupService.getTreeSelectDataSourceByIds(dataSourceType.getValue(), ids);
 		// 系统代码
-		} else if (TreeSelectDataSource.SystemCode==dataSourceType){
+		} else if (TreeSelectDataSource.DictionaryData==dataSourceType){
 			List<DictionaryDataItemEntity> dictionaryItems = dictionaryService.findByItemIds(ids);
 			if (dictionaryItems!=null && dictionaryItems.size()>0) {
 				for (DictionaryDataItemEntity dictionaryItem:dictionaryItems) {
 					TreeSelectData treeSelectData = new TreeSelectData();
-					treeSelectData.setType(TreeSelectDataSource.SystemCode.getValue());
+					treeSelectData.setType(TreeSelectDataSource.DictionaryData.getValue());
 					treeSelectData.setId(dictionaryItem.getId());
 					treeSelectData.setName(dictionaryItem.getName());
 					list.add(treeSelectData);
