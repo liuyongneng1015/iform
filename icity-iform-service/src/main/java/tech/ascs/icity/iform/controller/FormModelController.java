@@ -2350,11 +2350,17 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			}
 			itemModel.setDefaultValue(defaultList);
 			itemModel.setDefaultValueName(displayList);
+			if(itemModel.getSelectDataSourceType() == null){
+				itemModel.setSelectDataSourceType(SelectDataSourceType.Option);
+			}
 		}
 
 		itemModel.setReferenceList(getItemModelByEntity(entity));
 
 		if(((SelectItemModelEntity) entity).getReferenceDictionaryId() != null){
+			if(itemModel.getSelectDataSourceType() == null){
+				itemModel.setSelectDataSourceType(SelectDataSourceType.DictionaryData);
+			}
 			DictionaryDataEntity dictionaryEntity = dictionaryService.get(((SelectItemModelEntity) entity).getReferenceDictionaryId());
 			itemModel.setReferenceDictionaryName(dictionaryEntity == null ? null : dictionaryEntity.getName());
 		}

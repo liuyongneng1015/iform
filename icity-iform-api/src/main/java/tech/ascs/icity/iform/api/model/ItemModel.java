@@ -364,6 +364,11 @@ public class ItemModel extends NameEntity {
 	}
 
 	public SelectDataSourceType getSelectDataSourceType() {
+		if(selectDataSourceType == null && options != null && options.size() > 0){
+			selectDataSourceType = SelectDataSourceType.Option;
+		}else if(selectDataSourceType == null && referenceDictionaryId != null){
+			selectDataSourceType = SelectDataSourceType.DictionaryData;
+		}
 		return selectDataSourceType;
 	}
 
