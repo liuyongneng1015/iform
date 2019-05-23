@@ -31,6 +31,7 @@ import tech.ascs.icity.iflow.client.ProcessInstanceService;
 import tech.ascs.icity.iflow.client.TaskService;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
+import tech.ascs.icity.iform.api.service.DictionaryModelDataService;
 import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.*;
 import tech.ascs.icity.iform.support.IFormSessionFactoryBuilder;
@@ -46,7 +47,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	private static final Random random = new Random();
 
 	@Autowired
-	private DictionaryDataService dictionaryService;
+	private DictionaryDataService dictionaryDataService;
+
+	@Autowired
+	private DictionaryModelDataService dictionaryModelDataService;
 
 	@Autowired
 	private IFormSessionFactoryBuilder sessionFactoryBuilder;
@@ -1621,21 +1625,28 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		if (StringUtils.isEmpty(columnFullname)) {
 			return;
 		}
-		List<ItemSelectOption> options = selectItemModelEntity.getOptions();
-		String referenceDictionaryId = selectItemModelEntity.getReferenceDictionaryId();
 
-		if (options!=null && options.size()>0) {
+		if (selectItemModelEntity.getSelectDataSourceType() == SelectDataSourceType.Option){
+			List<ItemSelectOption> options = selectItemModelEntity.getOptions();
 			Set<String> optionIds = options.stream().filter(item-> StringUtils.hasText(item.getLabel())&&item.getLabel().contains(valueStr)).map(item->item.getId()).collect(Collectors.toSet());
 			if (optionIds!=null && optionIds.size()>0) {
 				for (String optionId:optionIds) {
 					conditions.add(Restrictions.like(columnFullname, "%" + optionId + "%"));
 				}
 			}
-		} else if (StringUtils.hasText(referenceDictionaryId)) {
-			List<DictionaryDataItemModel> list = dictionaryService.findDictionaryItems(referenceDictionaryId, valueStr);
+		} else if (selectItemModelEntity.getSelectDataSourceType() == SelectDataSourceType.DictionaryData) {
+			String referenceDictionaryId = selectItemModelEntity.getReferenceDictionaryId();
+			List<DictionaryDataItemModel> list = dictionaryDataService.findDictionaryItems(referenceDictionaryId, valueStr);
 			for (DictionaryDataItemModel item:list) {
 				conditions.add(Restrictions.like(columnFullname, "%" + item.getId() + "%"));
 			}
+		} else if (selectItemModelEntity.getSelectDataSourceType() == SelectDataSourceType.DictionaryModel) {
+//			String referenceDictionaryId = selectItemModelEntity.getReferenceDictionaryId();
+//			List<DictionaryDataItemModel> list = dictionaryModelDataService.findDictionaryItems(referenceDictionaryId, valueStr);
+//			for (DictionaryDataItemModel item:list) {
+//				conditions.add(Restrictions.like(columnFullname, "%" + item.getId() + "%"));
+//			}
+//			dictionaryModelDataService
 		}
 	}
 
@@ -1648,7 +1659,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			if (TreeSelectDataSource.DictionaryData==dataSource) {
 				String dictionaryId = treeSelectItemModelEntity.getReferenceDictionaryId();
 				if (StringUtils.hasText(dictionaryId)) {
-					List<DictionaryDataItemModel> list = dictionaryService.findDictionaryItems(dictionaryId, valueStr);
+					List<DictionaryDataItemModel> list = dictionaryDataService.findDictionaryItems(dictionaryId, valueStr);
 					for (DictionaryDataItemModel item:list) {
 						conditions.add(Restrictions.like(columnFullname, "%" + item.getId() + "%"));
 					}
@@ -1659,6 +1670,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				for (TreeSelectData item:list) {
 					conditions.add(Restrictions.like(columnFullname, "%" + item.getId() + "%"));
 				}
+			} else if (TreeSelectDataSource.DictionaryModel==dataSource) {
+
 			}
 		}
 	}
@@ -2982,7 +2995,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			list = groupService.getTreeSelectDataSourceByIds(dataSourceType.getValue(), ids);
 		// 系统代码
 		} else if (TreeSelectDataSource.DictionaryData==dataSourceType){
-			List<DictionaryDataItemEntity> dictionaryItems = dictionaryService.findByItemIds(ids);
+			List<DictionaryDataItemEntity> dictionaryItems = dictionaryDataService.findByItemIds(ids);
 			if (dictionaryItems!=null && dictionaryItems.size()>0) {
 				for (DictionaryDataItemEntity dictionaryItem:dictionaryItems) {
 					TreeSelectData treeSelectData = new TreeSelectData();
