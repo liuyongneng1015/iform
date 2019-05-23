@@ -1337,7 +1337,12 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		}
 
 		DataModelEntity dataModelEntity = oldFormModelEntity.getDataModels().get(0);
+		//流程有关字段
 		ColumnModelEntity columnModelEntity = columnModelService.saveColumnModelEntity(dataModelEntity, "process_state");
+		columnModelService.saveColumnModelEntity(dataModelEntity, "PROCESS_ID");
+		columnModelService.saveColumnModelEntity(dataModelEntity, "PROCESS_INSTANCE");
+		columnModelService.saveColumnModelEntity(dataModelEntity, "ACTIVITY_ID");
+		columnModelService.saveColumnModelEntity(dataModelEntity, "ACTIVITY_INSTANCE");
 		ItemModelEntity itemModelEntity = itemModelService.saveItemModelEntity(oldFormModelEntity, "流程状态");
 		itemModelEntity.setColumnModel(columnModelEntity);
 
@@ -1456,7 +1461,13 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		}
 
 		DataModelEntity dataModelEntity = formModelEntity.getDataModels().get(0);
+		//流程有关的字段
 		ColumnModelEntity columnModelEntity = columnModelService.saveColumnModelEntity(dataModelEntity, "process_state");
+		columnModelService.saveColumnModelEntity(dataModelEntity, "PROCESS_ID");
+		columnModelService.saveColumnModelEntity(dataModelEntity, "PROCESS_INSTANCE");
+		columnModelService.saveColumnModelEntity(dataModelEntity, "ACTIVITY_ID");
+		columnModelService.saveColumnModelEntity(dataModelEntity, "ACTIVITY_INSTANCE");
+
 		ItemModelEntity itemModelEntity = itemModelService.saveItemModelEntity(formModelEntity, "流程状态");
 		itemModelEntity.setColumnModel(columnModelEntity);
 
