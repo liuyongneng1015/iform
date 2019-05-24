@@ -64,7 +64,6 @@ public class DictionaryModelData extends NameEntity implements Serializable {
 	@ApiModelProperty(value = "更新日期", position = 6)
 	private Date updateDate;
 
-
 	/**
 	 * 子选项描述
 	 */
@@ -136,7 +135,7 @@ public class DictionaryModelData extends NameEntity implements Serializable {
 		this.updateDate = updateDate;
 	}
 
-	public List<DictionaryModelData> getResources() {
+    public List<DictionaryModelData> getResources() {
 		return resources;
 	}
 
