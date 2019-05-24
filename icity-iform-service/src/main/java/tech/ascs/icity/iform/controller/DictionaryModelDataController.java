@@ -37,7 +37,7 @@ public class DictionaryModelDataController implements tech.ascs.icity.iform.api.
 	}
 
 	@Override
-	public DictionaryModelData get(@PathVariable(name = "dictionaryId") String dictionaryId, @PathVariable(name = "id") Integer id) {
+	public DictionaryModelData get(@PathVariable(name = "dictionaryId") String dictionaryId, @PathVariable(name = "id") String id) {
 		return dictionaryService.getDictionaryModelDataById(dictionaryId, id);
 	}
 
@@ -47,7 +47,7 @@ public class DictionaryModelDataController implements tech.ascs.icity.iform.api.
 	}
 
 	@Override
-	public void update(@PathVariable(name = "id", required = true) Integer id,
+	public void update(@PathVariable(name = "id", required = true) String id,
 					   @RequestBody(required = true) DictionaryModelData dictionaryModel) {
 		if(!id.equals(dictionaryModel.getId())){
 			throw new IFormException("id不一致");
@@ -56,7 +56,7 @@ public class DictionaryModelDataController implements tech.ascs.icity.iform.api.
 	}
 
 	@Override
-	public void delete(@PathVariable(name = "dictionaryId") String dictionaryId, @PathVariable(name = "id") Integer id) {
+	public void delete(@PathVariable(name = "dictionaryId") String dictionaryId, @PathVariable(name = "id") String id) {
 		DictionaryModelData dictionaryModelData = new DictionaryModelData();
 		dictionaryModelData.setId(id);
 		dictionaryModelData.setDictionaryId(dictionaryId);
@@ -64,7 +64,7 @@ public class DictionaryModelDataController implements tech.ascs.icity.iform.api.
 	}
 
 	@Override
-	public void updateOrderNo(@PathVariable(name = "dictionaryId", required = true) String dictionaryId, @PathVariable(name = "id", required = true) Integer id,
+	public void updateOrderNo(@PathVariable(name = "dictionaryId", required = true) String dictionaryId, @PathVariable(name = "id", required = true) String id,
 							  @PathVariable(name = "status", required = true) String status) {
 		dictionaryService.updateDictionaryModelDataOrderNo(dictionaryId, id, status);
 	}

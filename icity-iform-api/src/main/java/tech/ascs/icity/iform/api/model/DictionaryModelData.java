@@ -2,33 +2,24 @@ package tech.ascs.icity.iform.api.model;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import org.apache.commons.lang3.StringUtils;
+import tech.ascs.icity.model.NameEntity;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 
 /**
  * 字典建模数据项
  */
 @ApiModel("字典建模数据项")
-public class DictionaryModelData implements Serializable {
+public class DictionaryModelData extends NameEntity implements Serializable {
 
 	/**
 	 * 所属字典建模id
 	 */
 	@ApiModelProperty(value = "字典建模id", position = 3)
 	private String dictionaryId;
-
-	/**
-	 * 主键id
-	 */
-	@ApiModelProperty(value = "主键id", position = 3)
-	private Integer id;
-
-	/**
-	 * 名称
-	 */
-	@ApiModelProperty(value = "名称", position = 3)
-	private String name;
 
 	/**
 	 * 编码
@@ -59,7 +50,20 @@ public class DictionaryModelData implements Serializable {
 	 * 父选项
 	 */
 	@ApiModelProperty(value = "父选项", position = 6)
-	private Integer parentId;
+	private String parentId;
+
+	/**
+	 * 大小
+	 */
+	@ApiModelProperty(value = "大小", position = 6)
+	private Integer size = 0;
+
+	/**
+	 * 更新日期
+	 */
+	@ApiModelProperty(value = "更新日期", position = 6)
+	private Date updateDate;
+
 
 	/**
 	 * 子选项描述
@@ -74,22 +78,6 @@ public class DictionaryModelData implements Serializable {
 
 	public void setDictionaryId(String dictionaryId) {
 		this.dictionaryId = dictionaryId;
-	}
-
-	public Integer getId() {
-		return id;
-	}
-
-	public void setId(Integer id) {
-		this.id = id;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
 	}
 
 	public String getCode() {
@@ -124,12 +112,28 @@ public class DictionaryModelData implements Serializable {
 		this.orderNo = orderNo;
 	}
 
-	public Integer getParentId() {
+	public String getParentId() {
 		return parentId;
 	}
 
-	public void setParentId(Integer parentId) {
+	public void setParentId(String parentId) {
 		this.parentId = parentId;
+	}
+
+	public Integer getSize() {
+		return size;
+	}
+
+	public void setSize(Integer size) {
+		this.size = size;
+	}
+
+	public Date getUpdateDate() {
+		return updateDate;
+	}
+
+	public void setUpdateDate(Date updateDate) {
+		this.updateDate = updateDate;
 	}
 
 	public List<DictionaryModelData> getResources() {
@@ -138,5 +142,14 @@ public class DictionaryModelData implements Serializable {
 
 	public void setResources(List<DictionaryModelData> resources) {
 		this.resources = resources;
+	}
+
+	@Override
+	public String getId() {
+		String id = super.getId();
+		if(StringUtils.isBlank(id)){
+			return null;
+		}
+		return id;
 	}
 }

@@ -1,12 +1,13 @@
 package tech.ascs.icity.iform.utils;
 
-import org.apache.poi.ss.usermodel.DateUtil;
 
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
 
 public class CommonUtils {
+
+    private final static String time_format = "yyyy-MM-dd";
+
     /**
      * hql模糊搜索参数转换,包含添加通配符和转义通配符
      * @param parameter
@@ -24,6 +25,11 @@ public class CommonUtils {
     public static String currentTimeStr(String dateFormat){
         return date2Str(new Date(), dateFormat);
     }
+
+    public static String currentDateStr(){
+        return date2Str(new Date(), time_format);
+    }
+
 
     //异常编码
     public static int exceptionCode = 404;

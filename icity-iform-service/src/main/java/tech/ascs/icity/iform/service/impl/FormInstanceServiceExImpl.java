@@ -1639,8 +1639,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		} else if (selectItemModelEntity.getSelectDataSourceType() == SelectDataSourceType.DictionaryModel) {
 			String referenceDictionaryId = selectItemModelEntity.getReferenceDictionaryId();
 			List<DictionaryModelData> list = dictionaryModelDataToList(dictionaryModelService.findDictionaryModelDataByDictionaryId(referenceDictionaryId));
-			Set<Integer> ids = list.stream().filter(item->item.getName()!=null && item.getName().contains(valueStr)).map(item->item.getId()).collect(Collectors.toSet());
-			for (Integer id:ids) {
+			Set<String> ids = list.stream().filter(item->item.getName()!=null && item.getName().contains(valueStr)).map(item->item.getId()).collect(Collectors.toSet());
+			for (String id:ids) {
 				conditions.add(Restrictions.in(columnFullname, id));
 			}
 		}
@@ -3113,12 +3113,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				}
 			}
 		}else if(selectItemModelEntity.getSelectDataSourceType() == SelectDataSourceType.DictionaryModel){
-			List<Integer> idlist = new ArrayList<>();
-			for(String str : list){
-				idlist.add(Integer.parseInt(str));
-			}
 			//字典模型数据
-			displayValuelist.add(dictionaryModelService.getDictionaryModelDataName(selectItemModelEntity.getReferenceDictionaryId(), idlist));
+			displayValuelist.add(dictionaryModelService.getDictionaryModelDataName(selectItemModelEntity.getReferenceDictionaryId(), list));
 		}else if(list != null){
 			displayValuelist.add(String.join(",", list));
 		}

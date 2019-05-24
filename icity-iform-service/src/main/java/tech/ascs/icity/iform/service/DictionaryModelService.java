@@ -73,10 +73,10 @@ public interface DictionaryModelService extends JPAService<DictionaryModelEntity
 	void deleteDictionaryModelData(DictionaryModelData dictionaryModelData);
 
 	//更新排序
-	void updateDictionaryModelDataOrderNo(String dictionaryId, Integer id, String status);
+	void updateDictionaryModelDataOrderNo(String dictionaryId, String id, String status);
 
 	//查询字典模型数据名称
-	String getDictionaryModelDataName(String dictionaryId, List<Integer> ids);
+	String getDictionaryModelDataName(String dictionaryId, List<String> ids);
 
 	/**
 	 * 根据字典模型id获取模型数据
@@ -92,7 +92,7 @@ public interface DictionaryModelService extends JPAService<DictionaryModelEntity
 	 * @param id
 	 * @return
 	 */
-	DictionaryModelData getDictionaryModelDataById(String dictionaryId, Integer id);
+	DictionaryModelData getDictionaryModelDataById(String dictionaryId, String id);
 
 	/**
 	 * 根据id获取模型数据父级id集合
@@ -100,7 +100,7 @@ public interface DictionaryModelService extends JPAService<DictionaryModelEntity
 	 * @param id
 	 * @return
 	 */
-	List<Integer> getAllParentIdsById(String dictionaryId, Integer id);
+	List<String> getAllParentIdsById(String dictionaryId, String id);
 
 	/**
 	 * 根据id获取模型数据子级id集合
@@ -108,7 +108,7 @@ public interface DictionaryModelService extends JPAService<DictionaryModelEntity
 	 * @param id
 	 * @return
 	 */
-	List<Integer> getAllChildrenIdById(String dictionaryId, Integer id);
+	List<String> getAllChildrenIdById(String dictionaryId, String id);
 
 }
 

@@ -14,6 +14,7 @@ import tech.ascs.icity.iform.model.DictionaryDataItemEntity;
 import tech.ascs.icity.iform.model.DictionaryModelEntity;
 import tech.ascs.icity.iform.service.DictionaryDataService;
 import tech.ascs.icity.iform.service.DictionaryModelService;
+import tech.ascs.icity.iform.utils.CommonUtils;
 import tech.ascs.icity.jpa.dao.exception.NotFoundException;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
@@ -148,20 +149,31 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 		if(StringUtils.isBlank(tableName)){
 			return;
 		}
-		deleteTable(tableName);
+		//deleteTable(tableName);
+		List<Map<String, Object>> mapList = dictionaryManager.getJdbcTemplate().queryForList("select table_name from information_schema.tables where table_schema='iform'");
+		if(mapList == null || mapList.size() < 1) {
+			return;
+		}
+		for(Map<String, Object> map : mapList){
+			if(map.get("table_name").equals(tableName)){
+				return;
+			}
+		}
 		StringBuffer sub = new StringBuffer();
 		sub.append("CREATE TABLE `"+tableName+"` (\n" +
-				"  `id` int NOT NULL AUTO_INCREMENT,\n" +
-				"  `name` varchar(255) DEFAULT NULL,\n" +
-				"  `code` varchar(255) DEFAULT NULL,\n" +
-				"  `description` varchar(255) DEFAULT NULL,\n" +
-				"  `parent_id` int(11) DEFAULT NULL,\n" +
-				"  `order_no` int(11) DEFAULT NULL,\n" +
-				"  `icon` varchar(255) DEFAULT NULL,\n" +
+				"  `id` varchar(32) NOT NULL COMMENT '主键',\n" +
+				"  `name` varchar(255) DEFAULT NULL COMMENT '名称',\n" +
+				"  `code` varchar(255) DEFAULT NULL COMMENT '编码',\n" +
+				"  `description` varchar(255) DEFAULT NULL COMMENT '描述',\n" +
+				"  `parent_id` varchar(32) DEFAULT NULL COMMENT '父级id',\n" +
+				"  `order_no` int(11) DEFAULT NULL COMMENT '排序号',\n" +
+				"  `icon` varchar(255) DEFAULT NULL COMMENT '图片icon',\n" +
+				"  `size` int(11) DEFAULT NULL COMMENT '大小',\n" +
+				"  `update_date` date DEFAULT NULL COMMENT '更新日期',\n" +
 				"  PRIMARY KEY (`id`)\n" +
-				") ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4\n");
+				")ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='字典建模表'\n");
 		dictionaryManager.getJdbcTemplate().execute(sub.toString());
-		dictionaryManager.getJdbcTemplate().execute("INSERT INTO `"+tableName+"` VALUES ('1', '根节点', 'root', '根节点', null, '0', null)");
+		dictionaryManager.getJdbcTemplate().execute("INSERT INTO `"+tableName+"` VALUES ('root', '根节点', 'root', '根节点', null, '0', null,0,'"+ CommonUtils.currentDateStr()+"')");
 	}
 
 	@Override
@@ -243,10 +255,12 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 		DictionaryModel dictionaryModelModel = getDictionaryById(dictionaryModelData.getDictionaryId());
 		String sql = null;
 		String icon = dictionaryModelData.getIcon() == null ? null : "'"+dictionaryModelData.getIcon()+"'";
+		String parentId = dictionaryModelData.getParentId() == null ? null : "'"+dictionaryModelData.getParentId()+"'";
 		if(dictionaryModelData.getId() == null){
-			sql = "INSERT INTO `"+dictionaryModelModel.getTableName()+"` VALUES (null, '"+dictionaryModelData.getName()+"', '"+dictionaryModelData.getCode()+"', '"+dictionaryModelData.getDescription()+"', "+dictionaryModelData.getParentId()+", "+dictionaryModelData.getOrderNo()+","+icon+")";
+			String id = UUID.randomUUID().toString().replace("-", "");
+			sql = "INSERT INTO `"+dictionaryModelModel.getTableName()+"` VALUES ('"+id+"', '"+dictionaryModelData.getName()+"', '"+dictionaryModelData.getCode()+"', '"+dictionaryModelData.getDescription()+"', "+parentId+", "+dictionaryModelData.getOrderNo()+","+icon+",0,'"+ CommonUtils.currentDateStr()+"')";
 		}else{
-			sql = "update `"+dictionaryModelModel.getTableName()+"` set name ='"+dictionaryModelData.getName()+"', code ='"+dictionaryModelData.getCode()+"', description ='"+dictionaryModelData.getDescription()+"', parent_id = "+dictionaryModelData.getParentId()+", order_no = "+dictionaryModelData.getOrderNo()+", icon = "+icon+")";
+			sql = "update `"+dictionaryModelModel.getTableName()+"` set name ='"+dictionaryModelData.getName()+"', code ='"+dictionaryModelData.getCode()+"', description ='"+dictionaryModelData.getDescription()+"', parent_id = "+parentId+", order_no = "+dictionaryModelData.getOrderNo()+", icon = "+icon+",size = "+dictionaryModelData.getSize()+",update_date='"+ CommonUtils.currentDateStr()+"')";
 		}
 		dictionaryManager.getJdbcTemplate().execute(sql);
 	}
@@ -254,7 +268,7 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 	@Override
 	public void deleteDictionaryModelData(DictionaryModelData dictionaryModelData) {
 		DictionaryModel dictionaryModelModel = getDictionaryById(dictionaryModelData.getDictionaryId());
-		List<Integer> idList = new ArrayList<>();
+		List<String> idList = new ArrayList<>();
 		idList.add(dictionaryModelData.getId());
 		findAllChildrenId(idList, dictionaryModelModel.getTableName(), dictionaryModelData.getId());
 		StringBuffer sub = new StringBuffer("(");
@@ -272,12 +286,12 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 
 
 	@Override
-	public void updateDictionaryModelDataOrderNo(String dictionaryId, Integer id, String status) {
+	public void updateDictionaryModelDataOrderNo(String dictionaryId, String id, String status) {
 		DictionaryModel dictionaryModelModel = getDictionaryById(dictionaryId);
-		Map<String, Object> map = dictionaryManager.getJdbcTemplate().queryForMap("select * from "+dictionaryModelModel.getTableName()+" where id="+id);
+		Map<String, Object> map = dictionaryManager.getJdbcTemplate().queryForMap("select * from "+dictionaryModelModel.getTableName()+" where id='"+id+"'");
 		if (map != null && map.get("parent_id") != null) {
-			Integer parentId = Integer.parseInt(String.valueOf(map.get("parent_id")));
-			List<Map<String, Object>> mapList = dictionaryManager.getJdbcTemplate().queryForList("select * from "+dictionaryModelModel.getTableName()+" where parent_id="+parentId + " order by order_no asc");
+			String parentId = String.valueOf(map.get("parent_id"));
+			List<Map<String, Object>> mapList = dictionaryManager.getJdbcTemplate().queryForList("select * from "+dictionaryModelModel.getTableName()+" where parent_id='"+parentId + "' order by order_no asc");
 			if(mapList != null && mapList.size() > 0){
 				Map<Integer, Object> dataMap = new HashMap<>();
 				Integer j = null;
@@ -296,26 +310,26 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 					newDataMap = ((Map<String, Object>)dataMap.get(j+1));
 				}
 				if(newDataMap != null){
-					dictionaryManager.getJdbcTemplate().execute("update "+dictionaryModelModel.getTableName()+" set order_no = "+newDataMap.get("order_no")+ " where id = "+id);
-					dictionaryManager.getJdbcTemplate().execute("update "+dictionaryModelModel.getTableName()+" set order_no = "+orderNo+ " where id = "+newDataMap.get("id"));
+					dictionaryManager.getJdbcTemplate().execute("update "+dictionaryModelModel.getTableName()+" set order_no = "+newDataMap.get("order_no")+ " where id = '"+id+"'");
+					dictionaryManager.getJdbcTemplate().execute("update "+dictionaryModelModel.getTableName()+" set order_no = "+orderNo+ " where id = '"+newDataMap.get("id")+"'");
 				}
 			}
 		}
 	}
 
 	@Override
-	public String getDictionaryModelDataName(String dictionaryId, List<Integer> ids) {
+	public String getDictionaryModelDataName(String dictionaryId, List<String> ids) {
 
 		DictionaryModel dictionaryModelModel = getDictionaryById(dictionaryId);
-		StringBuffer sub = new StringBuffer("(");
+		StringBuffer sub = new StringBuffer("('");
 		for(int i = 0 ; i < ids.size() ; i++){
 			if(i == 0){
 				sub.append(ids.get(i));
 			}else{
-				sub.append(","+ids.get(i));
+				sub.append("','"+ids.get(i));
 			}
 		}
-		sub.append(")");
+		sub.append("')");
 
 		List<Map<String, Object>> mapList = dictionaryManager.getJdbcTemplate().queryForList("select name from "+dictionaryModelModel.getTableName()+" where id in "+sub.toString());
 		if (mapList == null || mapList.size() < 1) {
@@ -331,14 +345,14 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 	@Override
 	public DictionaryModelData findDictionaryModelDataByDictionaryId(String dictionaryId) {
 		DictionaryModel dictionaryModelModel = getDictionaryById(dictionaryId);
-		Map<String, Object> map = dictionaryManager.getJdbcTemplate().queryForMap("select * from "+dictionaryModelModel.getTableName()+" where id="+1);
+		Map<String, Object> map = dictionaryManager.getJdbcTemplate().queryForMap("select * from "+dictionaryModelModel.getTableName()+" where id='root'");
 		if (map == null) {
 			return null;
 		}
-		DictionaryModelData rootDictionaryModelData = dictionaryModelData(dictionaryId, 1, map);
-		List<Map<String, Object>> mapList = dictionaryManager.getJdbcTemplate().queryForList("select * from "+dictionaryModelModel.getTableName()+" where id != 1 order by order_no asc,parent_id desc,id desc ");
+		DictionaryModelData rootDictionaryModelData = dictionaryModelData(dictionaryId, "root", map);
+		List<Map<String, Object>> mapList = dictionaryManager.getJdbcTemplate().queryForList("select * from "+dictionaryModelModel.getTableName()+" where id != 'root' order by order_no asc,parent_id desc,id desc ");
 		if(mapList != null && mapList.size() > 0){
-			Map<Integer, List<Map<String, Object>>> dataListMap = new HashMap<>();
+			Map<String, List<Map<String, Object>>> dataListMap = new HashMap<>();
 			for(Map<String, Object> dataMap : mapList){
 				if(dataMap.get("parent_id") == null){
 					continue;
@@ -348,7 +362,7 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 					mapList2 = new ArrayList<>();
 				}
 				mapList2.add(dataMap);
-				dataListMap.put(Integer.parseInt(String.valueOf(dataMap.get("parent_id"))), mapList2);
+				dataListMap.put(String.valueOf(dataMap.get("parent_id")), mapList2);
 			}
 			setResources( dataListMap,  rootDictionaryModelData,  dictionaryId);
 		}
@@ -356,14 +370,14 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 		return rootDictionaryModelData;
 	}
 
-	private void setResources(Map<Integer, List<Map<String, Object>>> dataListMap, DictionaryModelData parentDictionaryModelData, String dictionaryId){
+	private void setResources(Map<String, List<Map<String, Object>>> dataListMap, DictionaryModelData parentDictionaryModelData, String dictionaryId){
 		List<Map<String, Object>> maps = dataListMap.get(parentDictionaryModelData.getId());
 		if(maps == null){
 			return;
 		}
 		List<DictionaryModelData> dictionaryModelDatas = new ArrayList<>();
 		for(Map<String, Object> objectMap : maps){
-			DictionaryModelData dictionaryModelData = dictionaryModelData(dictionaryId, Integer.parseInt(String.valueOf(objectMap.get("id"))), objectMap);
+			DictionaryModelData dictionaryModelData = dictionaryModelData(dictionaryId, String.valueOf(objectMap.get("id")), objectMap);
 			setResources(dataListMap, dictionaryModelData, dictionaryId);
 			dictionaryModelDatas.add(dictionaryModelData);
 		}
@@ -371,18 +385,18 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 	}
 
 	@Override
-	public DictionaryModelData getDictionaryModelDataById(String dictionaryId, Integer id) {
+	public DictionaryModelData getDictionaryModelDataById(String dictionaryId, String id) {
 		DictionaryModel dictionaryModelModel = getDictionaryById(dictionaryId);
-		Map<String, Object> map = dictionaryManager.getJdbcTemplate().queryForMap("select * from "+dictionaryModelModel.getTableName()+" where id="+id);
+		Map<String, Object> map = dictionaryManager.getJdbcTemplate().queryForMap("select * from "+dictionaryModelModel.getTableName()+" where id='"+id+"'");
 		if (map == null) {
 			return null;
 		}
-		List<Map<String, Object>> mapList = dictionaryManager.getJdbcTemplate().queryForList("select * from "+dictionaryModelModel.getTableName()+" where parent_id="+map.get("parent_id") + " order by order_no asc");
+		List<Map<String, Object>> mapList = dictionaryManager.getJdbcTemplate().queryForList("select * from "+dictionaryModelModel.getTableName()+" where parent_id='"+map.get("parent_id") + "' order by order_no asc");
 		DictionaryModelData dictionaryModelData = dictionaryModelData(dictionaryId, id, map);
 		if(mapList != null && mapList.size() > 0){
 			List<DictionaryModelData> list = new ArrayList<>();
 			for(Map<String, Object> mapData : mapList){
-				list.add(dictionaryModelData(dictionaryId, (Integer)mapData.get("id"), mapData));
+				list.add(dictionaryModelData(dictionaryId, (String)mapData.get("id"), mapData));
 			}
 			dictionaryModelData.setResources(list);
 		}
@@ -390,39 +404,39 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 	}
 
 	@Override
-	public List<Integer> getAllParentIdsById(String dictionaryId, Integer id) {
+	public List<String> getAllParentIdsById(String dictionaryId, String id) {
 		DictionaryModelData dictionaryModelData = getDictionaryModelDataById(dictionaryId, id);
-		List<Integer> idList = new ArrayList<>();
+		List<String> idList = new ArrayList<>();
 		idList.add(id);
 		findAllParentIds( idList,dictionaryModelData.getName(), id);
 		return idList;
 	}
 
 	@Override
-	public List<Integer> getAllChildrenIdById(String dictionaryId, Integer id) {
+	public List<String> getAllChildrenIdById(String dictionaryId, String id) {
 		DictionaryModelData dictionaryModelData = getDictionaryModelDataById(dictionaryId, id);
-		List<Integer> idList = new ArrayList<>();
+		List<String> idList = new ArrayList<>();
 		idList.add(id);
 		findAllChildrenId( idList,dictionaryModelData.getName(), id);
 		return idList;
 	}
 
-	private void findAllParentIds(List<Integer> idList, String tableName, Integer id){
-		List<Map<String, Object>> mapList = dictionaryManager.getJdbcTemplate().queryForList("select parent_id from "+tableName+" where id="+id);
+	private void findAllParentIds(List<String> idList, String tableName, String id){
+		List<Map<String, Object>> mapList = dictionaryManager.getJdbcTemplate().queryForList("select parent_id from "+tableName+" where id='"+id+"'");
 		if(mapList != null && mapList.size() > 0){
 			for(Map<String, Object> map : mapList){
-				Integer intId = (Integer)map.get("parent_id");
-				idList.add(intId);
-				findAllChildrenId(idList, tableName, intId);
+				String idstr = (String)map.get("parent_id");
+				idList.add(idstr);
+				findAllChildrenId(idList, tableName, idstr);
 			}
 		}
 	}
 
-	private void findAllChildrenId(List<Integer> idList, String tableName, Integer id){
-		List<Map<String, Object>> mapList = dictionaryManager.getJdbcTemplate().queryForList("select id from "+tableName+" where parent_id="+id);
+	private void findAllChildrenId(List<String> idList, String tableName, String id){
+		List<Map<String, Object>> mapList = dictionaryManager.getJdbcTemplate().queryForList("select id from "+tableName+" where parent_id='"+id+"'");
 		if(mapList != null && mapList.size() > 0){
 			for(Map<String, Object> map : mapList){
-				Integer parentId = (Integer)map.get("id");
+				String parentId = (String)map.get("id");
 				idList.add(parentId);
 				findAllChildrenId(idList, tableName, parentId);
 			}
@@ -430,7 +444,7 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 	}
 
 
-	private DictionaryModelData dictionaryModelData(String dictionaryId, Integer id, Map<String, Object> map){
+	private DictionaryModelData dictionaryModelData(String dictionaryId, String id, Map<String, Object> map){
 		DictionaryModelData dictionaryModelData = new DictionaryModelData();
 
 		dictionaryModelData.setDictionaryId(dictionaryId);
@@ -440,7 +454,10 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 		dictionaryModelData.setDescription((String)map.get("description"));
 		dictionaryModelData.setIcon((String)map.get("icon"));
 		dictionaryModelData.setOrderNo(map.get("order_no") == null ? null : Integer.parseInt(String.valueOf(map.get("order_no"))));
-		dictionaryModelData.setParentId(map.get("parent_id") == null ? null : Integer.parseInt(String.valueOf(map.get("parent_id"))));
+		dictionaryModelData.setParentId(map.get("parent_id") == null ? null : String.valueOf(map.get("parent_id")));
+		dictionaryModelData.setSize(map.get("size") == null ? null : Integer.parseInt(String.valueOf(map.get("size"))));
+		dictionaryModelData.setUpdateDate(map.get("update_date") == null ? null : (Date)(map.get("update_date")));
+
 		return dictionaryModelData;
 	}
 
