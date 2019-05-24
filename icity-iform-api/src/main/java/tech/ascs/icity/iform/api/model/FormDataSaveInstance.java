@@ -52,13 +52,11 @@ public class FormDataSaveInstance extends IdEntity {
 
 	/** 当前环节操作 */
 	@ApiModelProperty(value = "当前环节操作", position = 14)
-	@JsonRawValue
-	protected String functions;
+	protected Object functions;
 
 	/** 当前环节表单配置 */
 	@ApiModelProperty(value = "当前环节表单配置", position = 14)
-	@JsonRawValue
-	protected String permissions;
+	protected Object permissions;
 
 	/** 当前用户是否当前流程环节处理人 */
 	@ApiModelProperty(value = "当前用户是否当前流程环节处理人", position = 13)
@@ -168,19 +166,19 @@ public class FormDataSaveInstance extends IdEntity {
 		this.label = label;
 	}
 
-	public String getFunctions() {
+	public Object getFunctions() {
 		return functions;
 	}
 
-	public void setFunctions(String functions) {
+	public void setFunctions(Object functions) {
 		this.functions = functions;
 	}
 
-	public String getPermissions() {
+	public Object getPermissions() {
 		return permissions;
 	}
 
-	public void setPermissions(String permissions) {
+	public void setPermissions(Object permissions) {
 		this.permissions = permissions;
 	}
 

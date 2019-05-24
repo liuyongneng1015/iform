@@ -196,19 +196,22 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 				}
 				instance.setMyTask(processInstance.isMyTask());
 				instance.setFunctions(processInstance.getOperations());
-				Map<String, Object> stringObjectMap = OkHttpUtils.jsonToMap(processInstance.getFormDefinition());
+				List<Map<String, Object>> stringObjectMap = (List<Map<String, Object>>)(processInstance.getFormDefinition());
 				if(stringObjectMap != null) {
+					Map<String, Map<String, Object>> map = new HashMap<>();
+					for(Map<String, Object> objectMap : stringObjectMap){
+						map.put((String)objectMap.get("id"), objectMap);
+					}
 					for(ItemInstance itemInstance : instance.getItems()){
-						Object o = stringObjectMap.get(itemInstance.getId());
-						if(o != null) {
-							Map<String, Object> map = (Map<String, Object>)o;
-							itemInstance.setVisible(map.get("visible") == null ? false : (Boolean)map.get("visible"));
-							itemInstance.setCanFill(map.get("canFill") == null ? false : (Boolean)map.get("canFill"));
-							itemInstance.setRequired(map.get("required") == null ? false : (Boolean)map.get("required"));
+						Map<String, Object> instanceMap = map.get(itemInstance.getId());
+						if(instanceMap != null) {
+							itemInstance.setVisible(instanceMap.get("visible") == null ? false : (Boolean)instanceMap.get("visible"));
+							itemInstance.setCanFill(instanceMap.get("canFill") == null ? false : (Boolean)instanceMap.get("canFill"));
+							itemInstance.setRequired(instanceMap.get("required") == null ? false : (Boolean)instanceMap.get("required"));
 						}
 					}
 				}
-				instance.setPermissions(processInstance.getFormDefinition());
+				//instance.setPermissions(processInstance.getFormDefinition());
 			}
 			Page<FormDataSaveInstance> pageInstance = Page.get(page, pagesize);
 			pageInstance.data(pageProcess.getTotalCount(), list);

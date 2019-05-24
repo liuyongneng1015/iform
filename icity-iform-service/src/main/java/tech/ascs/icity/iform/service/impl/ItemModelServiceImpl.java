@@ -69,10 +69,18 @@ public class ItemModelServiceImpl extends DefaultJPAService<ItemModelEntity> imp
 
 	private ItemModelEntity saveItem(FormModelEntity formModelEntity, String itemModelName) {
 		ItemModelEntity itemModelEntity = new ItemModelEntity();
+		if("流程状态".equals(itemModelName)){
+			itemModelEntity = new SelectItemModelEntity();
+			itemModelEntity.setProps("{\"props\":{\"multiple\":false},\"dictionaryType\":\"fixed\",\"typeKey\":\"select\"}");
+			itemModelEntity.setType(ItemType.Select);
+			itemModelEntity.setSystemItemType(SystemItemType.Select);
+		}else{
+			itemModelEntity.setProps("{\"props\":{\"type\":\"text\",\"placeholder\":\"\"},\"appProps\":{\"type\":\"text\",\"placeholder\":\"\"},\"typeKey\":\"text\"}");
+			itemModelEntity.setType(ItemType.Input);
+			itemModelEntity.setSystemItemType(SystemItemType.Input);
+		}
 		itemModelEntity.setName(itemModelName);
 		itemModelEntity.setFormModel(formModelEntity);
-		itemModelEntity.setType(ItemType.Input);
-		itemModelEntity.setSystemItemType(SystemItemType.Input);
 		itemModelEntity.setUuid(UUID.randomUUID().toString().replace("-",""));
 		if("流程状态".equals(itemModelName)){
 			List<ItemSelectOption> options = new ArrayList<>();
