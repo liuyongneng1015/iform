@@ -256,11 +256,12 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 		String sql = null;
 		String icon = dictionaryModelData.getIcon() == null ? null : "'"+dictionaryModelData.getIcon()+"'";
 		String parentId = dictionaryModelData.getParentId() == null ? null : "'"+dictionaryModelData.getParentId()+"'";
+		String description = dictionaryModelData.getDescription() == null ? null : "'"+dictionaryModelData.getDescription()+"'";
 		if(dictionaryModelData.getId() == null){
 			String id = UUID.randomUUID().toString().replace("-", "");
-			sql = "INSERT INTO `"+dictionaryModelModel.getTableName()+"` VALUES ('"+id+"', '"+dictionaryModelData.getName()+"', '"+dictionaryModelData.getCode()+"', '"+dictionaryModelData.getDescription()+"', "+parentId+", "+dictionaryModelData.getOrderNo()+","+icon+",0,'"+ CommonUtils.currentDateStr()+"')";
+			sql = "INSERT INTO `"+dictionaryModelModel.getTableName()+"` VALUES ('"+id+"', '"+dictionaryModelData.getName()+"', '"+dictionaryModelData.getCode()+"', "+description+", "+parentId+", "+dictionaryModelData.getOrderNo()+","+icon+",0,'"+ CommonUtils.currentDateStr()+"')";
 		}else{
-			sql = "update `"+dictionaryModelModel.getTableName()+"` set name ='"+dictionaryModelData.getName()+"', code ='"+dictionaryModelData.getCode()+"', description ='"+dictionaryModelData.getDescription()+"', parent_id = "+parentId+", order_no = "+dictionaryModelData.getOrderNo()+", icon = "+icon+",size = "+dictionaryModelData.getSize()+",update_date='"+ CommonUtils.currentDateStr()+"')";
+			sql = "update `"+dictionaryModelModel.getTableName()+"` set name ='"+dictionaryModelData.getName()+"', code ='"+dictionaryModelData.getCode()+"', description ="+description+", parent_id = "+parentId+", order_no = "+dictionaryModelData.getOrderNo()+", icon = "+icon+",size = "+dictionaryModelData.getSize()+",update_date='"+ CommonUtils.currentDateStr()+"')";
 		}
 		dictionaryManager.getJdbcTemplate().execute(sql);
 	}
