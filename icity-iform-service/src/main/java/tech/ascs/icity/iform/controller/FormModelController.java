@@ -22,6 +22,7 @@ import tech.ascs.icity.admin.client.ApplicationService;
 import tech.ascs.icity.admin.client.GroupService;
 import tech.ascs.icity.iflow.api.model.Activity;
 import tech.ascs.icity.iflow.api.model.Process;
+import tech.ascs.icity.iflow.api.model.ProcessModel;
 import tech.ascs.icity.iflow.client.ProcessService;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
@@ -1821,24 +1822,16 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 		entityToDTO( entity,  formModel, false, null);
 		List<Activity> activities = new ArrayList<>();
-		if(entity.getProcess() != null && StringUtils.hasText(entity.getProcess().getKey())){
-			try {
-				Process process = processService.get(entity.getProcess().getKey());
-				if(process != null){
-					activities.addAll(process.getActivities());
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-
+		//是否流程表单
+		boolean isFlowForm = false;
+		setFlowParams(entity, activities, isFlowForm);
 
 		if (entity.getItems().size() > 0) {
 			List<ItemModel> items = new ArrayList<ItemModel>();
 			List<ItemModelEntity> itemModelEntities = entity.getItems() == null || entity.getItems().size() < 2 ? entity.getItems() : entity.getItems().parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
 
 			//设置控件权限
-			List<ItemPermissionModel> itemPermissionModels = getItemPermissions(formModelService.findAllItems(entity));
+			List<ItemPermissionModel> itemPermissionModels = setItemPermissions(formModelService.findAllItems(entity), isFlowForm);
 			formModel.setPermissions(itemPermissionModels);
 			String tableName = entity.getDataModels() == null || entity.getDataModels().size() < 1 ? null :  entity.getDataModels().get(0).getTableName();
 			for (ItemModelEntity itemModelEntity : itemModelEntities) {
@@ -1886,6 +1879,27 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		return formModel;
 	}
 
+	private void setFlowParams(FormModelEntity entity, List<Activity> activities , boolean isFlowForm){
+		if(entity.getProcess() == null || !StringUtils.hasText(entity.getProcess().getKey())){
+			return;
+		}
+		try {
+			ProcessModel processModel = processService.getModel(entity.getProcess().getId());
+			if(processModel != null){
+				isFlowForm = true;
+			}
+			if(activities != null) {
+				Process process = processService.get(entity.getProcess().getKey());
+				if (process != null) {
+					activities.addAll(process.getActivities());
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+	}
+
 	//设置控件权限
 	private void setFormItemActvitiy(List<ItemModel> itemModels, List<Activity> activities){
 		if(activities.size() > 0) {
@@ -1922,7 +1936,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 	}
 
-	private List<ItemPermissionModel> getItemPermissions(List<ItemModelEntity> items){
+	private List<ItemPermissionModel> setItemPermissions(List<ItemModelEntity> items, boolean isFlowForm){
 		List<ItemPermissionModel> itemPermissionsList = new ArrayList<>();
 		List<ItemModelEntity> columnItems = getColumnItem(items).parallelStream().sorted(Comparator.comparing(ItemModelEntity::getOrderNo).reversed()).collect(Collectors.toList());
 		for(ItemModelEntity itemModelEntity1 : columnItems){
@@ -1937,9 +1951,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 					BeanUtils.copyProperties(itemPermissionInfo, itemPermissionInfoModel, new String[]{"itemModel"});
 					if(itemPermissionInfo.getDisplayTiming() == DisplayTimingType.Add) {
 						itemPermissionModel.setAddPermissions(itemPermissionInfoModel);
-					}else if(itemPermissionInfo.getDisplayTiming() == DisplayTimingType.Update){
+					}else if(itemPermissionInfo.getDisplayTiming() == DisplayTimingType.Update && !isFlowForm){
 						itemPermissionModel.setUpdatePermissions(itemPermissionInfoModel);
-					}else {
+					}else if(!isFlowForm) {
 						itemPermissionModel.setCheckPermissions(itemPermissionInfoModel);
 					}
 				}
@@ -1967,6 +1981,12 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 		List<AnalysisDataModel> dataModelList = new ArrayList<>();
 		List<ItemModelEntity> itemModelEntities = formModelService.findAllItems(entity);
+		boolean isFlowForm = false;
+		setFlowParams(entity, null, isFlowForm);
+		//设置控件权限
+		List<ItemPermissionModel> itemPermissionModels = setItemPermissions(itemModelEntities, isFlowForm);
+		formModel.setPermissions(itemPermissionModels);
+
 		Map<String, DataModelEntity> dataModelEntities = new HashMap<>();
 		Map<String, List<String>> columnsMap = new HashMap<>();
 		//关联表单
