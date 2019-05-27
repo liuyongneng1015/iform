@@ -45,6 +45,9 @@ public class ItemInstance extends IdEntity {
 	@ApiModelProperty(value = "控件名称", position = 6)
 	private String itemName;
 
+	@ApiModelProperty(value = "流程实例ID", position = 4)
+	private String processInstanceId;
+
 	public ItemType getType() {
 		return type;
 	}
@@ -147,6 +150,14 @@ public class ItemInstance extends IdEntity {
 
 	public void setItemName(String itemName) {
 		this.itemName = itemName;
+	}
+
+	public String getProcessInstanceId() {
+		return processInstanceId;
+	}
+
+	public void setProcessInstanceId(String processInstanceId) {
+		this.processInstanceId = processInstanceId;
 	}
 
 	@ApiModelProperty(value = "字段模型ID（uuid）", position = 0)

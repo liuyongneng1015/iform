@@ -58,6 +58,9 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	@Autowired
 	private DataModelService dataModelService;
 
+	@Autowired
+	private UserService userService;
+
 	@Override
 	public List<FormDataSaveInstance> list(@PathVariable(name="listId") String listId, @RequestParam Map<String, Object> parameters) {
 		ListModelEntity listModel = listModelService.find(listId);
@@ -203,6 +206,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 						map.put((String)objectMap.get("id"), objectMap);
 					}
 					for(ItemInstance itemInstance : instance.getItems()){
+						itemInstance.setProcessInstanceId(processInstance.getId());
 						Map<String, Object> instanceMap = map.get(itemInstance.getId());
 						if(instanceMap != null) {
 							itemInstance.setVisible(instanceMap.get("visible") == null ? false : (Boolean)instanceMap.get("visible"));
@@ -718,9 +722,6 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		}
 		return pageInstance;
 	}
-
-	@Autowired
-	private UserService userService;
 
 	/**
 	{

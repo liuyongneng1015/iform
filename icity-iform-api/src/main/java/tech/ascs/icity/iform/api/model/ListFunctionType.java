@@ -8,7 +8,10 @@ public enum ListFunctionType {
     InvokeService("InvokeService"),
 
     // 跳转URL
-    JumpURL("JumpURL");
+    JumpURL("JumpURL"),
+
+    // 启动流程
+    StartProcess("StartProcess");
 
     private String value;
 

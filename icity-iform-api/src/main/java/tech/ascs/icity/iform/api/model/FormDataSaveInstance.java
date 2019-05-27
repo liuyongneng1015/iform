@@ -41,6 +41,9 @@ public class FormDataSaveInstance extends IdEntity {
 	@ApiModelProperty(value = "表单实例ID", position = 9)
 	private Map<String, Object> data = new HashMap<String, Object>();
 
+    @ApiModelProperty(value = "流程数据", position = 9)
+    private Map<String, Object> flowData = new HashMap<String, Object>();
+
 	@ApiModelProperty(value = "二维码图片", position = 10)
 	private FileUploadModel fileUploadModel;
 
@@ -126,7 +129,15 @@ public class FormDataSaveInstance extends IdEntity {
 		return data.get(key);
 	}
 
-	public List<ReferenceDataInstance> getReferenceData() {
+    public Map<String, Object> getFlowData() {
+        return flowData;
+    }
+
+    public void setFlowData(Map<String, Object> flowData) {
+        this.flowData = flowData;
+    }
+
+    public List<ReferenceDataInstance> getReferenceData() {
 		return referenceData;
 	}
 

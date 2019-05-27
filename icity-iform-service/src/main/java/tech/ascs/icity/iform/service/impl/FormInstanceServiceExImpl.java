@@ -474,11 +474,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 			// 启动流程
 			if (formModel.getProcess() != null && formModel.getProcess().getKey() != null) {
-				//跳过第一个流程环节
-				data.put("PASS_THROW_FIRST_USERTASK", true);
-				System.out.println("传给工作流的数据=====>>>>>"+data);
-				String processInstanceId = processInstanceService.startProcess(formModel.getProcess().getKey(), newId, data);
-				updateProcessInfo(formModel, data, processInstanceId);
+				startProces(formInstance, data,  formModel,  newId);
 			}
 
 			session.getTransaction().commit();
@@ -495,6 +491,24 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}
 		}
 		return newId;
+	}
+
+	//启动流程
+	private void startProces(FormDataSaveInstance formInstance, Map<String, Object> data, FormModelEntity formModel, String newId){
+		List<ListFunctionType> listFunctions = formModel.getFunctions().parallelStream().map(ListFunction::getFunctionType).collect(Collectors.toList());
+		if(listFunctions == null || !listFunctions.contains(ListFunctionType.StartProcess)){
+			return;
+		}
+		Map<String, Object> flowData = formInstance.getFlowData();
+		if(flowData == null){
+			flowData = new HashMap<>();
+		}
+		flowData.putAll(data);
+		//跳过第一个流程环节
+		flowData.put("PASS_THROW_FIRST_USERTASK", true);
+		System.out.println("传给工作流的数据=====>>>>>"+flowData);
+		String processInstanceId = processInstanceService.startProcess(formModel.getProcess().getKey(), newId, flowData);
+		updateProcessInfo(formModel, data, processInstanceId);
 	}
 
 	private void sendWebService(FormModelEntity formModelEntity, BusinessTriggerType triggerType,  Map<String, Object> data, String id){
@@ -634,9 +648,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			sendWebService( formModelEntity, BusinessTriggerType.Update_Before, data, instanceId);
 
 			// 流程操作
-			if (formInstance.getActivityInstanceId() != null) {
-				taskService.completeTask(formInstance.getActivityInstanceId(), data);
-				updateProcessInfo(formModel, data, formInstance.getProcessInstanceId());
+			if (StringUtils.hasText(formInstance.getActivityInstanceId())) {
+				completedProcess(formInstance, data, formModel);
 			}
 			System.out.println("___"+data.get("event_nature"));
 			session.update(dataModel.getTableName(), data);
@@ -655,6 +668,17 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				session.close();
 			}
 		}
+	}
+
+	//完成当前任务
+	private void completedProcess(FormDataSaveInstance formInstance, Map<String, Object> data, FormModelEntity formModel){
+		Map<String, Object> flowData = formInstance.getFlowData();
+		if(flowData == null){
+			flowData = new HashMap<>();
+		}
+		flowData.putAll(data);
+		taskService.completeTask(formInstance.getActivityInstanceId(), flowData);
+		updateProcessInfo(formModel, data, formInstance.getProcessInstanceId());
 	}
 
 
