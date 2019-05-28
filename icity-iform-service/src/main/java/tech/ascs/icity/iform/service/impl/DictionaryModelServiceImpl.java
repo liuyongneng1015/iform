@@ -299,7 +299,7 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 				Integer orderNo = null;
 				for (int i = 0; i < mapList.size() ; i ++){
 					dataMap.put(i, mapList.get(i));
-					if(mapList.get(i).get("id") == id){
+					if(mapList.get(i).get("id").equals(id)){
 						j = i;
 						orderNo = mapList.get(i).get("order_no") == null ? 0 : Integer.parseInt(String.valueOf(mapList.get(i).get("order_no")));
 					}

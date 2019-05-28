@@ -19,6 +19,12 @@ public class DictionaryModel extends NameEntity implements Serializable {
 	@ApiModelProperty(value = "数据表", position = 4)
 	private String tableName;
 
+	/**
+	 * 数据表
+	 */
+	@ApiModelProperty(value = "数据表", position = 4)
+	private String data;
+
 
 	@ApiModelProperty(value = "应用id", position = 4)
 	private String applicationId;
@@ -31,11 +37,25 @@ public class DictionaryModel extends NameEntity implements Serializable {
 
 
 	public String getTableName() {
+		if(tableName == null){
+			tableName = data;
+		}
 		return tableName;
 	}
 
 	public void setTableName(String tableName) {
 		this.tableName = tableName;
+	}
+
+	public String getData() {
+		if(data == null){
+			data = tableName;
+		}
+		return data;
+	}
+
+	public void setData(String data) {
+		this.data = data;
 	}
 
 	public String getApplicationId() {
