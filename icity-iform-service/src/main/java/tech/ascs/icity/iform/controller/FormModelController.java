@@ -730,6 +730,15 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				if(map.get(function.getAction()) != null){
 					throw new IFormException("功能编码重复");
 				}
+
+				if(function.getAction().length() > 20){
+					throw new IFormException("功能编码超长");
+				}
+
+				if(function.getLabel().length() > 20){
+					throw new IFormException("功能名超长");
+				}
+
 				map.put(function.getAction(), function.getLabel());
 			}
 		}

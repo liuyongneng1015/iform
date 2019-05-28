@@ -180,7 +180,13 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 
 		Map<String, Object> iflowQueryParams = assemblyIflowQueryParams(items, queryParameters);
 		// 查工作流
-		Page<ProcessInstance> pageProcess = processInstanceService.page(page, pagesize, formModelEntity.getProcess().getKey(), status, iflowQueryParams);
+		Page<ProcessInstance> pageProcess = null;
+		try {
+			pageProcess = processInstanceService.page(page, pagesize, formModelEntity.getProcess().getKey(), status, iflowQueryParams);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new IFormException("查询数据失败了");
+		}
 		Map<String, ProcessInstance> instanceIdAndEditMap = pageProcess.getResults().stream().collect(Collectors.toMap(ProcessInstance::getBusinessKey, processInstance -> processInstance));
 		String[] formInstanceIds = pageProcess.getResults().stream().map(item->item.getBusinessKey()).toArray(String[]::new);
 		if (formInstanceIds!=null && formInstanceIds.length>0) {

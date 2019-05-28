@@ -8,7 +8,9 @@
   <component name="ChangeListManager">
     <list default="true" id="ee3eff9e-d21a-48e8-a487-7855c9b210e7" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/icity-iform-service/src/main/java/tech/ascs/icity/iform/service/impl/DictionaryModelServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/icity-iform-service/src/main/java/tech/ascs/icity/iform/service/impl/DictionaryModelServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/icity-iform-service/src/main/java/tech/ascs/icity/iform/controller/FormInstanceController.java" beforeDir="false" afterPath="$PROJECT_DIR$/icity-iform-service/src/main/java/tech/ascs/icity/iform/controller/FormInstanceController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/icity-iform-service/src/main/java/tech/ascs/icity/iform/controller/FormModelController.java" beforeDir="false" afterPath="$PROJECT_DIR$/icity-iform-service/src/main/java/tech/ascs/icity/iform/controller/FormModelController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/icity-iform-service/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/icity-iform-service/src/main/resources/application.yml" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/icity-iform-service/target/" />
     <ignored path="$PROJECT_DIR$/target/" />
@@ -79,7 +81,7 @@
           <entry key="dtd" value="1" />
           <entry key="ftl" value="88" />
           <entry key="http" value="1" />
-          <entry key="java" value="6509" />
+          <entry key="java" value="6511" />
           <entry key="log" value="7" />
           <entry key="pom" value="5" />
           <entry key="xml" value="68" />
@@ -92,7 +94,7 @@
           <entry key="CLASS" value="385" />
           <entry key="DTD" value="1" />
           <entry key="FTL" value="88" />
-          <entry key="JAVA" value="6509" />
+          <entry key="JAVA" value="6511" />
           <entry key="PLAIN_TEXT" value="7" />
           <entry key="Scratch" value="1" />
           <entry key="XML" value="74" />
@@ -104,19 +106,19 @@
           <entry key="class" value="7" />
           <entry key="dummy" value="18" />
           <entry key="ftl" value="2206" />
-          <entry key="java" value="163968" />
+          <entry key="java" value="164002" />
           <entry key="xml" value="212" />
-          <entry key="yml" value="1214" />
+          <entry key="yml" value="1218" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="CLASS" value="7" />
           <entry key="FTL" value="2206" />
-          <entry key="JAVA" value="163968" />
+          <entry key="JAVA" value="164002" />
           <entry key="PLAIN_TEXT" value="18" />
           <entry key="XML" value="212" />
-          <entry key="YAML" value="1214" />
+          <entry key="YAML" value="1218" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.vcs.git.usages" />
@@ -137,8 +139,17 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/icity-iform-service/src/main/resources/application.yml">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="110">
-              <caret line="5" column="30" lean-forward="true" selection-start-line="5" selection-start-column="30" selection-end-line="5" selection-end-column="30" />
+            <state relative-caret-position="418">
+              <caret line="38" column="20" selection-start-line="38" selection-start-column="20" selection-end-line="38" selection-end-column="20" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/icity-iform-api/src/main/java/tech/ascs/icity/iform/api/service/FormModelService.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-946">
+              <caret line="33" column="12" lean-forward="true" selection-start-line="33" selection-start-column="12" selection-end-line="33" selection-end-column="12" />
             </state>
           </provider>
         </entry>
@@ -146,24 +157,35 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/icity-iform-service/src/main/java/tech/ascs/icity/iform/controller/FormModelController.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="330">
-              <caret line="923" column="12" selection-start-line="923" selection-start-column="12" selection-end-line="925" selection-end-column="13" />
+            <state relative-caret-position="154">
+              <caret line="1898" column="91" lean-forward="true" selection-start-line="1898" selection-start-column="64" selection-end-line="1898" selection-end-column="91" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/icity-iform-service/src/main/java/tech/ascs/icity/iform/controller/DictionaryModelController.java">
+        <entry file="file://$PROJECT_DIR$/icity-iform-api/src/main/java/tech/ascs/icity/iform/api/model/FormModel.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="207">
-              <caret line="47" column="41" selection-start-line="47" selection-start-column="41" selection-end-line="47" selection-end-column="41" />
-              <folding>
-                <element signature="imports" expanded="true" />
-                <element signature="e#1030#1031#0" expanded="true" />
-                <element signature="e#1081#1082#0" expanded="true" />
-                <element signature="e#1948#1949#0" expanded="true" />
-                <element signature="e#1993#1994#0" expanded="true" />
-              </folding>
+            <state relative-caret-position="440">
+              <caret line="56" column="23" lean-forward="true" selection-start-line="56" selection-start-column="23" selection-end-line="56" selection-end-column="23" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/icity-iform-service/src/main/java/tech/ascs/icity/iform/controller/FormInstanceController.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="53">
+              <caret line="187" column="45" selection-start-line="187" selection-start-column="45" selection-end-line="187" selection-end-column="45" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/icity-iform-api/src/main/java/tech/ascs/icity/iform/api/service/FormInstanceService.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-6138">
+              <caret line="22" column="17" selection-start-line="22" selection-start-column="17" selection-end-line="22" selection-end-column="17" />
             </state>
           </provider>
         </entry>
@@ -173,18 +195,6 @@
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="358">
               <caret line="68" column="39" lean-forward="true" selection-start-line="68" selection-start-column="39" selection-end-line="68" selection-end-column="39" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/icity-iform-api/src/main/java/tech/ascs/icity/iform/api/service/DictionaryModelDataService.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-423">
-              <caret line="14" column="17" selection-start-line="14" selection-start-column="17" selection-end-line="14" selection-end-column="17" />
-              <folding>
-                <element signature="imports" expanded="true" />
-              </folding>
             </state>
           </provider>
         </entry>
@@ -223,30 +233,6 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/icity-iform-api/src/main/java/tech/ascs/icity/iform/api/service/DictionaryModelService.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-286">
-              <caret line="22" column="19" selection-start-line="22" selection-start-column="19" selection-end-line="22" selection-end-column="19" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/icity-iform-api/src/main/java/tech/ascs/icity/iform/api/model/DictionaryModel.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="572">
-              <caret line="37" column="5" lean-forward="true" selection-start-line="37" selection-start-column="5" selection-end-line="37" selection-end-column="5" />
-              <folding>
-                <element signature="e#661#662#0" expanded="true" />
-                <element signature="e#684#685#0" expanded="true" />
-                <element signature="e#730#731#0" expanded="true" />
-                <element signature="e#763#764#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
     </leaf>
   </component>
   <component name="FileTemplateManagerImpl">
@@ -260,8 +246,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>process</find>
-      <find>Integer.p</find>
       <find>parent_id=</find>
       <find>Int</find>
       <find>id=</find>
@@ -290,6 +274,8 @@
       <find>delete from</find>
       <find>delete</find>
       <find>dictionaryModelModel.getTableName()</find>
+      <find>FormModelController</find>
+      <find>qr</find>
     </findStrings>
     <replaceStrings>
       <replace>${column.length?string('0')}</replace>
@@ -351,7 +337,6 @@
         <option value="$PROJECT_DIR$/icity-iform-api/src/main/java/tech/ascs/icity/iform/api/model/FormDataSaveInstance.java" />
         <option value="$PROJECT_DIR$/icity-iform-api/src/main/java/tech/ascs/icity/iform/api/model/ItemInstance.java" />
         <option value="$PROJECT_DIR$/icity-iform-api/src/main/java/tech/ascs/icity/iform/api/model/ListFunctionType.java" />
-        <option value="$PROJECT_DIR$/icity-iform-service/src/main/java/tech/ascs/icity/iform/controller/FormInstanceController.java" />
         <option value="$PROJECT_DIR$/icity-iform-service/src/main/java/tech/ascs/icity/iform/service/impl/FormInstanceServiceExImpl.java" />
         <option value="$PROJECT_DIR$/icity-iform-api/src/main/java/tech/ascs/icity/iform/api/service/FormModelService.java" />
         <option value="$PROJECT_DIR$/icity-iform-service/src/main/java/tech/ascs/icity/iform/utils/CommonUtils.java" />
@@ -359,6 +344,7 @@
         <option value="$PROJECT_DIR$/icity-iform-service/src/main/java/tech/ascs/icity/iform/controller/FormModelController.java" />
         <option value="$PROJECT_DIR$/icity-iform-api/src/main/java/tech/ascs/icity/iform/api/model/DictionaryModel.java" />
         <option value="$PROJECT_DIR$/icity-iform-service/src/main/java/tech/ascs/icity/iform/service/impl/DictionaryModelServiceImpl.java" />
+        <option value="$PROJECT_DIR$/icity-iform-service/src/main/java/tech/ascs/icity/iform/controller/FormInstanceController.java" />
         <option value="$PROJECT_DIR$/icity-iform-service/src/main/resources/application.yml" />
       </list>
     </option>
@@ -613,7 +599,7 @@
     <property name="SearchEverywhereHistoryKey" value="&#9;FILE&#9;file://E:/lyn/icity-iform/icity-iform-service/src/main/java/tech/ascs/icity/iform/controller/ListModelController.java" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
-    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1559011705595" />
+    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1559034036908" />
     <property name="dynamic.classpath" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/../icity-base/icity-oauth" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
@@ -820,7 +806,7 @@
     </history-entry>
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="2334467000" />
+    <option name="totallyTimeSpent" value="2336011000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -1030,7 +1016,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/icity-iform-service/src/main/java/tech/ascs/icity/iform/controller/FormInstanceController.java</url>
-          <line>185</line>
+          <line>191</line>
           <properties />
           <option name="timeStamp" value="19" />
         </line-breakpoint>
@@ -1046,6 +1032,30 @@
           <properties />
           <option name="timeStamp" value="23" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/icity-iform-service/src/main/java/tech/ascs/icity/iform/controller/FormInstanceController.java</url>
+          <line>651</line>
+          <properties />
+          <option name="timeStamp" value="24" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/icity-iform-service/src/main/java/tech/ascs/icity/iform/controller/FormInstanceController.java</url>
+          <line>587</line>
+          <properties />
+          <option name="timeStamp" value="25" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/icity-iform-service/src/main/java/tech/ascs/icity/iform/controller/FormInstanceController.java</url>
+          <line>661</line>
+          <properties />
+          <option name="timeStamp" value="26" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/icity-iform-service/src/main/java/tech/ascs/icity/iform/controller/FormInstanceController.java</url>
+          <line>604</line>
+          <properties />
+          <option name="timeStamp" value="27" />
+        </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
     <watches-manager>
@@ -1060,6 +1070,16 @@
   </component>
   <component name="debuggerHistoryManager">
     <expressions id="evaluateExpression">
+      <expression>
+        <expression-string>skipUrl</expression-string>
+        <language-id>JAVA</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>httpHead+&quot;?status=check&amp;listId=&quot;+listId+&quot;&amp;formId=&quot;+formModel.getId()+&quot;&amp;listRowId=&quot;+id, new String(qrcodeName.getBytes(&quot;UTF-8&quot;),&quot;UTF-8&quot;)</expression-string>
+        <language-id>JAVA</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
       <expression>
         <expression-string>pageProcess.results.get(0)</expression-string>
         <language-id>JAVA</language-id>
@@ -1092,16 +1112,6 @@
       </expression>
       <expression>
         <expression-string>formModel</expression-string>
-        <language-id>JAVA</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>formModel.getItemModelIds()</expression-string>
-        <language-id>JAVA</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>fromItem.getParentItem().getReferenceFormId()</expression-string>
         <language-id>JAVA</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
@@ -1246,8 +1256,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/icity-iform-api/src/main/java/tech/ascs/icity/iform/api/model/ListFunctionType.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="286">
-          <caret line="13" column="33" selection-start-line="13" selection-start-column="33" selection-end-line="13" selection-end-column="33" />
+        <state relative-caret-position="132">
+          <caret line="6" selection-start-line="6" selection-end-line="13" selection-end-column="33" />
         </state>
       </provider>
     </entry>
@@ -1258,13 +1268,6 @@
           <folding>
             <element signature="e#3227#3228#0" expanded="true" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/icity-iform-api/src/main/java/tech/ascs/icity/iform/api/service/FormInstanceService.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-2455">
-          <caret line="65" column="23" selection-start-line="65" selection-start-column="23" selection-end-line="65" selection-end-column="23" />
         </state>
       </provider>
     </entry>
@@ -1314,22 +1317,15 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/icity-iform-api/src/main/java/tech/ascs/icity/iform/api/model/FunctionModel.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-550">
-          <caret line="10" column="13" selection-start-line="10" selection-start-column="13" selection-end-line="10" selection-end-column="13" />
+        <state relative-caret-position="264">
+          <caret line="35" column="24" selection-start-line="35" selection-start-column="24" selection-end-line="35" selection-end-column="24" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/icity-iform-api/src/main/java/tech/ascs/icity/iform/api/model/FormModel.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="22">
-          <caret line="11" column="13" selection-start-line="11" selection-start-column="13" selection-end-line="11" selection-end-column="13" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/icity-iform-service/src/main/java/tech/ascs/icity/iform/controller/FormInstanceController.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="317">
-          <caret line="486" column="45" selection-start-line="486" selection-start-column="45" selection-end-line="486" selection-end-column="45" />
+        <state relative-caret-position="440">
+          <caret line="56" column="23" lean-forward="true" selection-start-line="56" selection-start-column="23" selection-end-line="56" selection-end-column="23" />
         </state>
       </provider>
     </entry>
@@ -1427,15 +1423,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/icity-iform-api/src/main/java/tech/ascs/icity/iform/api/service/FormModelService.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1320">
-          <caret line="17" column="17" selection-start-line="17" selection-start-column="17" selection-end-line="17" selection-end-column="17" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/icity-iform-service/src/main/java/tech/ascs/icity/iform/controller/FormModelController.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="330">
-          <caret line="923" column="12" selection-start-line="923" selection-start-column="12" selection-end-line="925" selection-end-column="13" />
+        <state relative-caret-position="-946">
+          <caret line="33" column="12" lean-forward="true" selection-start-line="33" selection-start-column="12" selection-end-line="33" selection-end-column="12" />
         </state>
       </provider>
     </entry>
@@ -1518,10 +1507,31 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/icity-iform-api/src/main/java/tech/ascs/icity/iform/api/service/FormInstanceService.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-6138">
+          <caret line="22" column="17" selection-start-line="22" selection-start-column="17" selection-end-line="22" selection-end-column="17" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/icity-iform-service/src/main/java/tech/ascs/icity/iform/controller/FormModelController.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="154">
+          <caret line="1898" column="91" lean-forward="true" selection-start-line="1898" selection-start-column="64" selection-end-line="1898" selection-end-column="91" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/icity-iform-service/src/main/java/tech/ascs/icity/iform/controller/FormInstanceController.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="53">
+          <caret line="187" column="45" selection-start-line="187" selection-start-column="45" selection-end-line="187" selection-end-column="45" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/icity-iform-service/src/main/resources/application.yml">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="110">
-          <caret line="5" column="30" lean-forward="true" selection-start-line="5" selection-start-column="30" selection-end-line="5" selection-end-column="30" />
+        <state relative-caret-position="418">
+          <caret line="38" column="20" selection-start-line="38" selection-start-column="20" selection-end-line="38" selection-end-column="20" />
         </state>
       </provider>
     </entry>
