@@ -921,6 +921,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			if(!isLetterDigit(dataModel.getTableName())){
 				throw new IFormException("表名只允许包含字母、数字和下划线连接符");
 			}
+			if (!Pattern.matches(CommonUtils.regEx, dataModel.getTableName())) {
+				throw new IFormException("表名必须以字母开头，只能包含数字，字母，下划线，不能包含中文，横杆等特殊字符");
+			}
 			List<String> columnModelEntities = dataModel.getColumns().parallelStream().map(ColumnModel::getColumnName).collect(Collectors.toList());
 			Map<String, Object> map = new HashMap<String, Object>();
 			for(String string : columnModelEntities){

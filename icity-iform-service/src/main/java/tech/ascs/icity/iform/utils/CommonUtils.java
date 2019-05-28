@@ -7,7 +7,7 @@ import java.util.Date;
 public class CommonUtils {
 
     private final static String time_format = "yyyy-MM-dd";
-
+    public final static String regEx = "[a-zA-Z]{1,}[a-zA-Z0-9_-]{0,}";
     /**
      * hql模糊搜索参数转换,包含添加通配符和转义通配符
      * @param parameter

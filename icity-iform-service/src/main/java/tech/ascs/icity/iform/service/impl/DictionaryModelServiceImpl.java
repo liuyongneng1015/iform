@@ -23,6 +23,7 @@ import tech.ascs.icity.model.Page;
 
 import javax.validation.constraints.NotNull;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryModelEntity> implements DictionaryModelService {
@@ -106,6 +107,10 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 		if(StringUtils.isBlank(dictionaryModel.getTableName()) || StringUtils.isBlank(dictionaryModel.getName())){
 			throw new IFormException("数据表或字典名称为空了");
 		}
+		if (!Pattern.matches(CommonUtils.regEx, dictionaryModel.getTableName())) {
+			throw new IFormException("数据表必须以字母开头，只能包含数字，字母，下划线，不能包含中文，横杆等特殊字符");
+		}
+
 		List<DictionaryModelEntity> list = dictionaryManager.query().filterEqual("tableName", dictionaryModel.getTableName()).list();
 		if(list == null || list.size() < 1){
 			return;

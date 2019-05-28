@@ -26,6 +26,7 @@ import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.ColumnModelService;
 import tech.ascs.icity.iform.service.DataModelService;
 import tech.ascs.icity.iform.service.FormModelService;
+import tech.ascs.icity.iform.utils.CommonUtils;
 import tech.ascs.icity.jpa.dao.Query;
 import tech.ascs.icity.model.IdEntity;
 import tech.ascs.icity.model.Page;
@@ -230,7 +231,6 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 		}
 	}
 
-	private String regEx = "[a-zA-Z]{1,}[a-zA-Z0-9_]{0,}";
 	@Override
 	public IdEntity createDataModel(@RequestBody DataModel dataModel) {
 		if (StringUtils.hasText(dataModel.getId())) {
@@ -283,7 +283,7 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 		if (StringUtils.isEmpty(dataModel.getTableName())) {
 			throw new IFormException("表名不允许为空");
 		}
-		if (!Pattern.matches(regEx, dataModel.getTableName())) {
+		if (!Pattern.matches(CommonUtils.regEx, dataModel.getTableName())) {
 			throw new IFormException("表名必须以字母开头，只能包含数字，字母，下划线，不能包含中文，横杆等特殊字符");
 		}
 		if (dataModel.getColumns()==null || dataModel.getColumns().size()==0) {
@@ -293,12 +293,12 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 			if (StringUtils.isEmpty(column.getColumnName())) {
 				throw new IFormException("字段名称不允许为空");
 			}
-			if (column.getColumnName() == null || Pattern.matches(regEx, column.getColumnName()) == false) {
+			if (column.getColumnName() == null || Pattern.matches(CommonUtils.regEx, column.getColumnName()) == false) {
 				throw new IFormException("字段名称必须以字母开头，只能包含数字，字母，下划线，不能包含中文，横杆等特殊字符");
 			}
 		}
 		for (IndexModel indexModel:dataModel.getIndexes()) {
-			if (indexModel.getName() == null || Pattern.matches(regEx, indexModel.getName()) == false) {
+			if (indexModel.getName() == null || Pattern.matches(CommonUtils.regEx, indexModel.getName()) == false) {
 				throw new IFormException("索引名必须以字母开头，只能包含数字，字母，下划线，不能包含中文，横杆等特殊字符");
 			}
 		}
