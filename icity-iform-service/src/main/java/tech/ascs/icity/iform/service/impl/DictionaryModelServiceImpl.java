@@ -277,16 +277,16 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 		List<String> idList = new ArrayList<>();
 		idList.add(dictionaryModelData.getId());
 		findAllChildrenId(idList, dictionaryModelModel.getTableName(), dictionaryModelData.getId());
-		StringBuffer sub = new StringBuffer("(");
+		StringBuffer sub = new StringBuffer("('");
 		for(int i = 0 ; i < idList.size() ; i++){
 			if(i == 0){
 				sub.append(idList.get(i));
 			}else{
-				sub.append(","+ idList.get(i));
+				sub.append("','"+ idList.get(i));
 			}
 		}
-		sub.append(")");
-		dictionaryManager.getJdbcTemplate().execute("delete from '"+dictionaryModelModel.getTableName()+"' where id in "+sub.toString());
+		sub.append("')");
+		dictionaryManager.getJdbcTemplate().execute("delete from "+dictionaryModelModel.getTableName()+" where id in "+sub.toString());
 	}
 
 
