@@ -183,6 +183,7 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 				for (ListFunction function : entity.getFunctions()) {
 					ListFunction listFunction = function.isNew() ? new ListFunction() : oldFunctionMap.get(function.getId());
 					BeanUtils.copyProperties(function, listFunction, new String[]{"listModel", "formModel"});
+					setFunction(function, listFunction);
 					listFunction.setListModel(old);
 					functions.add(listFunction);
 				}
@@ -213,6 +214,33 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 			saveDisplayItemSort(returnEntity);
 			return returnEntity;
 		}
+	}
+
+	//设置列表功能
+	private void setFunction(ListFunction functionParams, ListFunction newListFunction){
+		newListFunction.setUrl(functionParams.getUrl());
+		// 请求方式，GET、HEAD、POST、PUT、DELETE、CONNECT、OPTIONS、TRACE
+		newListFunction.setMethod(functionParams.getMethod());
+		newListFunction.setIcon(functionParams.getIcon());
+		newListFunction.setStyle(functionParams.getStyle());
+		newListFunction.setParamCondition(functionParams.getParamCondition());
+		newListFunction.setFunctionType(functionParams.getFunctionType());
+		newListFunction.setHasConfirmForm(functionParams.getHasConfirmForm());
+		newListFunction.setConfirmForm(functionParams.getConfirmForm());
+		newListFunction.setReturnOperation(functionParams.getReturnOperation());
+		newListFunction.setJumpNewUrl(functionParams.getJumpNewUrl());
+		newListFunction.setListActionBarVisible(functionParams.getListActionBarVisible());
+		newListFunction.setCheckPageVisible(functionParams.getCheckPageVisible());
+		newListFunction.setAddPageVisible(functionParams.getAddPageVisible());
+		newListFunction.setUpdatePageVisible(functionParams.getUpdatePageVisible());
+		//显示时机 若为空标识所有时机都显示
+		newListFunction.setDisplayTiming(functionParams.getDisplayTiming());
+		// 返回结果
+		newListFunction.setReturnResult(functionParams.getReturnResult());
+		// 解析区域
+		newListFunction.setParseArea(functionParams.getParseArea());
+		// 是否是系统的按钮
+		newListFunction.setSystemBtn(functionParams.getSystemBtn());
 	}
 
 	private void saveDisplayItemSort(ListModelEntity entity) {

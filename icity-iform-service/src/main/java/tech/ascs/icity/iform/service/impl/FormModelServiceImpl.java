@@ -19,6 +19,11 @@ import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 import tech.ascs.icity.utils.BeanUtils;
 
+import javax.persistence.Column;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.JoinColumn;
+
 public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> implements FormModelService {
 
 	private JPAManager<ItemModelEntity> itemManager;
@@ -1503,6 +1508,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				boolean isNew = function.isNew();
 				ListFunction listFunction = isNew ? new ListFunction() : oldMap.remove(function.getId());
 				BeanUtils.copyProperties(function, listFunction, new String[]{"listModel", "formModel"});
+                setFunction(function, listFunction);
 				if(isNew){
 					Integer orderNo = formFunctionsService.getMaxOrderNo();
 					listFunction.setOrderNo(orderNo == null ? 1 : orderNo + 1);
@@ -1516,6 +1522,33 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			listFunctionManager.deleteById(key);
 		}
 	}
+
+	//设置表单功能
+	private void setFunction(ListFunction functionParams, ListFunction newListFunction){
+        newListFunction.setUrl(functionParams.getUrl());
+        // 请求方式，GET、HEAD、POST、PUT、DELETE、CONNECT、OPTIONS、TRACE
+        newListFunction.setMethod(functionParams.getMethod());
+        newListFunction.setIcon(functionParams.getIcon());
+        newListFunction.setStyle(functionParams.getStyle());
+        newListFunction.setParamCondition(functionParams.getParamCondition());
+        newListFunction.setFunctionType(functionParams.getFunctionType());
+        newListFunction.setHasConfirmForm(functionParams.getHasConfirmForm());
+        newListFunction.setConfirmForm(functionParams.getConfirmForm());
+        newListFunction.setReturnOperation(functionParams.getReturnOperation());
+        newListFunction.setJumpNewUrl(functionParams.getJumpNewUrl());
+        newListFunction.setListActionBarVisible(functionParams.getListActionBarVisible());
+        newListFunction.setCheckPageVisible(functionParams.getCheckPageVisible());
+        newListFunction.setAddPageVisible(functionParams.getAddPageVisible());
+        newListFunction.setUpdatePageVisible(functionParams.getUpdatePageVisible());
+        //显示时机 若为空标识所有时机都显示
+        newListFunction.setDisplayTiming(functionParams.getDisplayTiming());
+        // 返回结果
+        newListFunction.setReturnResult(functionParams.getReturnResult());
+        // 解析区域
+        newListFunction.setParseArea(functionParams.getParseArea());
+        // 是否是系统的按钮
+        newListFunction.setSystemBtn(functionParams.getSystemBtn());
+    }
 
 	//设置表单业务触发
 	private void saveFormModelTriggeres(FormModelEntity formModelEntity, FormModelEntity paramerEntity) {
