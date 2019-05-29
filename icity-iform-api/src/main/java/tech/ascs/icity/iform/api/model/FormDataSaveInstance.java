@@ -125,6 +125,10 @@ public class FormDataSaveInstance extends IdEntity {
 		data.put(key, value);
 	}
 
+	public void addAllData(Map<String, Object> map) {
+		data.putAll(map);
+	}
+
 	public Object getData(String key) {
 		return data.get(key);
 	}

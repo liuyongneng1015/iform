@@ -2202,8 +2202,41 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				formInstance.setFileUploadModel(fileUploadModel);
 			}
 		}
+		Map<String, Object> map = new HashMap<>();
+		setItemInstanceMap(map, formInstance.getItems());
+		formInstance.addAllData(map);
+
+		for(SubFormItemInstance subFormItemInstance : formInstance.getSubFormData()) {
+			formInstance.addData(subFormItemInstance.getTableName(), listValue(subFormItemInstance));
+		}
+
 		return formInstance;
 	}
+
+	private List<Map<String, Object>> listValue(SubFormItemInstance subFormItemInstance){
+		List<Map<String, Object>> list = new ArrayList<>();
+		for(SubFormDataItemInstance subFormDataItemInstance:subFormItemInstance.getItemInstances()){
+			Map<String, Object> map = new HashMap<>();
+			for(SubFormRowItemInstance subFormRowItemInstance : subFormDataItemInstance.getItems()){
+				setItemInstanceMap(map, subFormRowItemInstance.getItems());
+			}
+			list.add(map);
+		}
+		return list;
+	}
+
+	private void setItemInstanceMap(Map<String, Object> map, List<ItemInstance> list){
+		for(ItemInstance itemInstance : list){
+			if(itemInstance.getType() == ItemType.Media || itemInstance.getType() == ItemType.Attachment){
+				map.put(itemInstance.getColumnModelName(), ((FileUploadModel)itemInstance.getValue()).getId());
+			}else if(itemInstance.getType() == ItemType.Label){
+				map.put(itemInstance.getColumnModelName(), ((GeographicalMapModel)itemInstance.getValue()).getId());
+			}else {
+				map.put(itemInstance.getColumnModelName(), itemInstance.getValue());
+			}
+		}
+	}
+
 
 	private String getLabel(List<String> labelIdList, Map<String , ItemInstance> labelItemMap){
 		StringBuffer label = new StringBuffer();
@@ -2335,7 +2368,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}else{
 			ItemInstance itemInstance = setItemInstance(column.getKey(), itemModel, value, formInstance.getActivityId());
 			items.add(itemInstance);
-			formInstance.addData(itemModel.getColumnModel().getId(), itemInstance.getValue());
 		}
 	}
 

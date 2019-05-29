@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.googlecode.genericdao.search.Sort;
+import io.swagger.annotations.ApiModelProperty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.StringUtils;
@@ -1952,12 +1953,11 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		List<ItemPermissionModel> itemPermissionsList = new ArrayList<>();
 		List<ItemModelEntity> columnItems = getColumnItem(items).parallelStream().sorted(Comparator.comparing(ItemModelEntity::getOrderNo).reversed()).collect(Collectors.toList());
 		for(ItemModelEntity itemModelEntity1 : columnItems){
-			if(itemModelEntity1.getPermissions() != null && itemModelEntity1.getPermissions().size() > 0){
-				ItemPermissionModel itemPermissionModel = new ItemPermissionModel();
-				itemPermissionModel.setId(itemModelEntity1.getId());
-				itemPermissionModel.setName(itemModelEntity1.getName());
-				itemPermissionModel.setUuid(itemModelEntity1.getUuid());
-				itemPermissionModel.setTypeKey(itemModelEntity1.getTypeKey());
+		    if(itemModelEntity1.getColumnModel() == null){
+		        continue;
+            }
+            ItemPermissionModel itemPermissionModel = setItemPermissionModel(itemModelEntity1);
+            if(itemModelEntity1.getPermissions() != null && itemModelEntity1.getPermissions().size() > 0){
 				for(ItemPermissionInfo itemPermissionInfo : itemModelEntity1.getPermissions()) {
 					ItemPermissionInfoModel itemPermissionInfoModel = new ItemPermissionInfoModel();
 					BeanUtils.copyProperties(itemPermissionInfo, itemPermissionInfoModel, new String[]{"itemModel"});
@@ -1969,11 +1969,43 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 						itemPermissionModel.setCheckPermissions(itemPermissionInfoModel);
 					}
 				}
-				itemPermissionsList.add(itemPermissionModel);
-			}
-		}
+			}else{
+			    List<DisplayTimingType> displayTimingTypes = new ArrayList<>();
+			    displayTimingTypes.add(DisplayTimingType.Add);
+			    if(!isFlowForm) {
+                    displayTimingTypes.add(DisplayTimingType.Update);
+                    displayTimingTypes.add(DisplayTimingType.Check);
+                }
+                for(DisplayTimingType displayTimingType : displayTimingTypes){
+                    ItemPermissionInfoModel permissionInfoModel = new ItemPermissionInfoModel();
+                    permissionInfoModel.setVisible(false);
+                    permissionInfoModel.setCanFill(false);
+                    permissionInfoModel.setRequired(false);
+                    permissionInfoModel.setDisplayTiming(displayTimingType);
+                    if(displayTimingType == DisplayTimingType.Add) {
+                        itemPermissionModel.setAddPermissions(permissionInfoModel);
+                    }else if(displayTimingType == DisplayTimingType.Update) {
+                        itemPermissionModel.setUpdatePermissions(permissionInfoModel);
+                    }else {
+                        permissionInfoModel.setCanFill(null);
+                        permissionInfoModel.setRequired(null);
+                        itemPermissionModel.setCheckPermissions(permissionInfoModel);
+                    }
+                }
+            }
+            itemPermissionsList.add(itemPermissionModel);
+        }
 		return itemPermissionsList;
 	}
+
+	private ItemPermissionModel setItemPermissionModel(ItemModelEntity itemModelEntity1){
+        ItemPermissionModel itemPermissionModel = new ItemPermissionModel();
+        itemPermissionModel.setId(itemModelEntity1.getId());
+        itemPermissionModel.setName(itemModelEntity1.getName());
+        itemPermissionModel.setUuid(itemModelEntity1.getUuid());
+        itemPermissionModel.setTypeKey(itemModelEntity1.getTypeKey());
+        return itemPermissionModel;
+    }
 
 	private List<ItemModelEntity> getColumnItem(List<ItemModelEntity> allItems){
 		List<ItemModelEntity> itemModels = new ArrayList<>();
