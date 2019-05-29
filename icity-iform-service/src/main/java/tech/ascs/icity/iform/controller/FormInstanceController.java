@@ -61,6 +61,11 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	@Autowired
 	private UserService userService;
 
+	@Value("${icity.iform.qrcode.base-url}")
+	private String qrcodeBaseUrl;
+	@Value("${icity.iform.qrcode.name}")
+	private String qrcodeName;
+
 	@Override
 	public List<FormDataSaveInstance> list(@PathVariable(name="listId") String listId, @RequestParam Map<String, Object> parameters) {
 		ListModelEntity listModel = listModelService.find(listId);
@@ -577,11 +582,6 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		//uploadDataQrCode( formModel, id);
 		return new IdEntity(id);
 	}
-
-	@Value("${icity.iform.qrcode.base-url}")
-	private String qrcodeBaseUrl;
-	@Value("${icity.iform.qrcode.name}")
-	private String qrcodeName;
 
 	private FileUploadModel createDataQrCode(String listId, FormModelEntity formModel, String id){
 		FileUploadModel qrCodeFileUploadModel = null;
