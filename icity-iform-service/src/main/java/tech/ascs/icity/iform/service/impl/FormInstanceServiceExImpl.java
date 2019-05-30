@@ -445,6 +445,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	}
 
 	private String saveFormData(DataModelEntity dataModel, FormDataSaveInstance formInstance, UserInfo user, FormModelEntity formModelEntity, FormModelEntity formModel){
+		String paramCondition = verifyDataRequired(formInstance, formModelEntity, DisplayTimingType.Add);
 		Session session = null;
 		String newId = null;
 		try {
@@ -471,14 +472,13 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			sendWebService(formModelEntity, BusinessTriggerType.Add_Before, data, formInstance.getId());
 
 			newId = (String) session.save(dataModel.getTableName(), data);
-
+			data.put("id", newId);
 			// 启动流程
 			if (formModel.getProcess() != null && formModel.getProcess().getKey() != null) {
-				startProces(formInstance, data,  formModel,  newId);
+				startProces(paramCondition,formInstance, data,  formModel,  newId);
 			}
 
 			session.getTransaction().commit();
-			data.put("id", newId);
 			// after
 			sendWebService( formModelEntity, BusinessTriggerType.Add_After, data, newId);
 
@@ -494,7 +494,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	}
 
 	//启动流程
-	private void startProces(FormDataSaveInstance formInstance, Map<String, Object> data, FormModelEntity formModel, String newId){
+	private void startProces(String paramCondition, FormDataSaveInstance formInstance, Map<String, Object> data, FormModelEntity formModel, String newId){
 		List<ListFunctionType> listFunctions = formModel.getFunctions().parallelStream().map(ListFunction::getFunctionType).collect(Collectors.toList());
 		if(listFunctions == null || !listFunctions.contains(ListFunctionType.StartProcess)){
 			//TODO 需要有启动流程
@@ -504,7 +504,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		if(flowData == null){
 			flowData = new HashMap<>();
 		}
-		flowData.putAll(data);
+		if(paramCondition != null) {
+			flowData.putAll(data);
+		}else{
+			flowData.put("id", newId);
+		}
 		//跳过第一个流程环节
 		flowData.put("PASS_THROW_FIRST_USERTASK", true);
 		System.out.println("传给工作流的数据=====>>>>>"+flowData);
@@ -577,8 +581,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	private ItemInstance getItemInstance(String id, Object value){
 		ItemInstance itemInstance = new ItemInstance();
 		itemInstance.setId(id);
-		itemInstance.setReadonly(true);
-		itemInstance.setVisible(true);
 		itemInstance.setValue(value);
 		itemInstance.setDisplayValue(value);
 		return itemInstance;
@@ -628,7 +630,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	}
 
 	private void saveFormData(DataModelEntity dataModel, FormDataSaveInstance formInstance, UserInfo user, FormModelEntity formModelEntity, FormModelEntity formModel, String instanceId){
+		String paramCondition = verifyDataRequired(formInstance, formModelEntity, DisplayTimingType.Update);
 		Session session = null;
+
 		try {
 			session = getSession(dataModel);
 			//开启事务
@@ -650,7 +654,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 			// 流程操作
 			if (StringUtils.hasText(formInstance.getActivityInstanceId())) {
-				completedProcess(formInstance, data, formModel);
+				completedProcess(paramCondition, formInstance, data, formModel);
 			}
 			System.out.println("___"+data.get("event_nature"));
 			session.update(dataModel.getTableName(), data);
@@ -671,13 +675,75 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 	}
 
+	//判断数据是否必填
+	private String verifyDataRequired(FormDataSaveInstance formInstance, FormModelEntity formModelEntity, DisplayTimingType displayTimingType){
+		List<String> notNullIdList = new ArrayList<>();
+		List<String> idList = new ArrayList<>();
+		String paramCondition = null;
+		//流程字段名称
+		if(StringUtils.hasText(formInstance.getProcessId())) {
+			if(formInstance.getProcessInstanceId() != null && formInstance.getFlowData() != null && formInstance.getFlowData().get("functionId") != null) {
+				ProcessInstance processInstance = processInstanceService.get(formInstance.getProcessInstanceId());
+				for (Map<String, Object> map : (List<Map>) processInstance.getOperations()) {
+					if(!map.get("id").equals(formInstance.getFlowData().get("functionId"))){
+						continue;
+					}
+					Map<String, Object> funcPropsMap = (Map<String, Object>)map.get("funcProps");
+					if(funcPropsMap != null){
+						paramCondition = (String)funcPropsMap.get("paramCondition");
+					}
+					if(map.get("required") != null && (Boolean)map.get("required")) {
+						notNullIdList.add((String)map.get("id"));
+					}
+					if((map.get("required") != null && (Boolean)map.get("required")) || (map.get("canFill") != null && (Boolean)map.get("canFill")) ) {
+						idList.add((String)map.get("id"));
+					}
+				}
+			}
+		}else{
+			for(ItemModelEntity itemModelEntity : formModelService.findAllItems(formModelEntity)) {
+				for (ItemPermissionInfo itemPermissionInfo :itemModelEntity.getPermissions()){
+					if(itemPermissionInfo.getDisplayTiming() == displayTimingType && itemPermissionInfo.getRequired() != null && itemPermissionInfo.getRequired()){
+						notNullIdList.add(itemModelEntity.getId());
+					}
+				}
+			}
+		}
+
+		for(ItemInstance itemInstance : formInstance.getItems()){
+			if(itemInstance.getValue() != null && String.valueOf(itemInstance.getValue()) != null && !String.valueOf(itemInstance.getValue()).equals("null")){
+				notNullIdList.remove(itemInstance.getId());
+			}
+		}
+
+		if(notNullIdList.size() > 0){
+			throw  new IFormException("存在空的字段");
+		}
+		Map<String, Object> flowData = formInstance.getFlowData();
+		if(flowData.containsKey("functionId")){
+			flowData.remove("functionId");
+		}
+		for(String id : idList) {
+			if(flowData.containsKey(id)){
+				ItemModelEntity itemModelEntity = itemModelManager.get(id);
+				Object value = flowData.get(id);
+				flowData.remove(id);
+				flowData.put(itemModelEntity.getColumnModel().getColumnName(), value);
+			}
+		}
+		formInstance.setFlowData(flowData);
+		return paramCondition;
+	}
+
 	//完成当前任务
-	private void completedProcess(FormDataSaveInstance formInstance, Map<String, Object> data, FormModelEntity formModel){
+	private void completedProcess(String paramCondition, FormDataSaveInstance formInstance, Map<String, Object> data, FormModelEntity formModel){
 		Map<String, Object> flowData = formInstance.getFlowData();
 		if(flowData == null){
 			flowData = new HashMap<>();
 		}
-		flowData.putAll(data);
+		if(paramCondition != null) {
+			flowData.putAll(data);
+		}
 		taskService.completeTask(formInstance.getActivityInstanceId(), flowData);
 		updateProcessInfo(formModel, data, formInstance.getProcessInstanceId());
 	}
@@ -1211,12 +1277,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		if (Objects.nonNull(columnModel)) {
 			data.put(columnModel.getColumnName(), value);
 		}
-	}
-
-	public static void main(String[] args) {
-		String fileKey = "2019-03-26/jpg/6e538e3812bd4107908903c875ab7d1f.jpg";
-		String format = fileKey.substring(fileKey.lastIndexOf(".")+1);
-		System.out.println(format);
 	}
 
 	private FileUploadEntity saveFileUploadEntity(Map<String, String> fileUploadModelMap, Map<String, FileUploadEntity> fileUploadEntityMap, ItemModelEntity itemModel){
@@ -2695,7 +2755,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		itemModelInstance.setType(fromItem.getType());
 		itemModelInstance.setSystemItemType(fromItem.getSystemItemType());
 		itemModelInstance.setVisible(true);
-		itemModelInstance.setReadonly(true);
 		itemModelInstance.setColumnModelId(itemModelEntity.getColumnModel().getId());
 		itemModelInstance.setColumnModelName(columnName);
 		itemModelInstance.setProps(fromItem.getProps());
@@ -2957,7 +3016,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		updateValue(itemModel, itemInstance, value);
 		if (visiblekey) {
 			itemInstance.setVisible(false);
-			itemInstance.setReadonly(true);
 		} else {
 			updateActivityInfo(itemModel, itemInstance, activityId);
 		}
@@ -2969,7 +3027,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			for (ItemActivityInfo activityInfo : itemModel.getActivities()) {
 				if (activityInfo.getActivityId().equals(activityId)) {
 					itemInstance.setVisible(activityInfo.isVisible());
-					itemInstance.setReadonly(activityInfo.isReadonly());
 					break;
 				}
 			}

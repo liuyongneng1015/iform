@@ -263,7 +263,7 @@ public interface FormInstanceService {
 		@ApiImplicitParam(paramType = "path", name = "id", value = "表单实例ID", required = true, dataType = "String")
 	})
 	@PutMapping("/{formId}/{id}")
-	void updateFormInstance(@PathVariable(name="formId") String formId, @PathVariable(name="id") String id, @RequestBody FormDataSaveInstance formInstance);
+	void updateFormInstance(@PathVariable(name="formId", required = true) String formId, @PathVariable(name="id", required = true) String id, @RequestBody FormDataSaveInstance formInstance);
 
 
 	/**

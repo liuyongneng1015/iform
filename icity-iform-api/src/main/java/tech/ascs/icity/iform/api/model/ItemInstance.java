@@ -22,10 +22,7 @@ public class ItemInstance extends IdEntity {
 	private Object displayObject;
 
 	@ApiModelProperty(value = "是否可见", position = 3)
-	private Boolean visible = true;
-
-	@ApiModelProperty(value = "是否只读", position = 4)
-	private Boolean readonly = false;
+	private Boolean visible;
 
 	@ApiModelProperty(value = "可填", position = 4)
 	private Boolean canFill;
@@ -94,14 +91,6 @@ public class ItemInstance extends IdEntity {
 
 	public void setVisible(Boolean visible) {
 		this.visible = visible;
-	}
-
-	public Boolean isReadonly() {
-		return readonly;
-	}
-
-	public void setReadonly(Boolean readonly) {
-		this.readonly = readonly;
 	}
 
 	public Boolean getCanFill() {

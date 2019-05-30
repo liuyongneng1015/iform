@@ -60,7 +60,6 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 				updateValue(itemModel, itemInstance, value);
 				if (column.getKey()) {
 					itemInstance.setVisible(false);
-					itemInstance.setReadonly(true);
 				} else {
 					updateActivityInfo(itemModel, itemInstance, formInstance.getActivityId());
 				}
@@ -113,7 +112,6 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 				for (ItemActivityInfo activityInfo : itemModel.getActivities()) {
 					if (activityInfo.getActivityId().equals(activityId)) {
 						itemInstance.setVisible(activityInfo.isVisible());
-						itemInstance.setReadonly(activityInfo.isReadonly());
 						break;
 					}
 				}
@@ -197,12 +195,10 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 			itemInstance.setId(itemModel.getId());
 			if (column.getKey()) {
 				itemInstance.setVisible(false);
-				itemInstance.setReadonly(true);
 			} else {
 				for (ItemActivityInfo activityInfo : itemModel.getActivities()) {
 					if (activityInfo.getActivityId().equals(formModel.getProcess().getStartActivity())) {
 						itemInstance.setVisible(activityInfo.isVisible());
-						itemInstance.setReadonly(activityInfo.isReadonly());
 						break;
 					}
 				}

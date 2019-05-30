@@ -61,6 +61,12 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	@Autowired
 	private UserService userService;
 
+	@Autowired
+	private DictionaryDataService dictionaryService;
+	@Autowired
+	private ProcessInstanceService processInstanceService;
+
+
 	@Value("${icity.iform.qrcode.base-url}")
 	private String qrcodeBaseUrl;
 	@Value("${icity.iform.qrcode.name}")
@@ -137,11 +143,6 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		}
 		return dataInstances;
 	}
-
-	@Autowired
-	private DictionaryDataService dictionaryService;
-	@Autowired
-	private ProcessInstanceService processInstanceService;
 
 	// url?param1=value1&param2=value2&param2=value3,value4&param2=value5
 	@Override
@@ -226,7 +227,6 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 						}
 					}
 				}
-				//instance.setPermissions(processInstance.getFormDefinition());
 			}
 			Page<FormDataSaveInstance> pageInstance = Page.get(page, pagesize);
 			pageInstance.data(pageProcess.getTotalCount(), list);
@@ -519,7 +519,6 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			map.put(item.getColumnModelName(), item);
 			item.setType(null);
 			item.setVisible(null);
-			item.setReadonly(null);
 			item.setColumnModelId(null);
 			item.setColumnModelName(null);
 		}
@@ -538,7 +537,6 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 					map.put(item.getColumnModelName(), item);
 					item.setColumnModelName(null);
 					item.setColumnModelId(null);
-					item.setReadonly(null);
 					item.setVisible(null);
 					item.setType(null);
 				}
@@ -615,10 +613,13 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	}
 
 	@Override
-	public void updateFormInstance(@PathVariable(name="formId") String formId, @PathVariable(name="id") String id, @RequestBody FormDataSaveInstance formInstance) {
+	public void updateFormInstance(@PathVariable(name="formId", required = true) String formId, @PathVariable(name="id" , required = true) String id, @RequestBody FormDataSaveInstance formInstance) {
 		FormModelEntity formModel = formModelService.find(formId);
 		if (formModel == null) {
 			throw new IFormException(404, "表单模型【" + formId + "】不存在");
+		}
+		if (!formId.equals(formInstance.getFormId()) || !id.equals(formInstance.getId())) {
+			throw new IFormException(404, "表单模型id不一致");
 		}
 
 		formInstanceService.updateFormInstance(formModel, id, formInstance);
