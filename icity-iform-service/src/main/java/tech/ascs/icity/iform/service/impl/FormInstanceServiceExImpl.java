@@ -1429,6 +1429,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		entity.put("PROCESS_INSTANCE", processInstanceId);
 		entity.put("ACTIVITY_ID", processInstance.getCurrentActivityId());
 		entity.put("ACTIVITY_INSTANCE", processInstance.getCurrentActivityInstanceId());
+		entity.put("process_state", processInstance.getStatus() != ProcessInstance.Status.Ended ? "WORK" : "DONE");
 	}
 
 	protected Session getSession(DataModelEntity dataModel) {
