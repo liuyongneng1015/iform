@@ -1429,7 +1429,23 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		entity.put("PROCESS_INSTANCE", processInstanceId);
 		entity.put("ACTIVITY_ID", processInstance.getCurrentActivityId());
 		entity.put("ACTIVITY_INSTANCE", processInstance.getCurrentActivityInstanceId());
-		entity.put("process_state", processInstance.getStatus() != ProcessInstance.Status.Ended ? "WORK" : "DONE");
+		for(ItemModelEntity itemModelEntity : formModelService.findAllItems(formModel)) {
+			if(itemModelEntity.getColumnModel() != null && "process_state".equals(itemModelEntity.getColumnModel().getColumnName())) {
+				boolean flag = processInstance.getStatus() != ProcessInstance.Status.Ended ;
+				String value = null;
+				for(ItemSelectOption option : itemModelEntity.getOptions()) {
+					if(flag && option.getValue().equals("WORK")){
+						value = option.getId();
+						break;
+					}else if(!flag && option.getValue().equals("DONE")){
+						value = option.getId();
+						break;
+					}
+				}
+				entity.put("process_state", value);
+				break;
+			}
+		}
 	}
 
 	protected Session getSession(DataModelEntity dataModel) {
