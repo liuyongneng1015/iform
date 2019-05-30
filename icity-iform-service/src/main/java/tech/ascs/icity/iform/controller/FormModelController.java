@@ -6,7 +6,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.googlecode.genericdao.search.Sort;
-import io.swagger.annotations.ApiModelProperty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.StringUtils;
@@ -306,14 +305,16 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
     }
 
 	@Override
-	public AnalysisFormModel getPCFormModelById(@PathVariable(name="id") String id, @RequestParam(value = "deviceType", required = false) String deviceType) {
+	public AnalysisFormModel getPCFormModelById(@PathVariable(name="id") String id, @RequestParam(value = "deviceType", required = false) String deviceType,
+												@RequestParam(value = "functionType", required = false) String functionType) {
 		FormModelEntity entity = formModelService.find(id);
 		if (entity == null) {
 			throw new IFormException(404, "表单模型【" + id + "】不存在");
 		}
-		DeviceType type = DeviceType.getByType(deviceType);
+		DeviceType type = DeviceType.getByValue(deviceType);
+		DefaultFunctionType function = DefaultFunctionType.getByValue(functionType);
 		try {
-			return toAnalysisDTO(entity, type);
+			return toAnalysisDTO(entity, type, function);
 		} catch (Exception e) {
 			throw new IFormException("获取表单模型列表失败：" + e.getMessage(), e);
 		}
@@ -432,8 +433,8 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			entity = formModelService.findByTableName(tableName);
 		}
 		try {
-			if (entity!=null) {
-				return toAnalysisDTO(entity, null);
+			if (entity != null) {
+				return toAnalysisDTO(entity, null, null);
 			} else {
 				return null;
 			}
@@ -2019,9 +2020,15 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 
 
-	private AnalysisFormModel toAnalysisDTO(FormModelEntity entity, DeviceType deviceType) {
+	private AnalysisFormModel toAnalysisDTO(FormModelEntity entity, DeviceType deviceType, DefaultFunctionType function) {
 		AnalysisFormModel formModel = new AnalysisFormModel();
 		entityToDTO( entity,  formModel, true, deviceType);
+		if(function != null && function != DefaultFunctionType.Add && formModel.getProcess() != null){
+			ProcessModel process = processService.getModel(formModel.getProcess().getId());
+			if(process != null){
+				formModel.setName(process.getFormName());
+			}
+		}
 
 		List<AnalysisDataModel> dataModelList = new ArrayList<>();
 		List<ItemModelEntity> itemModelEntities = formModelService.findAllItems(entity);

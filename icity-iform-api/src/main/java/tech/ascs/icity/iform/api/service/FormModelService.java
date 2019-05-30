@@ -139,10 +139,12 @@ public interface FormModelService {
 	@ApiOperation(value = "PC/APP根据表单模型ID解析表单模型对象", position = 2)
 	@ApiImplicitParams({
 			@ApiImplicitParam(paramType = "path", name = "id", value = "表单模型ID", required = true, dataType = "String"),
-			@ApiImplicitParam(paramType = "query", name = "deviceType", value = "应用id", required = false)
+			@ApiImplicitParam(paramType = "query", name = "deviceType", value = "应用id", required = false),
+            @ApiImplicitParam(paramType = "query", name = "functionType", value = "功能类型", required = false)
 	})
 	@GetMapping("/pc/{id}")
-	AnalysisFormModel getPCFormModelById(@PathVariable(name="id") String id, @RequestParam(value = "deviceType", required = false) String deviceType);
+	AnalysisFormModel getPCFormModelById(@PathVariable(name="id") String id, @RequestParam(value = "deviceType", required = false) String deviceType,
+                                         @RequestParam(value = "functionType", required = false) String functionType);
 
 	/**
 	 * 获取数据标识

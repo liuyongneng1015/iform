@@ -1,5 +1,7 @@
 package tech.ascs.icity.iform.api.model;
 
+import org.springframework.util.StringUtils;
+
 /**
  * 默认功能类型
  * 
@@ -50,5 +52,17 @@ public enum DefaultFunctionType {
 
 	public void setDesc(String desc) {
 		this.desc = desc;
+	}
+
+	public static DefaultFunctionType getByValue(String value){
+		if(!StringUtils.hasText(value)){
+			return null;
+		}
+		for(DefaultFunctionType functionType : DefaultFunctionType.values()){
+			if(functionType.getValue().equals(value)){
+				return functionType;
+			}
+		}
+		return null;
 	}
 }

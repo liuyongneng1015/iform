@@ -32,12 +32,12 @@ public enum DeviceType implements Serializable {
 		this.value = value;
 	}
 
-	public static DeviceType getByType(String type){
-		if(!StringUtils.hasText(type)){
+	public static DeviceType getByValue(String value){
+		if(!StringUtils.hasText(value)){
 			return null;
 		}
 		for(DeviceType deviceType : DeviceType.values()){
-			if(deviceType.equals(type)){
+			if(deviceType.getValue().equals(value)){
 				return deviceType;
 			}
 		}
