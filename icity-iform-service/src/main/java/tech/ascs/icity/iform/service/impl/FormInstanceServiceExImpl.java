@@ -27,6 +27,7 @@ import tech.ascs.icity.admin.api.model.User;
 import tech.ascs.icity.admin.client.GroupService;
 import tech.ascs.icity.admin.client.UserService;
 import tech.ascs.icity.iflow.api.model.ProcessInstance;
+import tech.ascs.icity.iflow.api.model.TaskInstance;
 import tech.ascs.icity.iflow.client.ProcessInstanceService;
 import tech.ascs.icity.iflow.client.TaskService;
 import tech.ascs.icity.iform.IFormException;
@@ -684,7 +685,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		if(StringUtils.hasText(formInstance.getProcessId())) {
 			if(formInstance.getProcessInstanceId() != null && formInstance.getFlowData() != null && formInstance.getFlowData().get("functionId") != null) {
 				ProcessInstance processInstance = processInstanceService.get(formInstance.getProcessInstanceId());
-				for (Map<String, Object> map : (List<Map>) processInstance.getOperations()) {
+				for (Map<String, Object> map : (List<Map>) processInstance.getCurrentTaskInstance().getOperations()) {
 					if(!map.get("id").equals(formInstance.getFlowData().get("functionId"))){
 						continue;
 					}
@@ -1487,8 +1488,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		ProcessInstance processInstance = processInstanceService.get(processInstanceId);
 		entity.put("PROCESS_ID", formModel.getProcess().getId());
 		entity.put("PROCESS_INSTANCE", processInstanceId);
-		entity.put("ACTIVITY_ID", processInstance.getCurrentActivityId());
-		entity.put("ACTIVITY_INSTANCE", processInstance.getCurrentActivityInstanceId());
+		TaskInstance taskInstance = processInstance.getCurrentTaskInstance();
+		entity.put("ACTIVITY_ID", taskInstance == null ? null : taskInstance.getActivityId());
+		entity.put("ACTIVITY_INSTANCE", taskInstance == null ? null : taskInstance.getId());
 		for(ItemModelEntity itemModelEntity : formModelService.findAllItems(formModel)) {
 			if(itemModelEntity.getColumnModel() != null && "process_state".equals(itemModelEntity.getColumnModel().getColumnName())) {
 				boolean flag = processInstance.getStatus() != ProcessInstance.Status.Ended ;
