@@ -415,7 +415,7 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 		ProcessInstance processInstance = processInstanceService.get(processInstanceId);
 		StringBuilder updateSql = new StringBuilder("UPDATE if_").append(formModel.getDataModels().get(0).getTableName())
 				.append(" SET PROCESS_ID=?,PROCESS_INSTANCE=?,ACTIVITY_ID=?,ACTIVITY_INSTANCE=? WHERE id=?");
-		doUpdate(updateSql.toString(), formModel.getProcess().getId(), processInstanceId, processInstance.getCurrentActivityId(), processInstance.getCurrentActivityInstanceId(), formInstanceId);
+		doUpdate(updateSql.toString(), formModel.getProcess().getId(), processInstanceId, processInstance.getCurrentTaskInstance().getActivityId(), processInstance.getCurrentTaskInstance().getId(), formInstanceId);
 	}
 
 	private String buildListSql(ListModelEntity listModel, Map<String, String> queryParameters) {
