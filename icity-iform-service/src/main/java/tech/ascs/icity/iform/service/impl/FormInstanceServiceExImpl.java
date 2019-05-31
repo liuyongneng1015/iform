@@ -27,8 +27,10 @@ import tech.ascs.icity.admin.api.model.User;
 import tech.ascs.icity.admin.client.GroupService;
 import tech.ascs.icity.admin.client.UserService;
 import tech.ascs.icity.iflow.api.model.ProcessInstance;
+import tech.ascs.icity.iflow.api.model.ProcessModel;
 import tech.ascs.icity.iflow.api.model.TaskInstance;
 import tech.ascs.icity.iflow.client.ProcessInstanceService;
+import tech.ascs.icity.iflow.client.ProcessService;
 import tech.ascs.icity.iflow.client.TaskService;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
@@ -69,6 +71,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
     @Autowired
     private ListModelService listModelService;
+
+    @Autowired
+    private ProcessService processService;
 
 	private JPAManager<FormModelEntity> formModelEntityJPAManager;
 
@@ -166,8 +171,17 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			Criteria criteria = generateCriteria(session, formModel, null, queryParameters);
 			criteria.setFirstResult((page - 1) * pagesize);
 			criteria.setMaxResults(pagesize);
-			List<FormDataSaveInstance> list = wrapFormDataList(formModel, null, criteria.list());
-
+			String formName = formModel.getName();
+            if(formModel.getProcess() != null){
+                ProcessModel process = processService.getModel(formModel.getProcess().getId());
+                if(process != null){
+                    formName = process.getFormName();
+                }
+            }
+            List<FormDataSaveInstance> list = wrapFormDataList(formModel, null, criteria.list());
+            for(FormDataSaveInstance formDataSaveInstance : list){
+                formDataSaveInstance.setFormName(formName);
+            }
 			criteria.setFirstResult(0);
 			criteria.setProjection(Projections.rowCount());
 			Number count = (Number) criteria.uniqueResult();
@@ -291,6 +305,14 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 
 		setFormInstanceModel( formInstance,  formModel, new HashMap<>(), true);
+        String formName = formModel.getName();
+        if(formModel.getProcess() != null){
+            ProcessModel process = processService.getModel(formModel.getProcess().getId());
+            if(process != null){
+                formName = process.getFormName();
+            }
+        }
+        formInstance.setFormName(formName);
 		return formInstance;
 	}
 
@@ -3350,6 +3372,14 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}
 			throw new IFormException("没有查询到【" + formModel.getName() + "】表单，instanceId【"+id+"】的数据");
 		}
+        String formName = formModel.getName();
+        if(formModel.getProcess() != null){
+            ProcessModel process = processService.getModel(formModel.getProcess().getId());
+            if(process != null){
+                formName = process.getFormName();
+            }
+        }
+        formInstance.setFormName(formName);
 		return formInstance;
 	}
 

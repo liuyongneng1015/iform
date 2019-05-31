@@ -2023,12 +2023,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	private AnalysisFormModel toAnalysisDTO(FormModelEntity entity, DeviceType deviceType, DefaultFunctionType function) {
 		AnalysisFormModel formModel = new AnalysisFormModel();
 		entityToDTO( entity,  formModel, true, deviceType);
-		if(function != null && function != DefaultFunctionType.Add && formModel.getProcess() != null){
-			ProcessModel process = processService.getModel(formModel.getProcess().getId());
-			if(process != null){
-				formModel.setName(process.getFormName());
-			}
-		}
 
 		List<AnalysisDataModel> dataModelList = new ArrayList<>();
 		List<ItemModelEntity> itemModelEntities = formModelService.findAllItems(entity);

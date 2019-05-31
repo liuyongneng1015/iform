@@ -17,6 +17,9 @@ public class FormInstance extends IdEntity {
 	@ApiModelProperty(value = "表单模型ID", position = 1)
 	private String formId;
 
+	@ApiModelProperty(value = "表单名", position = 1)
+	private String formName;
+
 	@ApiModelProperty(value = "流程ID", position = 2)
 	private String processId;
 
@@ -62,6 +65,14 @@ public class FormInstance extends IdEntity {
 
 	public void setFormId(String formId) {
 		this.formId = formId;
+	}
+
+	public String getFormName() {
+		return formName;
+	}
+
+	public void setFormName(String formName) {
+		this.formName = formName;
 	}
 
 	public String getProcessId() {
