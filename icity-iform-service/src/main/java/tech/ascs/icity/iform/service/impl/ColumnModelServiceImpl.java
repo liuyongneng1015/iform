@@ -217,6 +217,9 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
 
     @Override
     public void deleteTableColumn(String tableName, String columnName) {
+        if("sys_user".equals(tableName)){
+            return;
+        }
         String columnSql = "select COLUMN_NAME from information_schema.COLUMNS where table_name = '" + tableName + "'";
         try {
             List<String> colummList = jdbcTemplate.queryForList(columnSql, String.class);
@@ -245,6 +248,9 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
 
 	@Override
 	public void deleteTable(String tableName) {
+        if("sys_user".equals(tableName)){
+            return;
+        }
 		try {
 			String deleteTableSql ="DROP TABLE IF exists "+tableName;
 			jdbcTemplate.execute(deleteTableSql);
@@ -255,6 +261,9 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
 
 	@Override
 	public void deleteTableColumnIndex(String tableName, String columnName) {
+        if("sys_user".equals(tableName)){
+            return;
+        }
 		String indexSql = "show index from "+tableName;
 		List<Map<String, Object>> indexList = listIndexBySql(indexSql);
         for(Map<String, Object> map : indexList){
@@ -307,6 +316,9 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
 
     @Override
     public void deleteTableIndex(String tableName, String indexName) {
+        if("sys_user".equals(tableName)){
+            return;
+        }
         try {
             String deleteIndexSql = "alter table  " + tableName + " drop index " + indexName;
             jdbcTemplate.execute(deleteIndexSql);
