@@ -210,8 +210,8 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 					instance.setCanEdit(false);
 				}
 				instance.setMyTask(processInstance.isMyTask());
-				instance.setFunctions(processInstance.getCurrentTaskInstance().getOperations());
-				List<Map<String, Object>> stringObjectMap = (List<Map<String, Object>>)(processInstance.getCurrentTaskInstance().getOperations());
+				instance.setFunctions(processInstance.getCurrentTaskInstance() == null ? null : processInstance.getCurrentTaskInstance().getOperations());
+				List<Map<String, Object>> stringObjectMap = processInstance.getCurrentTaskInstance() == null ? null : (List<Map<String, Object>>)(processInstance.getCurrentTaskInstance().getOperations());
 				if(stringObjectMap != null) {
 					Map<String, Map<String, Object>> map = new HashMap<>();
 					for(Map<String, Object> objectMap : stringObjectMap){

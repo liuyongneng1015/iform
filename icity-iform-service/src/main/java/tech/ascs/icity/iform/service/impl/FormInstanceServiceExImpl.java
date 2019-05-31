@@ -710,19 +710,21 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		if(StringUtils.hasText(formInstance.getProcessId())) {
 			if(formInstance.getProcessInstanceId() != null && formInstance.getFlowData() != null && formInstance.getFlowData().get("functionId") != null) {
 				ProcessInstance processInstance = processInstanceService.get(formInstance.getProcessInstanceId());
-				for (Map<String, Object> map : (List<Map>) processInstance.getCurrentTaskInstance().getOperations()) {
-					if(!map.get("id").equals(formInstance.getFlowData().get("functionId"))){
-						continue;
-					}
-					Map<String, Object> funcPropsMap = (Map<String, Object>)map.get("funcProps");
-					if(funcPropsMap != null){
-						paramCondition = (String)funcPropsMap.get("paramCondition");
-					}
-					if(map.get("required") != null && (Boolean)map.get("required")) {
-						notNullIdList.add((String)map.get("id"));
-					}
-					if((map.get("required") != null && (Boolean)map.get("required")) || (map.get("canFill") != null && (Boolean)map.get("canFill")) ) {
-						idList.add((String)map.get("id"));
+				if(processInstance.getCurrentTaskInstance() != null) {
+					for (Map<String, Object> map : (List<Map>) processInstance.getCurrentTaskInstance().getOperations()) {
+						if (!map.get("id").equals(formInstance.getFlowData().get("functionId"))) {
+							continue;
+						}
+						Map<String, Object> funcPropsMap = (Map<String, Object>) map.get("funcProps");
+						if (funcPropsMap != null) {
+							paramCondition = (String) funcPropsMap.get("paramCondition");
+						}
+						if (map.get("required") != null && (Boolean) map.get("required")) {
+							notNullIdList.add((String) map.get("id"));
+						}
+						if ((map.get("required") != null && (Boolean) map.get("required")) || (map.get("canFill") != null && (Boolean) map.get("canFill"))) {
+							idList.add((String) map.get("id"));
+						}
 					}
 				}
 			}
