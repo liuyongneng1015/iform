@@ -166,6 +166,15 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 					}
 				}
 			}
+			//主键id
+			for(String key : new ArrayList<>(oldMapItmes.keySet())){
+				ItemModelEntity itemModelEntity = oldMapItmes.get(key);
+				if(itemModelEntity.getSystemItemType() == SystemItemType.ID && itemModelEntity.getFormModel() != null && itemModelEntity.getFormModel().getId().equals(entity.getId())){
+					itemModelEntities.add(oldMapItmes.get(key));
+					oldMapItmes.remove(key);
+					break;
+				}
+			}
 
 			//下拉联动或关联动控件
 			setParentItem(itemModelEntities);
@@ -1667,14 +1676,14 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			idItemModelEntity.setFormModel(entity);
 			idItemModelEntity.setColumnModel(null);
 			idItemModelEntity.setType(ItemType.Input);
+			idItemModelEntity.setProps("{}");
 			if ("id".equals(name)) {
-				idItemModelEntity.setProps("{}");
 				idItemModelEntity.setSystemItemType(SystemItemType.ID);
 			} else {
-				idItemModelEntity.setProps(name);
 				idItemModelEntity.setSystemItemType(SystemItemType.ChildId);
 			}
 			items.add(idItemModelEntity);
+			entity.setItems(items);
 		}
 		return  idItemModelEntity;
 	}
