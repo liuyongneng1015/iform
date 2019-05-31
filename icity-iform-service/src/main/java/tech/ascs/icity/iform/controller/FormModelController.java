@@ -1898,9 +1898,11 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			return;
 		}
 		try {
-			ProcessModel processModel = processService.getModel(entity.getProcess().getId());
-			if(processModel != null){
-				isFlowForm = true;
+			if(entity.getProcess().getId() != null) {
+				ProcessModel processModel = processService.getModel(entity.getProcess().getId());
+				if (processModel != null) {
+					isFlowForm = true;
+				}
 			}
 			if(activities != null) {
 				Process process = processService.get(entity.getProcess().getKey());

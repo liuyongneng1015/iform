@@ -26,6 +26,7 @@ import tech.ascs.icity.admin.api.model.TreeSelectData;
 import tech.ascs.icity.admin.api.model.User;
 import tech.ascs.icity.admin.client.GroupService;
 import tech.ascs.icity.admin.client.UserService;
+import tech.ascs.icity.iflow.api.model.Process;
 import tech.ascs.icity.iflow.api.model.ProcessInstance;
 import tech.ascs.icity.iflow.api.model.ProcessModel;
 import tech.ascs.icity.iflow.api.model.TaskInstance;
@@ -172,7 +173,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			criteria.setFirstResult((page - 1) * pagesize);
 			criteria.setMaxResults(pagesize);
 			String formName = formModel.getName();
-            if(formModel.getProcess() != null){
+            if(formModel.getProcess() != null && formModel.getProcess().getId() != null) {
                 ProcessModel process = processService.getModel(formModel.getProcess().getId());
                 if(process != null){
                     formName = process.getFormName();
@@ -307,9 +308,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		setFormInstanceModel( formInstance,  formModel, new HashMap<>(), true);
         String formName = formModel.getName();
         if(formModel.getProcess() != null){
-            ProcessModel process = processService.getModel(formModel.getProcess().getId());
-            if(process != null){
-                formName = process.getFormName();
+            if(formModel.getProcess().getId() != null) {
+                ProcessModel process = processService.getModel(formModel.getProcess().getId());
+                if (process != null) {
+                    formName = process.getFormName();
+                }
             }
         }
         formInstance.setFormName(formName);
@@ -3373,7 +3376,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			throw new IFormException("没有查询到【" + formModel.getName() + "】表单，instanceId【"+id+"】的数据");
 		}
         String formName = formModel.getName();
-        if(formModel.getProcess() != null){
+        if(formModel.getProcess() != null && formModel.getProcess().getId() != null){
             ProcessModel process = processService.getModel(formModel.getProcess().getId());
             if(process != null){
                 formName = process.getFormName();
