@@ -2332,9 +2332,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	private void setItemInstanceMap(Map<String, Object> map, List<ItemInstance> list){
 		for(ItemInstance itemInstance : list){
 			if(itemInstance.getType() == ItemType.Media || itemInstance.getType() == ItemType.Attachment){
-				map.put(itemInstance.getColumnModelName(), ((FileUploadModel)itemInstance.getValue()).getId());
+				map.put(itemInstance.getColumnModelName(), itemInstance.getValue() == null ? null : ((FileUploadModel)itemInstance.getValue()).getId());
 			}else if(itemInstance.getType() == ItemType.Label){
-				map.put(itemInstance.getColumnModelName(), ((GeographicalMapModel)itemInstance.getValue()).getId());
+				map.put(itemInstance.getColumnModelName(),itemInstance.getValue() == null ? null : ((GeographicalMapModel)itemInstance.getValue()).getId());
 			}else {
 				map.put(itemInstance.getColumnModelName(), itemInstance.getValue());
 			}
