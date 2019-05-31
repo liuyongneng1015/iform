@@ -457,7 +457,11 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 								(((NumberItemModelEntity)paramerItemModelEntity).getDecimalDigits() == 0 || ((NumberItemModelEntity)saveItemModelEntity).getDecimalDigits() == 0)){
 			//删除字段
 			if(oldColumnName != null) {
-				columnModelService.deleteTableColumn(saveItemModelEntity.getColumnModel().getDataModel().getTableName(), oldColumnName);
+				DataModelEntity dataModelEntity = saveItemModelEntity.getColumnModel().getDataModel();
+				String tableName = dataModelEntity.getPrefix() == null ? dataModelEntity.getTableName(): dataModelEntity.getPrefix()+dataModelEntity.getTableName();
+				ColumnModelEntity column = saveItemModelEntity.getColumnModel();
+				String columnName = column.getPrefix() == null ? column.getColumnName() : column.getPrefix()+column.getColumnName();
+				columnModelService.deleteTableColumn(tableName, columnName);
 			}
 		}
 		ReferenceType newReferenceType = null;
@@ -483,9 +487,15 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 			//删除字段删除索引
 			if(oldColumnName != null && (!StringUtils.equalsIgnoreCase(oldColumnName, newColunmName) || !StringUtils.equalsIgnoreCase(newReferenceFormId, oldReferenceFormId))) {
-				columnModelService.deleteTableColumn(saveItemModelEntity.getColumnModel().getDataModel().getTableName(), oldColumnName);
+				DataModelEntity dataModelEntity = saveItemModelEntity.getColumnModel().getDataModel();
+				String tableName = dataModelEntity.getPrefix() == null ? dataModelEntity.getTableName(): dataModelEntity.getPrefix()+dataModelEntity.getTableName();
+				ColumnModelEntity column = saveItemModelEntity.getColumnModel();
+				String columnName = column.getPrefix() == null ? column.getColumnName() : column.getPrefix()+column.getColumnName();
+				columnModelService.deleteTableColumn(tableName, columnName);
 			}else if(oldColumnName != null && oldColumnName.equals(newColunmName) && oldReferenceType != newReferenceType){
-				columnModelService.deleteTableColumnIndex(saveItemModelEntity.getColumnModel().getDataModel().getTableName(), oldColumnName);
+				DataModelEntity dataModelEntity = saveItemModelEntity.getColumnModel().getDataModel();
+				String tableName = dataModelEntity.getPrefix() == null ? dataModelEntity.getTableName(): dataModelEntity.getPrefix()+dataModelEntity.getTableName();
+				columnModelService.deleteTableColumnIndex(tableName, oldColumnName);
 			}
 		}
 
@@ -664,7 +674,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				if(toColumnModelEntity != null) {
 					for (ColumnReferenceEntity columnReferenceEntity : columnModelEntity.getColumnReferences()) {
 						if(columnReferenceEntity.getToColumn().getId().equals(toColumnModelEntity.getId())) {
-							columnModelService.deleteTable("if_" + columnReferenceEntity.getReferenceMiddleTableName() + "_list");
+							columnModelService.deleteTable( columnReferenceEntity.getReferenceMiddleTableName() + "_list");
 						}
 					}
 				}
@@ -726,7 +736,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				itemManager.delete(itemModelEntity);
 			}else if(itemModelEntity instanceof SubFormItemModelEntity){
 				if(itemModelEntity.getColumnModel() != null) {//刪除子表
-					columnModelService.deleteTable(itemModelEntity.getColumnModel().getDataModel().getTableName());
+					DataModelEntity dataModelEntity = itemModelEntity.getColumnModel().getDataModel();
+					String tableName = dataModelEntity.getPrefix() == null ? dataModelEntity.getTableName(): dataModelEntity.getPrefix()+dataModelEntity.getTableName();
+					columnModelService.deleteTable(tableName);
 				}
 				for(int t =0 ; t < ((SubFormItemModelEntity) itemModelEntity).getItems().size(); t++) {
 					SubFormRowItemModelEntity subFormRowItemModelEntity = ((SubFormItemModelEntity) itemModelEntity).getItems().get(t);
@@ -749,7 +761,11 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 	private void deleteItemAndColumn(ItemModelEntity itemModelEntity){
 		if(itemModelEntity.getColumnModel() != null){
-			columnModelService.deleteTableColumn(itemModelEntity.getColumnModel().getDataModel().getTableName(), itemModelEntity.getColumnModel().getColumnName());
+			DataModelEntity dataModelEntity = itemModelEntity.getColumnModel().getDataModel();
+			String tableName = dataModelEntity.getPrefix() == null ? dataModelEntity.getTableName(): dataModelEntity.getPrefix()+dataModelEntity.getTableName();
+			ColumnModelEntity column = itemModelEntity.getColumnModel();
+			String columnName = column.getPrefix() == null ? column.getColumnName() : column.getPrefix()+column.getColumnName();
+			columnModelService.deleteTableColumn(tableName, columnName);
 		}
 		itemManager.delete(itemModelEntity);
 	}

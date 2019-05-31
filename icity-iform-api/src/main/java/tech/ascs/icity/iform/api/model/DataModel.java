@@ -15,7 +15,7 @@ import tech.ascs.icity.model.NameEntity;
 public class DataModel extends NameEntity {
 
 	@ApiModelProperty(value = "前缀", position = 2)
-	private String prefix = "if_";
+	private String prefix;
 
     @ApiModelProperty(value = "数据库表名", position = 2)
 	private String tableName;

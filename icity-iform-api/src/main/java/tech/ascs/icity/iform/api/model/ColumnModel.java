@@ -18,7 +18,7 @@ public class ColumnModel extends NameEntity {
 	private DataModel dataModel;
 
 	@ApiModelProperty(value = "前缀", position = 2)
-	private String prefix = "if_";
+	private String prefix;
 
     @ApiModelProperty(value = "字段名", position = 2)
     private String columnName;

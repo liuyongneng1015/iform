@@ -201,8 +201,9 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		for (IndexModelEntity oldIndex : old.getIndexes()) {
 			indexModelEntityMap.put(oldIndex.getId(), oldIndex);
 		}
+		String tableName = old.getPrefix() == null ? old.getTableName(): old.getPrefix()+old.getTableName();
 		Map<String, Object> map = new HashMap<>();
-		List<String> list = listDataIndexName(old.getTableName());
+		List<String> list = listDataIndexName(tableName);
 		for (IndexModel index : dataModel.getIndexes()) {
 			 if(map.get(index.getName()) != null){
 			 	throw new IFormException("索引名"+index.getName()+"重复了");
@@ -213,7 +214,8 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 				indexEntity = new IndexModelEntity();
 			}
 			if(!index.isNew() && !index.getName().equals(indexEntity.getName()) && list.contains(indexEntity.getName())){
-				columnModelService.deleteTableIndex(old.getTableName(), indexEntity.getName());
+				String odltableName = old.getPrefix() == null ? old.getTableName(): old.getPrefix()+old.getTableName();
+				columnModelService.deleteTableIndex(odltableName, indexEntity.getName());
 			}
 			BeanUtils.copyProperties(index, indexEntity, new String[] {"dataModel", "columns"});
 			indexEntity.setDataModel(old);
@@ -432,10 +434,10 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 	private void deleteDatModel(DataModelEntity modelEntity){
 		List<ColumnModelEntity> columnModelEntities = modelEntity.getColumns();
 		deleteColumnModel(columnModelEntities);
-		String tableName = modelEntity.getTableName();
+		String tableName = modelEntity.getPrefix() == null ? modelEntity.getTableName() : modelEntity.getPrefix()+modelEntity.getTableName();
 		delete(modelEntity);
 		try {
-			String deleteTableSql =" DROP TABLE IF exists if_"+tableName;
+			String deleteTableSql =" DROP TABLE IF exists "+tableName;
 			jdbcTemplate.execute(deleteTableSql);
 		} catch (DataAccessException e) {
 			e.printStackTrace();
@@ -463,7 +465,11 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 			if(list != null && list.size() > 0){
 				deleteColumnReferenceEntity(columnModelEntity);
 			}
-			columnModelService.deleteTableColumn(columnModelEntity.getDataModel().getTableName(), columnModelEntity.getColumnName());
+			DataModelEntity dataModelEntity = columnModelEntity.getDataModel();
+			String tableName = dataModelEntity.getPrefix() == null ? dataModelEntity.getTableName(): dataModelEntity.getPrefix()+dataModelEntity.getTableName();
+			ColumnModelEntity column = columnModelEntity;
+			String columnName = column.getPrefix() == null ? column.getColumnName() : column.getPrefix()+column.getColumnName();
+			columnModelService.deleteTableColumn(tableName, columnName);
 		}
 	}
 
@@ -484,18 +490,19 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 
 	@Override
 	public void updateDataModelIndex(DataModelEntity modelEntity) {
-		List<String> list = listDataIndexName(modelEntity.getTableName());
+		String tableName = modelEntity.getPrefix() == null ? modelEntity.getTableName(): modelEntity.getPrefix()+modelEntity.getTableName();
+		List<String> list = listDataIndexName(tableName);
 		for(IndexModelEntity indexModelEntity : modelEntity.getIndexes()){
 			if (list.contains(indexModelEntity.getName())) {
-				columnModelService.deleteTableIndex(modelEntity.getTableName(), indexModelEntity.getName());
+				columnModelService.deleteTableIndex(tableName, indexModelEntity.getName());
 			}
-			columnModelService.createTableIndex(modelEntity.getTableName(), indexModelEntity);
+			columnModelService.createTableIndex(tableName, indexModelEntity);
 		}
 	}
 
 	@Override
 	public List<String> listDataIndexName(String tableName){
-		String indexSql = "show index from if_"+tableName;
+		String indexSql = "show index from "+tableName;
 		List<Map<String, Object>> indexList = listIndexBySql(indexSql);
 		Set<String> list = new HashSet<>();
 		for(Map<String, Object> map : indexList){
@@ -595,9 +602,10 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 
 	@Transactional(readOnly = false)
 	protected DataModelEntity save(DataModelEntity entity, List<ColumnModelEntity> deletedCloumns, List<IndexModelEntity> deletedIndexes) {
+		String tableName = entity.getPrefix() == null ? entity.getTableName(): entity.getPrefix()+entity.getTableName();
 
 		//数据库表所有索引
-		List<String> indexList = listDataIndexName(entity.getTableName());
+		List<String> indexList = listDataIndexName(tableName);
 
 		//删除索引
 		if (!deletedIndexes.isEmpty()) {
@@ -608,7 +616,8 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 				}
 				indexModelEntity.setDataModel(null);
 				if(indexList.contains(indexModelEntity.getName())) {
-					columnModelService.deleteTableIndex(entity.getTableName(), indexModelEntity.getName());
+					String odltableName = entity.getPrefix() == null ? entity.getTableName(): entity.getPrefix()+entity.getTableName();
+					columnModelService.deleteTableIndex(odltableName, indexModelEntity.getName());
 				}
 				indexManager.save(indexModelEntity);
 				indexManager.delete(indexModelEntity);

@@ -124,7 +124,7 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
             ColumnReferenceEntity referenceEntity = oldReferenceEntityList.get(i);
             if (deleteOldToColumnIds.contains(referenceEntity.getToColumn().getId())) {
                 if(referenceEntity.getReferenceType() == ReferenceType.ManyToMany){
-                    deleteTable("if_"+referenceEntity.getReferenceMiddleTableName()+"_list");
+                    deleteTable(referenceEntity.getReferenceMiddleTableName()+"_list");
                 }
                 oldReferenceEntityList.remove(referenceEntity);
                 i--;
@@ -217,22 +217,22 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
 
     @Override
     public void deleteTableColumn(String tableName, String columnName) {
-        String columnSql = "select COLUMN_NAME from information_schema.COLUMNS where table_name = 'if_" + tableName + "'";
+        String columnSql = "select COLUMN_NAME from information_schema.COLUMNS where table_name = '" + tableName + "'";
         try {
             List<String> colummList = jdbcTemplate.queryForList(columnSql, String.class);
             if (colummList.contains(columnName)) {
                 deleteTableColumnIndex(tableName, columnName);
                 try {
-                    String deleteColumnSql = "ALTER TABLE if_" + tableName + " DROP " + columnName;
+                    String deleteColumnSql = "ALTER TABLE " + tableName + " DROP " + columnName;
                     jdbcTemplate.execute(deleteColumnSql);
                 } catch (DataAccessException e) {
                     e.printStackTrace();
                 }
             }
-            if (colummList.contains("f" + columnName)) {
-                deleteTableColumnIndex(tableName, "f" +columnName);
+            if (colummList.contains(columnName)) {
+                deleteTableColumnIndex(tableName, columnName);
                 try {
-                    String deleteColumnSql = "ALTER TABLE if_" + tableName + " DROP f" + columnName;
+                    String deleteColumnSql = "ALTER TABLE " + tableName + " DROP " + columnName;
                     jdbcTemplate.execute(deleteColumnSql);
                 } catch (DataAccessException e) {
                     e.printStackTrace();
@@ -255,13 +255,13 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
 
 	@Override
 	public void deleteTableColumnIndex(String tableName, String columnName) {
-		String indexSql = "show index from if_"+tableName;
+		String indexSql = "show index from "+tableName;
 		List<Map<String, Object>> indexList = listIndexBySql(indexSql);
         for(Map<String, Object> map : indexList){
             if(columnName.equals(map.get("Column_name")) && map.get("Key_name") != null){
                 try {
                     if(!"PRIMARY".equals(map.get("Key_name"))) {
-                        String deleteIndexSql = "alter table  if_" + tableName + " drop index " + map.get("Key_name");
+                        String deleteIndexSql = "alter table  " + tableName + " drop index " + map.get("Key_name");
                         jdbcTemplate.execute(deleteIndexSql);
                     }
                 } catch (DataAccessException e) {
@@ -270,12 +270,12 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
             }
         }
 
-        String foreignIndexSql =" select  CONSTRAINT_NAME, COLUMN_NAME   from INFORMATION_SCHEMA.KEY_COLUMN_USAGE  where TABLE_NAME = 'if_"+tableName+"' AND REFERENCED_TABLE_NAME is not null";
+        String foreignIndexSql =" select  CONSTRAINT_NAME, COLUMN_NAME   from INFORMATION_SCHEMA.KEY_COLUMN_USAGE  where TABLE_NAME = '"+tableName+"' AND REFERENCED_TABLE_NAME is not null";
         List<Map<String, Object>> foreignIndexList = listForeginIndexBySql(foreignIndexSql);
         for(Map<String, Object> map : foreignIndexList) {
             if (columnName.equals(map.get("COLUMN_NAME"))) {
                 try {
-                    String deleteForeignIndexSql = "alter table if_" + tableName + " drop foreign key  " + map.get("CONSTRAINT_NAME");
+                    String deleteForeignIndexSql = "alter table " + tableName + " drop foreign key  " + map.get("CONSTRAINT_NAME");
                     jdbcTemplate.execute(deleteForeignIndexSql);
                 } catch (DataAccessException e) {
                     e.printStackTrace();
@@ -291,7 +291,8 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
             return;
         }
         List<IndexModelEntity> list = indexModelManager.query().filterIn("id", idlist).list();
-        String tableName = columnModelEntity.getDataModel().getTableName();
+        DataModelEntity dataModelEntity = columnModelEntity.getDataModel();
+        String tableName = dataModelEntity.getPrefix() == null ? dataModelEntity.getTableName(): dataModelEntity.getPrefix()+dataModelEntity.getTableName();
         List<String> indexNameList = dataModelService.listDataIndexName(tableName);
         if(list != null && list.size() > 0){
             for(IndexModelEntity indexModelEntity : list){
@@ -307,7 +308,7 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
     @Override
     public void deleteTableIndex(String tableName, String indexName) {
         try {
-            String deleteIndexSql = "alter table  if_" + tableName + " drop index " + indexName;
+            String deleteIndexSql = "alter table  " + tableName + " drop index " + indexName;
             jdbcTemplate.execute(deleteIndexSql);
         } catch (DataAccessException e) {
             e.printStackTrace();
@@ -325,16 +326,18 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
             for(ColumnModelEntity columnModelEntity : index.getColumns()){
                 List<ItemModelEntity> itemModelEntityList = itemModeManager.query().filterIn("columnModel.id", columnModelEntity.getId()).list();
                 if(itemModelEntityList == null || itemModelEntityList.size() < 1 || !(itemModelEntityList.get(0) instanceof ReferenceItemModelEntity)) {
-                    sub.append(",f" + columnModelEntity.getColumnName());
+                    ColumnModelEntity column = columnModelEntity;
+                    String columnName = column.getPrefix() == null ? column.getColumnName() : column.getPrefix()+column.getColumnName();
+                    sub.append("," + columnName);
                 }else{
                     sub.append("," + columnModelEntity.getColumnName());
                 }
             }
             String str = sub.toString().substring(1);
             if(index.getIndexType() == IndexType.Unique) {
-                indexSql = "ALTER TABLE if_"+tableName+" ADD UNIQUE INDEX "+index.getName()+"(" + str+")";
+                indexSql = "ALTER TABLE "+tableName+" ADD UNIQUE INDEX "+index.getName()+"(" + str+")";
             }else{
-                indexSql = "ALTER TABLE if_"+tableName+" ADD INDEX "+index.getName()+"(" + str+")";
+                indexSql = "ALTER TABLE "+tableName+" ADD INDEX "+index.getName()+"(" + str+")";
             }
             jdbcTemplate.execute(indexSql);
         } catch (DataAccessException e) {

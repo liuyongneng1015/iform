@@ -237,10 +237,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	@Override
 	public Page<String> pageByTableName(String tableName, int page, int pagesize) {
-		StringBuilder countSql = new StringBuilder("SELECT COUNT(*) FROM if_").append(tableName);
+		StringBuilder countSql = new StringBuilder("SELECT COUNT(*) FROM ").append(tableName);
 		int count = jdbcTemplate.queryForObject(countSql.toString(), Integer.class);
 
-		StringBuilder sql = new StringBuilder("SELECT * FROM if_").append(tableName);
+		StringBuilder sql = new StringBuilder("SELECT * FROM ").append(tableName);
 		String pageSql = buildPageSql(sql.toString(), page, pagesize);
 		List<String> list = jdbcTemplate.queryForList(pageSql,String.class);
 
@@ -269,9 +269,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}
 		}
 		params.append("'");
-		StringBuilder sql = new StringBuilder("SELECT id FROM if_").append(tableName).append(" where ").append(key).append("="+params.toString());
+		StringBuilder sql = new StringBuilder("SELECT id FROM ").append(tableName).append(" where ").append(key).append("="+params.toString());
 		if(itemType == ItemType.InputNumber){
-			sql = new StringBuilder("SELECT id FROM if_").append(tableName).append(" where ").append(key).append("="+value);
+			sql = new StringBuilder("SELECT id FROM ").append(tableName).append(" where ").append(key).append("="+value);
 		}
 
         List<String> list = jdbcTemplate.queryForList(sql.toString(),String.class);
@@ -491,8 +491,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 			//设置子表数据
 			setSubFormReferenceData(session, user, formInstance, data, DisplayTimingType.Add);
+			DataModelEntity dataModelEntity = formModelEntity.getDataModels().get(0);
+			String tableName = dataModelEntity.getPrefix() == null ? dataModelEntity.getTableName(): dataModelEntity.getPrefix()+dataModelEntity.getTableName();
 			//关联表数据
-			saveReferenceData( user,formInstance, data,  session,  formModelEntity.getDataModels().get(0).getTableName(), formModelService.findAllItems(formModelEntity), DisplayTimingType.Add);
+			saveReferenceData( user,formInstance, data,  session,  tableName, formModelService.findAllItems(formModelEntity), DisplayTimingType.Add);
 
 			// before
 			sendWebService(formModelEntity, BusinessTriggerType.Add_Before, data, formInstance.getId());
@@ -672,8 +674,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			data.put("update_by",  user != null ? user.getId() : null);
 
 			setSubFormReferenceData(session, user, formInstance, data, DisplayTimingType.Update);
+			DataModelEntity dataModelEntity = formModelEntity.getDataModels().get(0);
+			String tableName = dataModelEntity.getPrefix() == null ? dataModelEntity.getTableName(): dataModelEntity.getPrefix()+dataModelEntity.getTableName();
 			//关联表数据
-			saveReferenceData(user, formInstance, data,  session,  formModelEntity.getDataModels().get(0).getTableName(), formModelService.findAllItems(formModelEntity), DisplayTimingType.Update);
+			saveReferenceData(user, formInstance, data,  session,  tableName, formModelService.findAllItems(formModelEntity), DisplayTimingType.Update);
 
 			// before
 			sendWebService( formModelEntity, BusinessTriggerType.Update_Before, data, instanceId);
@@ -711,7 +715,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			if(formInstance.getProcessInstanceId() != null && formInstance.getFlowData() != null && formInstance.getFlowData().get("functionId") != null) {
 				ProcessInstance processInstance = processInstanceService.get(formInstance.getProcessInstanceId());
 				if(processInstance.getCurrentTaskInstance() != null) {
-					for (Map<String, Object> map : (List<Map>) processInstance.getCurrentTaskInstance().getOperations()) {
+					for (Map<String, Object> map : (List<Map<String,Object>>) processInstance.getCurrentTaskInstance().getOperations()) {
 						if (!map.get("id").equals(formInstance.getFlowData().get("functionId"))) {
 							continue;
 						}
@@ -845,7 +849,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 						referenceItemModelEntityList.add(itemModel);
 					}
 					if(itemModel.getUniquene() != null && itemModel.getUniquene()){
-						List<String> list = listByTableName(itemModelService.getType(), dataModelEntity.getTableName(), "f" + itemModel.getColumnModel().getColumnName(), itemModelService.getValue());
+						String tableName = dataModelEntity.getPrefix() == null ? dataModelEntity.getTableName(): dataModelEntity.getPrefix()+dataModelEntity.getTableName();
+						ColumnModelEntity column = itemModel.getColumnModel();
+						String columnName = column.getPrefix() == null ? column.getColumnName() : column.getPrefix()+column.getColumnName();
+						List<String> list = listByTableName(itemModelService.getType(), tableName, columnName, itemModelService.getValue());
 						if(list != null && list.size() > 0) {
 							stringListMap.put(itemModel.getId()+"_"+itemModel.getName(), list);
 						}
@@ -890,7 +897,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			formDataSaveInstance.setFormId(formInstance.getFormId());
 			formDataSaveInstance.setReferenceData(referenceData);
 			if(referenceItemModelEntityList != null && referenceItemModelEntityList.size() > 0) {
-				saveReferenceData(user, formDataSaveInstance, map, subFormSession, dataModelEntity.getTableName(), referenceItemModelEntityList, displayTimingType);
+				String tableName = dataModelEntity.getPrefix() == null ? dataModelEntity.getTableName(): dataModelEntity.getPrefix()+dataModelEntity.getTableName();
+				saveReferenceData(user, formDataSaveInstance, map, subFormSession, tableName, referenceItemModelEntityList, displayTimingType);
 			}
 			String newId = id;
 			if(id != null && StringUtils.hasText(id)){
@@ -1207,7 +1215,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}
             //唯一校验
             if(itemModel.getUniquene() != null && itemModel.getUniquene() &&itemModel.getColumnModel() != null && itemModel.getColumnModel().getDataModel() != null){
-               List<String> list = listByTableName(itemModel.getType(), itemModel.getColumnModel().getDataModel().getTableName(), "f"+itemModel.getColumnModel().getColumnName(), itemInstance.getValue());
+				ColumnModelEntity column = itemModel.getColumnModel();
+				String columnName = column.getPrefix() == null ? column.getColumnName() : column.getPrefix()+column.getColumnName();
+               List<String> list = listByTableName(itemModel.getType(), itemModel.getColumnModel().getDataModel().getTableName(), columnName, itemInstance.getValue());
 
                for(String str : list){
 				   if(StringUtils.hasText(str) && (idItemInstance == null ||  !str.equals(idItemInstance.getValue()))){

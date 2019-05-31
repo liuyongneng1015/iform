@@ -27,5 +27,5 @@ public interface FormInstanceService extends JPAService<FormModelEntity> {
 
 	void deleteFormInstance(FormModelEntity formModel, String instanceId);
 
-	Page<Map<String,Object>> pageSubFormInstance(String tableName, int page, int pagesize);
+	Page<Map<String,Object>> pageSubFormInstance(String prefix, String tableName, int page, int pagesize);
 }

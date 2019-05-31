@@ -285,10 +285,14 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
         List<ItemModelEntity> list = lists.parallelStream().sorted((d2, d1) -> d2.getOrderNo().compareTo(d1.getOrderNo())).collect(Collectors.toList());
         for(int i = 0 ; i < list.size() ; i ++){
             ItemModelEntity itemModelEntity1 = list.get(i);
+			DataModelEntity dataModelEntity = itemModelEntity1.getColumnModel().getDataModel();
+			String tableName = dataModelEntity.getPrefix() == null ? dataModelEntity.getTableName(): dataModelEntity.getPrefix()+dataModelEntity.getTableName();
             if(itemModelEntity1 instanceof SubFormItemModelEntity){
-                columnModelService.deleteTable(itemModelEntity1.getColumnModel().getDataModel().getTableName());
+                columnModelService.deleteTable(tableName);
             }else {
-                columnModelService.deleteTableColumn(itemModelEntity1.getColumnModel().getDataModel().getTableName(), itemModelEntity1.getColumnModel().getColumnName());
+				ColumnModelEntity column = itemModelEntity1.getColumnModel();
+				String columnName = column.getPrefix() == null ? column.getColumnName() : column.getPrefix()+column.getColumnName();
+                columnModelService.deleteTableColumn(tableName, columnName);
             }
         }
         formModelService.delete(formModelEntity);
@@ -1268,7 +1272,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 					ColumnReferenceEntity columnReferenceEntity = toReferenceEntityList.get(j);
 					if(columnReferenceEntity.getToColumn().getId().equals(columnModelEntity.getId())){
 						if(columnReferenceEntity.getReferenceType() == ReferenceType.ManyToMany){
-							columnModelService.deleteTable("if_"+columnReferenceEntity.getReferenceMiddleTableName()+"_list");
+							columnModelService.deleteTable(columnReferenceEntity.getReferenceMiddleTableName()+"_list");
 						}
 						toReferenceEntityList.remove(columnReferenceEntity);
 						j--;
@@ -1295,7 +1299,10 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				}
 			}
 			//删除数据库字段
-			columnModelService.deleteTableColumn(newDataModel.getTableName(), columnModelEntity.getColumnName());
+			String tableName = newDataModel.getPrefix() == null ? newDataModel.getTableName(): newDataModel.getPrefix()+newDataModel.getTableName();
+			ColumnModelEntity column = columnModelEntity;
+			String columnName = column.getPrefix() == null ? column.getColumnName() : column.getPrefix()+column.getColumnName();
+			columnModelService.deleteTableColumn(tableName, columnName);
 			//更新字段索引
 			columnModelService.updateColumnModelEntityIndex(columnModelEntity);
 			columnModelService.delete(columnModelEntity);

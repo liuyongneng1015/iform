@@ -3,7 +3,7 @@
         "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
         "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 <hibernate-mapping package="tech.ascs.icity.iform.table.service">
-    <class entity-name="${dataModel.tableName!''}" table="if_${dataModel.tableName!''}">
+    <class entity-name="${dataModel.tableName!''}" table="${dataModel.prefix!''}${dataModel.tableName!''}">
         <comment>${dataModel.name!"自定义主表"}</comment>
         <id name="id" type="string" length="32">
             <column name="id">
@@ -17,7 +17,7 @@
                 <#if column.columnName = 'master_id' >
                 <#else>
                     <property name="${column.columnName!''}" type="${column.dataType?lower_case}">
-                        <column name="f${column.columnName!''}" default="${column.defaultValue!'null'}" not-null="${(column.notNull!false)?c}" length="<#if !column.length ?? || column.length = 0>255<#else >${column.length?c}</#if>" precision="<#if !column.precision ?? || column.precision = 0>255<#else >${column.precision}</#if>" <#if column.dataType?? && column.dataType.value ?? && (column.dataType.value ="Integer" || column.dataType.value = "Long" || column.dataType.value = "Float" || column.dataType.value = "Double")> scale="${column.scale!0}"</#if>>
+                        <column name="${column.prefix!''}${column.columnName!''}" default="${column.defaultValue!'null'}" not-null="${(column.notNull!false)?c}" length="<#if !column.length ?? || column.length = 0>255<#else >${column.length?c}</#if>" precision="<#if !column.precision ?? || column.precision = 0>255<#else >${column.precision}</#if>" <#if column.dataType?? && column.dataType.value ?? && (column.dataType.value ="Integer" || column.dataType.value = "Long" || column.dataType.value = "Float" || column.dataType.value = "Double")> scale="${column.scale!0}"</#if>>
                         <#if column.name??  && column.name !="" > <comment>${column.name!''}</comment> </#if>
                         </column>
                     </property>
@@ -38,7 +38,7 @@
                         <one-to-many entity-name="${reference.toColumn.dataModel.tableName!''}" />
                     </bag>
                 <#else>
-                    <bag name="${reference.toColumn.dataModel.tableName!''}_list" <#if reference.referenceMiddleTableName?? && reference.referenceMiddleTableName!=""> table="if_${reference.referenceMiddleTableName}_list" <#else > table="if_${reference.fromColumn.dataModel.tableName}_${reference.toColumn.dataModel.tableName!''}_list" </#if> inverse="false"  lazy="false" fetch="select">
+                    <bag name="${reference.toColumn.dataModel.tableName!''}_list" <#if reference.referenceMiddleTableName?? && reference.referenceMiddleTableName!=""> table="${reference.referenceMiddleTableName}_list" <#else > table="${reference.fromColumn.dataModel.tableName}_${reference.toColumn.dataModel.tableName!''}_list" </#if> inverse="false"  lazy="false" fetch="select">
                         <key column="${reference.fromColumn.dataModel.tableName}_id"></key>
                         <many-to-many entity-name="${reference.toColumn.dataModel.tableName!''}" column="${reference.toColumn.dataModel.tableName!''}_id"></many-to-many>
                     </bag>
@@ -55,7 +55,7 @@
     </class>
 
     <#list dataModel.referencesDataModel as referencesData>
-	 <class entity-name="${referencesData.tableName!''}" table="if_${referencesData.tableName!''}">
+	 <class entity-name="${referencesData.tableName!''}" table="${referencesData.prefix!''}${referencesData.tableName!''}">
          <comment>${referencesData.name!"自定义关联表"}</comment>
          <id name="id" type="string" length="32">
              <column name="id">
@@ -69,7 +69,7 @@
                 <#if column.columnName ?? && column.columnName = "master_id">
                 <#else >
                     <property name="${column.columnName!''}" type="${column.dataType?lower_case}">
-                        <column name="f${column.columnName!''}" default="${column.defaultValue!'null'}" not-null="${(column.notNull!false)?c}" length="<#if !column.length ?? || column.length = 0>255<#else >${column.length?c}</#if>" precision="<#if !column.precision ?? || column.precision = 0>255<#else >${column.precision}</#if>" <#if column.dataType?? && column.dataType.value ?? && (column.dataType.value ="Integer" || column.dataType.value = "Long" || column.dataType.value = "Float" || column.dataType.value = "Double")> scale="${column.scale!0}"</#if>>
+                        <column name="${column.prefix!''}${column.columnName!''}" default="${column.defaultValue!'null'}" not-null="${(column.notNull!false)?c}" length="<#if !column.length ?? || column.length = 0>255<#else >${column.length?c}</#if>" precision="<#if !column.precision ?? || column.precision = 0>255<#else >${column.precision}</#if>" <#if column.dataType?? && column.dataType.value ?? && (column.dataType.value ="Integer" || column.dataType.value = "Long" || column.dataType.value = "Float" || column.dataType.value = "Double")> scale="${column.scale!0}"</#if>>
                             <#if column.name??  && column.name !="" > <comment>${column.name!''}</comment> </#if>
                         </column>
                     </property>
@@ -90,7 +90,7 @@
                         <one-to-many entity-name="${reference.toColumn.dataModel.tableName!''}" />
                     </bag>
                 <#else>
-                    <bag name="${reference.toColumn.dataModel.tableName!''}_list" <#if reference.referenceMiddleTableName?? && reference.referenceMiddleTableName!=""> table="if_${reference.referenceMiddleTableName}_list" <#else > table="if_${reference.toColumn.dataModel.tableName!''}_${reference.fromColumn.dataModel.tableName}_list" </#if> inverse="true" lazy="false" fetch="select">
+                    <bag name="${reference.toColumn.dataModel.tableName!''}_list" <#if reference.referenceMiddleTableName?? && reference.referenceMiddleTableName!=""> table="${reference.referenceMiddleTableName}_list" <#else > table="${reference.toColumn.dataModel.tableName!''}_${reference.fromColumn.dataModel.tableName}_list" </#if> inverse="true" lazy="false" fetch="select">
                         <key column="${reference.fromColumn.dataModel.tableName}_id"></key>
                         <many-to-many entity-name="${reference.toColumn.dataModel.tableName!''}" column="${reference.toColumn.dataModel.tableName!''}_id"></many-to-many>
                     </bag>
@@ -101,7 +101,7 @@
     </#list>
 
     <#list dataModel.slaverModels as slaver>
-            <class entity-name="${slaver.tableName!''}" table="if_${slaver.tableName!''}">
+            <class entity-name="${slaver.tableName!''}" table="${slaver.prefix!''}${slaver.tableName!''}">
                 <comment>${slaver.name!"自定义子表"}</comment>
                 <id name="id" type="string" length="32">
                     <column name="id">
@@ -116,7 +116,7 @@
                             <many-to-one name="${column.columnName!''}" entity-name="${dataModel.tableName!''}" lazy="false" column="${column.columnName!''}" fetch="select" not-found="ignore" />
                         <#else>
                             <property name="${column.columnName!''}" type="${column.dataType?lower_case}">
-                                <column name="f${column.columnName!''}" default="${column.defaultValue!'null'}" not-null="${(column.notNull!false)?c}" length="<#if !column.length ?? || column.length = 0>255<#else >${column.length?c}</#if>" precision="<#if !column.precision ?? || column.precision = 0>255<#else >${column.precision}</#if>" <#if column.dataType?? && column.dataType.value ?? && (column.dataType.value ="Integer" || column.dataType.value = "Long" || column.dataType.value = "Float" || column.dataType.value = "Double")> scale="${column.scale!0}"</#if>>
+                                <column name="${column.prefix!''}${column.columnName!''}" default="${column.defaultValue!'null'}" not-null="${(column.notNull!false)?c}" length="<#if !column.length ?? || column.length = 0>255<#else >${column.length?c}</#if>" precision="<#if !column.precision ?? || column.precision = 0>255<#else >${column.precision}</#if>" <#if column.dataType?? && column.dataType.value ?? && (column.dataType.value ="Integer" || column.dataType.value = "Long" || column.dataType.value = "Float" || column.dataType.value = "Double")> scale="${column.scale!0}"</#if>>
                                     <#if column.name?? && column.name !=""> <comment>${column.name!''}</comment> </#if>
                                 </column>
                             </property>
@@ -137,7 +137,7 @@
                                 <one-to-many entity-name="${reference.toColumn.dataModel.tableName!''}" />
                             </bag>
                         <#else>
-                            <bag name="${reference.toColumn.dataModel.tableName!''}_list" <#if reference.referenceMiddleTableName?? && reference.referenceMiddleTableName!=""> table="if_${reference.referenceMiddleTableName}_list" <#else > table="if_${reference.toColumn.dataModel.tableName!''}_${reference.fromColumn.dataModel.tableName}_list" </#if> inverse="true" lazy="false" fetch="select">
+                            <bag name="${reference.toColumn.dataModel.tableName!''}_list" <#if reference.referenceMiddleTableName?? && reference.referenceMiddleTableName!=""> table="${reference.referenceMiddleTableName}_list" <#else > table="${reference.toColumn.dataModel.tableName!''}_${reference.fromColumn.dataModel.tableName}_list" </#if> inverse="true" lazy="false" fetch="select">
                                 <key column="${reference.fromColumn.dataModel.tableName}_id"></key>
                                 <many-to-many entity-name="${reference.toColumn.dataModel.tableName!''}" column="${reference.toColumn.dataModel.tableName!''}_id"></many-to-many>
                             </bag>
