@@ -1522,9 +1522,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	}
 
 	protected void updateProcessInfo(FormModelEntity formModel, Map<String, Object> entity, String processInstanceId) {
-		ProcessInstance processInstance = processInstanceService.get(processInstanceId);
 		entity.put("PROCESS_ID", formModel.getProcess().getId());
 		entity.put("PROCESS_INSTANCE", processInstanceId);
+		ProcessInstance processInstance = processInstanceService.get(processInstanceId);
 		TaskInstance taskInstance = processInstance.getCurrentTaskInstance();
 		entity.put("ACTIVITY_ID", taskInstance == null ? null : taskInstance.getActivityId());
 		entity.put("ACTIVITY_INSTANCE", taskInstance == null ? null : taskInstance.getId());
