@@ -36,7 +36,7 @@ public class LocationItemModelEntity extends ItemModelEntity  {
 	private String landmark;
 
 	@Column(name="level")//地图显示级别
-	private int level = 12;
+	private Integer level = 12;
 
 
 	public GeographicalMapType getMapType() {
@@ -87,7 +87,7 @@ public class LocationItemModelEntity extends ItemModelEntity  {
 		this.landmark = landmark;
 	}
 
-	public int getLevel() {
+	public Integer getLevel() {
 		return level;
 	}
 

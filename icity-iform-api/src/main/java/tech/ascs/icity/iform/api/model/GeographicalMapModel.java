@@ -24,7 +24,7 @@ public class GeographicalMapModel extends NameEntity {
 	private String landmark;
 
 	@ApiModelProperty(value = "地图显示级别", position = 12)
-	private int level = 12;
+	private Integer level = 12;
 
 	public String getFromSource() {
 		return fromSource;
@@ -66,7 +66,7 @@ public class GeographicalMapModel extends NameEntity {
 		this.landmark = landmark;
 	}
 
-	public int getLevel() {
+	public Integer getLevel() {
 		return level;
 	}
 

@@ -2476,7 +2476,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			if(!referenceFlag){
 				return;
 			}
-			setSubFormItemInstance( itemModel,  entity,  subFormItems, formInstance.getActivityId());
+			setSubFormItemInstance(itemModel,  entity,  subFormItems, formInstance.getActivityId());
 		}else if(itemModel instanceof RowItemModelEntity){
 			for(ItemModelEntity itemModelEntity : ((RowItemModelEntity) itemModel).getItems()) {
 				setFormDataItemInstance(isQrCodeFlag, itemModelEntity, referenceFlag, entity, referenceDataModelList,
@@ -3348,8 +3348,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		String valueStr = value == null || StringUtils.isEmpty(value) ?  null : String.valueOf(value);
 		if(valueStr != null) {
 			List<String> idlist = Arrays.asList(valueStr.split(","));
-			GeographicalMapModel mapModel = new GeographicalMapModel();
+			GeographicalMapModel mapModel = null;
 			List<GeographicalMapEntity> entityList = mapEntityJPAManager.query().filterIn("id", idlist).list();
+			if(entityList != null && entityList.size() > 0){
+				mapModel = new GeographicalMapModel();
+			}
 			for(GeographicalMapEntity entity : entityList){
 				GeographicalMapModel geographicalMapModel = new GeographicalMapModel();
 				BeanUtils.copyProperties(entity, geographicalMapModel);
