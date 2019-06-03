@@ -532,9 +532,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		if(flowData == null){
 			flowData = new HashMap<>();
 		}
-		if(paramCondition != null) {
+		if(paramCondition != null && paramCondition.contains(ParamCondition.FormCurrentData.getValue())) {
 			flowData.putAll(data);
 		}else{
+			flowData.put("formId", formInstance.getFormId());
 			flowData.put("id", newId);
 		}
 		//跳过第一个流程环节
@@ -720,8 +721,12 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 							continue;
 						}
 						Map<String, Object> funcPropsMap = (Map<String, Object>) map.get("funcProps");
-						if (funcPropsMap != null) {
-							paramCondition = (String) funcPropsMap.get("paramCondition");
+						if (funcPropsMap != null && funcPropsMap.get("paramCondition") != null) {
+							if(funcPropsMap.get("paramCondition") instanceof List) {
+								paramCondition = String.join(",", (List<String>)funcPropsMap.get("paramCondition"));
+							}else{
+								paramCondition = (String) funcPropsMap.get("paramCondition");
+							}
 						}
 						if (map.get("required") != null && (Boolean) map.get("required")) {
 							notNullIdList.add((String) map.get("id"));
@@ -773,8 +778,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		if(flowData == null){
 			flowData = new HashMap<>();
 		}
-		if(paramCondition != null) {
+		if(paramCondition != null && paramCondition.contains(ParamCondition.FormCurrentData.getValue())) {
 			flowData.putAll(data);
+		}else{
+			flowData.put("formId", formInstance.getFormId());
+			flowData.put("id", formInstance.getId());
 		}
 		taskService.completeTask(formInstance.getActivityInstanceId(), flowData);
 		updateProcessInfo(formModel, data, formInstance.getProcessInstanceId());
