@@ -2353,6 +2353,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	private void setItemInstanceMap(Map<String, Object> map, List<ItemInstance> list){
 		for(ItemInstance itemInstance : list){
+			if(!StringUtils.hasText(itemInstance.getColumnModelName())){
+				continue;
+			}
 			if(itemInstance.getType() == ItemType.Media || itemInstance.getType() == ItemType.Attachment){
 				map.put(itemInstance.getColumnModelName(), itemInstance.getValue() == null ? null : ((FileUploadModel)itemInstance.getValue()).getId());
 			}else if(itemInstance.getType() == ItemType.Label){
