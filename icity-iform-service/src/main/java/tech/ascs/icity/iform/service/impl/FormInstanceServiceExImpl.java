@@ -1532,9 +1532,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	}
 
 	protected void updateProcessInfo(FormModelEntity formModel, Map<String, Object> entity, String processInstanceId) {
-		entity.put("PROCESS_ID", formModel.getProcess().getId());
 		entity.put("PROCESS_INSTANCE", processInstanceId);
 		ProcessInstance processInstance = processInstanceService.get(processInstanceId);
+		entity.put("PROCESS_ID", formModel.getProcess().getId());
 		TaskInstance taskInstance = processInstance.getCurrentTaskInstance();
 		entity.put("ACTIVITY_ID", taskInstance == null ? null : taskInstance.getActivityId());
 		entity.put("ACTIVITY_INSTANCE", taskInstance == null ? null : taskInstance.getId());
@@ -2213,7 +2213,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		formInstance.setFormId(formModel.getId());
 		//数据id
 		formInstance.setId(instanceId);
-		if (formModel.getProcess() != null && StringUtils.hasText(formModel.getProcess().getId())) {
+		if (formModel.getProcess() != null) {
 			formInstance.setProcessId((String) entity.get("PROCESS_ID"));
 			formInstance.setProcessInstanceId((String) entity.get("PROCESS_INSTANCE"));
 			formInstance.setActivityId((String) entity.get("ACTIVITY_ID"));

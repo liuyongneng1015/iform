@@ -1,6 +1,7 @@
 package tech.ascs.icity.iform.model;
 
 import tech.ascs.icity.iform.api.model.DisplayTimingType;
+import tech.ascs.icity.jpa.dao.model.BaseEntity;
 import tech.ascs.icity.jpa.dao.model.JPAEntity;
 
 import javax.persistence.*;
@@ -13,7 +14,7 @@ import java.io.Serializable;
 @Table(name = "ifm_item_permissions")
 public class ItemPermissionInfo extends JPAEntity implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = -15151L;
 
 	@ManyToOne(cascade = {CascadeType.REFRESH })
 	@JoinColumn(name="item_id")

@@ -1,7 +1,6 @@
 package tech.ascs.icity.iform.service.impl;
 
 import java.util.*;
-import java.util.logging.LogRecord;
 import java.util.stream.Collectors;
 
 import com.googlecode.genericdao.search.Filter;
@@ -18,11 +17,6 @@ import tech.ascs.icity.iform.service.*;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 import tech.ascs.icity.utils.BeanUtils;
-
-import javax.persistence.Column;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.JoinColumn;
 
 public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> implements FormModelService {
 
@@ -472,9 +466,8 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		}
 
 		BeanUtils.copyProperties(paramerItemModelEntity, saveItemModelEntity, new String[]{"referencesItemModels","parentItem", "searchItems","sortItems","permissions", "referenceList","items","formModel","columnModel","activities","options"});
-
+		setItempermissions(saveItemModelEntity, paramerItemModelEntity);
 		setOption(saveItemModelEntity, paramerItemModelEntity);
-		saveItempermissions(saveItemModelEntity, paramerItemModelEntity);
 
 		//设置列表模型
 		if (paramerItemModelEntity instanceof ReferenceItemModelEntity ) {
@@ -557,40 +550,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		}
 	}
 
-	//设备表单权限
-	private void saveItempermissions(ItemModelEntity saveItemModelEntity, ItemModelEntity paramerItemModelEntity){
-		if(paramerItemModelEntity.getColumnModel() != null && !"id".equals(paramerItemModelEntity.getColumnModel().getColumnName())) {
-			List<ItemPermissionInfo> list = new ArrayList<>();
-			Map<String, ItemPermissionInfo> oldItemPermission = new HashMap<>();
-			if(saveItemModelEntity.isNew() && (paramerItemModelEntity.getPermissions() == null || paramerItemModelEntity.getPermissions().size() < 1)) {
-				list.add(createItempermissionInfo(saveItemModelEntity, DisplayTimingType.Add));
-				list.add(createItempermissionInfo(saveItemModelEntity, DisplayTimingType.Update));
-				list.add(createItempermissionInfo(saveItemModelEntity, DisplayTimingType.Check));
-			}else{
-				for(ItemPermissionInfo itemPermissionInfo : saveItemModelEntity.getPermissions()){
-					oldItemPermission.put(itemPermissionInfo.getId(), itemPermissionInfo);
-				}
-				for(ItemPermissionInfo itemPermissionInfo : paramerItemModelEntity.getPermissions()){
-					ItemPermissionInfo newItemPermiss = itemPermissionInfo.isNew() ? new ItemPermissionInfo() : oldItemPermission.remove(itemPermissionInfo.getId());
-					if(newItemPermiss == null){
-						newItemPermiss = new ItemPermissionInfo();
-					}
-					BeanUtils.copyProperties(itemPermissionInfo, newItemPermiss, new String[]{"itemModel"});
-					newItemPermiss.setItemModel(saveItemModelEntity);
-					list.add(newItemPermiss);
-				}
-			}
-			saveItemModelEntity.setPermissions(list);
-			for(String key: oldItemPermission.keySet()){
-				ItemPermissionInfo permissionInfo = oldItemPermission.get(key);
-				if(permissionInfo.getItemModel() != null){
-					permissionInfo.getItemModel().getPermissions().remove(permissionInfo);
-				}
-				permissionInfo.setItemModel(null);
-				itemPermissionManager.delete(permissionInfo);
-			}
-		}
-	}
+
 
 	private ItemPermissionInfo createItempermissionInfo(ItemModelEntity itemModelEntity, DisplayTimingType displayTimingType){
 		ItemPermissionInfo itemPermissionInfo = new ItemPermissionInfo();
@@ -815,6 +775,42 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				}
 			}
 		}
+	}
+
+	//设备表单权限
+	private ItemModelEntity setItempermissions(ItemModelEntity saveItemModelEntity, ItemModelEntity paramerItemModelEntity){
+		if(paramerItemModelEntity.getColumnModel() != null && "id".equals(paramerItemModelEntity.getColumnModel().getColumnName())) {
+			return saveItemModelEntity;
+		}
+		//旧数据
+		List<ItemPermissionInfo> itemPermissionInfos = saveItemModelEntity.getPermissions();
+		Map<String, ItemPermissionInfo> oldItemPermission = new HashMap<>();
+		if(itemPermissionInfos != null) {
+			for (ItemPermissionInfo itemPermissionInfo : itemPermissionInfos) {
+				oldItemPermission.put(itemPermissionInfo.getId(), itemPermissionInfo);
+			}
+		}
+
+		List<ItemPermissionInfo> newItemPermissionInfos = new ArrayList<>();
+		if(saveItemModelEntity.isNew() && (paramerItemModelEntity.getPermissions() == null || paramerItemModelEntity.getPermissions().size() < 1)) {
+			newItemPermissionInfos.add(createItempermissionInfo(saveItemModelEntity, DisplayTimingType.Add));
+			newItemPermissionInfos.add(createItempermissionInfo(saveItemModelEntity, DisplayTimingType.Update));
+			newItemPermissionInfos.add(createItempermissionInfo(saveItemModelEntity, DisplayTimingType.Check));
+		}else{
+			for(ItemPermissionInfo itemPermissionInfo : paramerItemModelEntity.getPermissions()){
+				ItemPermissionInfo newItemPermiss = itemPermissionInfo.isNew() ? new ItemPermissionInfo() : oldItemPermission.remove(itemPermissionInfo.getId());
+				BeanUtils.copyProperties(itemPermissionInfo, newItemPermiss, new String[]{"itemModel"});
+				newItemPermiss.setItemModel(saveItemModelEntity);
+				newItemPermissionInfos.add(newItemPermiss);
+			}
+		}
+		saveItemModelEntity.setPermissions(newItemPermissionInfos);
+		for(String key: new ArrayList<>(oldItemPermission.keySet())){
+			ItemPermissionInfo permissionInfo = oldItemPermission.remove(key);
+			permissionInfo.setItemModel(null);
+			//itemPermissionManager.deleteById(key);
+		}
+		return saveItemModelEntity;
 	}
 
 	//得到最新的item

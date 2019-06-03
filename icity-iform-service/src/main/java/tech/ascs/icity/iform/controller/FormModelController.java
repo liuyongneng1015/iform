@@ -1961,14 +1961,11 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 	private List<ItemPermissionModel> setItemPermissions(List<ItemModelEntity> items, boolean isFlowForm){
 		List<ItemPermissionModel> itemPermissionsList = new ArrayList<>();
-		List<ItemModelEntity> columnItems = getColumnItem(items).parallelStream().sorted(Comparator.comparing(ItemModelEntity::getOrderNo).reversed()).collect(Collectors.toList());
-		for(ItemModelEntity itemModelEntity1 : columnItems){
-		    if(itemModelEntity1.getColumnModel() == null){
-		        continue;
-            }
-            ItemPermissionModel itemPermissionModel = setItemPermissionModel(itemModelEntity1);
-            if(itemModelEntity1.getPermissions() != null && itemModelEntity1.getPermissions().size() > 0){
-				for(ItemPermissionInfo itemPermissionInfo : itemModelEntity1.getPermissions()) {
+		for(ItemModelEntity itemModelEntity : items){
+			ColumnModelEntity columnModelEntity = itemModelEntity.getColumnModel();
+            ItemPermissionModel itemPermissionModel = setItemPermissionModel(itemModelEntity);
+            if(itemModelEntity.getPermissions() != null && itemModelEntity.getPermissions().size() > 0){
+				for(ItemPermissionInfo itemPermissionInfo : itemModelEntity.getPermissions()) {
 					ItemPermissionInfoModel itemPermissionInfoModel = new ItemPermissionInfoModel();
 					BeanUtils.copyProperties(itemPermissionInfo, itemPermissionInfoModel, new String[]{"itemModel"});
 					if(itemPermissionInfo.getDisplayTiming() == DisplayTimingType.Add) {
@@ -1981,11 +1978,17 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				}
 			}else{
 			    List<DisplayTimingType> displayTimingTypes = new ArrayList<>();
-			    displayTimingTypes.add(DisplayTimingType.Add);
-			    if(!isFlowForm) {
-                    displayTimingTypes.add(DisplayTimingType.Update);
-                    displayTimingTypes.add(DisplayTimingType.Check);
-                }
+			    if(columnModelEntity != null){
+					displayTimingTypes.add(DisplayTimingType.Add);
+					if(!isFlowForm) {
+						displayTimingTypes.add(DisplayTimingType.Update);
+						displayTimingTypes.add(DisplayTimingType.Check);
+					}
+			    }else{
+					if(!isFlowForm) {
+						displayTimingTypes.add(DisplayTimingType.Check);
+					}
+				}
                 for(DisplayTimingType displayTimingType : displayTimingTypes){
                     ItemPermissionInfoModel permissionInfoModel = new ItemPermissionInfoModel();
                     permissionInfoModel.setVisible(false);
