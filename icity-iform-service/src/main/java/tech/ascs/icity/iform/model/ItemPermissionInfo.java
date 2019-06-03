@@ -12,7 +12,7 @@ import java.io.Serializable;
  */
 @Entity
 @Table(name = "ifm_item_permissions")
-public class ItemPermissionInfo extends JPAEntity implements Serializable {
+public class ItemPermissionInfo extends BaseEntity implements Serializable {
 
 	private static final long serialVersionUID = -15151L;
 

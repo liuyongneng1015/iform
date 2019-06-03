@@ -804,12 +804,19 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				newItemPermissionInfos.add(newItemPermiss);
 			}
 		}
-		saveItemModelEntity.setPermissions(newItemPermissionInfos);
-		for(String key: new ArrayList<>(oldItemPermission.keySet())){
-			ItemPermissionInfo permissionInfo = oldItemPermission.remove(key);
-			permissionInfo.setItemModel(null);
-			//itemPermissionManager.deleteById(key);
+		List<ItemPermissionInfo> list = saveItemModelEntity.getPermissions();
+		saveItemModelEntity.setPermissions(null);
+		List<String> idList = new ArrayList<>(oldItemPermission.keySet());
+		for(int i = 0 ; i < list.size(); i++) {
+			ItemPermissionInfo info = list.get(i);
+			if (idList.equals(info.getId())) {
+				list.remove(info);
+				info.setItemModel(null);
+				//itemPermissionManager.delete(info);
+				i--;
+			}
 		}
+		saveItemModelEntity.setPermissions(newItemPermissionInfos);
 		return saveItemModelEntity;
 	}
 
@@ -832,11 +839,19 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				options.add(newOption);
 			}
 		}
-		newEntity.setOptions(options);
-		for(String key : itemSelectOptionMap.keySet()){
-			itemSelectOptionManager.deleteById(key);
+		List<ItemSelectOption> list = newEntity.getOptions();
+		newEntity.setOptions(null);
+		List<String> idList = new ArrayList<>(itemSelectOptionMap.keySet());
+		for(int i = 0 ; i < list.size(); i++){
+			ItemSelectOption info = list.get(i);
+			if(idList.contains(info.getId())) {
+				list.remove(info);
+				info.setItemModel(null);
+				//itemSelectOptionManager.delete(info);
+				i--;
+			}
 		}
-
+		newEntity.setOptions(options);
 		return newEntity;
 	}
 

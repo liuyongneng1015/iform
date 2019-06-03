@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 import javax.persistence.*;
 
+import tech.ascs.icity.jpa.dao.model.BaseEntity;
 import tech.ascs.icity.jpa.dao.model.JPAEntity;
 
 /**
@@ -11,7 +12,7 @@ import tech.ascs.icity.jpa.dao.model.JPAEntity;
  */
 @Entity
 @Table(name = "ifm_item_select_option")
-public class ItemSelectOption extends JPAEntity implements Serializable {
+public class ItemSelectOption  extends BaseEntity implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
