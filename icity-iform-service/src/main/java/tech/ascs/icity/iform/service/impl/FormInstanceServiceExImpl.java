@@ -1570,8 +1570,17 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	public void addCreatorCriteria(Criteria criteria, ListModelEntity listModel) {
 		if (listModel.getDataPermissions()!=null && DataPermissionsType.MySelf.equals(listModel.getDataPermissions())) {
 			String userId = CurrentUserUtils.getCurrentUserId();
-			if (userId!=null) {
-				criteria.add(Restrictions.eq("create_by", userId));
+			if (userId != null) {
+				List<ItemModelEntity> itemModelEntityList = formModelService.findAllItems(listModel.getMasterForm());
+				List<String> columnList = new ArrayList<>();
+				for(ItemModelEntity itemModelEntity : itemModelEntityList){
+					if(itemModelEntity.getColumnModel() != null){
+						columnList.add(itemModelEntity.getColumnModel().getColumnName());
+					}
+				}
+				if(columnList.contains("create_by")) {
+					criteria.add(Restrictions.eq("create_by", userId));
+				}
 			}
 		}
 	}
@@ -2166,7 +2175,16 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				}
 			}
 		}else{
-			criteria.addOrder(Order.desc("create_at"));
+			List<ItemModelEntity> itemModelEntityList = formModelService.findAllItems(listModel.getMasterForm());
+			List<String> columnList = new ArrayList<>();
+			for(ItemModelEntity itemModelEntity : itemModelEntityList){
+				if(itemModelEntity.getColumnModel() != null){
+					columnList.add(itemModelEntity.getColumnModel().getColumnName());
+				}
+			}
+			if(columnList.contains("create_at")) {
+				criteria.addOrder(Order.desc("create_at"));
+			}
 			criteria.addOrder(Order.desc("id"));
 		}
 	}
