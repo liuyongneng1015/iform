@@ -650,7 +650,10 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 						continue;
 					}
 					SearchItem searchItem = new SearchItem();
-					BeanUtils.copyProperties(searchItemEntity, searchItem, "listModel", "itemModel", "search");
+					BeanUtils.copyProperties(searchItemEntity, searchItem, "listModel", "itemModel", "search", "parseArea");
+					if (StringUtils.hasText(searchItemEntity.getParseArea())) {
+						searchItem.setParseArea(Arrays.asList(searchItemEntity.getParseArea().split(",")));
+					}
 					if(itemModelEntity instanceof ReferenceItemModelEntity) {
 						ReferenceItemModelEntity referenceItemModelEntity = (ReferenceItemModelEntity)itemModelEntity;
 						if (referenceItemModelEntity.getReferenceType() == ReferenceType.ManyToMany) {
