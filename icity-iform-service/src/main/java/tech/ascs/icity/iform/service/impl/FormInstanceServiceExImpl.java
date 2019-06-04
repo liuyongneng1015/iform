@@ -2403,18 +2403,34 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			value = sub.toString();
 		}else {
 			if(displayVlaue instanceof List){
-				List<String> valueList = (List<String>)displayVlaue;
+				List<String> valueList = null;
+				if(itemInstance.getType() == ItemType.Location) {
+					valueList = new ArrayList<>();
+					List<GeographicalMapModel> geographicalMapModelList = (List<GeographicalMapModel>)displayVlaue;
+					for(GeographicalMapModel geographicalMapModel : geographicalMapModelList) {
+						valueList.add(StringUtils.hasText(geographicalMapModel.getDetailAddress()) ? geographicalMapModel.getDetailAddress() :
+								"位置经度：" + geographicalMapModel.getLng() + ",纬度：" + geographicalMapModel.getLat());
+					}
+				}else {
+					valueList = (List<String>) displayVlaue;
+				}
 				StringBuffer sub = new StringBuffer();
-				for(int j = 0; j < valueList.size(); j ++){
-					if(j == 0){
+				for (int j = 0; j < valueList.size(); j++) {
+					if (j == 0) {
 						sub.append(valueList.get(j));
-					}else{
-						sub.append(","+valueList.get(j));
+					} else {
+						sub.append("," + valueList.get(j));
 					}
 				}
 				value = sub.toString();
 			}else{
-				value = (String)displayVlaue;
+				if(itemInstance.getType() == ItemType.Location){
+					GeographicalMapModel geographicalMapModel = (GeographicalMapModel)displayVlaue;
+					value = StringUtils.hasText(geographicalMapModel.getDetailAddress()) ? geographicalMapModel.getDetailAddress() :
+							"位置经度："+geographicalMapModel.getLng()+",纬度："+geographicalMapModel.getLat();
+				}else {
+					value = (String) displayVlaue;
+				}
 			}
 		}
 		return value;

@@ -16,7 +16,7 @@ import java.util.List;
 @DiscriminatorValue("selectItemModel")
 public class SelectItemModelEntity extends ItemModelEntity  {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 52421L;
 
 	@Column(name="select_data_source_type")
 	@Enumerated(EnumType.STRING)

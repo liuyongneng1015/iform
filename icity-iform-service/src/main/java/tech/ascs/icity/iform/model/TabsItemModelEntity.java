@@ -14,7 +14,7 @@ import java.util.List;
 @DiscriminatorValue("tabsItemModel")
 public class TabsItemModelEntity extends ItemModelEntity  {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 178373L;
 	/** 标签页子项 */
 	@OneToMany(cascade = {CascadeType.ALL}, mappedBy = "parentItem")
 	private List<TabPaneItemModelEntity> items = new ArrayList<TabPaneItemModelEntity>();

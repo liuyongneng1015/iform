@@ -14,7 +14,7 @@ import java.io.Serializable;
 @Table(name = "ifm_geographical_map")
 public class GeographicalMapEntity extends BaseEntity implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1543L;
 
 	//来源控件或者表单id
 	@Column(name = "from_source", length = 64)
@@ -33,7 +33,7 @@ public class GeographicalMapEntity extends BaseEntity implements Serializable {
 	private String landmark;
 
 	@Column(name="level")//地图显示级别
-	private Integer level = 12;
+	private Integer level;
 
 
 	public String getFromSource() {

@@ -12,7 +12,7 @@ import java.util.List;
 @DiscriminatorValue("rowItemModel")
 public class RowItemModelEntity extends ItemModelEntity  {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1782L;
 
 	@Column(name="row_number") // 当前行数
 	private Integer rowNumber;

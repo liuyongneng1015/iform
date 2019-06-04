@@ -13,7 +13,7 @@ import javax.persistence.*;
 @DiscriminatorValue("locationItemModel")
 public class LocationItemModelEntity extends ItemModelEntity  {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 12542L;
 
 	@Column(name="map_type")//地图选择类型
 	@Enumerated(EnumType.STRING)
@@ -36,7 +36,7 @@ public class LocationItemModelEntity extends ItemModelEntity  {
 	private String landmark;
 
 	@Column(name="level")//地图显示级别
-	private Integer level = 12;
+	private Integer level;
 
 
 	public GeographicalMapType getMapType() {

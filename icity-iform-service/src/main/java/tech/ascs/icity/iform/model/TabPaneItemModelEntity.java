@@ -12,7 +12,7 @@ import java.util.List;
 @DiscriminatorValue("tabPaneItemModel")
 public class TabPaneItemModelEntity extends ItemModelEntity  {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 13873L;
 	@JoinColumn(name="parent_tabs_item_id") //标签页
 	@ManyToOne(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH })
 	private TabsItemModelEntity parentItem;

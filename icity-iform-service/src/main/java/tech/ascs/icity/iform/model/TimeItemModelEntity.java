@@ -17,7 +17,7 @@ import java.util.List;
 @DiscriminatorValue("timeItemModel")
 public class TimeItemModelEntity extends ItemModelEntity  {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 137837L;
 
 	@JoinColumn(name="time_format")//时间格式如（“yyyy-MM-dd”）
 	private String timeFormat = "yyyy-MM-dd HH:mm:ss";

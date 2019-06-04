@@ -14,7 +14,7 @@ import java.util.List;
 @DiscriminatorValue("subFormItemModel")
 public class SubFormItemModelEntity extends ItemModelEntity  {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1542L;
 
 	@JoinColumn(name="legend") // 头部标签
 	private String legend;

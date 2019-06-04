@@ -17,7 +17,7 @@ import java.util.List;
 @DiscriminatorValue("referenceItemModel")
 public class ReferenceItemModelEntity extends ItemModelEntity  {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 542421L;
 
 	@Column(name="reference_type")
 	@Enumerated(EnumType.STRING)

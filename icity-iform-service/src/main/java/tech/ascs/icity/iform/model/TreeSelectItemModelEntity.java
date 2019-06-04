@@ -12,7 +12,7 @@ import javax.persistence.*;
 @DiscriminatorValue("treeSelectItemModel")
 public class TreeSelectItemModelEntity extends ItemModelEntity  {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1378L;
 
 	@Column(name="multiple")// 是否多选
 	private Boolean multiple;

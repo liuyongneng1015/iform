@@ -13,7 +13,7 @@ import javax.persistence.Table;
 @DiscriminatorValue("serialNumberItemModel")
 public class SerialNumberItemModelEntity extends ItemModelEntity  {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 18272L;
 
 	@JoinColumn(name="time_format")//时间格式如（“yyyy-MM-dd”）
 	private String timeFormat;

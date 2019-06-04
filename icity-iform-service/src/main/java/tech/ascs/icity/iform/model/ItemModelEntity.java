@@ -22,7 +22,7 @@ import tech.ascs.icity.jpa.dao.model.BaseEntity;
 @DiscriminatorValue(value = "baseItemModel")
 public class ItemModelEntity extends  BaseEntity implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 21321L;
 
 	@ManyToOne(cascade = {CascadeType.MERGE})
 	@JoinColumn(name="form_id")

@@ -10,7 +10,7 @@ import javax.persistence.*;
 @DiscriminatorValue("numberItemModel")
 public class NumberItemModelEntity extends ItemModelEntity  {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 187L;
 
 	@JoinColumn(name="decimal_digits")//数字位数
 	private Integer decimalDigits = 0;

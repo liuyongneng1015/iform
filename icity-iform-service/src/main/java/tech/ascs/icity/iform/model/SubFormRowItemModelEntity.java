@@ -12,7 +12,7 @@ import java.util.List;
 @DiscriminatorValue("subFormRowItemModel")
 public class SubFormRowItemModelEntity extends ItemModelEntity  {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 38731L;
 
 	@Column(name="row_number") // 当前行数
 	private Integer rowNumber;

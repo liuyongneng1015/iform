@@ -12,7 +12,7 @@ import javax.persistence.*;
 @DiscriminatorValue("fileItemModel")
 public class FileItemModelEntity extends ItemModelEntity  {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 35431L;
 
 	@Column(name="file_reference_type")
 	@Enumerated(EnumType.STRING)

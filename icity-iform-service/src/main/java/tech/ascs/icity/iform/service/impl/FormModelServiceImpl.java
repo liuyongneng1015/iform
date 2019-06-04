@@ -809,11 +809,11 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		List<String> idList = new ArrayList<>(oldItemPermission.keySet());
 		for(int i = 0 ; i < list.size(); i++) {
 			ItemPermissionInfo info = list.get(i);
-			if (idList.equals(info.getId())) {
+			if (idList.contains(info.getId())) {
 				list.remove(info);
-				info.setItemModel(null);
+                info.setItemModel(null);
+                //i--;
 				//itemPermissionManager.delete(info);
-				i--;
 			}
 		}
 		saveItemModelEntity.setPermissions(newItemPermissionInfos);
@@ -847,8 +847,8 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			if(idList.contains(info.getId())) {
 				list.remove(info);
 				info.setItemModel(null);
+                //i--;
 				//itemSelectOptionManager.delete(info);
-				i--;
 			}
 		}
 		newEntity.setOptions(options);

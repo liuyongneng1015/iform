@@ -14,9 +14,9 @@ import tech.ascs.icity.jpa.dao.model.JPAEntity;
 @Table(name = "ifm_item_select_option")
 public class ItemSelectOption  extends BaseEntity implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 52721L;
 
-	@ManyToOne(cascade = {CascadeType.REFRESH })
+	@ManyToOne(cascade = {CascadeType.MERGE})
 	@JoinColumn(name="item_id")
 	private ItemModelEntity itemModel;
 
