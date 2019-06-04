@@ -413,7 +413,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				}
 				ListFunction listFunction = new ListFunction() ;
 				BeanUtils.copyProperties(function, listFunction, new String[]{"listModel", "parseArea"});
-				if (function.getParseArea()!=null && function.getParseArea().length>0) {
+				if (function.getParseArea()!=null && function.getParseArea().size()>0) {
 					listFunction.setParseArea(String.join(",", function.getParseArea()));
 				}
 				listFunction.setListModel(listModelEntity);
@@ -580,7 +580,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				FunctionModel function = new FunctionModel();
 				BeanUtils.copyProperties(listFunction, function, new String[]{"listModel", "formModel", "parseArea"});
 				if (StringUtils.hasText(listFunction.getParseArea())) {
-					function.setParseArea(listFunction.getParseArea().split(","));
+					function.setParseArea(Arrays.asList(listFunction.getParseArea().split(",")));
 				}
 				function.setListActionBarVisible(null);
 				function.setUpdatePageVisible(null);

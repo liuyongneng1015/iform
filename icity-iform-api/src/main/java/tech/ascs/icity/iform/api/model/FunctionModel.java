@@ -5,6 +5,7 @@ import io.swagger.annotations.ApiModelProperty;
 import org.apache.commons.lang3.StringUtils;
 import tech.ascs.icity.model.NameEntity;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @ApiModel("功能模型")
@@ -58,7 +59,7 @@ public class FunctionModel extends NameEntity implements Comparable<FunctionMode
 	private Boolean systemBtn = false;
 
 	@ApiModelProperty(value ="解析区域", position = 20)
-	private String[] parseArea;
+	private List<String> parseArea = new ArrayList();
 
 	public String getLabel() {
 		return label;
@@ -236,11 +237,11 @@ public class FunctionModel extends NameEntity implements Comparable<FunctionMode
 		this.systemBtn = systemBtn;
 	}
 
-	public String[] getParseArea() {
+	public List<String> getParseArea() {
 		return parseArea;
 	}
 
-	public void setParseArea(String[] parseArea) {
+	public void setParseArea(List<String> parseArea) {
 		this.parseArea = parseArea;
 	}
 

@@ -148,7 +148,7 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 			}
 
 			if (entity.getSearchItems() != null) {
-				List<ListSearchItem> searchItems = new ArrayList<ListSearchItem>();
+				List<ListSearchItem> searchItems = new ArrayList();
 				for (int i = 0; i < entity.getSearchItems().size(); i++) {
 					ListSearchItem searchItem = entity.getSearchItems().get(i);
 					ListSearchItem searchItemEntity =  new ListSearchItem();
@@ -159,7 +159,7 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 							continue;
 						}
 						ItemModelEntity searchItemModelEntity = itemModelService.find(searchItem.getItemModel().getId());
-						if (true == searchItem.getFullTextSearch()) {
+						if (searchItem.getParseArea()!=null && searchItem.getParseArea().contains("FuzzyQuery")) {
 							ItemType itemType = searchItemModelEntity.getType();
 							if (ItemType.InputNumber== itemType || ItemType.DatePicker==itemType || ItemType.TimePicker==itemType) {
 								throw new ICityException("数字控件和时间控件不能加到全文索引");
