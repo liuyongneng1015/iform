@@ -464,10 +464,11 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			newReferenceType = ((ReferenceItemModelEntity)paramerItemModelEntity).getReferenceType();
 			newReferenceFormId = ((ReferenceItemModelEntity) paramerItemModelEntity).getReferenceFormId();
 		}
-
-		BeanUtils.copyProperties(paramerItemModelEntity, saveItemModelEntity, new String[]{"referencesItemModels","parentItem", "searchItems","sortItems","permissions", "referenceList","items","formModel","columnModel","activities","options"});
 		setItempermissions(saveItemModelEntity, paramerItemModelEntity);
 		setOption(saveItemModelEntity, paramerItemModelEntity);
+
+		BeanUtils.copyProperties(paramerItemModelEntity, saveItemModelEntity, new String[]{"referencesItemModels","parentItem", "searchItems","sortItems","permissions", "referenceList","items","formModel","columnModel","activities","options"});
+
 
 		//设置列表模型
 		if (paramerItemModelEntity instanceof ReferenceItemModelEntity ) {
@@ -812,7 +813,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			if (idList.contains(info.getId())) {
 				list.remove(info);
                 info.setItemModel(null);
-                //i--;
+               // i--;
 				//itemPermissionManager.delete(info);
 			}
 		}
@@ -840,7 +841,6 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			}
 		}
 		List<ItemSelectOption> list = newEntity.getOptions();
-		newEntity.setOptions(null);
 		List<String> idList = new ArrayList<>(itemSelectOptionMap.keySet());
 		for(int i = 0 ; i < list.size(); i++){
 			ItemSelectOption info = list.get(i);

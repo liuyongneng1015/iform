@@ -76,10 +76,12 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 	}
 
 	@Override
-	public void deleteDictionary(String id) {
-		DictionaryModelEntity dictionaryModelEntity = get(id);
-		deleteTable(dictionaryModelEntity.getTableName());
-		delete(dictionaryModelEntity);
+	public void deleteDictionary(List<String> idList) {
+		for(String id : idList) {
+			DictionaryModelEntity dictionaryModelEntity = get(id);
+			deleteTable(dictionaryModelEntity.getTableName());
+			delete(dictionaryModelEntity);
+		}
 	}
 
 	@Override
@@ -272,21 +274,26 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 	}
 
 	@Override
-	public void deleteDictionaryModelData(DictionaryModelData dictionaryModelData) {
-		DictionaryModel dictionaryModelModel = getDictionaryById(dictionaryModelData.getDictionaryId());
-		List<String> idList = new ArrayList<>();
-		idList.add(dictionaryModelData.getId());
-		findAllChildrenId(idList, dictionaryModelModel.getTableName(), dictionaryModelData.getId());
-		StringBuffer sub = new StringBuffer("('");
-		for(int i = 0 ; i < idList.size() ; i++){
-			if(i == 0){
-				sub.append(idList.get(i));
-			}else{
-				sub.append("','"+ idList.get(i));
+	public void deleteDictionaryModelData(List<DictionaryModelData> dictionaryModelDataList) {
+		for(DictionaryModelData dictionaryModelData : dictionaryModelDataList) {
+			DictionaryModel dictionaryModelModel = getDictionaryById(dictionaryModelData.getDictionaryId());
+			List<String> idList = new ArrayList<>();
+			idList.add(dictionaryModelData.getId());
+			findAllChildrenId(idList, dictionaryModelModel.getTableName(), dictionaryModelData.getId());
+			if(idList == null || idList.size() < 1){
+				continue;
 			}
+			StringBuffer sub = new StringBuffer("('");
+			for (int i = 0; i < idList.size(); i++) {
+				if (i == 0) {
+					sub.append(idList.get(i));
+				} else {
+					sub.append("','" + idList.get(i));
+				}
+			}
+			sub.append("')");
+			dictionaryManager.getJdbcTemplate().execute("delete from " + dictionaryModelModel.getTableName() + " where id in " + sub.toString());
 		}
-		sub.append("')");
-		dictionaryManager.getJdbcTemplate().execute("delete from "+dictionaryModelModel.getTableName()+" where id in "+sub.toString());
 	}
 
 

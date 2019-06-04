@@ -16,8 +16,6 @@ import java.util.List;
 @DiscriminatorValue("selectItemModel")
 public class SelectItemModelEntity extends ItemModelEntity  {
 
-	private static final long serialVersionUID = 52421L;
-
 	@Column(name="select_data_source_type")
 	@Enumerated(EnumType.STRING)
 	private SelectDataSourceType selectDataSourceType;
@@ -38,13 +36,13 @@ public class SelectItemModelEntity extends ItemModelEntity  {
 	@Column(name="reference_table")// 关联表
 	private String referenceTable;
 
-	@Column(name="reference_value_column")// 关联值字段（比如“ID”）
+	@Column(name="reference_column")// 关联值字段（比如“ID”）
 	private String referenceValueColumn;
 
 	@Column(name="default_reference_value",columnDefinition = "text")// 默认关联值逗号隔开
 	private String defaultReferenceValue;
 
-	@JoinColumn(name="list_model_id") // 关联显示列表模型
+	@JoinColumn(name="select_list_model_id") // 关联显示列表模型
 	@ManyToOne(cascade = CascadeType.ALL)
 	private ListModelEntity referenceList;
 

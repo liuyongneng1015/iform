@@ -20,7 +20,7 @@ import tech.ascs.icity.jpa.dao.model.BaseEntity;
 @DiscriminatorColumn(name="discriminator", discriminatorType = DiscriminatorType.STRING)
 @DiscriminatorOptions(force=true)
 @DiscriminatorValue(value = "baseItemModel")
-public class ItemModelEntity extends  BaseEntity implements Serializable {
+public class ItemModelEntity extends  BaseEntity{
 
 	private static final long serialVersionUID = 21321L;
 
