@@ -1329,7 +1329,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	private FileUploadEntity saveFileUploadEntity(Map<String, String> fileUploadModelMap, Map<String, FileUploadEntity> fileUploadEntityMap, ItemModelEntity itemModel){
 		String fileKey = fileUploadModelMap.get("fileKey");
-		String format = fileKey.substring(fileKey.lastIndexOf(".")+1);
+		String url = fileUploadModelMap.get("url");
+		String format = StringUtils.hasText(fileKey) ? fileKey.substring(fileKey.lastIndexOf(".")+1) : url.substring(url.lastIndexOf(".")+1) ;
 		String fileFormat = ((FileItemModelEntity)itemModel).getFileFormat();
 		if(StringUtils.hasText(fileFormat) && !fileFormat.contains(format)){
 			throw new IFormException("未找到【"+fileUploadModelMap.get("id")+"】对应的文件格式类型不对");
@@ -1349,7 +1350,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			FileUploadModel fileUploadModel = new FileUploadModel();
 			fileUploadModel.setFileKey(fileKey);
 			fileUploadModel.setName(fileUploadModelMap.get("name"));
-			fileUploadModel.setUrl(fileUploadModelMap.get("url"));
+			fileUploadModel.setUrl(url);
 			fileUploadModel.setThumbnail(fileUploadModelMap.get("thumbnail"));
 			fileUploadModel.setThumbnailUrl(fileUploadModelMap.get("thumbnailUrl"));
 			BeanUtils.copyProperties(fileUploadModel, fileUploadEntity);
@@ -2375,8 +2376,18 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				continue;
 			}
 			if(itemInstance.getType() == ItemType.Media || itemInstance.getType() == ItemType.Attachment){
-				map.put(itemInstance.getColumnModelName(), itemInstance.getValue() == null ? null : ((FileUploadModel)itemInstance.getValue()).getId());
-			}else if(itemInstance.getType() == ItemType.Label){
+				List<String> idList = new ArrayList<>();
+				if(itemInstance.getValue() != null){
+					if(itemInstance.getValue() instanceof List){
+						for(FileUploadModel fileUploadModel : (List<FileUploadModel>)itemInstance.getValue()){
+							idList.add(fileUploadModel.getId());
+						}
+					}else{
+						idList.add(((FileUploadModel)itemInstance.getValue()).getId());
+					}
+				}
+				map.put(itemInstance.getColumnModelName(), String.join(",",idList));
+			}else if(itemInstance.getType() == ItemType.Location){
 				map.put(itemInstance.getColumnModelName(),itemInstance.getValue() == null ? null : ((GeographicalMapModel)itemInstance.getValue()).getId());
 			}else {
 				map.put(itemInstance.getColumnModelName(), itemInstance.getValue());
