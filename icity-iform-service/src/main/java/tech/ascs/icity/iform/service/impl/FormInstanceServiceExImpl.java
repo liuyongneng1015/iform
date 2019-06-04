@@ -176,7 +176,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
             if(formModel.getProcess() != null && formModel.getProcess().getId() != null) {
                 ProcessModel process = processService.getModel(formModel.getProcess().getId());
                 if(process != null){
-                    formName = process.getFormName();
+                    formName = process.getFormTitle();
                 }
             }
             List<FormDataSaveInstance> list = wrapFormDataList(formModel, null, criteria.list());
@@ -2403,17 +2403,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			value = sub.toString();
 		}else {
 			if(displayVlaue instanceof List){
-				List<String> valueList = null;
-				if(itemInstance.getType() == ItemType.Location) {
-					valueList = new ArrayList<>();
-					List<GeographicalMapModel> geographicalMapModelList = (List<GeographicalMapModel>)displayVlaue;
-					for(GeographicalMapModel geographicalMapModel : geographicalMapModelList) {
-						valueList.add(StringUtils.hasText(geographicalMapModel.getDetailAddress()) ? geographicalMapModel.getDetailAddress() :
-								"位置经度：" + geographicalMapModel.getLng() + ",纬度：" + geographicalMapModel.getLat());
-					}
-				}else {
-					valueList = (List<String>) displayVlaue;
-				}
+				List<String> valueList = (List<String>) displayVlaue;
 				StringBuffer sub = new StringBuffer();
 				for (int j = 0; j < valueList.size(); j++) {
 					if (j == 0) {
@@ -2424,13 +2414,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				}
 				value = sub.toString();
 			}else{
-				if(itemInstance.getType() == ItemType.Location){
-					GeographicalMapModel geographicalMapModel = (GeographicalMapModel)displayVlaue;
-					value = StringUtils.hasText(geographicalMapModel.getDetailAddress()) ? geographicalMapModel.getDetailAddress() :
-							"位置经度："+geographicalMapModel.getLng()+",纬度："+geographicalMapModel.getLat();
-				}else {
-					value = (String) displayVlaue;
-				}
+				value = (String) displayVlaue;
 			}
 		}
 		return value;
@@ -3380,7 +3364,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				mapModel = geographicalMapModel;
 			}
 			itemInstance.setValue(mapModel);
-			itemInstance.setDisplayValue(mapModel);
+			String displayVlaue = mapModel == null || !StringUtils.hasText(mapModel.getDetailAddress()) ? "位置经度："+mapModel.getLng()+",纬度："+mapModel.getLat() : mapModel.getDetailAddress();
+			itemInstance.setDisplayValue(displayVlaue);
 		}
 	}
 
@@ -3423,7 +3408,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
         if(formModel.getProcess() != null && formModel.getProcess().getId() != null){
             ProcessModel process = processService.getModel(formModel.getProcess().getId());
             if(process != null){
-                formName = process.getFormName();
+                formName = process.getFormTitle();
             }
         }
         formInstance.setFormName(formName);

@@ -212,7 +212,7 @@ public class ItemModel extends NameEntity {
 	private String landmark;
 
 	@ApiModelProperty(value = "地图显示级别", position = 49)
-	private Integer level = 12;
+	private Integer level;
 
 	@ApiModelProperty(value = "关联的根节点标识", position = 52)
 	private Boolean referenceRootFlag;
@@ -800,7 +800,7 @@ public class ItemModel extends NameEntity {
 		return level;
 	}
 
-	public void setLevel(int level) {
+	public void setLevel(Integer level) {
 		this.level = level;
 	}
 

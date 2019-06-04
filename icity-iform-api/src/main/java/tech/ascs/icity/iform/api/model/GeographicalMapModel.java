@@ -70,7 +70,7 @@ public class GeographicalMapModel extends NameEntity {
 		return level;
 	}
 
-	public void setLevel(int level) {
+	public void setLevel(Integer level) {
 		this.level = level;
 	}
 

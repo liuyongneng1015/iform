@@ -80,7 +80,7 @@ public class GeographicalMapEntity extends BaseEntity implements Serializable {
 		return level;
 	}
 
-	public void setLevel(int level) {
+	public void setLevel(Integer level) {
 		this.level = level;
 	}
 }
