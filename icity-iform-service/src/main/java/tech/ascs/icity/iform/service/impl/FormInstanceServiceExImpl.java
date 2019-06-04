@@ -1734,7 +1734,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			String queryValueStr = queryValue.toString();
 			List<Criterion> conditions = new ArrayList();
 			List<ListSearchItem> searchItems = listModelEntity.getSearchItems();
-			searchItems = searchItems.stream().filter(item->(item.getFullTextSearch()!=null && item.getFullTextSearch()==true)).collect(Collectors.toList());
+			searchItems = searchItems.stream().filter(item->(item.getParseArea()!=null && item.getParseArea().contains("FuzzyQuery"))).collect(Collectors.toList());
 			for (ListSearchItem searchItem:searchItems) {
 				if (searchItem==null) {
 					continue;
