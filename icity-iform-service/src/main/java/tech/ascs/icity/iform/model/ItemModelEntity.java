@@ -20,7 +20,7 @@ import tech.ascs.icity.jpa.dao.model.BaseEntity;
 @DiscriminatorColumn(name="discriminator", discriminatorType = DiscriminatorType.STRING)
 @DiscriminatorOptions(force=true)
 @DiscriminatorValue(value = "baseItemModel")
-public class ItemModelEntity extends  BaseEntity implements Serializable {
+public class ItemModelEntity extends  BaseEntity{
 
 	private static final long serialVersionUID = 21321L;
 
@@ -28,7 +28,7 @@ public class ItemModelEntity extends  BaseEntity implements Serializable {
 	@JoinColumn(name="form_id")
 	private FormModelEntity formModel;
 
-	@ManyToOne(cascade = {CascadeType.REFRESH })
+	@ManyToOne(cascade = {CascadeType.REFRESH})
 	@JoinColumn(name="column_id")
 	private ColumnModelEntity columnModel;
 

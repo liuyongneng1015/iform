@@ -687,7 +687,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			if (StringUtils.hasText(formInstance.getActivityInstanceId())) {
 				completedProcess(paramCondition, formInstance, data, formModel);
 			}
-			System.out.println("___"+data.get("event_nature"));
 			session.update(dataModel.getTableName(), data);
 			session.getTransaction().commit();
 
@@ -1218,7 +1217,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 		for (ItemInstance itemInstance : formInstance.getItems()) {
             ItemModelEntity itemModel = itemModelManager.get(itemInstance.getId());
-            if(itemModel instanceof ReferenceItemModelEntity){
+            if(itemModel instanceof ReferenceItemModelEntity || itemModel.getSystemItemType() == SystemItemType.ID){
             	continue;
 			}
             //唯一校验
@@ -1329,7 +1328,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	private FileUploadEntity saveFileUploadEntity(Map<String, String> fileUploadModelMap, Map<String, FileUploadEntity> fileUploadEntityMap, ItemModelEntity itemModel){
 		String fileKey = fileUploadModelMap.get("fileKey");
-		String format = fileKey.substring(fileKey.lastIndexOf(".")+1);
+		String url = fileUploadModelMap.get("url");
+		String format = StringUtils.hasText(fileKey) ? fileKey.substring(fileKey.lastIndexOf(".")+1) : url.substring(url.lastIndexOf(".")+1) ;
 		String fileFormat = ((FileItemModelEntity)itemModel).getFileFormat();
 		if(StringUtils.hasText(fileFormat) && !fileFormat.contains(format)){
 			throw new IFormException("未找到【"+fileUploadModelMap.get("id")+"】对应的文件格式类型不对");
@@ -1349,7 +1349,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			FileUploadModel fileUploadModel = new FileUploadModel();
 			fileUploadModel.setFileKey(fileKey);
 			fileUploadModel.setName(fileUploadModelMap.get("name"));
-			fileUploadModel.setUrl(fileUploadModelMap.get("url"));
+			fileUploadModel.setUrl(url);
 			fileUploadModel.setThumbnail(fileUploadModelMap.get("thumbnail"));
 			fileUploadModel.setThumbnailUrl(fileUploadModelMap.get("thumbnailUrl"));
 			BeanUtils.copyProperties(fileUploadModel, fileUploadEntity);
@@ -1570,8 +1570,17 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	public void addCreatorCriteria(Criteria criteria, ListModelEntity listModel) {
 		if (listModel.getDataPermissions()!=null && DataPermissionsType.MySelf.equals(listModel.getDataPermissions())) {
 			String userId = CurrentUserUtils.getCurrentUserId();
-			if (userId!=null) {
-				criteria.add(Restrictions.eq("create_by", userId));
+			if (userId != null) {
+				List<ItemModelEntity> itemModelEntityList = formModelService.findAllItems(listModel.getMasterForm());
+				List<String> columnList = new ArrayList<>();
+				for(ItemModelEntity itemModelEntity : itemModelEntityList){
+					if(itemModelEntity.getColumnModel() != null){
+						columnList.add(itemModelEntity.getColumnModel().getColumnName());
+					}
+				}
+				if(columnList.contains("create_by")) {
+					criteria.add(Restrictions.eq("create_by", userId));
+				}
 			}
 		}
 	}
@@ -2166,7 +2175,16 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				}
 			}
 		}else{
-			criteria.addOrder(Order.desc("create_at"));
+			List<ItemModelEntity> itemModelEntityList = formModelService.findAllItems(listModel.getMasterForm());
+			List<String> columnList = new ArrayList<>();
+			for(ItemModelEntity itemModelEntity : itemModelEntityList){
+				if(itemModelEntity.getColumnModel() != null){
+					columnList.add(itemModelEntity.getColumnModel().getColumnName());
+				}
+			}
+			if(columnList.contains("create_at")) {
+				criteria.addOrder(Order.desc("create_at"));
+			}
 			criteria.addOrder(Order.desc("id"));
 		}
 	}
@@ -2357,8 +2375,18 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				continue;
 			}
 			if(itemInstance.getType() == ItemType.Media || itemInstance.getType() == ItemType.Attachment){
-				map.put(itemInstance.getColumnModelName(), itemInstance.getValue() == null ? null : ((FileUploadModel)itemInstance.getValue()).getId());
-			}else if(itemInstance.getType() == ItemType.Label){
+				List<String> idList = new ArrayList<>();
+				if(itemInstance.getValue() != null){
+					if(itemInstance.getValue() instanceof List){
+						for(FileUploadModel fileUploadModel : (List<FileUploadModel>)itemInstance.getValue()){
+							idList.add(fileUploadModel.getId());
+						}
+					}else{
+						idList.add(((FileUploadModel)itemInstance.getValue()).getId());
+					}
+				}
+				map.put(itemInstance.getColumnModelName(), String.join(",",idList));
+			}else if(itemInstance.getType() == ItemType.Location){
 				map.put(itemInstance.getColumnModelName(),itemInstance.getValue() == null ? null : ((GeographicalMapModel)itemInstance.getValue()).getId());
 			}else {
 				map.put(itemInstance.getColumnModelName(), itemInstance.getValue());
@@ -3364,7 +3392,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				mapModel = geographicalMapModel;
 			}
 			itemInstance.setValue(mapModel);
-			String displayVlaue = mapModel == null || !StringUtils.hasText(mapModel.getDetailAddress()) ? "位置经度："+mapModel.getLng()+",纬度："+mapModel.getLat() : mapModel.getDetailAddress();
+			String displayVlaue = mapModel == null ? null : mapModel.getDetailAddress() ;
 			itemInstance.setDisplayValue(displayVlaue);
 		}
 	}

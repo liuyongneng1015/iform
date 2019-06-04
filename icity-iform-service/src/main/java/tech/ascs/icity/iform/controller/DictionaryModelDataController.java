@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
@@ -57,10 +58,25 @@ public class DictionaryModelDataController implements tech.ascs.icity.iform.api.
 
 	@Override
 	public void delete(@PathVariable(name = "dictionaryId") String dictionaryId, @PathVariable(name = "id") String id) {
+		List<DictionaryModelData> dictionaryModelDataList = new ArrayList<>();
+		dictionaryModelDataList.add(getDictionaryModelData(dictionaryId,id));
+		dictionaryService.deleteDictionaryModelData(dictionaryModelDataList);
+	}
+
+	private DictionaryModelData getDictionaryModelData(String dictionaryId,String id){
 		DictionaryModelData dictionaryModelData = new DictionaryModelData();
 		dictionaryModelData.setId(id);
 		dictionaryModelData.setDictionaryId(dictionaryId);
-		dictionaryService.deleteDictionaryModelData(dictionaryModelData);
+		return dictionaryModelData;
+	}
+
+	@Override
+	public void batchDelete(@PathVariable(name = "dictionaryId") String dictionaryId, @RequestParam(name = "ids", required = true) String[] ids) {
+		List<DictionaryModelData> dictionaryModelDataList = new ArrayList<>();
+		for(String id: ids) {
+			dictionaryModelDataList.add(getDictionaryModelData(dictionaryId, id));
+		}
+		dictionaryService.deleteDictionaryModelData(dictionaryModelDataList);
 	}
 
 	@Override
