@@ -12,7 +12,7 @@ import tech.ascs.icity.jpa.dao.model.JPAEntity;
  */
 @Entity
 @Table(name = "ifm_item_select_option")
-public class ItemSelectOption  extends BaseEntity{
+public class ItemSelectOption extends BaseEntity{
 
 	private static final long serialVersionUID = 52721L;
 

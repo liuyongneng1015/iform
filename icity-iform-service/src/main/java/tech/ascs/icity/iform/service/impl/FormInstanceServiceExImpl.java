@@ -3392,7 +3392,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				mapModel = geographicalMapModel;
 			}
 			itemInstance.setValue(mapModel);
-			String displayVlaue = mapModel == null || !StringUtils.hasText(mapModel.getDetailAddress()) ? "位置经度："+mapModel.getLng()+",纬度："+mapModel.getLat() : mapModel.getDetailAddress();
+			String displayVlaue = mapModel == null ? null : mapModel.getDetailAddress() ;
 			itemInstance.setDisplayValue(displayVlaue);
 		}
 	}

@@ -465,7 +465,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			newReferenceFormId = ((ReferenceItemModelEntity) paramerItemModelEntity).getReferenceFormId();
 		}
 		setItempermissions(saveItemModelEntity, paramerItemModelEntity);
-		setOption(saveItemModelEntity, paramerItemModelEntity);
+		setOptions(saveItemModelEntity, paramerItemModelEntity);
 
 		BeanUtils.copyProperties(paramerItemModelEntity, saveItemModelEntity, new String[]{"referencesItemModels","parentItem", "searchItems","sortItems","permissions", "referenceList","items","formModel","columnModel","activities","options"});
 
@@ -779,9 +779,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 	}
 
 	//设备表单权限
-	private ItemModelEntity setItempermissions(ItemModelEntity saveItemModelEntity, ItemModelEntity paramerItemModelEntity){
+	private void setItempermissions(ItemModelEntity saveItemModelEntity, ItemModelEntity paramerItemModelEntity){
 		if(paramerItemModelEntity.getColumnModel() != null && "id".equals(paramerItemModelEntity.getColumnModel().getColumnName())) {
-			return saveItemModelEntity;
+			return;
 		}
 		//旧数据
 		List<ItemPermissionInfo> itemPermissionInfos = saveItemModelEntity.getPermissions();
@@ -813,16 +813,15 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			if (idList.contains(info.getId())) {
 				list.remove(info);
                 info.setItemModel(null);
-               // i--;
-				//itemPermissionManager.delete(info);
+                i--;
+				itemPermissionManager.delete(info);
 			}
 		}
 		saveItemModelEntity.setPermissions(newItemPermissionInfos);
-		return saveItemModelEntity;
 	}
 
 	//得到最新的item
-	private ItemModelEntity setOption(ItemModelEntity newEntity, ItemModelEntity paramerItemModelEntity){
+	private void setOptions(ItemModelEntity newEntity, ItemModelEntity paramerItemModelEntity){
 		//旧数据
 		List<ItemSelectOption> itemSelectOptions = newEntity.getOptions();
 		Map<String, ItemSelectOption> itemSelectOptionMap = new HashMap<>();
@@ -841,18 +840,17 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			}
 		}
 		List<ItemSelectOption> list = newEntity.getOptions();
+		newEntity.setOptions(options);
 		List<String> idList = new ArrayList<>(itemSelectOptionMap.keySet());
 		for(int i = 0 ; i < list.size(); i++){
 			ItemSelectOption info = list.get(i);
 			if(idList.contains(info.getId())) {
 				list.remove(info);
 				info.setItemModel(null);
-                //i--;
-				//itemSelectOptionManager.delete(info);
+                i--;
+				itemSelectOptionManager.delete(info);
 			}
 		}
-		newEntity.setOptions(options);
-		return newEntity;
 	}
 
 	//初始化item的值

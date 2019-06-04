@@ -28,7 +28,7 @@ public class ItemModelEntity extends  BaseEntity{
 	@JoinColumn(name="form_id")
 	private FormModelEntity formModel;
 
-	@ManyToOne(cascade = {CascadeType.REFRESH })
+	@ManyToOne(cascade = {CascadeType.REFRESH})
 	@JoinColumn(name="column_id")
 	private ColumnModelEntity columnModel;
 
