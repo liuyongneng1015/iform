@@ -687,7 +687,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			if (StringUtils.hasText(formInstance.getActivityInstanceId())) {
 				completedProcess(paramCondition, formInstance, data, formModel);
 			}
-			System.out.println("___"+data.get("event_nature"));
 			session.update(dataModel.getTableName(), data);
 			session.getTransaction().commit();
 
@@ -1218,7 +1217,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 		for (ItemInstance itemInstance : formInstance.getItems()) {
             ItemModelEntity itemModel = itemModelManager.get(itemInstance.getId());
-            if(itemModel instanceof ReferenceItemModelEntity){
+            if(itemModel instanceof ReferenceItemModelEntity || itemModel.getSystemItemType() == SystemItemType.ID){
             	continue;
 			}
             //唯一校验
