@@ -96,7 +96,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 	private DefaultFunctionType[] functionDefaultActions = {DefaultFunctionType.Add, DefaultFunctionType.BatchDelete};
 	private String[] functionDefaultIcons = new String[]{null, "icon-xuanzhong"};
 	private String[] functionDefaultMethods = new String[]{"POST", "DELETE"};
-	private Boolean[] functionVisibles = {true, false, false};
+	private Boolean[] functionVisibles = {true, false};
 
 	@Override
 	public IdEntity createListModel(@RequestBody ListModel ListModel) {
@@ -386,7 +386,10 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				ItemModelEntity itemModelEntity = new ItemModelEntity();
 				itemModelEntity.setId(searchItem.getId());
 				ListSearchItem searchItemEntity =  new ListSearchItem();
-				BeanUtils.copyProperties(searchItem, searchItemEntity, "listModel", "itemModel", "search", "id", "name");
+				BeanUtils.copyProperties(searchItem, searchItemEntity, "listModel", "itemModel", "search", "id", "name", "parseArea");
+				if (searchItem.getParseArea()!=null && searchItem.getParseArea().size()>0) {
+					searchItemEntity.setParseArea(String.join(",", searchItem.getParseArea()));
+				}
 				searchItemEntity.setListModel(listModelEntity);
 				searchItemEntity.setItemModel(itemModelEntity);
 
