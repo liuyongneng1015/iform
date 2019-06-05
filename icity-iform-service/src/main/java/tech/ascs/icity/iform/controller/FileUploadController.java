@@ -137,71 +137,7 @@ public class FileUploadController implements FileUploadService {
 
 	@Override
 	public List<Map<String, Object>> parseExcel(HttpServletRequest request) {
-		MultipartFile file = ((MultipartHttpServletRequest)request).getFile("file");
+		MultipartFile file = ((MultipartHttpServletRequest) request).getFile("file");
 		return uploadService.parseExcel(file);
 	}
-
-	private static final String OS = System.getProperty("os.name").toLowerCase();
-
-	@Override
-	public void downloadManyFiles(HttpServletResponse response, @RequestBody List<FileUploadModel> files) {
-		if (files==null || files.size()==0) {
-			throw new IFormException("要下载的文件不能为空");
-		}
-        String uuid = UUID.randomUUID().toString();
-        String rootPath = null;
-        if (OS.startsWith("win")) {          // Windows系统
-            rootPath = "C:"+File.separator+uuid;
-        } else if (OS.startsWith("linux")) { // linux系统
-            rootPath = "/tmp/"+File.separator+uuid;
-        } else if (OS.startsWith("mac")) {   // mac系统
-            rootPath = "/tmp/"+File.separator+uuid;
-        } else {
-            return;
-        }
-        File tmpDir = new File(rootPath+File.separator+uuid);
-        boolean result = tmpDir.mkdirs();
-        if (result==false) {
-            throw new IFormException("服务器创建文件夹失败");
-        }
-
-
-        /**
-        List<FileUploadModel> list = new ArrayList();
-        list.add(new FileUploadModel("aa", "http://192.168.4.151:9000/icity/2019/02/22/011ddbc7-2a49-46e1-9457-80bac0af78d0.jpg"));
-        list.add(new FileUploadModel("aa", "http://192.168.4.151:9000/icity/2019/02/22/083af844-886a-4957-9b78-f8796707cfa9.jpg"));
-        list.add(new FileUploadModel("aa", "http://192.168.4.151:9000/icity/2019/02/22/09364129-7ea4-43ac-b93b-231aa6d72627.jpg"));
-        list.add(new FileUploadModel("bb", "http://192.168.4.151:9000/icity/2019/02/22/5644736c-b0f1-4713-9482-318ee768d56e.jpg"));
-        list.add(new FileUploadModel("bb", "http://192.168.4.151:9000/icity/2019/02/22/d4c14b49-9d95-4b20-ba25-af011dda6ea1.jpg"));
-         */
-        Map<String, Integer> map = new HashMap();
-        for (FileUploadModel fileInfo:files) {
-            String filename = fileInfo.getName();
-            Integer count = map.get(filename);
-            if (count!=null) {
-                filename = filename + "-" + count;
-                map.put(filename, ++count);
-            } else {
-                map.put(filename,1);
-            }
-            String url = fileInfo.getUrl();
-            int index = url.lastIndexOf(".");
-            if (index>0) {
-                filename = filename+url.substring(index);
-            }
-            OkHttpUtils.downloadFile(url, rootPath+File.separator+uuid, filename);
-        }
-        deleteDir(rootPath);
-    }
-
-    public static void deleteDir(String path){
-        File file = new File(path);
-        if(file.isDirectory()){
-            File[] files = file.listFiles();
-            for(int i=0; i<files.length; i++) {
-                deleteDir(files[i].getPath());
-            }
-        }
-        file.delete();
-    }
 }

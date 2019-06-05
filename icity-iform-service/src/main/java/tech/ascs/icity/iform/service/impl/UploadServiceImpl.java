@@ -238,7 +238,7 @@ public class UploadServiceImpl extends DefaultJPAService<FileUploadEntity> imple
 										 boolean rename) throws Exception {
 		String filePath = renameFile(day, rename, filename);
 		minioClient.putObject(minioConfig.getBucket(), filePath, inputStream, contentType);
-		return minioConfig.getHost()+"/"+minioConfig.getBucket() + "/" + filePath;
+		return minioConfig.getUrl()+"/"+minioConfig.getBucket() + "/" + filePath;
 	}
 
 	/**

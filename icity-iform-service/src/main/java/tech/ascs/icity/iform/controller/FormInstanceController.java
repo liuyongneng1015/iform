@@ -166,7 +166,6 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		List<ItemModelEntity> items = formModelEntity.getItems();
 		//TODO 待删除
 		int status = -1;
-
 		Optional<ItemModelEntity> optional = items.stream().filter(item-> (item.getType() == ItemType.ProcessStatus)).findFirst();
 
 		if (optional.isPresent() && queryParameters.get(optional.get().getId()) != null) {
@@ -324,6 +323,23 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		}
 	}
 
+	public int assemblyActivitiStatus(SelectItemModelEntity selectItem, String valueId) {
+		int status = -2; // -1表示查所有，0表示查未处理，1表示已处理，若最后status的值还是-2，表示不用查工作流
+		if (SelectReferenceType.Dictionary == selectItem.getSelectReferenceType()) {
+			DictionaryDataItemEntity dictionaryItem = dictionaryService.getDictionaryItemById(valueId);
+			if (dictionaryItem != null) {
+				status = assemblyProcessDictionaryStatus(dictionaryItem.getName());
+			}
+		} else {
+			List<ItemSelectOption> options = selectItem.getOptions();
+			Optional<ItemSelectOption> itemSelectOptionOption = options.stream().filter(item->valueId.equals(item.getId())).findFirst();
+			if (itemSelectOptionOption.isPresent()) {
+				status = assemblyProcessStatus(itemSelectOptionOption.get().getValue());
+			}
+		}
+		return status;
+	}
+
 	@Override
 	public void export(HttpServletResponse response,
 					   @PathVariable(name="listId") String listId,
@@ -420,6 +436,22 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 				return 1;
 		}
 		return -1;
+	}
+
+	public int assemblyProcessStatus(String valueStr) {
+		if (StringUtils.isEmpty(valueStr)) {
+			return -2;
+		}
+		valueStr = valueStr.trim();
+		switch (valueStr) {
+			case "ALL":
+				return -1;
+			case "WORK":
+				return 0;
+			case "DONE":
+				return 1;
+		}
+		return -2;
 	}
 
 	public Page<FormDataSaveInstance> formPage(@PathVariable(name="formId") String formId,
