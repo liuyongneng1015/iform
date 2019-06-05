@@ -84,7 +84,10 @@ public enum SystemItemType {
 	Location("Location"),
 
 	/** 流程日志 */
-	ProcessLog("ProcessLog");
+	ProcessLog("ProcessLog"),
+
+	/** 流程状态 */
+	ProcessStatus("ProcessStatus");
 
 	private String value;
 	private SystemItemType(String value) {

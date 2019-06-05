@@ -69,39 +69,14 @@ public class ItemModelServiceImpl extends DefaultJPAService<ItemModelEntity> imp
 
 	private ItemModelEntity saveItem(FormModelEntity formModelEntity, String itemModelName) {
 		ItemModelEntity itemModelEntity = new ItemModelEntity();
-		if("流程状态".equals(itemModelName)){
-			itemModelEntity = new SelectItemModelEntity();
-			itemModelEntity.setProps("{\"props\":{\"type\":\"ProcessStatus\",\"multiple\":false},\"dictionaryType\":\"fixed\",\"typeKey\":\"ProcessStatus\"}");
-			itemModelEntity.setType(ItemType.Select);
-			itemModelEntity.setTypeKey("ProcessStatus");
-			itemModelEntity.setSystemItemType(SystemItemType.Select);
-		}else{
-			itemModelEntity.setProps("{\"props\":{\"type\":\"text\",\"placeholder\":\"\"},\"appProps\":{\"type\":\"text\",\"placeholder\":\"\"},\"typeKey\":\"text\"}");
-			itemModelEntity.setType(ItemType.Input);
-			itemModelEntity.setSystemItemType(SystemItemType.Input);
-		}
+
+		itemModelEntity.setProps("{\"props\":{\"type\":\"text\",\"placeholder\":\"\"},\"appProps\":{\"type\":\"text\",\"placeholder\":\"\"},\"typeKey\":\"text\"}");
+		itemModelEntity.setType(ItemType.Input);
+		itemModelEntity.setSystemItemType(SystemItemType.Input);
+
 		itemModelEntity.setName(itemModelName);
 		itemModelEntity.setFormModel(formModelEntity);
 		itemModelEntity.setUuid(UUID.randomUUID().toString().replace("-",""));
-		if("流程状态".equals(itemModelName)){
-			List<ItemSelectOption> options = new ArrayList<>();
-			ItemSelectOption itemSelectOptionA = new ItemSelectOption();
-			itemSelectOptionA.setItemModel(itemModelEntity);
-			itemSelectOptionA.setValue("ALL");
-			itemSelectOptionA.setLabel("全部");
-			ItemSelectOption itemSelectOptionW = new ItemSelectOption();
-			itemSelectOptionW.setItemModel(itemModelEntity);
-			itemSelectOptionW.setValue("WORK");
-			itemSelectOptionW.setLabel("待处理");
-			ItemSelectOption itemSelectOptionD = new ItemSelectOption();
-			itemSelectOptionD.setItemModel(itemModelEntity);
-			itemSelectOptionD.setValue("DONE");
-			itemSelectOptionD.setLabel("已处理");
-			options.add(itemSelectOptionA);
-			options.add(itemSelectOptionW);
-			options.add(itemSelectOptionD);
-			itemModelEntity.setOptions(options);
-		}
 
 		formModelEntity.getItems().add(itemModelEntity);
 		return itemModelEntity;
