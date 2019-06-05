@@ -55,7 +55,10 @@ public enum ItemType {
 	Treeselect("Treeselect"),
 
 	/** 地图 */
-	Location("Location");
+	Location("Location"),
+
+	/** 流程日志 */
+	ProcessLog("ProcessLog");
 
 	private String value;
 	private ItemType(String value) {
