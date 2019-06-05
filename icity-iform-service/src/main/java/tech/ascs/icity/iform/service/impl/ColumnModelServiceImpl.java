@@ -99,9 +99,6 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
         } else if ("update_by".equals(columnName)) {
             columnModelEntity.setDescription("更新人id");
             columnModelEntity.setName("更新人");
-        } else if ("process_state".equals(columnName)) {
-            columnModelEntity.setDescription("流程状态");
-            columnModelEntity.setName("流程状态");
         } else{
             columnModelEntity.setDescription("其他");
             columnModelEntity.setName("其他");

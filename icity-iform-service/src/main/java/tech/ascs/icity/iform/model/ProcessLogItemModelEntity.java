@@ -1,6 +1,5 @@
 package tech.ascs.icity.iform.model;
 
-import tech.ascs.icity.iform.api.model.ProcessLogDisplayField;
 import tech.ascs.icity.iform.api.model.ProcessLogParseModel;
 import tech.ascs.icity.iform.api.model.ProcessLogSortType;
 
@@ -20,9 +19,8 @@ public class ProcessLogItemModelEntity extends ItemModelEntity  {
 	@Enumerated(EnumType.STRING)
 	private ProcessLogSortType sortType;
 
-	@Column(name="display_field")//显示类型
-	@Enumerated(EnumType.STRING)
-	private ProcessLogDisplayField displayField;
+	@Column(name="display_field")//显示字典
+	private String displayField;
 
 	@Column(name="parse_model")//解析类型
 	@Enumerated(EnumType.STRING)
@@ -36,11 +34,11 @@ public class ProcessLogItemModelEntity extends ItemModelEntity  {
 		this.sortType = sortType;
 	}
 
-	public ProcessLogDisplayField getDisplayField() {
+	public String getDisplayField() {
 		return displayField;
 	}
 
-	public void setDisplayField(ProcessLogDisplayField displayField) {
+	public void setDisplayField(String displayField) {
 		this.displayField = displayField;
 	}
 

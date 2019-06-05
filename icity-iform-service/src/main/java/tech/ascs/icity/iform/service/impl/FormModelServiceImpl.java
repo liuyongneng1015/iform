@@ -3,6 +3,7 @@ package tech.ascs.icity.iform.service.impl;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.alibaba.fastjson.JSON;
 import com.googlecode.genericdao.search.Filter;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -466,6 +467,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		}
 		setItempermissions(saveItemModelEntity, paramerItemModelEntity);
 		setOptions(saveItemModelEntity, paramerItemModelEntity);
+
 
 		BeanUtils.copyProperties(paramerItemModelEntity, saveItemModelEntity, new String[]{"referencesItemModels","parentItem", "searchItems","sortItems","permissions", "referenceList","items","formModel","columnModel","activities","options"});
 
@@ -1216,6 +1218,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			case  ProcessLog:
 				entity = new ProcessLogItemModelEntity();
 				break;
+			case  ProcessStatus:
+				entity = new ProcessStatusItemModelEntity();
+				break;
 			default:
 				entity = new ItemModelEntity();
 				break;
@@ -1241,12 +1246,6 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		if (listModelEntities!=null && listModelEntities.size()>0) {
 			throw new IFormException("该表单被列表模型关联了，不能删除该表单");
 		}
-//		for(int i = 0 ; i < listModelEntities.size() ; i ++){
-//			ListModelEntity listModelEntity = listModelEntities.get(i);
-//			listModelEntity.setMasterForm(null);
-//			listModelEntity.setSlaverForms(null);
-//			listModelManager.save(listModelEntity);
-//		}
 
 		List<ItemModelEntity> itemModelEntities = formModelEntity.getItems();
 		if(itemModelEntities != null && itemModelEntities.size() > 0){
@@ -1384,11 +1383,6 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		columnModelService.saveColumnModelEntity(dataModelEntity, "PROCESS_INSTANCE");
 		columnModelService.saveColumnModelEntity(dataModelEntity, "ACTIVITY_ID");
 		columnModelService.saveColumnModelEntity(dataModelEntity, "ACTIVITY_INSTANCE");
-		ColumnModelEntity columnModelEntity = columnModelService.saveColumnModelEntity(dataModelEntity, "process_state");
-		if(columnModelEntity.isNew()) {
-			ItemModelEntity itemModelEntity = itemModelService.saveItemModelEntity(oldFormModelEntity, "流程状态");
-			itemModelEntity.setColumnModel(columnModelEntity);
-		}
 
 		formModelManager.save(oldFormModelEntity);
 		return oldFormModelEntity;
@@ -1510,11 +1504,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		columnModelService.saveColumnModelEntity(dataModelEntity, "PROCESS_INSTANCE");
 		columnModelService.saveColumnModelEntity(dataModelEntity, "ACTIVITY_ID");
 		columnModelService.saveColumnModelEntity(dataModelEntity, "ACTIVITY_INSTANCE");
-		ColumnModelEntity columnModelEntity = columnModelService.saveColumnModelEntity(dataModelEntity, "process_state");
-		if(columnModelEntity.isNew()) {
-			ItemModelEntity itemModelEntity = itemModelService.saveItemModelEntity(formModelEntity, "流程状态");
-			itemModelEntity.setColumnModel(columnModelEntity);
-		}
+
 		FormProcessInfo processInfo = null;
 		if(formModel.getProcess() != null) {
 			processInfo = new FormProcessInfo();
