@@ -41,6 +41,7 @@ import tech.ascs.icity.iform.support.IFormSessionFactoryBuilder;
 import tech.ascs.icity.iform.utils.CurrentUserUtils;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
+import tech.ascs.icity.model.IdEntity;
 import tech.ascs.icity.model.Page;
 import tech.ascs.icity.rbac.feign.model.UserInfo;
 
@@ -711,7 +712,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		List<String> idList = new ArrayList<>();
 		String paramCondition = null;
 		//流程字段名称
-		if(StringUtils.hasText(formInstance.getProcessId())) {
+		if(StringUtils.hasText(formInstance.getProcessInstanceId())) {
 			if(formInstance.getProcessInstanceId() != null && formInstance.getFlowData() != null && formInstance.getFlowData().get("functionId") != null) {
 				ProcessInstance processInstance = processInstanceService.get(formInstance.getProcessInstanceId());
 				if(processInstance.getCurrentTaskInstance() != null) {
@@ -3459,6 +3460,63 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			columnNameAndItemIdMap.put((String)map.get("column_name"), (String)map.get("item_id"));
 		}
 		return columnNameAndItemIdMap;
+	}
+
+	@Override
+	public IdEntity startFormInstanceProcess(FormModelEntity formModelEntity, String instanceId) {
+		// 启动流程
+		if (formModelEntity.getProcess() == null || formModelEntity.getProcess().getKey() == null) {
+			return null;
+		}
+		Session session = null;
+		DataModelEntity dataModel = formModelEntity.getDataModels().get(0);
+		UserInfo user = null;
+		try {
+			user = CurrentUserUtils.getCurrentUser();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		String processInstanceId = null;
+		try {
+			session = getSession(dataModel);
+			//开启事务
+			session.beginTransaction();
+
+			Map<String, Object> data = (Map<String, Object>) session.load(dataModel.getTableName(), instanceId);
+
+
+			data.put("update_at", new Date());
+			data.put("update_by",  user != null ? user.getId() : null);
+
+
+			// 流程操作
+			Map<String, Object> flowData  = new HashMap<>();
+			if(flowData == null){
+				flowData = new HashMap<>();
+			}
+			flowData.putAll(data);
+
+			//跳过第一个流程环节
+			flowData.put("PASS_THROW_FIRST_USERTASK", true);
+			System.out.println("传给工作流的数据=====>>>>>"+flowData);
+			processInstanceId = processInstanceService.startProcess(formModelEntity.getProcess().getKey(), instanceId, flowData);
+			updateProcessInfo(formModelEntity, data, processInstanceId);
+
+			session.update(dataModel.getTableName(), data);
+			session.getTransaction().commit();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			if(e instanceof ICityException){
+				throw e;
+			}
+			throw new IFormException("保存【" + dataModel.getTableName() + "】表，id【"+instanceId+"】的数据失败");
+		}finally {
+			if(session != null){
+				session.close();
+			}
+		}
+		return new IdEntity(processInstanceId);
 	}
 
 

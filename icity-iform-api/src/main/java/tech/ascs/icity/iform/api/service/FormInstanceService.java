@@ -189,6 +189,21 @@ public interface FormInstanceService {
     @GetMapping("/{formId}/{id}")
     FormDataSaveInstance get(@PathVariable(name="formId") String formId, @PathVariable(name="id") String id);
 
+	/**
+	 * 根据表单实例ID获取表单实例对象
+	 *
+	 * @param formId 表单模型ID
+	 * @param id 表单实例ID
+	 * @return
+	 */
+	@ApiOperation(value = "根据表单实例ID启动表单实例流程", position = 2)
+	@ApiImplicitParams({
+			@ApiImplicitParam(paramType = "path", name = "formId", value = "表单模型ID", required = true, dataType = "String"),
+			@ApiImplicitParam(paramType = "path", name = "id", value = "表单实例ID", required = true, dataType = "String")
+	})
+	@GetMapping("/process/{formId}/{id}")
+	IdEntity startProcess(@PathVariable(name="formId") String formId, @PathVariable(name="id") String id);
+
 
 	/**
 	 * 根据表单实例ID获取表单columnName与对应的取值value

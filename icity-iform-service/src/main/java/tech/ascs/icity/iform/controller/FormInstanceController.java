@@ -193,8 +193,8 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			e.printStackTrace();
 			throw new IFormException("查询数据失败了");
 		}
-		Map<String, ProcessInstance> instanceIdAndEditMap = pageProcess.getResults().stream().collect(Collectors.toMap(ProcessInstance::getBusinessKey, processInstance -> processInstance));
-		String[] formInstanceIds = pageProcess.getResults().stream().map(item->item.getBusinessKey()).toArray(String[]::new);
+		Map<String, ProcessInstance> instanceIdAndEditMap = pageProcess.getResults().stream().collect(Collectors.toMap(ProcessInstance::getFormInstanceId, processInstance -> processInstance));
+		String[] formInstanceIds = pageProcess.getResults().stream().map(item->item.getFormInstanceId()).toArray(String[]::new);
 		if (formInstanceIds!=null && formInstanceIds.length>0) {
 			Optional<ItemModelEntity> idItemOption = formModelEntity.getItems().stream().filter(item->SystemItemType.ID == item.getSystemItemType()).findFirst();
 			queryParameters = new HashMap<>();
@@ -375,9 +375,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	 * 判断该表单是否绑定了工作流
 	 */
 	public boolean formModelHasProcess(FormModelEntity formModelEntity) {
-		if (formModelEntity.getProcess() != null
-			&& StringUtils.hasText(formModelEntity.getProcess().getId())
-			&& StringUtils.hasText(formModelEntity.getProcess().getKey())) {
+		if (formModelEntity.getProcess() != null && StringUtils.hasText(formModelEntity.getProcess().getKey())) {
 			return true;
 		} else {
 			return false;
@@ -496,6 +494,15 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		}
 		//return formInstanceService.getFormInstance(formModel, id);
 		return formInstanceService.getFormDataSaveInstance(formModel, id);
+	}
+
+	@Override
+	public IdEntity startProcess(@PathVariable(name="formId") String formId, @PathVariable(name="id") String id) {
+		FormModelEntity formModel = formModelService.find(formId);
+		if (formModel == null) {
+			throw new IFormException(404, "表单模型【" + formId + "】不存在");
+		}
+		return formInstanceService.startFormInstanceProcess(formModel, id);
 	}
 
 	/** 根据表单实例ID获取表单columnName与对应的取值value */
