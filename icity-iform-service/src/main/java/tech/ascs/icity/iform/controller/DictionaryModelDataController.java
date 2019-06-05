@@ -71,7 +71,7 @@ public class DictionaryModelDataController implements tech.ascs.icity.iform.api.
 	}
 
 	@Override
-	public void batchDelete(@PathVariable(name = "dictionaryId") String dictionaryId, @RequestParam(name = "ids", required = true) String[] ids) {
+	public void batchDelete(@PathVariable(name = "dictionaryId") String dictionaryId, @RequestBody String[] ids) {
 		List<DictionaryModelData> dictionaryModelDataList = new ArrayList<>();
 		for(String id: ids) {
 			dictionaryModelDataList.add(getDictionaryModelData(dictionaryId, id));

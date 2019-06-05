@@ -1160,7 +1160,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 	@Override
 	public ItemModelEntity getItemModelEntity(ItemType itemType, SystemItemType systemItemType){
-		ItemModelEntity entity = new ItemModelEntity();
+		ItemModelEntity entity = null;
 		switch (itemType){
 			case InputNumber:
 				entity = new NumberItemModelEntity();
@@ -1212,6 +1212,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				break;
 			case  Location:
 				entity = new LocationItemModelEntity();
+				break;
+			case  ProcessLog:
+				entity = new ProcessLogItemModelEntity();
 				break;
 			default:
 				entity = new ItemModelEntity();
