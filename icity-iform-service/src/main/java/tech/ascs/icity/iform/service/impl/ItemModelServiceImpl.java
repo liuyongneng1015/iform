@@ -71,8 +71,9 @@ public class ItemModelServiceImpl extends DefaultJPAService<ItemModelEntity> imp
 		ItemModelEntity itemModelEntity = new ItemModelEntity();
 		if("流程状态".equals(itemModelName)){
 			itemModelEntity = new SelectItemModelEntity();
-			itemModelEntity.setProps("{\"props\":{\"multiple\":false},\"dictionaryType\":\"fixed\",\"typeKey\":\"select\"}");
+			itemModelEntity.setProps("{\"props\":{\"type\":\"ProcessStatus\",\"multiple\":false},\"dictionaryType\":\"fixed\",\"typeKey\":\"ProcessStatus\"}");
 			itemModelEntity.setType(ItemType.Select);
+			itemModelEntity.setTypeKey("ProcessStatus");
 			itemModelEntity.setSystemItemType(SystemItemType.Select);
 		}else{
 			itemModelEntity.setProps("{\"props\":{\"type\":\"text\",\"placeholder\":\"\"},\"appProps\":{\"type\":\"text\",\"placeholder\":\"\"},\"typeKey\":\"text\"}");
