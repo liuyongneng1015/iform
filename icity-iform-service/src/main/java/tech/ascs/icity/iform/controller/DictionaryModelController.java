@@ -63,7 +63,7 @@ public class DictionaryModelController implements tech.ascs.icity.iform.api.serv
 	}
 
 	@Override
-	public void batchDelete(@RequestParam(name = "ids", required = true) String[] ids) {
+	public void batchDelete(@RequestBody String[] ids) {
 		List<String> idList = Arrays.asList(ids);
 		dictionaryService.deleteDictionary(idList);
 	}
