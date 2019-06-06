@@ -203,6 +203,9 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 
 	private void setFlowFormInstance(Map<String, ProcessInstance> instanceIdAndProcessMap, FormDataSaveInstance instance){
 		ProcessInstance processInstance = instanceIdAndProcessMap.get(instance.getId());
+		if (processInstance==null) {
+			return;
+		}
 		if (processInstance.getStatus()==ProcessInstance.Status.Running && processInstance.isMyTask()) {
 			instance.setCanEdit(true);
 		} else {
