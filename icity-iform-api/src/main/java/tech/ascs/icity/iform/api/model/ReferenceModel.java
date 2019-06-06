@@ -3,13 +3,8 @@ package tech.ascs.icity.iform.api.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import jdk.nashorn.internal.ir.annotations.Ignore;
 import org.springframework.util.StringUtils;
 import tech.ascs.icity.model.NameEntity;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 @ApiModel("关联字段模型")
 public class ReferenceModel extends NameEntity {
