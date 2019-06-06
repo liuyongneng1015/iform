@@ -10,6 +10,7 @@ import tech.ascs.icity.iform.api.model.FormInstance;
 import tech.ascs.icity.iform.api.model.ItemInstance;
 import tech.ascs.icity.iform.api.model.TreeSelectDataSource;
 import tech.ascs.icity.iform.model.*;
+import tech.ascs.icity.model.IdEntity;
 import tech.ascs.icity.model.Page;
 
 public interface FormInstanceServiceEx {
@@ -48,4 +49,7 @@ public interface FormInstanceServiceEx {
 	List<TreeSelectData> getTreeSelectData(TreeSelectDataSource dataSourceType, String[] ids);
 
 	Map<String,String> columnNameAndItemIdMap(List<ItemModelEntity> items);
+
+	//启动表单实例
+	IdEntity startFormInstanceProcess(FormModelEntity formModel, String id);
 }

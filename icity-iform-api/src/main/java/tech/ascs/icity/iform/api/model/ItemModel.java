@@ -232,6 +232,15 @@ public class ItemModel extends NameEntity {
 	@ApiModelProperty(value = "文件格式", position = 57)
 	private String fileFormat;
 
+	@ApiModelProperty(value = "排序类型DESC:降序 ASC:升序", position = 58)
+	private ProcessLogSortType sortType;
+
+	@ApiModelProperty(value = "流程日志显示字段：Operator操作者，Time时间，Content内容，Title标题", position = 59)
+	private List<String> displayFields;
+
+	@ApiModelProperty(value = "流程日志解析形式", position = 60)
+	private ProcessLogParseModel parseModel;
+
 	public ItemType getType() {
 		return type;
 	}
@@ -858,6 +867,30 @@ public class ItemModel extends NameEntity {
 
 	public void setFileFormat(String fileFormat) {
 		this.fileFormat = fileFormat;
+	}
+
+	public ProcessLogSortType getSortType() {
+		return sortType;
+	}
+
+	public void setSortType(ProcessLogSortType sortType) {
+		this.sortType = sortType;
+	}
+
+	public List<String> getDisplayFields() {
+		return displayFields;
+	}
+
+	public void setDisplayFields(List<String> displayFields) {
+		this.displayFields = displayFields;
+	}
+
+	public ProcessLogParseModel getParseModel() {
+		return parseModel;
+	}
+
+	public void setParseModel(ProcessLogParseModel parseModel) {
+		this.parseModel = parseModel;
 	}
 
 	@Override

@@ -3,6 +3,7 @@ package tech.ascs.icity.iform.service.impl;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.alibaba.fastjson.JSON;
 import com.googlecode.genericdao.search.Filter;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +40,6 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 	private JPAManager<FormModelEntity> formModelManager;
 
 	private JPAManager<ListFunction> listFunctionManager;
-
 
 	private JPAManager<ListSearchItem> listSearchItemManager;
 
@@ -464,10 +464,12 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			newReferenceType = ((ReferenceItemModelEntity)paramerItemModelEntity).getReferenceType();
 			newReferenceFormId = ((ReferenceItemModelEntity) paramerItemModelEntity).getReferenceFormId();
 		}
+		setItempermissions(saveItemModelEntity, paramerItemModelEntity);
+		setOptions(saveItemModelEntity, paramerItemModelEntity);
+
 
 		BeanUtils.copyProperties(paramerItemModelEntity, saveItemModelEntity, new String[]{"referencesItemModels","parentItem", "searchItems","sortItems","permissions", "referenceList","items","formModel","columnModel","activities","options"});
-		setItempermissions(saveItemModelEntity, paramerItemModelEntity);
-		setOption(saveItemModelEntity, paramerItemModelEntity);
+
 
 		//设置列表模型
 		if (paramerItemModelEntity instanceof ReferenceItemModelEntity ) {
@@ -778,9 +780,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 	}
 
 	//设备表单权限
-	private ItemModelEntity setItempermissions(ItemModelEntity saveItemModelEntity, ItemModelEntity paramerItemModelEntity){
+	private void setItempermissions(ItemModelEntity saveItemModelEntity, ItemModelEntity paramerItemModelEntity){
 		if(paramerItemModelEntity.getColumnModel() != null && "id".equals(paramerItemModelEntity.getColumnModel().getColumnName())) {
-			return saveItemModelEntity;
+			return;
 		}
 		//旧数据
 		List<ItemPermissionInfo> itemPermissionInfos = saveItemModelEntity.getPermissions();
@@ -812,16 +814,15 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			if (idList.contains(info.getId())) {
 				list.remove(info);
                 info.setItemModel(null);
-                //i--;
-				//itemPermissionManager.delete(info);
+                i--;
+				itemPermissionManager.delete(info);
 			}
 		}
 		saveItemModelEntity.setPermissions(newItemPermissionInfos);
-		return saveItemModelEntity;
 	}
 
 	//得到最新的item
-	private ItemModelEntity setOption(ItemModelEntity newEntity, ItemModelEntity paramerItemModelEntity){
+	private void setOptions(ItemModelEntity newEntity, ItemModelEntity paramerItemModelEntity){
 		//旧数据
 		List<ItemSelectOption> itemSelectOptions = newEntity.getOptions();
 		Map<String, ItemSelectOption> itemSelectOptionMap = new HashMap<>();
@@ -840,19 +841,17 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			}
 		}
 		List<ItemSelectOption> list = newEntity.getOptions();
-		newEntity.setOptions(null);
+		newEntity.setOptions(options);
 		List<String> idList = new ArrayList<>(itemSelectOptionMap.keySet());
 		for(int i = 0 ; i < list.size(); i++){
 			ItemSelectOption info = list.get(i);
 			if(idList.contains(info.getId())) {
 				list.remove(info);
 				info.setItemModel(null);
-                //i--;
-				//itemSelectOptionManager.delete(info);
+                i--;
+				itemSelectOptionManager.delete(info);
 			}
 		}
-		newEntity.setOptions(options);
-		return newEntity;
 	}
 
 	//初始化item的值
@@ -1162,7 +1161,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 	@Override
 	public ItemModelEntity getItemModelEntity(ItemType itemType, SystemItemType systemItemType){
-		ItemModelEntity entity = new ItemModelEntity();
+		ItemModelEntity entity = null;
 		switch (itemType){
 			case InputNumber:
 				entity = new NumberItemModelEntity();
@@ -1215,6 +1214,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			case  Location:
 				entity = new LocationItemModelEntity();
 				break;
+			case  ProcessLog:
+				entity = new ProcessLogItemModelEntity();
+				break;
 			default:
 				entity = new ItemModelEntity();
 				break;
@@ -1225,6 +1227,8 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			entity = new ReferenceItemModelEntity();
 		}else if(systemItemType == SystemItemType.CreateDate){
 			entity = new TimeItemModelEntity();
+		}else if(systemItemType == SystemItemType.ProcessStatus){
+			entity = new ProcessStatusItemModelEntity();
 		}
 		return entity;
 	}
@@ -1240,12 +1244,6 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		if (listModelEntities!=null && listModelEntities.size()>0) {
 			throw new IFormException("该表单被列表模型关联了，不能删除该表单");
 		}
-//		for(int i = 0 ; i < listModelEntities.size() ; i ++){
-//			ListModelEntity listModelEntity = listModelEntities.get(i);
-//			listModelEntity.setMasterForm(null);
-//			listModelEntity.setSlaverForms(null);
-//			listModelManager.save(listModelEntity);
-//		}
 
 		List<ItemModelEntity> itemModelEntities = formModelEntity.getItems();
 		if(itemModelEntities != null && itemModelEntities.size() > 0){
@@ -1383,9 +1381,6 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		columnModelService.saveColumnModelEntity(dataModelEntity, "PROCESS_INSTANCE");
 		columnModelService.saveColumnModelEntity(dataModelEntity, "ACTIVITY_ID");
 		columnModelService.saveColumnModelEntity(dataModelEntity, "ACTIVITY_INSTANCE");
-		ColumnModelEntity columnModelEntity = columnModelService.saveColumnModelEntity(dataModelEntity, "process_state");
-		ItemModelEntity itemModelEntity = itemModelService.saveItemModelEntity(oldFormModelEntity, "流程状态");
-		itemModelEntity.setColumnModel(columnModelEntity);
 
 		formModelManager.save(oldFormModelEntity);
 		return oldFormModelEntity;
@@ -1507,9 +1502,6 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		columnModelService.saveColumnModelEntity(dataModelEntity, "PROCESS_INSTANCE");
 		columnModelService.saveColumnModelEntity(dataModelEntity, "ACTIVITY_ID");
 		columnModelService.saveColumnModelEntity(dataModelEntity, "ACTIVITY_INSTANCE");
-		ColumnModelEntity columnModelEntity = columnModelService.saveColumnModelEntity(dataModelEntity, "process_state");
-		ItemModelEntity itemModelEntity = itemModelService.saveItemModelEntity(formModelEntity, "流程状态");
-		itemModelEntity.setColumnModel(columnModelEntity);
 
 		FormProcessInfo processInfo = null;
 		if(formModel.getProcess() != null) {

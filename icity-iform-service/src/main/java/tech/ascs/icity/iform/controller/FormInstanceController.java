@@ -164,24 +164,12 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 
 	private  Page<FormDataSaveInstance> queryIflowList(Map<String, Object> queryParameters,  int page, int pagesize, FormModelEntity formModelEntity, ListModelEntity listModel) {
 		List<ItemModelEntity> items = formModelEntity.getItems();
-		Optional<ItemModelEntity> optional = items.stream().filter(item-> (item.getColumnModel()!=null&&"process_state".equals(item.getColumnModel().getColumnName()))).findFirst();
+		//TODO 待删除
 		int status = -1;
-		if (optional.isPresent()) {
-			ItemModelEntity itemModelEntity = optional.get();
-			if (itemModelEntity instanceof SelectItemModelEntity) {
-				SelectItemModelEntity selectItem = (SelectItemModelEntity)itemModelEntity;
-				Object value = queryParameters.get(selectItem.getId());
-				if (value!=null && StringUtils.hasText(value.toString())) {
-					queryParameters.remove(selectItem.getId());
-					List<ItemSelectOption> options = selectItem.getOptions();
-					if (options!=null) {
-						Map<String, String> map = options.stream().collect(Collectors.toMap(ItemSelectOption::getId, ItemSelectOption::getValue));
-						if (map.get(value.toString())!=null) {
-							status = assemblyProcessDictionaryStatus(map.get(value.toString()));
-						}
-					}
-				}
-			}
+		Optional<ItemModelEntity> optional = items.stream().filter(item-> (item.getSystemItemType() == SystemItemType.ProcessStatus)).findFirst();
+
+		if (optional.isPresent() && queryParameters.get(optional.get().getId()) != null) {
+			status = Integer.parseInt((String.valueOf(queryParameters.get(optional.get().getId()))));
 		}
 
 		Map<String, Object> iflowQueryParams = assemblyIflowQueryParams(items, queryParameters);
@@ -193,8 +181,8 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			e.printStackTrace();
 			throw new IFormException("查询数据失败了");
 		}
-		Map<String, ProcessInstance> instanceIdAndEditMap = pageProcess.getResults().stream().collect(Collectors.toMap(ProcessInstance::getBusinessKey, processInstance -> processInstance));
-		String[] formInstanceIds = pageProcess.getResults().stream().map(item->item.getBusinessKey()).toArray(String[]::new);
+		Map<String, ProcessInstance> instanceIdAndProcessMap = pageProcess.getResults().stream().collect(Collectors.toMap(ProcessInstance::getFormInstanceId, processInstance -> processInstance));
+		String[] formInstanceIds = pageProcess.getResults().stream().map(item->item.getFormInstanceId()).toArray(String[]::new);
 		if (formInstanceIds!=null && formInstanceIds.length>0) {
 			Optional<ItemModelEntity> idItemOption = formModelEntity.getItems().stream().filter(item->SystemItemType.ID == item.getSystemItemType()).findFirst();
 			queryParameters = new HashMap<>();
@@ -203,36 +191,72 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			}
 			List<FormDataSaveInstance> list = formInstanceService.formInstance(formModelEntity, queryParameters);
 			for (FormDataSaveInstance instance:list) {
-				ProcessInstance processInstance = instanceIdAndEditMap.get(instance.getId());
-				if (processInstance.getStatus()==ProcessInstance.Status.Running && processInstance.isMyTask()) {
-					instance.setCanEdit(true);
-				} else {
-					instance.setCanEdit(false);
-				}
-				instance.setMyTask(processInstance.isMyTask());
-				instance.setFunctions(processInstance.getCurrentTaskInstance() == null ? null : processInstance.getCurrentTaskInstance().getOperations());
-				List<Map<String, Object>> stringObjectMap = processInstance.getCurrentTaskInstance() == null ? null : (List<Map<String, Object>>)(processInstance.getCurrentTaskInstance().getOperations());
-				if(stringObjectMap != null) {
-					Map<String, Map<String, Object>> map = new HashMap<>();
-					for(Map<String, Object> objectMap : stringObjectMap){
-						map.put((String)objectMap.get("id"), objectMap);
-					}
-					for(ItemInstance itemInstance : instance.getItems()){
-						itemInstance.setProcessInstanceId(processInstance.getId());
-						Map<String, Object> instanceMap = map.get(itemInstance.getId());
-						if(instanceMap != null) {
-							itemInstance.setVisible(instanceMap.get("visible") == null ? false : (Boolean)instanceMap.get("visible"));
-							itemInstance.setCanFill(instanceMap.get("canFill") == null ? false : (Boolean)instanceMap.get("canFill"));
-							itemInstance.setRequired(instanceMap.get("required") == null ? false : (Boolean)instanceMap.get("required"));
-						}
-					}
-				}
+				setFlowFormInstance(instanceIdAndProcessMap, instance);
 			}
 			Page<FormDataSaveInstance> pageInstance = Page.get(page, pagesize);
 			pageInstance.data(pageProcess.getTotalCount(), list);
 			return pageInstance;
 		} else {
 			return Page.get(page, pagesize);
+		}
+	}
+
+	private void setFlowFormInstance(Map<String, ProcessInstance> instanceIdAndProcessMap, FormDataSaveInstance instance){
+		ProcessInstance processInstance = instanceIdAndProcessMap.get(instance.getId());
+		if (processInstance.getStatus()==ProcessInstance.Status.Running && processInstance.isMyTask()) {
+			instance.setCanEdit(true);
+		} else {
+			instance.setCanEdit(false);
+		}
+		instance.setMyTask(processInstance.isMyTask());
+		instance.setFunctions(processInstance.getCurrentTaskInstance() == null ? null : processInstance.getCurrentTaskInstance().getOperations());
+		List<Map<String, Object>> stringObjectMap = processInstance.getCurrentTaskInstance() == null ? null : (List<Map<String, Object>>)(processInstance.getCurrentTaskInstance().getOperations());
+		if(stringObjectMap != null) {
+			Map<String, Map<String, Object>> map = new HashMap<>();
+			for(Map<String, Object> objectMap : stringObjectMap){
+				map.put((String)objectMap.get("id"), objectMap);
+			}
+			for(ItemInstance itemInstance : instance.getItems()){
+				itemInstance.setProcessInstanceId(processInstance.getId());
+				Map<String, Object> instanceMap = map.get(itemInstance.getId());
+				if(instanceMap != null) {
+					itemInstance.setVisible(instanceMap.get("visible") == null ? false : (Boolean)instanceMap.get("visible"));
+					itemInstance.setCanFill(instanceMap.get("canFill") == null ? false : (Boolean)instanceMap.get("canFill"));
+					itemInstance.setRequired(instanceMap.get("required") == null ? false : (Boolean)instanceMap.get("required"));
+				}
+			}
+		}
+		String formName = instance.getFormName();
+		setFormInstanceProcessStatus(instance, formName, processInstance);
+		instance.setFormName(formName);
+	}
+
+	//设置流程状态
+	private void setFormInstanceProcessStatus(FormDataSaveInstance formInstance, String formName, ProcessInstance processInstance){
+		if(processInstance == null){
+			return;
+		}
+		if(processInstance.getFormTitle() != null){
+			formName = processInstance.getFormTitle();
+		}
+		ItemInstance processStatusItemInstance = null;
+		for(ItemInstance instance : formInstance.getItems()){
+			if(instance.getSystemItemType() == SystemItemType.ProcessStatus){
+				processStatusItemInstance = instance;
+			}
+		}
+		if(processStatusItemInstance != null){
+			ItemModelEntity itemModelEntity = itemModelService.get(processStatusItemInstance.getId());
+			List<Option> lists = (List<Option>) JSON.parseArray(((ProcessStatusItemModelEntity) itemModelEntity).getProcessStatus(),Option.class);
+			Map<String, Object> objectMap = new HashMap<>();
+			for(Option option : lists){
+				objectMap.put(option.getId(), option.getLabel());
+			}
+			String status = "0";
+			if(processInstance.getStatus()==ProcessInstance.Status.Ended){
+				status = "1";
+			}
+			processStatusItemInstance.setDisplayValue(objectMap.get(status));
 		}
 	}
 
@@ -299,23 +323,6 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		}
 	}
 
-	public int assemblyActivitiStatus(SelectItemModelEntity selectItem, String valueId) {
-		int status = -2; // -1表示查所有，0表示查未处理，1表示已处理，若最后status的值还是-2，表示不用查工作流
-		if (SelectReferenceType.Dictionary == selectItem.getSelectReferenceType()) {
-			DictionaryDataItemEntity dictionaryItem = dictionaryService.getDictionaryItemById(valueId);
-			if (dictionaryItem != null) {
-				status = assemblyProcessDictionaryStatus(dictionaryItem.getName());
-			}
-		} else {
-			List<ItemSelectOption> options = selectItem.getOptions();
-			Optional<ItemSelectOption> itemSelectOptionOption = options.stream().filter(item->valueId.equals(item.getId())).findFirst();
-			if (itemSelectOptionOption.isPresent()) {
-				status = assemblyProcessStatus(itemSelectOptionOption.get().getValue());
-			}
-		}
-		return status;
-	}
-
 	@Override
 	public void export(HttpServletResponse response,
 					   @PathVariable(name="listId") String listId,
@@ -375,9 +382,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	 * 判断该表单是否绑定了工作流
 	 */
 	public boolean formModelHasProcess(FormModelEntity formModelEntity) {
-		if (formModelEntity.getProcess() != null
-			&& StringUtils.hasText(formModelEntity.getProcess().getId())
-			&& StringUtils.hasText(formModelEntity.getProcess().getKey())) {
+		if (formModelEntity.getProcess() != null && StringUtils.hasText(formModelEntity.getProcess().getKey())) {
 			return true;
 		} else {
 			return false;
@@ -385,7 +390,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	}
 
 	/**
-	 * 是否是平常组件
+	 * 是否是普通控件
 	 * @param item
 	 * @return
 	 */
@@ -399,37 +404,6 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		} else {
 			return false;
 		}
-	}
-
-	public int assemblyProcessDictionaryStatus(String valueStr) {
-		if (StringUtils.isEmpty(valueStr)) {
-			return -1;
-		}
-		switch (valueStr) {
-			case "ALL":
-				return -1;
-			case "WORK":
-				return 0;
-			case "DONE":
-				return 1;
-		}
-		return -1;
-	}
-
-	public int assemblyProcessStatus(String valueStr) {
-		if (StringUtils.isEmpty(valueStr)) {
-			return -2;
-		}
-		valueStr = valueStr.trim();
-		switch (valueStr) {
-			case "ALL":
-				return -1;
-			case "WORK":
-				return 0;
-			case "DONE":
-				return 1;
-		}
-		return -2;
 	}
 
 	public Page<FormDataSaveInstance> formPage(@PathVariable(name="formId") String formId,
@@ -496,6 +470,15 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		}
 		//return formInstanceService.getFormInstance(formModel, id);
 		return formInstanceService.getFormDataSaveInstance(formModel, id);
+	}
+
+	@Override
+	public IdEntity startProcess(@PathVariable(name="formId") String formId, @PathVariable(name="id") String id) {
+		FormModelEntity formModel = formModelService.find(formId);
+		if (formModel == null) {
+			throw new IFormException(404, "表单模型【" + formId + "】不存在");
+		}
+		return formInstanceService.startFormInstanceProcess(formModel, id);
 	}
 
 	/** 根据表单实例ID获取表单columnName与对应的取值value */

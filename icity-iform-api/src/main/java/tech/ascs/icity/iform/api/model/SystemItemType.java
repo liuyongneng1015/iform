@@ -81,7 +81,13 @@ public enum SystemItemType {
 	/** 树形下拉 */
 	Treeselect("Treeselect"),
 	/** 地图 */
-	Location("Location");
+	Location("Location"),
+
+	/** 流程日志 */
+	ProcessLog("ProcessLog"),
+
+	/** 流程状态 */
+	ProcessStatus("ProcessStatus");
 
 	private String value;
 	private SystemItemType(String value) {

@@ -7,6 +7,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import tech.ascs.icity.iform.api.model.DictionaryModelData;
 
+import javax.annotation.Resource;
 import java.util.List;
 
 
@@ -48,6 +49,13 @@ public interface DictionaryModelDataService {
 	})
 	@DeleteMapping("/{dictionaryId}/{id}")
 	void delete(@PathVariable(name = "dictionaryId") String dictionaryId, @PathVariable(name = "id") String id);
+
+	@ApiOperation("批量删除字典建模数据")
+	@ApiImplicitParams({
+			@ApiImplicitParam(paramType="path", name = "dictionaryId", value = "字典建模ID", required = true, dataType = "String")
+	})
+	@DeleteMapping("/batch/{dictionaryId}")
+	void batchDelete(@PathVariable(name = "dictionaryId") String dictionaryId, @RequestBody String[] ids);
 
 	@ApiOperation("上下移动字典建模数据")
 	@ApiImplicitParams({

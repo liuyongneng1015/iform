@@ -96,7 +96,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 	private DefaultFunctionType[] functionDefaultActions = {DefaultFunctionType.Add, DefaultFunctionType.BatchDelete};
 	private String[] functionDefaultIcons = new String[]{null, "icon-xuanzhong"};
 	private String[] functionDefaultMethods = new String[]{"POST", "DELETE"};
-	private Boolean[] functionVisibles = {true, false, false};
+	private Boolean[] functionVisibles = {true, false};
 
 	@Override
 	public IdEntity createListModel(@RequestBody ListModel ListModel) {
@@ -386,7 +386,10 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				ItemModelEntity itemModelEntity = new ItemModelEntity();
 				itemModelEntity.setId(searchItem.getId());
 				ListSearchItem searchItemEntity =  new ListSearchItem();
-				BeanUtils.copyProperties(searchItem, searchItemEntity, "listModel", "itemModel", "search", "id", "name");
+				BeanUtils.copyProperties(searchItem, searchItemEntity, "listModel", "itemModel", "search", "id", "name", "parseArea");
+				if (searchItem.getParseArea()!=null && searchItem.getParseArea().size()>0) {
+					searchItemEntity.setParseArea(String.join(",", searchItem.getParseArea()));
+				}
 				searchItemEntity.setListModel(listModelEntity);
 				searchItemEntity.setItemModel(itemModelEntity);
 
@@ -413,7 +416,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				}
 				ListFunction listFunction = new ListFunction() ;
 				BeanUtils.copyProperties(function, listFunction, new String[]{"listModel", "parseArea"});
-				if (function.getParseArea()!=null && function.getParseArea().length>0) {
+				if (function.getParseArea()!=null && function.getParseArea().size()>0) {
 					listFunction.setParseArea(String.join(",", function.getParseArea()));
 				}
 				listFunction.setListModel(listModelEntity);
@@ -580,7 +583,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				FunctionModel function = new FunctionModel();
 				BeanUtils.copyProperties(listFunction, function, new String[]{"listModel", "formModel", "parseArea"});
 				if (StringUtils.hasText(listFunction.getParseArea())) {
-					function.setParseArea(listFunction.getParseArea().split(","));
+					function.setParseArea(Arrays.asList(listFunction.getParseArea().split(",")));
 				}
 				function.setListActionBarVisible(null);
 				function.setUpdatePageVisible(null);
@@ -647,7 +650,10 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 						continue;
 					}
 					SearchItem searchItem = new SearchItem();
-					BeanUtils.copyProperties(searchItemEntity, searchItem, "listModel", "itemModel", "search");
+					BeanUtils.copyProperties(searchItemEntity, searchItem, "listModel", "itemModel", "search", "parseArea");
+					if (StringUtils.hasText(searchItemEntity.getParseArea())) {
+						searchItem.setParseArea(Arrays.asList(searchItemEntity.getParseArea().split(",")));
+					}
 					if(itemModelEntity instanceof ReferenceItemModelEntity) {
 						ReferenceItemModelEntity referenceItemModelEntity = (ReferenceItemModelEntity)itemModelEntity;
 						if (referenceItemModelEntity.getReferenceType() == ReferenceType.ManyToMany) {

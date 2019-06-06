@@ -5,6 +5,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import com.alibaba.fastjson.JSON;
 import com.googlecode.genericdao.search.Sort;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -1161,7 +1162,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			    FunctionModel model = formModel.getFunctions().get(i);
 				ListFunction function =  new ListFunction();
 				BeanUtils.copyProperties(model, function, new String[]{"formModel", "parseArea"});
-				if (model.getParseArea()!=null && model.getParseArea().length>0) {
+				if (model.getParseArea()!=null && model.getParseArea().size()>0) {
 					function.setParseArea(String.join(",", model.getParseArea()));
 				}
 				function.setOrderNo(i+1);
@@ -1459,19 +1460,25 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			}
 			entity.setActivities(activities);
 		}
-		List<ItemSelectOption> options = new ArrayList<>();
+
+		List<ItemSelectOption> options = null;
 		if (itemModel.getOptions() != null) {
-			for (Option option : itemModel.getOptions()) {
-				ItemSelectOption itemSelectOption = new ItemSelectOption();
-				BeanUtils.copyProperties(option, itemSelectOption, new String[]{"itemModel"});
-				itemSelectOption.setItemModel(entity);
-				options.add(itemSelectOption);
+			options = new ArrayList<>();
+			if (!(entity instanceof ProcessStatusItemModelEntity)) {
+				for (Option option : itemModel.getOptions()) {
+					ItemSelectOption itemSelectOption = new ItemSelectOption();
+					BeanUtils.copyProperties(option, itemSelectOption, new String[]{"itemModel"});
+					itemSelectOption.setItemModel(entity);
+					options.add(itemSelectOption);
+				}
+				entity.setOptions(options);
+			} else {
+				String processStatus = String.valueOf(JSON.toJSON(itemModel.getOptions()));
+				((ProcessStatusItemModelEntity) entity).setProcessStatus(processStatus);
 			}
 		}
-		entity.setOptions(options);
-
 		if(entity instanceof SelectItemModelEntity ){
-			if(options.size() > 0) {
+			if(options != null && options.size() > 0) {
 				((SelectItemModelEntity) entity).setSelectReferenceType(SelectReferenceType.Fixed);
 			}else if(((SelectItemModelEntity) entity).getReferenceDictionaryId() != null){
 				((SelectItemModelEntity) entity).setSelectReferenceType(SelectReferenceType.Dictionary);
@@ -1488,6 +1495,12 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				}
 			}
 		}
+
+		if(entity.getType() == ItemType.ProcessLog && itemModel.getDisplayFields() != null){
+			List<String> list = itemModel.getDisplayFields();
+			((ProcessLogItemModelEntity)entity).setDisplayField(String.join(",", list));
+		}
+
 		return entity;
 	}
 
@@ -1905,17 +1918,15 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			return;
 		}
 		try {
-			if(entity.getProcess().getId() != null) {
-				ProcessModel processModel = processService.getModel(entity.getProcess().getId());
-				if (processModel != null) {
+            Process process = null ;
+			if(entity.getProcess().getKey() != null) {
+                process = processService.get(entity.getProcess().getKey());
+				if (process != null) {
 					isFlowForm = true;
 				}
 			}
-			if(activities != null) {
-				Process process = processService.get(entity.getProcess().getKey());
-				if (process != null) {
-					activities.addAll(process.getActivities());
-				}
+			if(activities != null && process != null) {
+			    activities.addAll(process.getActivities());
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -2072,23 +2083,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}else{
 			formModel.setItems(null);
 		}
-		/*//联动控件
-		List<LinkedItemModel> linkedItemModelList = new ArrayList<>();
-		List<ItemModel> itemModels = formModelService.findAllItemModels(formModel.getItems());
-		for(ItemModel itemModel : itemModels){
-			if((itemModel.getType() == ItemType.Select || itemModel.getType() == ItemType.RadioGroup || itemModel.getType() == ItemType.CheckboxGroup) &&
-					(itemModel.getReferenceRootFlag() != null && itemModel.getReferenceRootFlag())){
-				SelectItemModelEntity rootItemModelEntity = (SelectItemModelEntity) itemModelService.get(itemModel.getId());
-				LinkedItemModel rootItemModel = new LinkedItemModel();
-				rootItemModel.setId(rootItemModelEntity.getId());
-				//rootItemModel.setReferenceDictionaryId(rootItemModelEntity.getReferenceDictionaryId());
-				//rootItemModel.setReferenceDictionaryItemId(rootItemModelEntity.getReferenceDictionaryItemId());
-				//rootItemModel.setDefaultValue(rootItemModelEntity.getDefaultReferenceValue());
-				getSelectItemChildRenItems(rootItemModel, rootItemModelEntity);
-				linkedItemModelList.add(rootItemModel);
-			}
-		}
-		formModel.setLinkedItemModelList(linkedItemModelList.size() > 0 ? linkedItemModelList : null);*/
 		return formModel;
 	}
 
@@ -2147,7 +2141,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				FunctionModel functionModel = new FunctionModel();
 				BeanUtils.copyProperties(function, functionModel, new String[] {"formModel","itemModel", "parseArea"});
 				if (StringUtils.hasText(function.getParseArea())) {
-					functionModel.setParseArea(function.getParseArea().split(","));
+					functionModel.setParseArea(Arrays.asList(function.getParseArea().split(",")));
 				}
 				functionModel.setOrderNo(i+1);
 				functionModels.add(functionModel);
@@ -2302,6 +2296,15 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			}
 			itemModel.setOptions(options);
 		}
+
+		if(entity instanceof ProcessStatusItemModelEntity && ((ProcessStatusItemModelEntity) entity).getProcessStatus() != null){
+			itemModel.setOptions(JSON.parseArray(((ProcessStatusItemModelEntity) entity).getProcessStatus(),Option.class));
+		}
+
+		if(entity  instanceof ProcessLogItemModelEntity  && ((ProcessLogItemModelEntity) entity).getDisplayField() != null){
+			itemModel.setDisplayFields(Arrays.asList((((ProcessLogItemModelEntity) entity).getDisplayField()).split(",")));
+		}
+
 		if(isAnalysisItem && entity.getPermissions() != null && entity.getPermissions().size() > 0){
 			ItemPermissionModel itemPermissionModel = new ItemPermissionModel();
 			itemPermissionModel.setId(entity.getId());

@@ -9,6 +9,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.alibaba.fastjson.JSON;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.hibernate.Criteria;
@@ -41,6 +42,7 @@ import tech.ascs.icity.iform.support.IFormSessionFactoryBuilder;
 import tech.ascs.icity.iform.utils.CurrentUserUtils;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
+import tech.ascs.icity.model.IdEntity;
 import tech.ascs.icity.model.Page;
 import tech.ascs.icity.rbac.feign.model.UserInfo;
 
@@ -172,17 +174,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			Criteria criteria = generateCriteria(session, formModel, null, queryParameters);
 			criteria.setFirstResult((page - 1) * pagesize);
 			criteria.setMaxResults(pagesize);
-			String formName = formModel.getName();
-            if(formModel.getProcess() != null && formModel.getProcess().getId() != null) {
-                ProcessModel process = processService.getModel(formModel.getProcess().getId());
-                if(process != null){
-                    formName = process.getFormTitle();
-                }
-            }
+
             List<FormDataSaveInstance> list = wrapFormDataList(formModel, null, criteria.list());
-            for(FormDataSaveInstance formDataSaveInstance : list){
-                formDataSaveInstance.setFormName(formName);
-            }
+
 			criteria.setFirstResult(0);
 			criteria.setProjection(Projections.rowCount());
 			Number count = (Number) criteria.uniqueResult();
@@ -306,16 +300,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 
 		setFormInstanceModel( formInstance,  formModel, new HashMap<>(), true);
-        String formName = formModel.getName();
-        if(formModel.getProcess() != null){
-            if(formModel.getProcess().getId() != null) {
-                ProcessModel process = processService.getModel(formModel.getProcess().getId());
-                if (process != null) {
-                    formName = process.getFormName();
-                }
-            }
-        }
-        formInstance.setFormName(formName);
 		return formInstance;
 	}
 
@@ -711,7 +695,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		List<String> idList = new ArrayList<>();
 		String paramCondition = null;
 		//流程字段名称
-		if(StringUtils.hasText(formInstance.getProcessId())) {
+		if(StringUtils.hasText(formInstance.getProcessInstanceId())) {
 			if(formInstance.getProcessInstanceId() != null && formInstance.getFlowData() != null && formInstance.getFlowData().get("functionId") != null) {
 				ProcessInstance processInstance = processInstanceService.get(formInstance.getProcessInstanceId());
 				if(processInstance.getCurrentTaskInstance() != null) {
@@ -1538,23 +1522,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		TaskInstance taskInstance = processInstance.getCurrentTaskInstance();
 		entity.put("ACTIVITY_ID", taskInstance == null ? null : taskInstance.getActivityId());
 		entity.put("ACTIVITY_INSTANCE", taskInstance == null ? null : taskInstance.getId());
-		for(ItemModelEntity itemModelEntity : formModelService.findAllItems(formModel)) {
-			if(itemModelEntity.getColumnModel() != null && "process_state".equals(itemModelEntity.getColumnModel().getColumnName())) {
-				boolean flag = processInstance.getStatus() != ProcessInstance.Status.Ended ;
-				String value = null;
-				for(ItemSelectOption option : itemModelEntity.getOptions()) {
-					if(flag && option.getValue().equals("WORK")){
-						value = option.getId();
-						break;
-					}else if(!flag && option.getValue().equals("DONE")){
-						value = option.getId();
-						break;
-					}
-				}
-				entity.put("process_state", value);
-				break;
-			}
-		}
 	}
 
 	protected Session getSession(DataModelEntity dataModel) {
@@ -1743,7 +1710,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			String queryValueStr = queryValue.toString();
 			List<Criterion> conditions = new ArrayList();
 			List<ListSearchItem> searchItems = listModelEntity.getSearchItems();
-			searchItems = searchItems.stream().filter(item->(item.getFullTextSearch()!=null && item.getFullTextSearch()==true)).collect(Collectors.toList());
+			searchItems = searchItems.stream().filter(item->(item.getParseArea()!=null && item.getParseArea().contains("FuzzyQuery"))).collect(Collectors.toList());
 			for (ListSearchItem searchItem:searchItems) {
 				if (searchItem==null) {
 					continue;
@@ -2192,7 +2159,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	protected List<FormDataSaveInstance> wrapFormDataList(FormModelEntity formModel, ListModelEntity listModel, List<Map<String, Object>> entities) {
 		List<FormDataSaveInstance> FormInstanceList = new ArrayList<FormDataSaveInstance>();
 		for (Map<String, Object> entity : entities) {
-			FormInstanceList.add(wrapFormDataEntity(false, formModel, listModel, entity,String.valueOf(entity.get("id")), true));
+            FormInstanceList.add(wrapFormDataEntity(false, formModel, listModel, entity,String.valueOf(entity.get("id")), true));
 		}
 		return FormInstanceList;
 	}
@@ -2211,7 +2178,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		formInstance.setFormId(formModel.getId());
 		//数据id
 		formInstance.setId(instanceId);
-		if (formModel.getProcess() != null && StringUtils.hasText(formModel.getProcess().getId())) {
+		if (formModel.getProcess() != null && StringUtils.hasText(formModel.getProcess().getKey())) {
 			formInstance.setProcessId((String) entity.get("PROCESS_ID"));
 			formInstance.setProcessInstanceId((String) entity.get("PROCESS_INSTANCE"));
 			formInstance.setActivityId((String) entity.get("ACTIVITY_ID"));
@@ -3392,7 +3359,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				mapModel = geographicalMapModel;
 			}
 			itemInstance.setValue(mapModel);
-			String displayVlaue = mapModel == null || !StringUtils.hasText(mapModel.getDetailAddress()) ? "位置经度："+mapModel.getLng()+",纬度："+mapModel.getLat() : mapModel.getDetailAddress();
+			String displayVlaue = mapModel == null ? null : mapModel.getDetailAddress() ;
 			itemInstance.setDisplayValue(displayVlaue);
 		}
 	}
@@ -3433,15 +3400,42 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			throw new IFormException("没有查询到【" + formModel.getName() + "】表单，instanceId【"+id+"】的数据");
 		}
         String formName = formModel.getName();
-        if(formModel.getProcess() != null && formModel.getProcess().getId() != null){
-            ProcessModel process = processService.getModel(formModel.getProcess().getId());
-            if(process != null){
-                formName = process.getFormTitle();
-            }
+        if(formModel.getProcess() != null && formInstance.getProcessInstanceId() != null){
+            setFormInstanceProcessStatus(formInstance,  formName);
         }
         formInstance.setFormName(formName);
 		return formInstance;
 	}
+
+	//设置流程状态
+	private void setFormInstanceProcessStatus(FormDataSaveInstance formInstance, String formName){
+        ProcessInstance processInstance = processInstanceService.get(formInstance.getProcessInstanceId());
+        if(processInstance == null){
+            return;
+        }
+        if(processInstance.getFormTitle() != null){
+            formName = processInstance.getFormTitle();
+        }
+        ItemInstance processStatusItemInstance = null;
+        for(ItemInstance instance : formInstance.getItems()){
+            if(instance.getSystemItemType() == SystemItemType.ProcessStatus){
+                processStatusItemInstance = instance;
+            }
+        }
+        if(processStatusItemInstance != null){
+            ItemModelEntity itemModelEntity = itemModelManager.get(processStatusItemInstance.getId());
+            List<Option> lists = (List<Option>) JSON.parseArray(((ProcessStatusItemModelEntity) itemModelEntity).getProcessStatus(),Option.class);
+            Map<String, Object> objectMap = new HashMap<>();
+            for(Option option : lists){
+                objectMap.put(option.getId(), option.getLabel());
+            }
+            String status = "0";
+            if(processInstance.getStatus()==ProcessInstance.Status.Ended){
+                status = "1";
+            }
+            processStatusItemInstance.setDisplayValue(objectMap.get(status));
+        }
+    }
 
 	@Override
 	public Map<String, String> columnNameAndItemIdMap(List<ItemModelEntity> items) {
@@ -3459,6 +3453,63 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			columnNameAndItemIdMap.put((String)map.get("column_name"), (String)map.get("item_id"));
 		}
 		return columnNameAndItemIdMap;
+	}
+
+	@Override
+	public IdEntity startFormInstanceProcess(FormModelEntity formModelEntity, String instanceId) {
+		// 启动流程
+		if (formModelEntity.getProcess() == null || formModelEntity.getProcess().getKey() == null) {
+			return null;
+		}
+		Session session = null;
+		DataModelEntity dataModel = formModelEntity.getDataModels().get(0);
+		UserInfo user = null;
+		try {
+			user = CurrentUserUtils.getCurrentUser();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		String processInstanceId = null;
+		try {
+			session = getSession(dataModel);
+			//开启事务
+			session.beginTransaction();
+
+			Map<String, Object> data = (Map<String, Object>) session.load(dataModel.getTableName(), instanceId);
+
+
+			data.put("update_at", new Date());
+			data.put("update_by",  user != null ? user.getId() : null);
+
+
+			// 流程操作
+			Map<String, Object> flowData  = new HashMap<>();
+			if(flowData == null){
+				flowData = new HashMap<>();
+			}
+			flowData.putAll(data);
+
+			//跳过第一个流程环节
+			flowData.put("PASS_THROW_FIRST_USERTASK", true);
+			System.out.println("传给工作流的数据=====>>>>>"+flowData);
+			processInstanceId = processInstanceService.startProcess(formModelEntity.getProcess().getKey(), instanceId, flowData);
+			updateProcessInfo(formModelEntity, data, processInstanceId);
+
+			session.update(dataModel.getTableName(), data);
+			session.getTransaction().commit();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			if(e instanceof ICityException){
+				throw e;
+			}
+			throw new IFormException("保存【" + dataModel.getTableName() + "】表，id【"+instanceId+"】的数据失败");
+		}finally {
+			if(session != null){
+				session.close();
+			}
+		}
+		return new IdEntity(processInstanceId);
 	}
 
 

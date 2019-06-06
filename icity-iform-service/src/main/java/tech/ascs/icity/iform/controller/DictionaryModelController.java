@@ -13,6 +13,8 @@ import tech.ascs.icity.iform.service.DictionaryModelService;
 import tech.ascs.icity.model.IdEntity;
 import tech.ascs.icity.model.Page;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -55,7 +57,15 @@ public class DictionaryModelController implements tech.ascs.icity.iform.api.serv
 
 	@Override
 	public void delete(@PathVariable(name = "id") String id) {
-		dictionaryService.deleteDictionary(id);
+		List<String> idList = new ArrayList<>();
+		idList.add(id);
+		dictionaryService.deleteDictionary(idList);
+	}
+
+	@Override
+	public void batchDelete(@RequestBody String[] ids) {
+		List<String> idList = Arrays.asList(ids);
+		dictionaryService.deleteDictionary(idList);
 	}
 
 	@Override

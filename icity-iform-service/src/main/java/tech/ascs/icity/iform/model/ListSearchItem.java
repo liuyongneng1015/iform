@@ -26,12 +26,7 @@ public class ListSearchItem extends BaseEntity implements Serializable {
 	@Embedded
 	private ItemSearchInfo search;
 
-	@Column(name="full_text_search")
-	private Boolean fullTextSearch = false;
-	@Column(name="app_use")
-	private Boolean appUse = false;
-	@Column(name="pc_use")
-	private Boolean pcUse = false;
+	private String parseArea;
 
 	@Column(name="order_no",columnDefinition = "int default 0")//排序号
 	private Integer orderNo = 0;
@@ -60,28 +55,12 @@ public class ListSearchItem extends BaseEntity implements Serializable {
 		this.search = search;
 	}
 
-	public Boolean getFullTextSearch() {
-		return fullTextSearch;
+	public String getParseArea() {
+		return parseArea;
 	}
 
-	public void setFullTextSearch(Boolean fullTextSearch) {
-		this.fullTextSearch = fullTextSearch;
-	}
-
-	public Boolean getAppUse() {
-		return appUse;
-	}
-
-	public void setAppUse(Boolean appUse) {
-		this.appUse = appUse;
-	}
-
-	public Boolean getPcUse() {
-		return pcUse;
-	}
-
-	public void setPcUse(Boolean pcUse) {
-		this.pcUse = pcUse;
+	public void setParseArea(String parseArea) {
+		this.parseArea = parseArea;
 	}
 
 	public Integer getOrderNo() {

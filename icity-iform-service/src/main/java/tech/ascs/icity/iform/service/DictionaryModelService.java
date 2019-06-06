@@ -28,9 +28,9 @@ public interface DictionaryModelService extends JPAService<DictionaryModelEntity
 	/**
 	 * 删除字典建模
 	 * 
-	 * @param id
+	 * @param idList
 	 */
-	void deleteDictionary(String id);
+	void deleteDictionary(List<String> idList);
 
 	/**
 	 * 获取字典建模
@@ -70,7 +70,7 @@ public interface DictionaryModelService extends JPAService<DictionaryModelEntity
 	void saveDictionaryModelData(DictionaryModelData dictionaryModelData);
 
 	//删除字典建模数据表
-	void deleteDictionaryModelData(DictionaryModelData dictionaryModelData);
+	void deleteDictionaryModelData(List<DictionaryModelData> dictionaryModelDataList);
 
 	//更新排序
 	void updateDictionaryModelDataOrderNo(String dictionaryId, String id, String status);

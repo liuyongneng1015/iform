@@ -3,6 +3,9 @@ package tech.ascs.icity.iform.api.model;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @ApiModel("列表搜索字段信息")
 public class SearchItem extends ItemModel implements Comparable<SearchItem> {
 
@@ -45,16 +48,11 @@ public class SearchItem extends ItemModel implements Comparable<SearchItem> {
 		}
 	}
 
-	@ApiModelProperty(value = "全文搜索", position = 6)
-	private Boolean fullTextSearch = false;
-	@ApiModelProperty(value = "app端使用的查询条件", position = 7)
-	private Boolean appUse = false;
-	@ApiModelProperty(value = "pc端使用的查询条件", position = 8)
-	private Boolean pcUse = false;
+	@ApiModelProperty(value = "解析区域", position = 7)
+	private List<String> parseArea = new ArrayList();
 	private String referenceListId;
 	@ApiModelProperty(value = "查询定义，用于列表中的查询条件", position = 9)
 	private Search search;
-
 	@ApiModelProperty("搜索框排序号")//排序号
 	private Integer orderNo = 0;
 
@@ -66,28 +64,12 @@ public class SearchItem extends ItemModel implements Comparable<SearchItem> {
 		this.referenceListId = referenceListId;
 	}
 
-	public Boolean getFullTextSearch() {
-		return fullTextSearch;
+	public List<String> getParseArea() {
+		return parseArea;
 	}
 
-	public void setFullTextSearch(Boolean fullTextSearch) {
-		this.fullTextSearch = fullTextSearch;
-	}
-
-	public Boolean getAppUse() {
-		return appUse;
-	}
-
-	public void setAppUse(Boolean appUse) {
-		this.appUse = appUse;
-	}
-
-	public Boolean getPcUse() {
-		return pcUse;
-	}
-
-	public void setPcUse(Boolean pcUse) {
-		this.pcUse = pcUse;
+	public void setParseArea(List<String> parseArea) {
+		this.parseArea = parseArea;
 	}
 
 	public Search getSearch() {

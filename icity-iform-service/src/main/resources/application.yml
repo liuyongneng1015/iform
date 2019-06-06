@@ -92,10 +92,10 @@ minio:
     key:  icity
   secret:
     key: icity.ascs.tech
-  host: http://192.168.4.151:9000
-  url: http://192.168.4.151:9000
-  logoUrl: http://192.168.4.151:9000
-  backUrl: http://192.168.4.151:9000
+  host: http://192.168.4.151:9000 #存二维码图片的服务器地址（内网地址就可以了）
+  url: http://192.168.4.151:9000 #二维码图片对应的地址前缀（如有必要需要变成外网地址）
+  logoUrl: http://192.168.4.151:9000 #二维码中间商标 （内网地址就可以了）
+  backUrl: http://192.168.4.151:9000 #二维码背景图 （内网地址就可以了）
 
 multipart:
   maxFileSize: 10240Mb

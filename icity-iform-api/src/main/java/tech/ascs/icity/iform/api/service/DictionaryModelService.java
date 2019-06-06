@@ -57,6 +57,10 @@ public interface DictionaryModelService {
 	@DeleteMapping("/{id}")
 	void delete(@PathVariable(name = "id") String id);
 
+	@ApiOperation("批量删除字典建模表")
+	@DeleteMapping("/batch")
+	void batchDelete(@RequestBody String[] ids);
+
 	@ApiOperation("上下移动字典建模")
 	@ApiImplicitParams({
 			@ApiImplicitParam(paramType="path", name = "id", value = "字典建模ID", required = true, dataType = "String"),
