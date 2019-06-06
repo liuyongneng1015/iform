@@ -1,30 +1,21 @@
 package tech.ascs.icity.iform.service.impl;
 
 import com.googlecode.genericdao.search.Sort;
-import io.swagger.annotations.ApiModelProperty;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import tech.ascs.icity.iform.IFormException;
-import tech.ascs.icity.iform.api.model.DictionaryDataItemModel;
-import tech.ascs.icity.iform.api.model.DictionaryDataModel;
 import tech.ascs.icity.iform.api.model.DictionaryModel;
 import tech.ascs.icity.iform.api.model.DictionaryModelData;
-import tech.ascs.icity.iform.model.DictionaryDataEntity;
-import tech.ascs.icity.iform.model.DictionaryDataItemEntity;
 import tech.ascs.icity.iform.model.DictionaryModelEntity;
-import tech.ascs.icity.iform.service.DictionaryDataService;
 import tech.ascs.icity.iform.service.DictionaryModelService;
 import tech.ascs.icity.iform.utils.CommonUtils;
-import tech.ascs.icity.jpa.dao.exception.NotFoundException;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 import tech.ascs.icity.model.IdEntity;
 import tech.ascs.icity.model.Page;
 
-import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryModelEntity> implements DictionaryModelService {
 
@@ -67,7 +58,7 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 			throw  new IFormException("未找到【"+dictionaryModel.getId()+"】对应的字典建模");
 		}
 		String oldTableName = dictionaryModelEntity.getTableName();
-		verifyTableName(dictionaryModel);
+		verifyDictionaryModel(dictionaryModel);
 		BeanUtils.copyProperties(dictionaryModel, dictionaryModelEntity);
 		if(!StringUtils.equalsIgnoreCase(dictionaryModel.getTableName(), oldTableName)){
 			updateTableName(oldTableName, dictionaryModel.getTableName());
@@ -95,7 +86,7 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 
 	@Override
 	public IdEntity addDictionary(DictionaryModel dictionaryModel) {
-		verifyTableName(dictionaryModel);
+		verifyDictionaryModel(dictionaryModel);
 		DictionaryModelEntity dictionaryModelEntity = new DictionaryModelEntity();
 		BeanUtils.copyProperties(dictionaryModel, dictionaryModelEntity);
 		dictionaryModelEntity.setOrderNo(maxDictionaryOrderNo()+1);
@@ -105,12 +96,16 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 	}
 
 	//校验数据表名
-	private void verifyTableName(DictionaryModel dictionaryModel){
+	private void verifyDictionaryModel(DictionaryModel dictionaryModel){
 		if(StringUtils.isBlank(dictionaryModel.getTableName()) || StringUtils.isBlank(dictionaryModel.getName())){
 			throw new IFormException("数据表或字典名称为空了");
 		}
 		if (!Pattern.matches(CommonUtils.regEx, dictionaryModel.getTableName())) {
 			throw new IFormException("数据表必须以字母开头，只能包含数字，字母，下划线，不能包含中文，横杆等特殊字符");
+		}
+
+		if (dictionaryModel.getName() == null || dictionaryModel.getName().length() > 128) {
+			throw new IFormException("字典名称长度错误");
 		}
 
 		List<DictionaryModelEntity> list = dictionaryManager.query().filterEqual("tableName", dictionaryModel.getTableName()).list();
@@ -247,15 +242,33 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 
 	@Override
 	public void saveDictionaryModelData(DictionaryModelData dictionaryModelData) {
-		DictionaryModel dictionaryModelModel = getDictionaryById(dictionaryModelData.getDictionaryId());
+		DictionaryModel dictionaryModel = getDictionaryById(dictionaryModelData.getDictionaryId());
+		verifyDictionaryModelData(dictionaryModel, dictionaryModelData);
+
 		if(dictionaryModelData.getId() == null){
-			Integer maxOrderNo = maxTableOrderNo(dictionaryModelModel.getTableName());
+			Integer maxOrderNo = maxTableOrderNo(dictionaryModel.getTableName());
 			dictionaryModelData.setOrderNo(maxOrderNo == null ? 1 :  maxOrderNo + 1);
 			dictionaryModelData.setCode(StringUtils.isBlank(dictionaryModelData.getCode()) ? "key_"+dictionaryModelData.getOrderNo() : dictionaryModelData.getCode());
 		}else{
 			dictionaryModelData.setCode(StringUtils.isBlank(dictionaryModelData.getCode()) ? "key_"+System.currentTimeMillis() : dictionaryModelData.getCode());
 		}
 		saveData(dictionaryModelData);
+	}
+
+	//校验字典建模的key
+	private void verifyDictionaryModelData(DictionaryModel dictionaryModel, DictionaryModelData dictionaryModelData){
+		if(dictionaryModelData.getCode() != null) {
+			List<String> list = getCodeIdList(dictionaryModel.getTableName(), dictionaryModelData.getCode());
+			if(list == null || list.size() < 1){
+				return;
+			}
+			if(dictionaryModelData.isNew() || !list.contains(dictionaryModelData.getId())){
+				throw  new IFormException("字典建模key不能重复");
+			}
+		}
+		if (dictionaryModelData.getName() == null || dictionaryModelData.getName().length() > 128) {
+			throw new IFormException("字典代码长度错误");
+		}
 	}
 
 	private void saveData(DictionaryModelData dictionaryModelData){
@@ -480,5 +493,18 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 			return Integer.parseInt(String.valueOf(map.get("order_no")));
 		}
 		return 0;
+	}
+
+	//获取相同的code的id集合
+	private List<String> getCodeIdList(String tableName, String code){
+		List<Map<String, Object>> mapList = dictionaryManager.getJdbcTemplate().queryForList("select id from "+tableName +" where code = '"+code+"'");
+		if (mapList != null) {
+			List<String> list = new ArrayList<>();
+			for(Map<String, Object> map : mapList) {
+				list.add(String.valueOf(map.get("id")));
+			}
+			return list;
+		}
+		return null;
 	}
 }
