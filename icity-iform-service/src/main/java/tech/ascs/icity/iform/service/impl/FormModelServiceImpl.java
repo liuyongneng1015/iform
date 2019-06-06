@@ -41,7 +41,6 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 	private JPAManager<ListFunction> listFunctionManager;
 
-
 	private JPAManager<ListSearchItem> listSearchItemManager;
 
 	private JPAManager<ListSortItem> listSortItemManager;
@@ -1218,9 +1217,6 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			case  ProcessLog:
 				entity = new ProcessLogItemModelEntity();
 				break;
-			case  ProcessStatus:
-				entity = new ProcessStatusItemModelEntity();
-				break;
 			default:
 				entity = new ItemModelEntity();
 				break;
@@ -1231,6 +1227,8 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			entity = new ReferenceItemModelEntity();
 		}else if(systemItemType == SystemItemType.CreateDate){
 			entity = new TimeItemModelEntity();
+		}else if(systemItemType == SystemItemType.ProcessStatus){
+			entity = new ProcessStatusItemModelEntity();
 		}
 		return entity;
 	}

@@ -166,7 +166,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		List<ItemModelEntity> items = formModelEntity.getItems();
 		//TODO 待删除
 		int status = -1;
-		Optional<ItemModelEntity> optional = items.stream().filter(item-> (item.getType() == ItemType.ProcessStatus)).findFirst();
+		Optional<ItemModelEntity> optional = items.stream().filter(item-> (item.getSystemItemType() == SystemItemType.ProcessStatus)).findFirst();
 
 		if (optional.isPresent() && queryParameters.get(optional.get().getId()) != null) {
 			status = Integer.parseInt((String.valueOf(queryParameters.get(optional.get().getId()))));
@@ -241,7 +241,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		}
 		ItemInstance processStatusItemInstance = null;
 		for(ItemInstance instance : formInstance.getItems()){
-			if(instance.getType() == ItemType.ProcessStatus){
+			if(instance.getSystemItemType() == SystemItemType.ProcessStatus){
 				processStatusItemInstance = instance;
 			}
 		}

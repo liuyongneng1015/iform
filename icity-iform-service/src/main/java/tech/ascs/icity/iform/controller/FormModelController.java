@@ -1495,6 +1495,12 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				}
 			}
 		}
+
+		if(entity.getType() == ItemType.ProcessLog && itemModel.getDisplayFields() != null){
+			List<String> list = itemModel.getDisplayFields();
+			((ProcessLogItemModelEntity)entity).setDisplayField(String.join(",", list));
+		}
+
 		return entity;
 	}
 
@@ -2291,9 +2297,12 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			itemModel.setOptions(options);
 		}
 
-		if(entity instanceof ProcessStatusItemModelEntity){
-			List<Option> lists = (List<Option>) JSON.parseArray(((ProcessStatusItemModelEntity) entity).getProcessStatus(),Option.class);
-			itemModel.setOptions(lists);
+		if(entity instanceof ProcessStatusItemModelEntity && ((ProcessStatusItemModelEntity) entity).getProcessStatus() != null){
+			itemModel.setOptions(JSON.parseArray(((ProcessStatusItemModelEntity) entity).getProcessStatus(),Option.class));
+		}
+
+		if(entity  instanceof ProcessLogItemModelEntity  && ((ProcessLogItemModelEntity) entity).getDisplayField() != null){
+			itemModel.setDisplayFields(Arrays.asList((((ProcessLogItemModelEntity) entity).getDisplayField()).split(",")));
 		}
 
 		if(isAnalysisItem && entity.getPermissions() != null && entity.getPermissions().size() > 0){

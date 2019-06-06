@@ -3418,7 +3418,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
         }
         ItemInstance processStatusItemInstance = null;
         for(ItemInstance instance : formInstance.getItems()){
-            if(instance.getType() == ItemType.ProcessStatus){
+            if(instance.getSystemItemType() == SystemItemType.ProcessStatus){
                 processStatusItemInstance = instance;
             }
         }

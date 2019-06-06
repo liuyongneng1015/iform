@@ -236,7 +236,7 @@ public class ItemModel extends NameEntity {
 	private ProcessLogSortType sortType;
 
 	@ApiModelProperty(value = "流程日志显示字段：Operator操作者，Time时间，Content内容，Title标题", position = 59)
-	private String displayField;
+	private List<String> displayFields;
 
 	@ApiModelProperty(value = "流程日志解析形式", position = 60)
 	private ProcessLogParseModel parseModel;
@@ -877,12 +877,12 @@ public class ItemModel extends NameEntity {
 		this.sortType = sortType;
 	}
 
-	public String getDisplayField() {
-		return displayField;
+	public List<String> getDisplayFields() {
+		return displayFields;
 	}
 
-	public void setDisplayField(String displayField) {
-		this.displayField = displayField;
+	public void setDisplayFields(List<String> displayFields) {
+		this.displayFields = displayFields;
 	}
 
 	public ProcessLogParseModel getParseModel() {

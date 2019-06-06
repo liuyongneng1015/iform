@@ -58,10 +58,7 @@ public enum ItemType {
 	Location("Location"),
 
 	/** 流程日志 */
-	ProcessLog("ProcessLog"),
-
-	/** 流程状态 */
-	ProcessStatus("ProcessStatus");
+	ProcessLog("ProcessLog");
 
 	private String value;
 	private ItemType(String value) {
