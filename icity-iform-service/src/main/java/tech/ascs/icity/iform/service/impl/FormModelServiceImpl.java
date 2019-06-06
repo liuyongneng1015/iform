@@ -217,6 +217,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 		//同步数据建模
 		dataModelService.sync(formModelEntity.getDataModels().get(0));
+
 		return formModelEntity;
 
 	}
@@ -1122,9 +1123,8 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		if(newFlag){
 			//创建默认的表单功能
 			formFunctionsService.createDefaultFormFunctions(formModelEntity);
-			//提交表单权限
-//			listModelService.submitFormBtnPermission(formModelEntity);
 		}
+
 		return formModelEntity;
 	}
 	//获取关联字段的控件
@@ -1650,8 +1650,6 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			}
 		}
 		FormModelEntity formModelEntity = super.save(entity);
-		//提交表单权限
-//		listModelService.submitFormBtnPermission(formModelEntity);
 		return formModelEntity;
 	}
 
