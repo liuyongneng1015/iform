@@ -27,9 +27,7 @@ import tech.ascs.icity.admin.api.model.TreeSelectData;
 import tech.ascs.icity.admin.api.model.User;
 import tech.ascs.icity.admin.client.GroupService;
 import tech.ascs.icity.admin.client.UserService;
-import tech.ascs.icity.iflow.api.model.Process;
 import tech.ascs.icity.iflow.api.model.ProcessInstance;
-import tech.ascs.icity.iflow.api.model.ProcessModel;
 import tech.ascs.icity.iflow.api.model.TaskInstance;
 import tech.ascs.icity.iflow.client.ProcessInstanceService;
 import tech.ascs.icity.iflow.client.ProcessService;
@@ -1573,6 +1571,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				continue;
 			}
 
+			// 地图控件搜索
+			if (itemModel instanceof LocationItemModelEntity && value!=null) {
+				locationItemModelSearch(criteria, value.toString(), (LocationItemModelEntity)itemModel);
+			}
+
 			Object[] values = null;
 			if (value instanceof String[]) {
 				values = (String[])value;
@@ -1703,6 +1706,27 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			throw new ICityException(itemModel.getName() + "格式不正确");
 		}
 		return null;
+	}
+
+	// 地图控件的名称搜索
+	private void locationItemModelSearch(Criteria criteria, String queryValue, LocationItemModelEntity locationItemModelEntity) {
+		if (StringUtils.isEmpty(queryValue)) {
+			return;
+		}
+		ColumnModelEntity columnModel = locationItemModelEntity.getColumnModel();
+		if (columnModel==null || StringUtils.isEmpty(columnModel.getColumnName())) {
+			return;
+		}
+		queryValue = "%" + queryValue + "%";
+		List<GeographicalMapEntity> list = mapEntityJPAManager.query().filterEqual("fromSource", locationItemModelEntity.getId()).filterLike("detailAddress", queryValue).list();
+		if (list==null || list.size()==0) {
+			return;
+		}
+		List<String> ids = new ArrayList();
+		for (GeographicalMapEntity entity:list) {
+			ids.add(entity.getId());
+		}
+		criteria.add(Restrictions.in(columnModel.getColumnName(), ids.toArray(new String[]{})));
 	}
 
 	private void fullTextSearchCriteria(Criteria criteria, Object queryValue, ListModelEntity listModelEntity) {
