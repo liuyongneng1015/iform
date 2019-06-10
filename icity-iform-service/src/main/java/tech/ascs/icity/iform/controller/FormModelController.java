@@ -826,7 +826,11 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		entity.setItems(items);
 
 		Map<String, ItemModelEntity> uuidItemModelEntityMap = new HashMap<>();
-		for(ItemModelEntity itemModelEntity : formModelService.findAllItems(entity)){
+
+		List<ItemModelEntity> itemlist = formModelService.findAllItems(entity);
+		verifyProcessItemModel(itemlist);
+
+		for(ItemModelEntity itemModelEntity : itemlist){
 			if(StringUtils.hasText(itemModelEntity.getUuid())) {
 				uuidItemModelEntityMap.put(itemModelEntity.getUuid(), itemModelEntity);
 			}
@@ -884,6 +888,26 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 		return entity;
 	}
+
+	//校验流程表单控件
+	private void verifyProcessItemModel(List<ItemModelEntity> list){
+		Map<String, Object> processItemModelMap = new HashMap<>();
+		for(ItemModelEntity itemModelEntity : list) {
+			if (itemModelEntity.getSystemItemType() != null && (itemModelEntity.getSystemItemType() == SystemItemType.ProcessStatus
+					|| itemModelEntity.getSystemItemType() == SystemItemType.ProcessLog)) {
+				if (processItemModelMap.get(itemModelEntity.getSystemItemType().getValue()) != null) {
+					if (itemModelEntity.getSystemItemType() == SystemItemType.ProcessStatus) {
+						throw new IFormException("流程状态控件重复");
+					}
+					if (itemModelEntity.getSystemItemType() == SystemItemType.ProcessLog) {
+						throw new IFormException("流程日志控件重复");
+					}
+				}
+				processItemModelMap.put(itemModelEntity.getSystemItemType().getValue(), System.currentTimeMillis());
+			}
+		}
+	}
+
 
 	//更新表单建模
 	private void deleteSalverDataModel(DataModelEntity dataModelEntity){
