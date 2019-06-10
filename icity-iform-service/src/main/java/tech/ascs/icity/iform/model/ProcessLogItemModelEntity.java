@@ -20,7 +20,7 @@ public class ProcessLogItemModelEntity extends ItemModelEntity  {
 	private ProcessLogSortType sortType;
 
 	@Column(name="display_field")//显示字典
-	private String displayField;
+	private String displayFields;
 
 	@Column(name="parse_model")//解析类型
 	@Enumerated(EnumType.STRING)
@@ -34,12 +34,12 @@ public class ProcessLogItemModelEntity extends ItemModelEntity  {
 		this.sortType = sortType;
 	}
 
-	public String getDisplayField() {
-		return displayField;
+	public String getDisplayFields() {
+		return displayFields;
 	}
 
-	public void setDisplayField(String displayField) {
-		this.displayField = displayField;
+	public void setDisplayFields(String displayFields) {
+		this.displayFields = displayFields;
 	}
 
 	public ProcessLogParseModel getParseModel() {

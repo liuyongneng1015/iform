@@ -23,7 +23,6 @@ import tech.ascs.icity.admin.client.ApplicationService;
 import tech.ascs.icity.admin.client.GroupService;
 import tech.ascs.icity.iflow.api.model.Activity;
 import tech.ascs.icity.iflow.api.model.Process;
-import tech.ascs.icity.iflow.api.model.ProcessModel;
 import tech.ascs.icity.iflow.client.ProcessService;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
@@ -228,6 +227,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
             concurrentmap.put(key, System.currentTimeMillis());
 			FormModelEntity entity = wrap(formModel);
 			formModelService.save(entity);
+			// 提交表单的按钮功能的权限给admin服务
 			listModelService.submitFormBtnPermission(entity);
 		} catch (Exception e) {
 			throw new IFormException("保存表单模型列表失败：" + e.getMessage(), e);
@@ -826,7 +826,11 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		entity.setItems(items);
 
 		Map<String, ItemModelEntity> uuidItemModelEntityMap = new HashMap<>();
-		for(ItemModelEntity itemModelEntity : formModelService.findAllItems(entity)){
+
+		List<ItemModelEntity> itemlist = formModelService.findAllItems(entity);
+		verifyProcessItemModel(itemlist);
+
+		for(ItemModelEntity itemModelEntity : itemlist){
 			if(StringUtils.hasText(itemModelEntity.getUuid())) {
 				uuidItemModelEntityMap.put(itemModelEntity.getUuid(), itemModelEntity);
 			}
@@ -884,6 +888,26 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 		return entity;
 	}
+
+	//校验流程表单控件
+	private void verifyProcessItemModel(List<ItemModelEntity> list){
+		Map<String, Object> processItemModelMap = new HashMap<>();
+		for(ItemModelEntity itemModelEntity : list) {
+			if (itemModelEntity.getSystemItemType() != null && (itemModelEntity.getSystemItemType() == SystemItemType.ProcessStatus
+					|| itemModelEntity.getSystemItemType() == SystemItemType.ProcessLog)) {
+				if (processItemModelMap.get(itemModelEntity.getSystemItemType().getValue()) != null) {
+					if (itemModelEntity.getSystemItemType() == SystemItemType.ProcessStatus) {
+						throw new IFormException("流程状态控件重复");
+					}
+					if (itemModelEntity.getSystemItemType() == SystemItemType.ProcessLog) {
+						throw new IFormException("流程日志控件重复");
+					}
+				}
+				processItemModelMap.put(itemModelEntity.getSystemItemType().getValue(), System.currentTimeMillis());
+			}
+		}
+	}
+
 
 	//更新表单建模
 	private void deleteSalverDataModel(DataModelEntity dataModelEntity){
@@ -1427,7 +1451,8 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		if(!(entity instanceof RowItemModelEntity) && !(entity instanceof TabsItemModelEntity)
 				&& !(entity instanceof SubFormItemModelEntity) && !(entity instanceof SubFormRowItemModelEntity)
 				&& !(entity instanceof ReferenceItemModelEntity) && !(entity instanceof TabPaneItemModelEntity)
-				&& entity.getType() != ItemType.Label && entity.getColumnModel() == null){
+				&& entity.getType() != ItemType.Label && entity.getSystemItemType() != SystemItemType.ProcessStatus
+				&& entity.getType() != ItemType.ProcessLog  && entity.getColumnModel() == null){
 			throw  new IFormException("控件"+entity.getName()+"没有对应字段");
 		}
 		
@@ -1496,9 +1521,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			}
 		}
 
-		if(entity.getType() == ItemType.ProcessLog && itemModel.getDisplayFields() != null){
-			List<String> list = itemModel.getDisplayFields();
-			((ProcessLogItemModelEntity)entity).setDisplayField(String.join(",", list));
+		if(entity.getType() == ItemType.ProcessLog && itemModel.getDisplayField() != null){
+			List<String> list = itemModel.getDisplayField();
+			((ProcessLogItemModelEntity)entity).setDisplayFields(String.join(",", list));
 		}
 
 		return entity;
@@ -2301,8 +2326,8 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			itemModel.setOptions(JSON.parseArray(((ProcessStatusItemModelEntity) entity).getProcessStatus(),Option.class));
 		}
 
-		if(entity  instanceof ProcessLogItemModelEntity  && ((ProcessLogItemModelEntity) entity).getDisplayField() != null){
-			itemModel.setDisplayFields(Arrays.asList((((ProcessLogItemModelEntity) entity).getDisplayField()).split(",")));
+		if(entity  instanceof ProcessLogItemModelEntity  && ((ProcessLogItemModelEntity) entity).getDisplayFields() != null){
+			itemModel.setDisplayField(Arrays.asList((((ProcessLogItemModelEntity) entity).getDisplayFields()).split(",")));
 		}
 
 		if(isAnalysisItem && entity.getPermissions() != null && entity.getPermissions().size() > 0){

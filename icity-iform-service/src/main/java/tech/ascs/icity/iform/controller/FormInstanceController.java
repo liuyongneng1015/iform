@@ -203,6 +203,9 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 
 	private void setFlowFormInstance(Map<String, ProcessInstance> instanceIdAndProcessMap, FormDataSaveInstance instance){
 		ProcessInstance processInstance = instanceIdAndProcessMap.get(instance.getId());
+		if (processInstance==null) {
+			return;
+		}
 		if (processInstance.getStatus()==ProcessInstance.Status.Running && processInstance.isMyTask()) {
 			instance.setCanEdit(true);
 		} else {
@@ -360,11 +363,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 				List<Object> lineList = new ArrayList<>();
 				for (String id:ids) {
 					Optional<ItemInstance> optional = itemInstances.stream().filter(item->id.equals(item.getId())).findFirst();
-					if (optional.isPresent()) {
-						lineList.add(optional.get().getDisplayValue());
-					} else {
-						lineList.add(null);
-					}
+					lineList.add(optional.isPresent()==true? optional.get().getDisplayValue():null);
 				}
 				listData.add(lineList);
 			}
@@ -422,16 +421,15 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		Map<String, Object> queryParameters = new HashMap<>();
 		for (Map.Entry<String, Object> entry:parameters.entrySet()) {
 			Object value = entry.getValue();
-			if (value instanceof String) {
-				if (!StringUtils.isEmpty(value)) {
-					String valueStr = value.toString();
-					if ("fullTextSearch".equals(entry.getKey())) {
-						queryParameters.put("fullTextSearch", entry.getValue());
-					} else if (valueStr.length()>32 && valueStr.substring(32,33).equals(",")) { // 如果传过来的参数是数组且以逗号划分开的话,组件ID的长度是32位，若第33位是逗号，当作数组处理
-						queryParameters.put(entry.getKey(), valueStr.split(","));
-					} else {
-						queryParameters.put(entry.getKey(), valueStr);
-					}
+			if (value instanceof String && !StringUtils.isEmpty(value)) {
+				String valueStr = value.toString();
+				if ("fullTextSearch".equals(entry.getKey())) {
+					queryParameters.put("fullTextSearch", entry.getValue());
+				// 如果传过来的参数是数组且以逗号划分开的话,组件ID的长度是32位，若第33位是逗号，当作数组处理
+				} else if (valueStr.length()>32 && valueStr.substring(32,33).equals(",")) {
+					queryParameters.put(entry.getKey(), valueStr.split(","));
+				} else {
+					queryParameters.put(entry.getKey(), valueStr);
 				}
 			}
 		}
