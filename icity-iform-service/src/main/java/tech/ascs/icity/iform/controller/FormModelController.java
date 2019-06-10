@@ -23,7 +23,6 @@ import tech.ascs.icity.admin.client.ApplicationService;
 import tech.ascs.icity.admin.client.GroupService;
 import tech.ascs.icity.iflow.api.model.Activity;
 import tech.ascs.icity.iflow.api.model.Process;
-import tech.ascs.icity.iflow.api.model.ProcessModel;
 import tech.ascs.icity.iflow.client.ProcessService;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
@@ -1498,9 +1497,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			}
 		}
 
-		if(entity.getType() == ItemType.ProcessLog && itemModel.getDisplayFields() != null){
-			List<String> list = itemModel.getDisplayFields();
-			((ProcessLogItemModelEntity)entity).setDisplayField(String.join(",", list));
+		if(entity.getType() == ItemType.ProcessLog && itemModel.getDisplayField() != null){
+			List<String> list = itemModel.getDisplayField();
+			((ProcessLogItemModelEntity)entity).setDisplayFields(String.join(",", list));
 		}
 
 		return entity;
@@ -2303,8 +2302,8 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			itemModel.setOptions(JSON.parseArray(((ProcessStatusItemModelEntity) entity).getProcessStatus(),Option.class));
 		}
 
-		if(entity  instanceof ProcessLogItemModelEntity  && ((ProcessLogItemModelEntity) entity).getDisplayField() != null){
-			itemModel.setDisplayFields(Arrays.asList((((ProcessLogItemModelEntity) entity).getDisplayField()).split(",")));
+		if(entity  instanceof ProcessLogItemModelEntity  && ((ProcessLogItemModelEntity) entity).getDisplayFields() != null){
+			itemModel.setDisplayField(Arrays.asList((((ProcessLogItemModelEntity) entity).getDisplayFields()).split(",")));
 		}
 
 		if(isAnalysisItem && entity.getPermissions() != null && entity.getPermissions().size() > 0){
