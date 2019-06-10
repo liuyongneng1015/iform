@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import com.alibaba.fastjson.JSON;
@@ -14,6 +15,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -60,7 +62,8 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 
 	@Autowired
 	private UserService userService;
-
+	@Autowired
+	private RedisTemplate<String,Object> redisTemplate;
 	@Autowired
 	private DictionaryDataService dictionaryService;
 	@Autowired
@@ -744,7 +747,12 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	 }
 	 */
 	@Override
-	public Map dashboard(@PathVariable(name="userId", required = true) String userId) throws IOException {
+	public Map strategyGroup(@PathVariable(name="userId", required = true) String userId) throws IOException {
+		Map returnMap = (Map)redisTemplate.opsForValue().get(userId+"-strategyGroup");
+		if (returnMap!=null) {
+			return returnMap;
+		}
+		returnMap = new HashMap();
 		Map<String, List> dataMap = new HashMap();
 		FormModelEntity formModelEntity = formModelService.findByTableName("strategy_group");
 		if (formModelEntity==null) {
@@ -807,7 +815,6 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			assemblyMapData("navigations", dataMap, positionMap.get(positionId+"-navigations"));
 			assemblyMapData("dashboard", dataMap, positionMap.get(positionId+"-dashboard"));
 		}
-		Map returnMap = new HashMap();
 		// navigations去重
 		if (dataMap.get("navigations")!=null) {
 			returnMap.put("navigations", new LinkedHashSet(dataMap.get("navigations")));
@@ -841,6 +848,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		// 该用户没有应用分类时时，也要返回 dashboard 的字段，保持结构一致
 			returnMap.put("dashboard", new ArrayList());
 		}
+		redisTemplate.opsForValue().set(userId+"-strategyGroup", returnMap, 1800, TimeUnit.SECONDS);
 		return returnMap;
 	}
 

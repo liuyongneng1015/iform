@@ -367,5 +367,5 @@ public interface FormInstanceService {
 		@ApiImplicitParam(paramType = "path", name = "userId", value = "用户ID", required = true, dataType = "String")
 	})
 	@GetMapping("/users/{userId}/strategyGroup")
-	Map dashboard(@PathVariable(name="userId", required = true) String userId) throws IOException;
+	Map strategyGroup(@PathVariable(name="userId", required = true) String userId) throws IOException;
 }
