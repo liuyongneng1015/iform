@@ -748,11 +748,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	 */
 	@Override
 	public Map strategyGroup(@PathVariable(name="userId", required = true) String userId) throws IOException {
-		Map returnMap = (Map)redisTemplate.opsForValue().get(userId+"-strategyGroup");
-		if (returnMap!=null) {
-			return returnMap;
-		}
-		returnMap = new HashMap();
+		Map returnMap = new HashMap();
 		Map<String, List> dataMap = new HashMap();
 		FormModelEntity formModelEntity = formModelService.findByTableName("strategy_group");
 		if (formModelEntity==null) {
@@ -766,11 +762,14 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			return dataMap;
 		}
 		Set<String> positionIdSet = positions.stream().map(item->item.getId()).collect(Collectors.toSet());
-		Page<FormDataSaveInstance> pageData = formInstanceService.pageFormInstance(formModelEntity, 1, 100, new HashMap());
-		List<Map> list = new ArrayList();
-		// 转成columnName与value对应关系
-		for (FormDataSaveInstance formDataSaveInstance:pageData.getResults()) {
-			list.add(toColumnNameValueDTO(formDataSaveInstance));
+		List<Map> list = (List<Map>)redisTemplate.opsForValue().get("app-strategy-group");
+		if (list==null) {
+			Page<FormDataSaveInstance> pageData = formInstanceService.pageFormInstance(formModelEntity, 1, 100, new HashMap());
+			list = new ArrayList(); // 转成columnName与value对应关系
+			for (FormDataSaveInstance formDataSaveInstance : pageData.getResults()) {
+				list.add(toColumnNameValueDTO(formDataSaveInstance));
+			}
+			redisTemplate.opsForValue().set("app-strategy-group", list, 1800, TimeUnit.SECONDS);
 		}
 
 		JSONArray jsonArray = JSON.parseArray(JSON.toJSONString(list));
@@ -844,11 +843,9 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 				parent.setChildren(items);
 			}
 			returnMap.put("dashboard", parents);
-		} else {
-		// 该用户没有应用分类时时，也要返回 dashboard 的字段，保持结构一致
+		} else { // 该用户没有应用分类时时，也要返回 dashboard 的字段，保持结构一致
 			returnMap.put("dashboard", new ArrayList());
 		}
-		redisTemplate.opsForValue().set(userId+"-strategyGroup", returnMap, 1800, TimeUnit.SECONDS);
 		return returnMap;
 	}
 
