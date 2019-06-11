@@ -1,13 +1,10 @@
 package tech.ascs.icity.iform.api.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import jdk.nashorn.internal.ir.annotations.Ignore;
 import org.apache.commons.lang3.StringUtils;
 import tech.ascs.icity.model.NameEntity;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @ApiModel("表单基础控件模型")

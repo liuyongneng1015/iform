@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="icity-admin-service-1.0.0-SNAPSHOT">
-    <CLASSES>
-      <root url="jar://$PROJECT_DIR$/icity-iform-service/lib/icity-admin-service-1.0.0-SNAPSHOT.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>
