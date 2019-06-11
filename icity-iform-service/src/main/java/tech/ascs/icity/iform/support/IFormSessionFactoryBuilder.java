@@ -51,11 +51,23 @@ public class IFormSessionFactoryBuilder {
 
 	public SessionFactory getSessionFactory(DataModelEntity dataModel, boolean forceNewInstance) throws Exception {
 		if (forceNewInstance || sessionFactories.get(dataModel.getId()) == null) {
+			if (sessionFactories.get(dataModel.getId()) != null) {
+				invalidSessionFactory(sessionFactories.get(dataModel.getId()));
+			}
+
 			SessionFactory sessionFactory = createNewSessionFactory(dataModel);
+
 			sessionFactories.put(dataModel.getId(), sessionFactory);
+			for (DataModelEntity referenceDataModel : dataModel.getReferencesDataModel()) {
+				sessionFactories.put(referenceDataModel.getId(), sessionFactory);
+			}
 		}
 		
 		return sessionFactories.get(dataModel.getId());
+	}
+
+	protected void invalidSessionFactory(SessionFactory sessionFactory) {
+		sessionFactories.entrySet().removeIf(matches -> sessionFactory.equals(matches.getValue()));
 	}
 
 	protected SessionFactory createNewSessionFactory(DataModelEntity dataModel) throws Exception {
