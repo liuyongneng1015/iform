@@ -37,6 +37,7 @@ import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.*;
 import tech.ascs.icity.iform.support.IFormSessionFactoryBuilder;
+import tech.ascs.icity.iform.utils.CommonUtils;
 import tech.ascs.icity.iform.utils.CurrentUserUtils;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
@@ -704,11 +705,16 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 							continue;
 						}
 						Map<String, Object> funcPropsMap = (Map<String, Object>) map.get("funcProps");
-						if (funcPropsMap != null && funcPropsMap.get("paramCondition") != null) {
-							if(funcPropsMap.get("paramCondition") instanceof List) {
-								paramCondition = String.join(",", (List<String>)funcPropsMap.get("paramCondition"));
-							}else{
-								paramCondition = (String) funcPropsMap.get("paramCondition");
+						if (funcPropsMap != null) {
+							if(funcPropsMap.get("paramCondition") != null) {
+								if (funcPropsMap.get("paramCondition") instanceof List) {
+									paramCondition = String.join(",", (List<String>) funcPropsMap.get("paramCondition"));
+								} else {
+									paramCondition = (String) funcPropsMap.get("paramCondition");
+								}
+							}
+							if(funcPropsMap.get("itemValue") != null) {
+								assignmentList.addAll((List<Map<String, Object>>) funcPropsMap.get("itemValue"));
 							}
 						}
 						if (map.get("required") != null && (Boolean) map.get("required")) {
@@ -1544,8 +1550,28 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			if(columnModelEntity == null){
 				continue;
 			}
+			if(map.get("value") == null){
+				entity.put(columnModelEntity.getColumnName(), null);
+				continue;
+			}
 			if(AssignmentWay.DefaultManual.getValue().equals(map.get("valueType"))){
-				entity.put(columnModelEntity.getColumnName(), map.get("value"));
+				Object value = map.get("value");
+				if(columnModelEntity.getDataType() == ColumnType.Integer){
+					value = Integer.parseInt(String.valueOf(value));
+				}else if(columnModelEntity.getDataType() == ColumnType.Double){
+					value = Double.parseDouble(String.valueOf(value));
+				}else if(columnModelEntity.getDataType() == ColumnType.Long){
+					value = Long.parseLong(String.valueOf(value));
+				}else if(columnModelEntity.getDataType() == ColumnType.Boolean){
+					value = String.valueOf(value).equals("true");
+				}else if(columnModelEntity.getDataType() == ColumnType.Float){
+					value = Float.parseFloat(String.valueOf(value));
+				}else if(columnModelEntity.getDataType() == ColumnType.Date
+						|| columnModelEntity.getDataType() == ColumnType.Time
+						|| columnModelEntity.getDataType() == ColumnType.Timestamp){
+					value = CommonUtils.str2Date(String.valueOf(value),((TimeItemModelEntity)itemModelEntity).getTimeFormat());
+				}
+				entity.put(columnModelEntity.getColumnName(), value);
 			}else{
 				if(AssignmentArea.UserID.getValue().equals(map.get("value")) || AssignmentArea.UserName.getValue().equals(map.get("value")) ){
 					UserInfo user = null;

@@ -1,6 +1,7 @@
 package tech.ascs.icity.iform.utils;
 
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -20,6 +21,15 @@ public class CommonUtils {
     public static String date2Str(Date date, String dateFormat){
         SimpleDateFormat format = new SimpleDateFormat(dateFormat);
         return format.format(date);
+    }
+    public static Date str2Date(String dateStr, String dateFormat){
+        try {
+            SimpleDateFormat format = new SimpleDateFormat(dateFormat);
+            return format.parse(dateStr);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public static String currentTimeStr(String dateFormat){
