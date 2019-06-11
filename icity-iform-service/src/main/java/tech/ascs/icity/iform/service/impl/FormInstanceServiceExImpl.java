@@ -453,7 +453,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	}
 
 	private String saveFormData(DataModelEntity dataModel, FormDataSaveInstance formInstance, UserInfo user, FormModelEntity formModelEntity, FormModelEntity formModel){
-		String paramCondition = verifyDataRequired(formInstance, formModelEntity, DisplayTimingType.Add);
+		List<Map<String, Object>> assignmentList = new ArrayList<>();
+		String paramCondition = verifyDataRequired(assignmentList, formInstance, formModelEntity, DisplayTimingType.Add);
 		Session session = null;
 		String newId = null;
 		try {
@@ -485,7 +486,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			data.put("id", newId);
 			// 启动流程
 			if (formModel.getProcess() != null && formModel.getProcess().getKey() != null) {
-				startProces(paramCondition,formInstance, data,  formModel,  newId);
+				startProces(assignmentList, paramCondition,formInstance, data,  formModel,  newId);
 			}
 
 			session.getTransaction().commit();
@@ -504,7 +505,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	}
 
 	//启动流程
-	private void startProces(String paramCondition, FormDataSaveInstance formInstance, Map<String, Object> data, FormModelEntity formModel, String newId){
+	private void startProces(List<Map<String, Object>> assignmentList, String paramCondition, FormDataSaveInstance formInstance, Map<String, Object> data, FormModelEntity formModel, String newId){
 		List<ListFunctionType> listFunctions = formModel.getFunctions().parallelStream().map(ListFunction::getFunctionType).collect(Collectors.toList());
 		if(listFunctions == null || !listFunctions.contains(ListFunctionType.StartProcess)){
 			//TODO 需要有启动流程
@@ -524,7 +525,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		flowData.put("PASS_THROW_FIRST_USERTASK", true);
 		System.out.println("传给工作流的数据=====>>>>>"+flowData);
 		String processInstanceId = processInstanceService.startProcess(formModel.getProcess().getKey(), newId, flowData);
-		updateProcessInfo(formModel, data, processInstanceId);
+		updateProcessInfo(assignmentList, formModel, data, processInstanceId);
 	}
 
 	private void sendWebService(FormModelEntity formModelEntity, BusinessTriggerType triggerType,  Map<String, Object> data, String id){
@@ -641,7 +642,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	}
 
 	private void saveFormData(DataModelEntity dataModel, FormDataSaveInstance formInstance, UserInfo user, FormModelEntity formModelEntity, FormModelEntity formModel, String instanceId){
-		String paramCondition = verifyDataRequired(formInstance, formModelEntity, DisplayTimingType.Update);
+		List<Map<String, Object>> assignmentList = new ArrayList<>();
+		String paramCondition = verifyDataRequired( assignmentList, formInstance, formModelEntity, DisplayTimingType.Update);
 		Session session = null;
 
 		try {
@@ -667,7 +669,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 			// 流程操作
 			if (StringUtils.hasText(formInstance.getActivityInstanceId())) {
-				completedProcess(paramCondition, formInstance, data, formModel);
+				completedProcess(assignmentList, paramCondition, formInstance, data, formModel);
 			}
 			session.update(dataModel.getTableName(), data);
 			session.getTransaction().commit();
@@ -688,7 +690,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	}
 
 	//判断数据是否必填
-	private String verifyDataRequired(FormDataSaveInstance formInstance, FormModelEntity formModelEntity, DisplayTimingType displayTimingType){
+	private String verifyDataRequired(List<Map<String, Object>> assignmentList, FormDataSaveInstance formInstance, FormModelEntity formModelEntity, DisplayTimingType displayTimingType){
 		List<String> notNullIdList = new ArrayList<>();
 		List<String> idList = new ArrayList<>();
 		String paramCondition = null;
@@ -754,7 +756,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	}
 
 	//完成当前任务
-	private void completedProcess(String paramCondition, FormDataSaveInstance formInstance, Map<String, Object> data, FormModelEntity formModel){
+	private void completedProcess(List<Map<String, Object>> assignmentList, String paramCondition, FormDataSaveInstance formInstance, Map<String, Object> data, FormModelEntity formModel){
 		Map<String, Object> flowData = formInstance.getFlowData();
 		if(flowData == null){
 			flowData = new HashMap<>();
@@ -766,7 +768,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			flowData.put("id", formInstance.getId());
 		}
 		taskService.completeTask(formInstance.getActivityInstanceId(), flowData);
-		updateProcessInfo(formModel, data, formInstance.getProcessInstanceId());
+		updateProcessInfo(assignmentList, formModel, data, formInstance.getProcessInstanceId());
 	}
 
 
@@ -1513,13 +1515,63 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		return String.join(",", valueList);
 	}
 
-	protected void updateProcessInfo(FormModelEntity formModel, Map<String, Object> entity, String processInstanceId) {
+	protected void updateProcessInfo(List<Map<String, Object>> assignmentList, FormModelEntity formModel, Map<String, Object> entity, String processInstanceId) {
 		entity.put("PROCESS_INSTANCE", processInstanceId);
 		ProcessInstance processInstance = processInstanceService.get(processInstanceId);
 		entity.put("PROCESS_ID", formModel.getProcess().getId());
 		TaskInstance taskInstance = processInstance.getCurrentTaskInstance();
 		entity.put("ACTIVITY_ID", taskInstance == null ? null : taskInstance.getActivityId());
 		entity.put("ACTIVITY_INSTANCE", taskInstance == null ? null : taskInstance.getId());
+
+		if(assignmentList == null || assignmentList.size() < 1){
+			return;
+		}
+		setColumnValue(assignmentList, entity, taskInstance);
+	}
+
+	//更新字段值
+	private void setColumnValue(List<Map<String, Object>> assignmentList, Map<String, Object> entity, TaskInstance taskInstance){
+		for(Map<String, Object> map : assignmentList){
+			String id = (String)map.get("id");
+			if(id == null){
+				continue;
+			}
+			ItemModelEntity itemModelEntity = itemModelManager.get(id);
+			if(itemModelEntity == null){
+				continue;
+			}
+			ColumnModelEntity columnModelEntity = itemModelEntity.getColumnModel();
+			if(columnModelEntity == null){
+				continue;
+			}
+			if(AssignmentWay.DefaultManual.getValue().equals(map.get("valueType"))){
+				entity.put(columnModelEntity.getColumnName(), map.get("value"));
+			}else{
+				if(AssignmentArea.UserID.getValue().equals(map.get("value")) || AssignmentArea.UserName.getValue().equals(map.get("value")) ){
+					UserInfo user = null;
+					try {
+						user = CurrentUserUtils.getCurrentUser();
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+					if(AssignmentArea.UserID.getValue().equals(map.get("value"))) {
+						entity.put(columnModelEntity.getColumnName(), user.getId());
+					}
+					if(AssignmentArea.UserName.getValue().equals(map.get("value"))) {
+						entity.put(columnModelEntity.getColumnName(), user.getUsername());
+					}
+				}else if(AssignmentArea.SystemTime.getValue().equals(map.get("value"))){
+					entity.put(columnModelEntity.getColumnName(), new Date());
+				}else{
+					if(AssignmentArea.ActivitieID.getValue().equals(map.get("value"))){
+						entity.put(columnModelEntity.getColumnName(), taskInstance == null ? null : taskInstance.getActivityId());
+					}else if(AssignmentArea.ActivitieName.getValue().equals(map.get("value"))){
+						entity.put(columnModelEntity.getColumnName(), taskInstance == null ? null : taskInstance.getActivityName());
+					}
+				}
+			}
+		}
+
 	}
 
 	protected Session getSession(DataModelEntity dataModel) {
@@ -3517,7 +3569,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			flowData.put("PASS_THROW_FIRST_USERTASK", true);
 			System.out.println("传给工作流的数据=====>>>>>"+flowData);
 			processInstanceId = processInstanceService.startProcess(formModelEntity.getProcess().getKey(), instanceId, flowData);
-			updateProcessInfo(formModelEntity, data, processInstanceId);
+			updateProcessInfo(null, formModelEntity, data, processInstanceId);
 
 			session.update(dataModel.getTableName(), data);
 			session.getTransaction().commit();
