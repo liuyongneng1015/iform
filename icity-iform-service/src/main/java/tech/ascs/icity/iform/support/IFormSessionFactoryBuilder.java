@@ -9,7 +9,6 @@ import javax.persistence.PersistenceUnit;
 
 import org.apache.commons.io.IOUtils;
 import org.hibernate.EntityMode;
-import org.hibernate.MappingException;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.Metadata;
 import org.hibernate.boot.MetadataSources;
@@ -32,7 +31,6 @@ import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import freemarker.template.TemplateExceptionHandler;
-import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.model.ColumnModelEntity;
 import tech.ascs.icity.iform.model.ColumnReferenceEntity;
 import tech.ascs.icity.iform.model.DataModelEntity;
@@ -45,19 +43,19 @@ public class IFormSessionFactoryBuilder {
 
 	private StandardServiceRegistry serviceRegistry;
 
-	private Map<DataModelEntity, SessionFactory> sessionFactories = new HashMap<DataModelEntity, SessionFactory>();
+	private Map<String, SessionFactory> sessionFactories = new HashMap<String, SessionFactory>();
 
 	public SessionFactory getSessionFactory(DataModelEntity dataModel) throws Exception {
 		return getSessionFactory(dataModel, false);
 	}
 
 	public SessionFactory getSessionFactory(DataModelEntity dataModel, boolean forceNewInstance) throws Exception {
-		if (forceNewInstance || sessionFactories.get(dataModel) == null) {
+		if (forceNewInstance || sessionFactories.get(dataModel.getId()) == null) {
 			SessionFactory sessionFactory = createNewSessionFactory(dataModel);
-			sessionFactories.put(dataModel, sessionFactory);
+			sessionFactories.put(dataModel.getId(), sessionFactory);
 		}
 		
-		return sessionFactories.get(dataModel);
+		return sessionFactories.get(dataModel.getId());
 	}
 
 	protected SessionFactory createNewSessionFactory(DataModelEntity dataModel) throws Exception {
