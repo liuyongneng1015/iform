@@ -1,8 +1,5 @@
 package tech.ascs.icity.iform.bean;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
 import tech.ascs.icity.iform.api.model.DataModelType;
 import tech.ascs.icity.iform.model.DataModelEntity;
 
@@ -13,9 +10,7 @@ import java.sql.SQLException;
  * @author renjie
  * @since 1.0.0
  **/
-@Builder
-@AllArgsConstructor
-@Data
+
 public class TableMetaBean {
 
     private static final String TABLE_NAME = "TABLE_NAME";
@@ -25,10 +20,11 @@ public class TableMetaBean {
     private String remarks;
 
     public static TableMetaBean from(ResultSet resultSet) throws SQLException {
-        return TableMetaBean.builder()
-                .tableName(resultSet.getString(TABLE_NAME))
-                .remarks(resultSet.getString(REMARKS))
-                .build();
+        TableMetaBean tableMetaBean = new TableMetaBean();
+
+        tableMetaBean.setTableName(resultSet.getString(TABLE_NAME));
+        tableMetaBean.setRemarks(resultSet.getString(REMARKS));
+        return tableMetaBean;
     }
 
     public DataModelEntity buildSimpleDataModel(String applicationId) {
@@ -42,4 +38,19 @@ public class TableMetaBean {
         return dataModelEntity;
     }
 
+    public String getTableName() {
+        return tableName;
+    }
+
+    public void setTableName(String tableName) {
+        this.tableName = tableName;
+    }
+
+    public String getRemarks() {
+        return remarks;
+    }
+
+    public void setRemarks(String remarks) {
+        this.remarks = remarks;
+    }
 }

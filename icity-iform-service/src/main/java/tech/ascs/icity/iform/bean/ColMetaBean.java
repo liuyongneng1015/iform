@@ -1,9 +1,6 @@
 package tech.ascs.icity.iform.bean;
 
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
 import tech.ascs.icity.iform.model.ColumnModelEntity;
 import tech.ascs.icity.iform.model.DataModelEntity;
 
@@ -23,9 +20,6 @@ import java.util.Objects;
  * @author renjie
  * @since 1.0.0
  */
-@Builder
-@AllArgsConstructor
-@Data
 public class ColMetaBean implements Comparable<ColMetaBean> {
 
     /**
@@ -69,15 +63,14 @@ public class ColMetaBean implements Comparable<ColMetaBean> {
     private boolean key;
 
     public static ColMetaBean from(ResultSet resultSet) throws SQLException {
-        ColMetaBean bean = ColMetaBean.builder()
-                .columnName(resultSet.getString(COLUMN_NAME))
-                .columnSize(resultSet.getInt(COLUMN_SIZE))
-                .typeName(resultSet.getString(TYPE_NAME))
-                .remarks(resultSet.getString(REMARKS))
-                .ordinalPosition(resultSet.getInt(ORDINAL_POSITION))
-                .decimalDigits(resultSet.getInt(DECIMAL_DIGITS))
-                .nullable(resultSet.getBoolean(NULLABLE))
-                .build();
+        ColMetaBean bean = new ColMetaBean();
+        bean.setColumnName(resultSet.getString(COLUMN_NAME));
+        bean.setColumnSize(resultSet.getInt(COLUMN_SIZE));
+        bean.setTypeName(resultSet.getString(TYPE_NAME));
+        bean.setRemarks(resultSet.getString(REMARKS));
+        bean.setOrdinalPosition(resultSet.getInt(ORDINAL_POSITION));
+        bean.setDecimalDigits(resultSet.getInt(DECIMAL_DIGITS));
+        bean.setNullable(resultSet.getBoolean(NULLABLE));
         if ("id".equals(bean.getColumnName())) {
             bean.setKey(true);
         }
@@ -112,5 +105,83 @@ public class ColMetaBean implements Comparable<ColMetaBean> {
             return 1;
         }
         return this.getOrdinalPosition() - o.getOrdinalPosition();
+    }
+
+    public String getColumnName() {
+        return columnName;
+    }
+
+    public void setColumnName(String columnName) {
+        this.columnName = columnName;
+    }
+
+    public int getColumnSize() {
+        return columnSize;
+    }
+
+    public void setColumnSize(int columnSize) {
+        this.columnSize = columnSize;
+    }
+
+    public String getTypeName() {
+        return typeName;
+    }
+
+    public void setTypeName(String typeName) {
+        this.typeName = typeName;
+    }
+
+    public String getRemarks() {
+        return remarks;
+    }
+
+    public void setRemarks(String remarks) {
+        this.remarks = remarks;
+    }
+
+    public int getOrdinalPosition() {
+        return ordinalPosition;
+    }
+
+    public void setOrdinalPosition(int ordinalPosition) {
+        this.ordinalPosition = ordinalPosition;
+    }
+
+    public int getDecimalDigits() {
+        return decimalDigits;
+    }
+
+    public void setDecimalDigits(int decimalDigits) {
+        this.decimalDigits = decimalDigits;
+    }
+
+    public boolean isNullable() {
+        return nullable;
+    }
+
+    public void setNullable(boolean nullable) {
+        this.nullable = nullable;
+    }
+
+    public boolean isKey() {
+        return key;
+    }
+
+    public void setKey(boolean key) {
+        this.key = key;
+    }
+
+    @Override
+    public String toString() {
+        return "ColMetaBean{" +
+                "columnName='" + columnName + '\'' +
+                ", columnSize=" + columnSize +
+                ", typeName='" + typeName + '\'' +
+                ", remarks='" + remarks + '\'' +
+                ", ordinalPosition=" + ordinalPosition +
+                ", decimalDigits=" + decimalDigits +
+                ", nullable=" + nullable +
+                ", key=" + key +
+                '}';
     }
 }
