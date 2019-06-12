@@ -484,7 +484,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 
 	/** 根据表单实例ID获取表单columnName与对应的取值value */
 	@Override
-	public Map getColumnNameValue(@PathVariable(name="formId") String formId, @PathVariable(name="id") String id) {
+	public Map getFormInstanceColumnNameValue(@PathVariable(name="formId") String formId, @PathVariable(name="id") String id) {
 		FormModelEntity formModel = formModelService.find(formId);
 		FormDataSaveInstance formDataSaveInstance = formInstanceService.getFormDataSaveInstance(formModel, id);
 		if (formDataSaveInstance!=null) {
@@ -672,7 +672,9 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			return Page.get(page, pagesize);
 		}
 		parameters = parameters==null? new HashMap():parameters;
-		parameters.remove(tableName);
+		parameters.remove("page");
+		parameters.remove("pagesize");
+		parameters.remove("tableName");
 		FormModelEntity formModelEntity = formModelService.query().filterEqual("dataModels.tableName", tableName).first();
 		if (formModelEntity!=null) {
 			List<ItemModelEntity> items = formModelEntity.getItems();
@@ -684,9 +686,9 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 				return Page.get(page, pagesize);
 			}
 			Map<String, Object> itemIdParameters = new HashMap();
-			for (String key:parameters.keySet()) {
-				if (columnNameAndItemIdMap.containsKey(key)) {
-					itemIdParameters.put(columnNameAndItemIdMap.get(key), parameters.get(key));
+			for (String columnName:parameters.keySet()) {
+				if (columnNameAndItemIdMap.containsKey(columnName)) {
+					itemIdParameters.put(columnNameAndItemIdMap.get(columnName), parameters.get(columnName));
 				}
 			}
 			return formPage(formModelEntity.getId(), page, pagesize, itemIdParameters);
@@ -721,29 +723,39 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			{ "name": "工作台", "iconName": "gongzuotai1", "screenKey": "Dashboard", "screenType": "Inherent", initialPage: false },
 			{ "name": "个人中心", "iconName": "gerenzhongxin", "screenKey": "User", "screenType": "Inherent", initialPage: false }
 		],
-		"dashboard":[{
-			"id": "id", "name": "巡河上报",
-			"children": [
-				{ "id": "id", "name": "巡河上报", "screenKey": "RiverPatrol", "screenType": "Inherent" },
-				{ "id": "PatrolHistory", "name": "巡河历史", "screenKey": "PatrolHistory", "screenType": "Inherent" },
-				{ "id": "ReportHistory", "name": "上报历史", "screenKey": "ReportHistory", "screenType": "Inherent" }
-			]
-		}, {
-			"id": "id", "name": "河流动态",
-			"children": [{ "id": "SixOne", "name": "河流六个一", "screenKey": "SixOne", "screenType": "Inherent" }]
-		}, {
-			"id": "id", "name": "河长制业务",
-			"children": [
-				{ "id": "EventManagent", "name": "事件管理", "screenKey": "EventManagent", "screenType": "Inherent" },
-				{ "id": "SixOne", "name": "河长交办", "screenKey": "RiverManagerAssign", "screenType": "Inherent" },
-				{ "id": "NoticeNews", "name": "通知新闻", "screenKey": "NoticeNews", "screenType": "Inherent" },
-				{ "id": "OneWeekOneReport", "name": "一周一报", "screenKey": "OneWeekOneReport", "screenType": "Inherent" },
-				{ "id": "RiverManagerPat", "name": "河长拍", "screenKey": "RiverManagerPat", "screenType": "Inherent" }
-			]
-		}, {
-			"id": "id", "name": "统计分析",
-			"children": [{ "id": "StatisticsAnalysis", "name": "统计分析", "screenKey": "StatisticsAnalysis", "screenType": "Inherent" }]
-		}]
+		"dashboard":[
+	        {
+			    "id": "id",
+	            "name": "巡河上报",
+			    "children": [
+				    { "id": "id", "name": "巡河上报", "screenKey": "RiverPatrol", "screenType": "Inherent" },
+				    { "id": "PatrolHistory", "name": "巡河历史", "screenKey": "PatrolHistory", "screenType": "Inherent" },
+				    { "id": "ReportHistory", "name": "上报历史", "screenKey": "ReportHistory", "screenType": "Inherent" }
+			    ]
+		    }, {
+			    "id": "id",
+	            "name": "河流动态",
+			    "children": [
+	                { "id": "SixOne", "name": "河流六个一", "screenKey": "SixOne", "screenType": "Inherent" }
+	            ]
+		    }, {
+			    "id": "id",
+	            "name": "河长制业务",
+			    "children": [
+				    { "id": "EventManagent", "name": "事件管理", "screenKey": "EventManagent", "screenType": "Inherent" },
+				    { "id": "SixOne", "name": "河长交办", "screenKey": "RiverManagerAssign", "screenType": "Inherent" },
+				    { "id": "NoticeNews", "name": "通知新闻", "screenKey": "NoticeNews", "screenType": "Inherent" },
+				    { "id": "OneWeekOneReport", "name": "一周一报", "screenKey": "OneWeekOneReport", "screenType": "Inherent" },
+				    { "id": "RiverManagerPat", "name": "河长拍", "screenKey": "RiverManagerPat", "screenType": "Inherent" }
+			    ]
+		    }, {
+			    "id": "id",
+	            "name": "统计分析",
+			    "children": [
+	                { "id": "StatisticsAnalysis", "name": "统计分析", "screenKey": "StatisticsAnalysis", "screenType": "Inherent" }
+	            ]
+		    }
+	    ]
 	 }
 	 */
 	@Override
@@ -756,7 +768,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		}
 		List<Position> positions = userService.queryUserPositions(userId);
 		if (positions==null || positions.size()==0) {
-			// 该用户没有导航和应用分类时时，也要返回 navigations和dashboard 的字段，保持结构一致
+			// 该用户没有导航和应用分类时，也要返回 navigations和dashboard 的字段，保持结构一致
 			dataMap.put("navigations", new ArrayList());
 			dataMap.put("dashboard", new ArrayList());
 			return dataMap;
@@ -775,7 +787,6 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		JSONArray jsonArray = JSON.parseArray(JSON.toJSONString(list));
 		Map<String,List> positionMap = new HashMap();
 
-		// 封装成
 		for (int i = 0; i < (Integer)JSONPath.eval(jsonArray, "$.size()"); i++) {
 			Object positionObjects = JSONPath.eval(jsonArray, "$["+i+"].position.value");
 			if (positionObjects==null || (positionObjects instanceof List)==false) {
