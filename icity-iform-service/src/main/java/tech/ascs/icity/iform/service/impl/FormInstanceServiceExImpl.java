@@ -16,6 +16,8 @@ import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -39,6 +41,7 @@ import tech.ascs.icity.iform.service.*;
 import tech.ascs.icity.iform.support.IFormSessionFactoryBuilder;
 import tech.ascs.icity.iform.utils.CommonUtils;
 import tech.ascs.icity.iform.utils.CurrentUserUtils;
+import tech.ascs.icity.iform.utils.OkHttpUtils;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 import tech.ascs.icity.model.IdEntity;
@@ -49,6 +52,8 @@ import tech.ascs.icity.rbac.feign.model.UserInfo;
 public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity> implements FormInstanceServiceEx {
 
 	private static final Random random = new Random();
+
+	private final Logger logger = LoggerFactory.getLogger(FormInstanceServiceExImpl.class);
 
 	@Autowired
 	private DictionaryDataService dictionaryDataService;
@@ -458,10 +463,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		String paramCondition = verifyDataRequired(assignmentList, formInstance, formModelEntity, DisplayTimingType.Add);
 		Session session = null;
 		String newId = null;
+		Map<String, Object> data = new HashMap<String, Object>();
 		try {
 			session = getSession(dataModel);
 			session.beginTransaction();
-			Map<String, Object> data = new HashMap<String, Object>();
 
 			//主表数据
 			setMasterFormItemInstances(formInstance, data, DisplayTimingType.Add);
@@ -495,7 +500,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			sendWebService( formModelEntity, BusinessTriggerType.Add_After, data, newId);
 
 		} catch (Exception e) {
-			throw e;
+			if(e instanceof ICityException){
+				throw e;
+			}
+			logger.error("saveFormData add error with data=["+OkHttpUtils.mapToJson(data)+"]");
+			throw new IFormException("保存数据失败");
 		} finally {
 			if(session != null){
 				session.close();
@@ -646,13 +655,13 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		List<Map<String, Object>> assignmentList = new ArrayList<>();
 		String paramCondition = verifyDataRequired( assignmentList, formInstance, formModelEntity, DisplayTimingType.Update);
 		Session session = null;
-
+		Map<String, Object> data = null;
 		try {
 			session = getSession(dataModel);
 			//开启事务
 			session.beginTransaction();
 
-			Map<String, Object> data = (Map<String, Object>) session.load(dataModel.getTableName(), instanceId);
+			data = (Map<String, Object>) session.load(dataModel.getTableName(), instanceId);
 
 			//主表数据
 			setMasterFormItemInstances(formInstance, data, DisplayTimingType.Update);
@@ -679,6 +688,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			sendWebService( formModelEntity, BusinessTriggerType.Update_After, data, instanceId);
 		} catch (Exception e) {
 			e.printStackTrace();
+			logger.error("saveFormData error with data=["+OkHttpUtils.mapToJson(data)+"]");
 			if(e instanceof ICityException){
 				throw e;
 			}
