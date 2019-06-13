@@ -218,7 +218,7 @@ public interface FormInstanceService {
 		@ApiImplicitParam(paramType = "path", name = "id", value = "表单实例ID", required = true, dataType = "String")
 	})
 	@GetMapping("/{formId}/{id}/column-name-value")
-	Map getColumnNameValue(@PathVariable(name="formId") String formId, @PathVariable(name="id") String id);
+	Map getFormInstanceColumnNameValue(@PathVariable(name="formId") String formId, @PathVariable(name="id") String id);
 
 	/**
      * 根据表单实例ID获取表单实例对象

@@ -1384,6 +1384,8 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		columnModelService.saveColumnModelEntity(dataModelEntity, "ACTIVITY_INSTANCE");
 
 		formModelManager.save(oldFormModelEntity);
+		//同步流程字段
+		dataModelService.sync(oldFormModelEntity.getDataModels().get(0));
 		return oldFormModelEntity;
 	}
 
@@ -1511,6 +1513,8 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		}
 		formModelEntity.setProcess(processInfo);
 		formModelManager.save(formModelEntity);
+		//同步流程字段
+		dataModelService.sync(formModelEntity.getDataModels().get(0));
 	}
 
 	@Override

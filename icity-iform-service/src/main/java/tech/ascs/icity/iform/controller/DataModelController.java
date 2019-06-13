@@ -290,6 +290,9 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 			throw new IFormException("至少包含一个字段");
 		}
 		for (ColumnModel column:dataModel.getColumns()) {
+			if(column.getDataType() == ColumnType.String && (column.getLength() == null || column.getLength() < 1)){
+				throw new IFormException("字段"+column.getColumnName()+"长度必须大于0");
+			}
 			if (StringUtils.isEmpty(column.getColumnName())) {
 				throw new IFormException("字段名称不允许为空");
 			}
