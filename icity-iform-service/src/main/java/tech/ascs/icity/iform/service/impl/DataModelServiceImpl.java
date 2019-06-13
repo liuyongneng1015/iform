@@ -502,7 +502,7 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 
 	@Override
 	public List<String> listDataIndexName(String tableName){
-		String indexSql = "show index from "+tableName;
+		String indexSql = "SELECT * FROM pg_indexes WHERE tablename ='"+tableName+"'";
 		List<Map<String, Object>> indexList = listIndexBySql(indexSql);
 		Set<String> list = new HashSet<>();
 		for(Map<String, Object> map : indexList){

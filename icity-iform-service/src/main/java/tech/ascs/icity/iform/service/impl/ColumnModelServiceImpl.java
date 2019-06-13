@@ -261,6 +261,7 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
         if("sys_user".equals(tableName)){
             return;
         }
+		/* mysql删除索引
 		String indexSql = "show index from "+tableName;
 		List<Map<String, Object>> indexList = listIndexBySql(indexSql);
         for(Map<String, Object> map : indexList){
@@ -288,6 +289,7 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
                 }
             }
         }
+        */
 	}
 
     @Override
@@ -317,8 +319,9 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
             return;
         }
         try {
-            String deleteIndexSql = "alter table  " + tableName + " drop index " + indexName;
-            jdbcTemplate.execute(deleteIndexSql);
+            //mysql:"alter table  " + tableName + " drop index " + indexName;
+            String deleteIndexSql = " drop index " + indexName;
+           jdbcTemplate.execute(deleteIndexSql);
         } catch (DataAccessException e) {
             e.printStackTrace();
         }
@@ -344,9 +347,9 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
             }
             String str = sub.toString().substring(1);
             if(index.getIndexType() == IndexType.Unique) {
-                indexSql = "ALTER TABLE "+tableName+" ADD UNIQUE INDEX "+index.getName()+"(" + str+")";
+                indexSql = " CREATE UNIQUE INDEX "+ index.getName() +" on "+tableName+" (" + str+")";
             }else{
-                indexSql = "ALTER TABLE "+tableName+" ADD INDEX "+index.getName()+"(" + str+")";
+                indexSql = " CREATE INDEX "+ index.getName() +" on "+tableName+" (" + str+")";
             }
             jdbcTemplate.execute(indexSql);
         } catch (DataAccessException e) {
