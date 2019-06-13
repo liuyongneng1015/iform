@@ -8,7 +8,6 @@ spring.application.name: iform
 info:
   app:
     name: ${spring.application.name}
-# info.app.version 这个变量在 tech.ascs.icity.iform.SwaggerConfiguration 类中有注入，用来修改swagger文档显示的版本号
     version: V0.7.1.0
     time: 2018年09月18日 13:55:11
   describe: 表单引擎

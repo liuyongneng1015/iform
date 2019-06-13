@@ -97,6 +97,10 @@
 		</dependency>
 
 		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>tech.ascs.icity</groupId>
 			<artifactId>icity-rbac</artifactId>
 		</dependency>
