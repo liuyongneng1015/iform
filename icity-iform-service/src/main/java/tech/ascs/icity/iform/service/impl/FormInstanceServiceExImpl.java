@@ -209,14 +209,13 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			criteria.setFirstResult((page - 1) * pagesize);
 			criteria.setMaxResults(pagesize);
 
-			List data = criteria.list();
-			List<FormDataSaveInstance> list = wrapFormDataList(null, listModel, data);
-
 			criteria.setFirstResult(0);
 			criteria.setProjection(Projections.rowCount());
 			Number count = (Number) criteria.uniqueResult();
 
+			List data = criteria.list();
 			addSort(listModel, criteria);
+			List<FormDataSaveInstance> list = wrapFormDataList(null, listModel, data);
 			result.data(count.intValue(), list);
 		} catch (Exception e) {
 			e.printStackTrace();
