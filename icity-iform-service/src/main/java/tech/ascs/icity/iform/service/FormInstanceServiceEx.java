@@ -21,7 +21,7 @@ public interface FormInstanceServiceEx {
 
 	Page<FormDataSaveInstance> pageFormInstance(FormModelEntity formModel, int page, int pagesize, Map<String, Object> queryParameters);
 
-	Page<FormDataSaveInstance> pageFormInstance(ListModelEntity listModel, int page, int pagesize, Map<String, Object> queryParameters);
+	Page<FormDataSaveInstance> pageListInstance(ListModelEntity listModel, int page, int pagesize, Map<String, Object> queryParameters);
 
 	Page<String> pageByTableName(String tableName, int page, int pagesize);
 

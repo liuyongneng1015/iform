@@ -199,13 +199,12 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public Page<FormDataSaveInstance> pageFormInstance(ListModelEntity listModel, int page, int pagesize, Map<String, Object> queryParameters) {
+	public Page<FormDataSaveInstance> pageListInstance(ListModelEntity listModel, int page, int pagesize, Map<String, Object> queryParameters) {
 		Page<FormDataSaveInstance> result = Page.get(page, pagesize);
 		Session session = getSession(listModel.getMasterForm().getDataModels().get(0));
 		try {
 			Criteria criteria = generateCriteria(session, listModel.getMasterForm(), listModel, queryParameters);
 			addCreatorCriteria(criteria, listModel);
-			addSort(listModel, criteria);
 
 			criteria.setFirstResult((page - 1) * pagesize);
 			criteria.setMaxResults(pagesize);
@@ -217,6 +216,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			criteria.setProjection(Projections.rowCount());
 			Number count = (Number) criteria.uniqueResult();
 
+			addSort(listModel, criteria);
 			result.data(count.intValue(), list);
 		} catch (Exception e) {
 			e.printStackTrace();
