@@ -16,6 +16,7 @@ import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.*;
+import org.hibernate.internal.CriteriaImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -205,17 +206,24 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		try {
 			Criteria criteria = generateCriteria(session, listModel.getMasterForm(), listModel, queryParameters);
 			addCreatorCriteria(criteria, listModel);
+			addSort(listModel, criteria);
 
 			criteria.setFirstResult((page - 1) * pagesize);
 			criteria.setMaxResults(pagesize);
 
+			List data = criteria.list();
+			List<FormDataSaveInstance> list = wrapFormDataList(null, listModel, data);
+
 			criteria.setFirstResult(0);
 			criteria.setProjection(Projections.rowCount());
+
+			// 清除排序字段
+			for (Iterator<CriteriaImpl.OrderEntry> i = ((CriteriaImpl) criteria).iterateOrderings(); i.hasNext();) {
+				i.next();
+				i.remove();
+			}
 			Number count = (Number) criteria.uniqueResult();
 
-			List data = criteria.list();
-			addSort(listModel, criteria);
-			List<FormDataSaveInstance> list = wrapFormDataList(null, listModel, data);
 			result.data(count.intValue(), list);
 		} catch (Exception e) {
 			e.printStackTrace();
