@@ -82,7 +82,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			throw new IFormException(404, "列表模型【" + listId + "】不存在");
 		}
 
-		Page<FormDataSaveInstance> page = formInstanceService.pageFormInstance(listModel,1,Integer.MAX_VALUE, parameters);
+		Page<FormDataSaveInstance> page = formInstanceService.pageListInstance(listModel,1,Integer.MAX_VALUE, parameters);
 		return page.getResults();
 	}
 
@@ -93,7 +93,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			throw new IFormException(404, "列表模型【" + listId + "】不存在");
 		}
 
-		Page<FormDataSaveInstance> page = formInstanceService.pageFormInstance(listModel,1,Integer.MAX_VALUE, parameters);
+		Page<FormDataSaveInstance> page = formInstanceService.pageListInstance(listModel,1,Integer.MAX_VALUE, parameters);
 		List<FormDataSaveInstance> list = new ArrayList<>();
 		for(FormDataSaveInstance instance : page.getResults()){
 			instance.setFormId(null);
@@ -162,7 +162,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		if (formModelHasProcess(formModelEntity)) {
 			return queryIflowList(queryParameters, page, pagesize, formModelEntity, listModel);
 		}
-		return formInstanceService.pageFormInstance(listModel, page, pagesize, queryParameters);
+		return formInstanceService.pageListInstance(listModel, page, pagesize, queryParameters);
 	}
 
 	private  Page<FormDataSaveInstance> queryIflowList(Map<String, Object> queryParameters,  int page, int pagesize, FormModelEntity formModelEntity, ListModelEntity listModel) {
