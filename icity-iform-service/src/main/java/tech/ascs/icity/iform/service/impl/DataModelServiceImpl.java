@@ -506,7 +506,7 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		List<Map<String, Object>> indexList = listIndexBySql(indexSql);
 		Set<String> list = new HashSet<>();
 		for(Map<String, Object> map : indexList){
-			list.add((String)map.get("Key_name"));
+			list.add((String)map.get("indexname"));
 		}
 		return new ArrayList<>(list);
 	}
@@ -593,8 +593,7 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		public Map<String, Object> mapRow(ResultSet rs, int num) throws SQLException {
 			//对类进行封装
 			Map<String, Object> map = new HashMap<>();
-			map.put("Column_name",rs.getString("Column_name"));
-			map.put("Key_name", rs.getString("Key_name"));
+			map.put("indexname",rs.getString("indexname"));
 			return map;
 		}
 	}
