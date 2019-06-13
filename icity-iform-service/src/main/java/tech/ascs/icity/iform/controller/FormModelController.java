@@ -1413,7 +1413,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 		return oldColumnModelEntity;
 	}
-	//TODO 添加对关联属性内嵌的处理
+
 	private ItemModelEntity wrap(String sourceFormModelId, ItemModel itemModel) {
 		if(itemModel.getType() == ItemType.ReferenceLabel){
 			if(itemModel.getParentItem() == null || (!StringUtils.hasText(itemModel.getReferenceItemId()) && !StringUtils.hasText(itemModel.getReferenceUuid()))){
@@ -1421,7 +1421,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			}
 			itemModel.setSelectMode(SelectMode.Attribute);
 		}
-		//TODO 根据类型映射对应的item
+
 		ItemModelEntity entity = formModelService.getItemModelEntity(itemModel.getType(), itemModel.getSystemItemType());
 
 		if(itemModel.getType() == ItemType.CheckboxGroup){
@@ -2291,9 +2291,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		//formModel.setReferenceItem(pcReferenceItem);
 		return formModel;
 	}
-	//TODO 关联属性(内嵌)处理需要添加
+
 	private ItemModel toDTO(ItemModelEntity entity, boolean isAnalysisItem, String tableName)  {
-		//TODO 根据模型找到对应的参数
+
 		ItemModel itemModel = new ItemModel();
 		BeanUtils.copyProperties(entity, itemModel, new String[]{"formModel", "columnModel", "activities", "options","searchItems","sortItems", "permissions","items","parentItem","referenceList", "defaultValue"});
 
@@ -2557,7 +2557,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 	}
 
-	//TODO 设置关联控件
+
 	private void setReferenceItemModel(ItemModelEntity entity, ItemModel itemModel, boolean isAnalysisItem){
 		if(((ReferenceItemModelEntity) entity).getItemModelIds() != null) {
 			List<String> resultList = new ArrayList<>(Arrays.asList(((ReferenceItemModelEntity) entity).getItemModelIds().split(",")));
