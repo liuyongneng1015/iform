@@ -244,6 +244,9 @@ public class ItemModel extends NameEntity {
 	@ApiModelProperty(value = "关联的外部表单控件Uuid", position = 61)
 	private String referenceOutsideItemUuid;
 
+	@ApiModelProperty(value = "关联的外部表单控件Id", position = 61)
+	private String referenceOutsideItemId;
+
 	@ApiModelProperty(value = "关联的本表内部控件的Uuid", position = 62)
 	private String referenceInnerItemUuid;
 
@@ -926,7 +929,15 @@ public class ItemModel extends NameEntity {
         this.referenceOutsideFormId = referenceOutsideFormId;
     }
 
-    @Override
+	public String getReferenceOutsideItemId() {
+		return referenceOutsideItemId;
+	}
+
+	public void setReferenceOutsideItemId(String referenceOutsideItemId) {
+		this.referenceOutsideItemId = referenceOutsideItemId;
+	}
+
+	@Override
 	public String getId() {
 		String id = super.getId();
 		if(StringUtils.isBlank(id)){

@@ -1216,7 +1216,6 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				entity = new ProcessLogItemModelEntity();
 				break;
             case ReferenceInnerLabel:
-                System.out.println("创建一个内嵌关联模型");
                 entity = new ReferenceInnerItemModelEntity();
                 break;
 			default:

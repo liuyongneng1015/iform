@@ -1641,12 +1641,22 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 	}
 
+	/**
+	 * 设置 ReferenceInnerItemModelEntity 内的id, 前端传过来的是uuid, 这里会把外部表单的uuid转成id存放
+	 * @param itemModel 控件模型
+	 * @param entity 控件实体
+	 */
 	private void setReferenceInnerItemModel(ItemModel itemModel, ReferenceInnerItemModelEntity entity) {
 		entity.setReferenceItemUuid(itemModel.getItemUuids());
-		String innerItemId = itemModelService.findUniqueByProperty("uuid", entity.getReferenceInnerItemUuid()).getId();
 		String refenceItemId = itemModelService.findUniqueByProperty("uuid", entity.getReferenceItemUuid()).getId();
-		String refenceOutsideItemId = itemModelService.findUniqueByProperty("uuid", entity.getReferenceOutsideItemUuid()).getId();
-		entity.setReferenceInnerItemId(innerItemId);
+		String refenceOutsideItemId;
+		if (StringUtils.hasText(entity.getReferenceOutsideItemUuid())){
+			refenceOutsideItemId = itemModelService.findUniqueByProperty("uuid", entity.getReferenceOutsideItemUuid()).getId();
+		}else {
+			ItemModelEntity itemModelEntity = formModelService.find(itemModel.getReferenceOutsideFormId()).getItems().stream().filter(modelEntity -> "id".equals(modelEntity.getName())).findAny().get();
+			refenceOutsideItemId = itemModelEntity.getId();
+			entity.setReferenceOutsideItemUuid(itemModelEntity.getUuid());
+		}
 		entity.setReferenceItemId(refenceItemId);
 		entity.setReferenceOutsideItemId(refenceOutsideItemId);
 	}

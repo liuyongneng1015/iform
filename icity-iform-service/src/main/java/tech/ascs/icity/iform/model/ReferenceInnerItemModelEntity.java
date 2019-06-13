@@ -43,9 +43,6 @@ public class ReferenceInnerItemModelEntity extends ItemModelEntity{
     /**
      * 本表关联控件
      */
-    @Column(name = "reference_inner_item_id")
-    private String referenceInnerItemId;
-
     @Column(name = "reference_inner_item_uuid")
     private String referenceInnerItemUuid;
 
@@ -71,14 +68,6 @@ public class ReferenceInnerItemModelEntity extends ItemModelEntity{
 
     public void setReferenceItemId(String referenceItemId) {
         this.referenceItemId = referenceItemId;
-    }
-
-    public String getReferenceInnerItemId() {
-        return referenceInnerItemId;
-    }
-
-    public void setReferenceInnerItemId(String referenceInnerItemId) {
-        this.referenceInnerItemId = referenceInnerItemId;
     }
 
     public String getReferenceOutsideItemUuid() {
