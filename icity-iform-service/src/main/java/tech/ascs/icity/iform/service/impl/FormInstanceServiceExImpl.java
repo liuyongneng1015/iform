@@ -709,8 +709,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	//判断数据是否必填
 	private String verifyDataRequired(List<Map<String, Object>> assignmentList, FormDataSaveInstance formInstance, FormModelEntity formModelEntity, DisplayTimingType displayTimingType){
+		//不能为空的数据
 		List<String> notNullIdList = new ArrayList<>();
 		List<String> idList = new ArrayList<>();
+		//参数类型
 		String paramCondition = null;
 		//流程字段名称
 		if(StringUtils.hasText(formInstance.getProcessInstanceId())) {
@@ -733,12 +735,12 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 							if(funcPropsMap.get("itemValue") != null) {
 								assignmentList.addAll((List<Map<String, Object>>) funcPropsMap.get("itemValue"));
 							}
-						}
-						if (map.get("required") != null && (Boolean) map.get("required")) {
-							notNullIdList.add((String) map.get("id"));
-						}
-						if ((map.get("required") != null && (Boolean) map.get("required")) || (map.get("canFill") != null && (Boolean) map.get("canFill"))) {
-							idList.add((String) map.get("id"));
+							for(Map<String, Object> permissionsMap : (List<Map<String, Object>>) funcPropsMap.get("permissions")) {
+								if (permissionsMap.get("required") != null && (Boolean) permissionsMap.get("required")) {
+									notNullIdList.add((String) map.get("id"));
+								}
+								idList.add((String) map.get("id"));
+							}
 						}
 					}
 				}
@@ -1247,7 +1249,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	private void setItemInstance(ItemModelEntity itemModel, ItemInstance itemInstance, Map<String, Object> data ,DisplayTimingType displayTimingType){
 		Object value = null;
-		verifyValue(itemModel, itemInstance.getValue(), displayTimingType);
+		//非流程表单校验字段值
+		if(!StringUtils.hasText(itemInstance.getProcessInstanceId())) {
+			verifyValue(itemModel, itemInstance.getValue(), displayTimingType);
+		}
 		if (itemModel.getType() == ItemType.DatePicker || itemModel.getSystemItemType() == SystemItemType.CreateDate) {
 			try {
 				value = itemInstance.getValue() == null ? null : new Date(Long.parseLong(String.valueOf(itemInstance.getValue())));
