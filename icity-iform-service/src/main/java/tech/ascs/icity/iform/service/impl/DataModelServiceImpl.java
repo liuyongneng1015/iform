@@ -119,13 +119,24 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 			columnModelEntity.setDataModel(old);
 			columnModelEntities.add(columnModelEntity);
 		}
+
 		if(idColumn == null){
 			columnModelEntities.add(columnModelService.saveColumnModelEntity(old, "id"));
 		}
-		columnModelEntities.add(columnModelService.saveColumnModelEntity(old, "create_at"));
-		columnModelEntities.add(columnModelService.saveColumnModelEntity(old, "update_at"));
-		columnModelEntities.add(columnModelService.saveColumnModelEntity(old, "create_by"));
-		columnModelEntities.add(columnModelService.saveColumnModelEntity(old, "update_by"));
+
+		List<String> columnList = columnModelEntities.parallelStream().map(ColumnModelEntity::getColumnName).collect(Collectors.toList());
+		if(!columnList.contains("create_at")) {
+			columnModelEntities.add(columnModelService.saveColumnModelEntity(old, "create_at"));
+		}
+		if(!columnList.contains("update_at")) {
+			columnModelEntities.add(columnModelService.saveColumnModelEntity(old, "update_at"));
+		}
+		if(!columnList.contains("create_by")) {
+			columnModelEntities.add(columnModelService.saveColumnModelEntity(old, "create_by"));
+		}
+		if(!columnList.contains("update_by")) {
+			columnModelEntities.add(columnModelService.saveColumnModelEntity(old, "update_by"));
+		}
 
 		old.setColumns(columnModelEntities);
 
