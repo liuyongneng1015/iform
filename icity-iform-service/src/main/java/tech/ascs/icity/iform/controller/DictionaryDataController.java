@@ -226,7 +226,6 @@ public class DictionaryDataController implements tech.ascs.icity.iform.api.servi
 
 	@Override
 	public List<DictionaryDataItemModel> listItem(@PathVariable(name="id", required = true) String id) {
-		log.error("listItem with id="+id +"begin");
     	DictionaryDataEntity dictionary = dictionaryService.find(id);
     	if(dictionary == null){
 			throw new IFormException("未找到【"+id+"】对应的系统代码分类");
@@ -244,7 +243,6 @@ public class DictionaryDataController implements tech.ascs.icity.iform.api.servi
 				list.add(getByEntity(dictionaryItem));
 			}
 		}
-		log.error("listItem with id="+id +"end");
 		return list;
 	}
 

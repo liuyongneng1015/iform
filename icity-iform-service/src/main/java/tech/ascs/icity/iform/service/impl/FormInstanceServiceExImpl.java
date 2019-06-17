@@ -527,7 +527,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		List<ListFunctionType> listFunctions = formModel.getFunctions().parallelStream().map(ListFunction::getFunctionType).collect(Collectors.toList());
 		if(listFunctions == null || !listFunctions.contains(ListFunctionType.StartProcess)){
 			//TODO 需要有启动流程
-			//return;
+			return;
 		}
 		Map<String, Object> flowData = formInstance.getFlowData();
 		if(flowData == null){

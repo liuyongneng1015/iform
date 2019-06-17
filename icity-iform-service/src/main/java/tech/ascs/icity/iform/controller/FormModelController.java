@@ -309,16 +309,15 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
     }
 
 	@Override
-	public AnalysisFormModel getPCFormModelById(@PathVariable(name="id") String id, @RequestParam(value = "deviceType", required = false) String deviceType,
+	public AnalysisFormModel getPCFormModelById(@PathVariable(name="id") String id, @RequestParam(value = "parseArea", required = false) String parseArea,
 												@RequestParam(value = "functionType", required = false) String functionType) {
 		FormModelEntity entity = formModelService.find(id);
 		if (entity == null) {
 			throw new IFormException(404, "表单模型【" + id + "】不存在");
 		}
-		DeviceType type = DeviceType.getByValue(deviceType);
 		DefaultFunctionType function = DefaultFunctionType.getByValue(functionType);
 		try {
-			return toAnalysisDTO(entity, type, function);
+			return toAnalysisDTO(entity, parseArea, function);
 		} catch (Exception e) {
 			throw new IFormException("获取表单模型列表失败：" + e.getMessage(), e);
 		}
@@ -770,10 +769,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		veryFormModel(formModel);
 		FormModelEntity entity = new FormModelEntity();
 		BeanUtils.copyProperties(formModel, entity, new String[] {"items","dataModels","permissions","submitChecks","functions","triggeres"});
-
-		if(formModel.getProcess() != null){
-			formModel.setFunctions(null);
-		}
 
 		verifyFormModelName(formModel);
 
@@ -1901,7 +1896,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	private FormModel toDTODetail(FormModelEntity entity)  {
         FormModel formModel = new FormModel();
 
-		entityToDTO( entity,  formModel, false, null);
+		entityToDTO( entity,  formModel, false, null, null);
 		List<Activity> activities = new ArrayList<>();
 		//是否流程表单
 		boolean isFlowForm = false;
@@ -2090,9 +2085,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 
 
-	private AnalysisFormModel toAnalysisDTO(FormModelEntity entity, DeviceType deviceType, DefaultFunctionType function) {
+	private AnalysisFormModel toAnalysisDTO(FormModelEntity entity, String parseArea, DefaultFunctionType functionType) {
 		AnalysisFormModel formModel = new AnalysisFormModel();
-		entityToDTO( entity,  formModel, true, deviceType);
+		entityToDTO(entity,  formModel, true, parseArea, functionType);
 
 		List<AnalysisDataModel> dataModelList = new ArrayList<>();
 		List<ItemModelEntity> itemModelEntities = formModelService.findAllItems(entity);
@@ -2108,7 +2103,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		Set<AnalysisFormModel> referenceFormModelList = new HashSet<>();
 		for(ItemModelEntity itemModelEntity : itemModelEntities){
 			if(itemModelEntity instanceof ReferenceItemModelEntity && ((ReferenceItemModelEntity) itemModelEntity).getReferenceList() != null) {
-                setPCReferenceItemModel((ReferenceItemModelEntity)itemModelEntity, referenceFormModelList, dataModelEntities, columnsMap, deviceType);
+                setPCReferenceItemModel((ReferenceItemModelEntity)itemModelEntity, referenceFormModelList, dataModelEntities, columnsMap, parseArea);
 			}
 		}
 		formModel.setReferenceFormModel(new ArrayList<>(referenceFormModelList));
@@ -2147,9 +2142,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	}
 
 	private void setPCReferenceItemModel(ReferenceItemModelEntity itemModelEntity, Set<AnalysisFormModel> referenceFormModelList, Map<String, DataModelEntity> dataModelEntities,
-										 Map<String, List<String>> columnsMap, DeviceType deviceType){
+										 Map<String, List<String>> columnsMap, String parseArea){
         AnalysisFormModel referencePCFormModel = new AnalysisFormModel();
-        entityToDTO(itemModelEntity.getReferenceList().getMasterForm(), referencePCFormModel, true, deviceType);
+        entityToDTO(itemModelEntity.getReferenceList().getMasterForm(), referencePCFormModel, true, parseArea, null);
         referenceFormModelList.add(referencePCFormModel);
 
         List<String> displayColuns = new ArrayList<>();
@@ -2175,14 +2170,14 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
         dataModelEntities.put(listModelEntity.getMasterForm().getId(), listModelEntity.getMasterForm().getDataModels().get(0));
     }
 
-	private void entityToDTO(FormModelEntity entity, Object object, boolean isAnalysisForm, DeviceType deviceType){
+	private void entityToDTO(FormModelEntity entity, Object object, boolean isAnalysisForm, String parseArea, DefaultFunctionType functionType){
 		BeanUtils.copyProperties(entity, object, new String[] {"dataModels","items","permissions","submitChecks","functions", "triggeres"});
 		if(entity.getFunctions() != null && entity.getFunctions().size() > 0){
 			List<ListFunction> functions = entity.getFunctions().parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
 			List<FunctionModel> functionModels = new ArrayList<>();
 			for (int i = 0; i < functions.size(); i++) {
 				ListFunction function = functions.get(i);
-				if(deviceType != null && (function.getParseArea() == null || !function.getParseArea().contains(deviceType.getValue()))){
+				if(parseArea != null && (function.getParseArea() == null || !function.getParseArea().contains(parseArea))){
 					continue;
 				}
 				FunctionModel functionModel = new FunctionModel();
@@ -2195,6 +2190,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			}
 			if(isAnalysisForm) {
 				((AnalysisFormModel) object).setFunctions(functionModels.size() < 1 ? null : functionModels);
+				if(entity.getProcess() != null && functionType != null && functionType != DefaultFunctionType.Add) {
+					((AnalysisFormModel) object).setFunctions(null);
+				}
 			}else{
 				((FormModel) object).setFunctions(functionModels.size() < 1 ? null : functionModels);
 			}

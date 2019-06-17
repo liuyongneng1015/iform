@@ -127,15 +127,17 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 		if(StringUtils.isBlank(oldTableName) || StringUtils.isBlank(newTableName)){
 			return;
 		}
-		List<Map<String, Object>> mapList = dictionaryManager.getJdbcTemplate().queryForList("select table_name from information_schema.tables where table_schema='iform'");
-		if(mapList == null || mapList.size() < 1) {
-			return;
-		}
-		for(Map<String, Object> map : mapList){
-			if(map.get("table_name").equals(oldTableName)){
-				dictionaryManager.getJdbcTemplate().execute("alter table `" + oldTableName + "` rename `" + newTableName + "`");
+		List<Map<String, Object>> mapList = dictionaryManager.getJdbcTemplate().queryForList("select table_name from information_schema.tables");
+		if(mapList != null && mapList.size() >0 ) {
+			for (Map<String, Object> map : mapList) {
+				if (map.get("table_name").equals(oldTableName)) {
+					dictionaryManager.getJdbcTemplate().execute("alter table " + oldTableName + " rename to " + newTableName);
+					return;
+				}
 			}
 		}
+		//若表不存在，创建新表
+		createDictionaryModelTable(newTableName);
 	}
 
 	//删除表
@@ -152,30 +154,29 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 			return;
 		}
 		//deleteTable(tableName);
-		List<Map<String, Object>> mapList = dictionaryManager.getJdbcTemplate().queryForList("select table_name from information_schema.tables where table_schema='iform'");
-		if(mapList == null || mapList.size() < 1) {
-			return;
-		}
-		for(Map<String, Object> map : mapList){
-			if(map.get("table_name").equals(tableName)){
-				return;
+		List<Map<String, Object>> mapList = dictionaryManager.getJdbcTemplate().queryForList("select table_name from information_schema.tables");
+		if(mapList != null && mapList.size() > 0) {
+			for (Map<String, Object> map : mapList) {
+				if (map.get("table_name").equals(tableName)) {
+					return;
+				}
 			}
 		}
 		StringBuffer sub = new StringBuffer();
-		sub.append("CREATE TABLE `"+tableName+"` (\n" +
-				"  `id` varchar(32) NOT NULL COMMENT '主键',\n" +
-				"  `name` varchar(255) DEFAULT NULL COMMENT '名称',\n" +
-				"  `code` varchar(255) DEFAULT NULL COMMENT '编码',\n" +
-				"  `description` varchar(255) DEFAULT NULL COMMENT '描述',\n" +
-				"  `parent_id` varchar(32) DEFAULT NULL COMMENT '父级id',\n" +
-				"  `order_no` int(11) DEFAULT NULL COMMENT '排序号',\n" +
-				"  `icon` varchar(255) DEFAULT NULL COMMENT '图片icon',\n" +
-				"  `size` int(11) DEFAULT NULL COMMENT '大小',\n" +
-				"  `update_date` date DEFAULT NULL COMMENT '更新日期',\n" +
-				"  PRIMARY KEY (`id`)\n" +
-				")ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='字典建模表'\n");
+		sub.append("CREATE TABLE public."+tableName+" (\n" +
+				"  id varchar(32) NOT NULL,\n" +
+				"  name varchar(255) DEFAULT NULL,\n" +
+				"  code varchar(255) DEFAULT NULL,\n" +
+				"  description varchar(255) DEFAULT NULL,\n" +
+				"  parent_id varchar(32) DEFAULT NULL,\n" +
+				"  order_no int4 DEFAULT NULL,\n" +
+				"  icon varchar(255) DEFAULT NULL ,\n" +
+				"  size int4 DEFAULT NULL,\n" +
+				"  update_date date DEFAULT NULL,\n" +
+				"  PRIMARY KEY (id)\n" +
+				");\n");
 		dictionaryManager.getJdbcTemplate().execute(sub.toString());
-		dictionaryManager.getJdbcTemplate().execute("INSERT INTO `"+tableName+"` VALUES ('root', '根节点', 'root', '根节点', null, '0', null,0,'"+ CommonUtils.currentDateStr()+"')");
+		dictionaryManager.getJdbcTemplate().execute("INSERT INTO "+tableName+" VALUES ('root', '根节点', 'root', '根节点', null, '0', null,0,'"+ CommonUtils.currentDateStr()+"')");
 	}
 
 	@Override
