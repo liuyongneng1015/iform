@@ -71,7 +71,7 @@ public class FormFunctionsServiceImpl extends DefaultJPAService<ListFunction> im
 			listFunction.setIcon(functionDefaultIcons[i]);
 			listFunction.setLabel(functionType.getDesc());
 			listFunction.setParseArea(ParseArea.PC.value());
-			listFunction .setReturnResult(ReturnResult.NONE);
+			listFunction.setReturnResult(ReturnResult.NONE);
 			listFunction.setAction(functionType.getValue());
 			listFunction.setMethod(functionDefaultMethods[i]);
 			listFunctions.add(listFunction);
