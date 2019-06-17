@@ -2482,7 +2482,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				itemModel.setSelectDataSourceType(SelectDataSourceType.DictionaryData);
 			}
 			if(SelectDataSourceType.DictionaryData == itemModel.getSelectDataSourceType()) {
-				DictionaryDataEntity dictionaryEntity = dictionaryDataService.get(((SelectItemModelEntity) entity).getReferenceDictionaryId());
+				DictionaryDataEntity dictionaryEntity = dictionaryDataService.find(((SelectItemModelEntity) entity).getReferenceDictionaryId());
 				itemModel.setReferenceDictionaryName(dictionaryEntity == null ? null : dictionaryEntity.getName());
 			}else if(SelectDataSourceType.DictionaryModel == itemModel.getSelectDataSourceType()) {
 				DictionaryModel dictionaryModel = dictionaryModelService.getDictionaryById(((SelectItemModelEntity) entity).getReferenceDictionaryId());
