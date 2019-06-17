@@ -22,6 +22,14 @@ public interface DictionaryModelDataService {
 	@GetMapping("/all/{dictionaryId}")
 	List<DictionaryModelData> findAll(@PathVariable(name = "dictionaryId", required = true) String dictionaryId);
 
+	@ApiOperation(value = "获取字典建模第一级数据")
+	@ApiImplicitParams({
+			@ApiImplicitParam(paramType="path", name = "id", value = "字典建模ID", required = true, dataType = "String"),
+			@ApiImplicitParam(paramType="path", name = "itemId", value = "字典建模数据ID", required = true, dataType = "String")
+	})
+	@GetMapping("/{id}/{itemId}/items")
+	List<DictionaryModelData> findFirstItems(@PathVariable(name = "id", required = true) String id, @PathVariable(name = "itemId", required = true) String itemId);
+
 	@ApiOperation(value = "获取单条字典建模数据")
 	@ApiImplicitParams({
 			@ApiImplicitParam(paramType="path", name = "dictionaryId", value = "字典建模ID", required = true, dataType = "String"),

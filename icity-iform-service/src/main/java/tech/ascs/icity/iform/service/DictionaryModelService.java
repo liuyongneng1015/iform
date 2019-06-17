@@ -110,5 +110,12 @@ public interface DictionaryModelService extends JPAService<DictionaryModelEntity
 	 */
 	List<String> getAllChildrenIdById(String dictionaryId, String id);
 
+	/**
+	 * 根据id获取模型数据子级id集合
+	 *
+	 * @param id
+	 * @return
+	 */
+	List<DictionaryModelData> findFirstItems(String dictionaryId, String id);
 }
 

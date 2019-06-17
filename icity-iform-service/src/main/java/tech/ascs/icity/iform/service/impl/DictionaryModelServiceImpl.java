@@ -448,6 +448,19 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 		return idList;
 	}
 
+	@Override
+	public List<DictionaryModelData> findFirstItems(String dictionaryId, String id) {
+		DictionaryModel dictionaryModel = getDictionaryById(dictionaryId);
+		List<Map<String, Object>> mapList = dictionaryManager.getJdbcTemplate().queryForList("select * from "+dictionaryModel.getTableName()+" where parent_id='"+id+"'");
+		List<DictionaryModelData> list = new ArrayList<>();
+		if(mapList != null && mapList.size() > 0){
+			for(Map<String, Object> mapData : mapList){
+				list.add(dictionaryModelData(dictionaryId, (String)mapData.get("id"), mapData));
+			}
+		}
+		return list;
+	}
+
 	private void findAllParentIds(List<String> idList, String tableName, String id){
 		List<Map<String, Object>> mapList = dictionaryManager.getJdbcTemplate().queryForList("select parent_id from "+tableName+" where id='"+id+"'");
 		if(mapList != null && mapList.size() > 0){

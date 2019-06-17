@@ -38,6 +38,11 @@ public class DictionaryModelDataController implements tech.ascs.icity.iform.api.
 	}
 
 	@Override
+	public List<DictionaryModelData> findFirstItems(@PathVariable(name = "id", required = true) String id, @PathVariable(name = "itemId", required = true) String itemId) {
+		return dictionaryService.findFirstItems(id, itemId);
+	}
+
+	@Override
 	public DictionaryModelData get(@PathVariable(name = "dictionaryId") String dictionaryId, @PathVariable(name = "id") String id) {
 		return dictionaryService.getDictionaryModelDataById(dictionaryId, id);
 	}
