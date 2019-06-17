@@ -145,7 +145,7 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 		if(StringUtils.isBlank(tableName)){
 			return;
 		}
-		dictionaryManager.getJdbcTemplate().execute("DROP TABLE IF EXISTS `"+tableName+"`");
+		dictionaryManager.getJdbcTemplate().execute(" DROP TABLE IF EXISTS "+tableName);
 	}
 
 	//创建一个数据库表
@@ -280,9 +280,9 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 		String description = dictionaryModelData.getDescription() == null ? null : "'"+dictionaryModelData.getDescription()+"'";
 		if(dictionaryModelData.getId() == null){
 			String id = UUID.randomUUID().toString().replace("-", "");
-			sql = "INSERT INTO `"+dictionaryModelModel.getTableName()+"` VALUES ('"+id+"', '"+dictionaryModelData.getName()+"', '"+dictionaryModelData.getCode()+"', "+description+", "+parentId+", "+dictionaryModelData.getOrderNo()+","+icon+",0,'"+ CommonUtils.currentDateStr()+"')";
+			sql = "INSERT INTO "+dictionaryModelModel.getTableName()+" VALUES ('"+id+"', '"+dictionaryModelData.getName()+"', '"+dictionaryModelData.getCode()+"', "+description+", "+parentId+", "+dictionaryModelData.getOrderNo()+","+icon+",0,'"+ CommonUtils.currentDateStr()+"')";
 		}else{
-			sql = "update `"+dictionaryModelModel.getTableName()+"` set name ='"+dictionaryModelData.getName()+"', code ='"+dictionaryModelData.getCode()+"', description ="+description+", parent_id = "+parentId+", order_no = "+dictionaryModelData.getOrderNo()+", icon = "+icon+",size = "+dictionaryModelData.getSize()+",update_date='"+ CommonUtils.currentDateStr()+"')";
+			sql = "update "+dictionaryModelModel.getTableName()+" set name ='"+dictionaryModelData.getName()+"', code ='"+dictionaryModelData.getCode()+"', description ="+description+", parent_id = "+parentId+", order_no = "+dictionaryModelData.getOrderNo()+", icon = "+icon+",size = "+dictionaryModelData.getSize()+",update_date='"+ CommonUtils.currentDateStr()+"')";
 		}
 		dictionaryManager.getJdbcTemplate().execute(sql);
 	}
