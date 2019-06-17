@@ -10,7 +10,7 @@ import java.util.Map;
  * @author renjie
  * @since 0.7.2
  **/
-public class DefaultColumnTypeConvert implements ColumnTypeConvert {
+public class DefaultMysqlColumnTypeConvert implements ColumnTypeConvert {
 
     private static final Map<String, ColumnType> mapping;
 
