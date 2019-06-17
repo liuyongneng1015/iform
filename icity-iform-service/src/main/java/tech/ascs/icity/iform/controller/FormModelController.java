@@ -228,9 +228,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
             }
             concurrentmap.put(key, System.currentTimeMillis());
 			FormModelEntity entity = wrap(formModel);
-			formModelService.save(entity);
+			FormModelEntity formModelEntity = formModelService.save(entity);
 			// 提交表单的按钮功能的权限给admin服务
-			listModelService.submitFormBtnPermission(entity);
+			listModelService.submitFormBtnPermission(formModelEntity);
 		} catch (Exception e) {
 			throw new IFormException("保存表单模型列表失败：" + e.getMessage(), e);
 		}finally {
