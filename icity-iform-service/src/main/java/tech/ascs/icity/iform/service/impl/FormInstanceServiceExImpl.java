@@ -1229,7 +1229,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 		for (ItemInstance itemInstance : formInstance.getItems()) {
             ItemModelEntity itemModel = itemModelManager.get(itemInstance.getId());
-            if(itemModel instanceof ReferenceItemModelEntity || itemModel.getSystemItemType() == SystemItemType.ID){
+            if(itemModel instanceof ReferenceItemModelEntity || itemModel.getSystemItemType() == SystemItemType.ID
+					|| itemModel instanceof SubFormItemModelEntity || itemModel instanceof TabsItemModelEntity){
             	continue;
 			}
             //唯一校验
