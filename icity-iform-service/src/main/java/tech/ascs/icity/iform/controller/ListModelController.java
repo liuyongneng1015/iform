@@ -96,7 +96,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 	private DefaultFunctionType[] functionDefaultActions = {DefaultFunctionType.Add, DefaultFunctionType.BatchDelete};
 	private String[] functionDefaultIcons = new String[]{null, "icon-xuanzhong"};
 	private String[] functionDefaultMethods = new String[]{"POST", "DELETE"};
-	private Boolean[] functionVisibles = {true, false};
+	private Boolean[] functionVisibles = {true, true};
 
 	@Override
 	public IdEntity createListModel(@RequestBody ListModel ListModel) {

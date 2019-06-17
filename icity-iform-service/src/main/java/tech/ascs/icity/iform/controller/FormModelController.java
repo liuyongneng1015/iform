@@ -328,7 +328,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 	@Override
 	public FormModel getByItemModelId(@RequestParam(name="itemModelId") String itemModelId) {
-		ItemModelEntity itemModelEntity = itemModelService.get(itemModelId);
+		ItemModelEntity itemModelEntity = itemModelService.find(itemModelId);
 		if (itemModelEntity == null) {
 			throw new IFormException(404, "控件【" + itemModelId + "】不存在");
 		}
@@ -555,7 +555,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	}
 
 	private List<FormModelEntity> findFormModelsByColumnId(String columnId){
-		ColumnModelEntity columnModelEntity = columnModelService.get(columnId);
+		ColumnModelEntity columnModelEntity = columnModelService.find(columnId);
 		if(columnModelEntity == null){
 			throw new IFormException("未找到对应【" + columnId+"】的字段");
 		}
@@ -587,7 +587,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			if(referenceItemModelEntity.getFormModel() != null){
 				formModelEntitySet.add(referenceItemModelEntity.getFormModel());
 			}else if(StringUtils.hasText(referenceItemModelEntity.getSourceFormModelId())){
-				FormModelEntity formModelEntity = formModelService.get(referenceItemModelEntity.getSourceFormModelId());
+				FormModelEntity formModelEntity = formModelService.find(referenceItemModelEntity.getSourceFormModelId());
 				if(formModelEntity != null){
 					formModelEntitySet.add(formModelEntity);
 				}
@@ -608,7 +608,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 	@Override
 	public List<ItemModel> findItemsByFormId(@RequestParam(name="id", required = true) String id, @RequestParam(name="itemId", required = false) String itemId) {
-		FormModelEntity formModelEntity = formModelService.get(id);
+		FormModelEntity formModelEntity = formModelService.find(id);
 		if(formModelEntity == null){
 			throw new IFormException("未找到【"+id+"】对应的表单");
 		}
@@ -659,7 +659,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 													  @RequestParam(name="referenceFormModelId", required = true) String referenceFormModelId) {
 		List<ReferenceItemModelEntity> itemModelEntities = itemModelService.findRefenceItemByFormModelId(formModelId);
 		List<ItemModel> list = new ArrayList<>();
-		FormModelEntity formModelEntity = formModelService.get(referenceFormModelId);
+		FormModelEntity formModelEntity = formModelService.find(referenceFormModelId);
 		if(formModelEntity == null){
 			throw new IFormException("未找到【"+formModelId+"】对应的表单建模");
 		}
@@ -719,7 +719,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	//校验表单建模
 	private void veryFormModel(FormModel formModel){
 		if(!formModel.isNew()){
-			FormModelEntity formModelEntity = formModelService.get(formModel.getId());
+			FormModelEntity formModelEntity = formModelService.find(formModel.getId());
 			if(formModelEntity == null){
 				throw new IFormException("未找到【"+formModel.getId()+"】对应的表单模型");
 			}
@@ -1010,7 +1010,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		//创建关联字段
 		DataModelEntity dataModelEntity = dataModel.isNew() ? new DataModelEntity() :  oldMasterDataModelMap.remove(dataModel.getId());
 		if(dataModelEntity == null && !dataModel.isNew()){
-			dataModelEntity = dataModelService.get(dataModel.getId());
+			dataModelEntity = dataModelService.find(dataModel.getId());
 		}
 		if(dataModelEntity == null){
 			throw  new IFormException("未找到"+dataModel.getTableName()+"对应的数据模型");
@@ -1082,7 +1082,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 						break;
 					}
 				}
-				FormModelEntity formModelEntity = formModelService.get(((ReferenceItemModelEntity) itemModelEntity).getReferenceFormId());
+				FormModelEntity formModelEntity = formModelService.find(((ReferenceItemModelEntity) itemModelEntity).getReferenceFormId());
 				if(referenceColumnModel != null){
                     Map<String, Object> map = new HashMap<>();
                     for(int i = 0; i <  referenceColumnModel.getReferenceTables().size(); i ++){
@@ -2571,12 +2571,12 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 		String referenceItemId = ((ReferenceItemModelEntity) entity).getReferenceItemId();
 		if(referenceItemId != null){
-			ItemModelEntity itemModelEntity = itemModelService.get(referenceItemId);
+			ItemModelEntity itemModelEntity = itemModelService.find(referenceItemId);
 			itemModel.setReferenceItemName(itemModelEntity == null ? null : itemModelEntity.getName());
 		}
 		String referenceFormId = ((ReferenceItemModelEntity) entity).getReferenceFormId();
 		if(referenceFormId != null){
-			FormModelEntity formModelEntity = formModelService.get(referenceFormId);
+			FormModelEntity formModelEntity = formModelService.find(referenceFormId);
 			itemModel.setReferenceFormName(formModelEntity == null ? null : formModelEntity.getName());
 			if(formModelEntity.getDataModels() != null && formModelEntity.getDataModels().size() > 0) {
 				itemModel.setTableName(formModelEntity.getDataModels().get(0).getTableName());
@@ -2599,7 +2599,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			}
 		}
 		if(entity.getType() == ItemType.ReferenceLabel && ((ReferenceItemModelEntity) entity).getReferenceItemId() != null){
-			ItemModelEntity itemModelEntity = itemModelService.get(((ReferenceItemModelEntity) entity).getReferenceItemId());
+			ItemModelEntity itemModelEntity = itemModelService.find(((ReferenceItemModelEntity) entity).getReferenceItemId());
 			if(itemModelEntity != null && itemModelEntity.getColumnModel() != null) {
 				itemModel.setItemTableName(itemModelEntity.getColumnModel().getDataModel().getTableName());
 				itemModel.setItemColunmName(itemModelEntity.getColumnModel().getColumnName());
@@ -2648,7 +2648,10 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 		List<ItemModelEntity> itemModelEntities = new ArrayList<>();
 		for(String itemId : idResultList) {
-			itemModelEntities.add(itemModelService.get(itemId));
+			ItemModelEntity itemModelEntity = itemModelService.find(itemId);
+			if (itemModelEntity!=null) {
+				itemModelEntities.add(itemModelEntity);
+			}
 		}
 
 		List<ItemModel> list = new ArrayList<>();
