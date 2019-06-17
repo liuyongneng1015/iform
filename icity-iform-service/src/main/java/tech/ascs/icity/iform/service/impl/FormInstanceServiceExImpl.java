@@ -1568,7 +1568,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				continue;
 			}
 			ItemModelEntity itemModelEntity = itemModelManager.get(id);
-			if(itemModelEntity == null){
+			if(itemModelEntity == null || itemModelEntity.getSystemItemType() == SystemItemType.ID){
 				continue;
 			}
 			ColumnModelEntity columnModelEntity = itemModelEntity.getColumnModel();
