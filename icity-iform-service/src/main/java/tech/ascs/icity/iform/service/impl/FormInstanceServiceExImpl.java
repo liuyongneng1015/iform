@@ -3413,8 +3413,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 		List<String> displayValuelist = new ArrayList<>();
 		List<Object> displayObjectList = new ArrayList<>();
-		if((selectItemModelEntity.getSelectReferenceType() == SelectReferenceType.Dictionary ||
-				selectItemModelEntity.getReferenceDictionaryItemId() != null || checkParentSelectItemHasDictionaryItem(selectItemModelEntity)) && list != null && list.size() > 0){
+		if((selectItemModelEntity.getSelectDataSourceType() == SelectDataSourceType.DictionaryData ||
+				(selectItemModelEntity.getSelectDataSourceType() == null && selectItemModelEntity.getReferenceDictionaryId() != null)) && list != null && list.size() > 0){
 			List<DictionaryDataItemEntity> dictionaryItemEntities = dictionaryItemManager.query().filterIn("id",list).list();
 			if(dictionaryItemEntities != null) {
 				Map<String, DictionaryDataItemEntity> map = new HashMap<>();
