@@ -42,6 +42,7 @@ import tech.ascs.icity.iform.service.*;
 import tech.ascs.icity.iform.support.IFormSessionFactoryBuilder;
 import tech.ascs.icity.iform.utils.CommonUtils;
 import tech.ascs.icity.iform.utils.CurrentUserUtils;
+import tech.ascs.icity.iform.utils.InnerItemUtils;
 import tech.ascs.icity.iform.utils.OkHttpUtils;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
@@ -2543,7 +2544,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	private void setItemInstance(ItemModelEntity itemModel, boolean referenceFlag, Map<String, Object> entity, List<DataModelInstance> referenceDataModelList,
 								 List<SubFormItemInstance> subFormItems, List<ItemInstance> items, FormInstance formInstance){
 		ColumnModelEntity column = itemModel.getColumnModel();
-		if(column == null && !(itemModel instanceof  ReferenceItemModelEntity) && !(itemModel instanceof  RowItemModelEntity) && !(itemModel instanceof SubFormItemModelEntity) && !(itemModel instanceof TabsItemModelEntity)){
+		if(column == null && !(itemModel instanceof  ReferenceItemModelEntity) && !(itemModel instanceof  RowItemModelEntity) && !(itemModel instanceof SubFormItemModelEntity) && !(itemModel instanceof TabsItemModelEntity)
+			&& !(itemModel instanceof ReferenceInnerItemModelEntity)){
 			return;
 		}
 		Object value = new Object();
@@ -2572,19 +2574,22 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 							subFormItems, items, formInstance);
 				}
 			}
-		}else{
+		}else if (itemModel instanceof ReferenceInnerItemModelEntity) {
+
+		} else{
 			ItemInstance itemInstance = setItemInstance(column.getKey(), itemModel, value, formInstance.getActivityId());
 			items.add(itemInstance);
 			formInstance.addData(itemModel.getColumnModel().getId(), itemInstance.getValue());
 		}
 	}
 
-
+    // 处理每个控件实例
 	private void setFormDataItemInstance(boolean isQrCodeFlag, ItemModelEntity itemModel, boolean referenceFlag, Map<String, Object> entity, List<ReferenceDataInstance> referenceDataModelList,
 								 List<SubFormItemInstance> subFormItems, List<ItemInstance> items, FormDataSaveInstance formInstance){
 		ColumnModelEntity column = itemModel.getColumnModel();
 		if(column == null && !(itemModel instanceof  ReferenceItemModelEntity) && !(itemModel instanceof  RowItemModelEntity)
-				&& !(itemModel instanceof SubFormItemModelEntity) && !(itemModel instanceof TabsItemModelEntity)){
+				&& !(itemModel instanceof SubFormItemModelEntity) && !(itemModel instanceof TabsItemModelEntity)
+                && !(itemModel instanceof ReferenceInnerItemModelEntity)){
 			return;
 		}
 		Object value = new Object();
@@ -2613,12 +2618,26 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 							subFormItems, items, formInstance);
 				}
 			}
-		}else{
+		}else if (itemModel instanceof ReferenceInnerItemModelEntity){
+            setReferenceInnerItemInstance((ReferenceInnerItemModelEntity) itemModel, entity, items);
+        } else{
 			ItemInstance itemInstance = setItemInstance(column.getKey(), itemModel, value, formInstance.getActivityId());
 			items.add(itemInstance);
 		}
 	}
 
+	/**
+	 * 处理关联属性内嵌, 并且添加ItemInstance到 itemInstances内
+	 * @param model  关联控件实体模型
+	 * @param rowData 当前行数据
+	 * @param itemInstances 存储的itemInstances
+	 */
+	private void setReferenceInnerItemInstance(ReferenceInnerItemModelEntity model, Map<String, Object> rowData, List<ItemInstance> itemInstances) {
+		ItemModelEntity innerItem =  itemModelService.findUniqueByProperty("uuid", model.getReferenceInnerItemUuid());
+		InnerItemUtils.InnerItemHandler innerItemHandler = InnerItemUtils.InnerItemHandlerFactory.getHandler(innerItem);
+		String displayValue = innerItemHandler.findDisplayValue(model, innerItem, (id) ->itemModelService.find(Objects.toString(id)), rowData);
+		itemInstances.add(InnerItemUtils.buildItemInstance(model, displayValue));
+    }
 
 	private void setReferenceItemInstance(ItemModelEntity itemModel, Map<String, Object> entity, List<DataModelInstance> referenceDataModelList){
 		//主表字段

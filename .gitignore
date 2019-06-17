@@ -41,4 +41,3 @@ buildNumber.properties
 .mvn/timing.properties
 .mvn/wrapper/maven-wrapper.jar
 *.iml
-.idea/workspace.xml

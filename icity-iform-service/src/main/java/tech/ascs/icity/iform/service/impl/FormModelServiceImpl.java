@@ -1,15 +1,10 @@
 package tech.ascs.icity.iform.service.impl;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
-import com.alibaba.fastjson.JSON;
 import com.googlecode.genericdao.search.Filter;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
-
 import tech.ascs.icity.iflow.client.ProcessService;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
@@ -18,6 +13,9 @@ import tech.ascs.icity.iform.service.*;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 import tech.ascs.icity.utils.BeanUtils;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> implements FormModelService {
 
@@ -1217,6 +1215,9 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			case  ProcessLog:
 				entity = new ProcessLogItemModelEntity();
 				break;
+            case ReferenceInnerLabel:
+                entity = new ReferenceInnerItemModelEntity();
+                break;
 			default:
 				entity = new ItemModelEntity();
 				break;

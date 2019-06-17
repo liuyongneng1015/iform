@@ -35,6 +35,8 @@ public enum ItemType {
 	ReferenceList("ReferenceList"),
 	/** 关联属性 */
 	ReferenceLabel("ReferenceLabel"),
+	/** 关联属性内嵌 */
+	ReferenceInnerLabel("ReferenceInnerLabel"),
 	/** 子表 */
 	SubForm("SubForm"),
 	/** 子表自定义（组合控件） */

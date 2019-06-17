@@ -1,12 +1,8 @@
 package tech.ascs.icity.iform.controller;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
 import com.alibaba.fastjson.JSON;
 import com.googlecode.genericdao.search.Sort;
+import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.StringUtils;
@@ -14,8 +10,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import io.swagger.annotations.Api;
 import tech.ascs.icity.ICityException;
 import tech.ascs.icity.admin.api.model.Application;
 import tech.ascs.icity.admin.api.model.TreeSelectData;
@@ -33,6 +27,11 @@ import tech.ascs.icity.jpa.dao.Query;
 import tech.ascs.icity.model.IdEntity;
 import tech.ascs.icity.model.Page;
 import tech.ascs.icity.utils.BeanUtils;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Api(tags = "表单模型服务", description = "包含表单模型的增删改查等功能")
 @RestController
@@ -1422,7 +1421,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			}
 			itemModel.setSelectMode(SelectMode.Attribute);
 		}
-		//TODO 根据类型映射对应的item
+
 		ItemModelEntity entity = formModelService.getItemModelEntity(itemModel.getType(), itemModel.getSystemItemType());
 
 		if(itemModel.getType() == ItemType.CheckboxGroup){
@@ -1430,7 +1429,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}else if(itemModel.getType() == ItemType.RadioGroup){
 			itemModel.setMultiple(false);
 		}
-
+		// 判断是否为创建者控件
 		if(itemModel.getSystemItemType() == SystemItemType.Creator){
 			//创建人赋值关联关系
 			ListModel listModel = listModelService.getFirstListModelByTableName(itemModel.getReferenceTableName());
@@ -1451,11 +1450,12 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		if(!(entity instanceof RowItemModelEntity) && !(entity instanceof TabsItemModelEntity)
 				&& !(entity instanceof SubFormItemModelEntity) && !(entity instanceof SubFormRowItemModelEntity)
 				&& !(entity instanceof ReferenceItemModelEntity) && !(entity instanceof TabPaneItemModelEntity)
+				&& !(entity instanceof ReferenceInnerItemModelEntity)
 				&& entity.getType() != ItemType.Label && entity.getSystemItemType() != SystemItemType.ProcessStatus
 				&& entity.getType() != ItemType.ProcessLog  && entity.getColumnModel() == null){
 			throw  new IFormException("控件"+entity.getName()+"没有对应字段");
 		}
-		
+		//TODO 需要单独预处理的控件
 		if(entity instanceof ReferenceItemModelEntity){
 			setReferenceItemModel((ReferenceItemModelEntity)entity, sourceFormModelId, itemModel);
 		}else if(entity instanceof SelectItemModelEntity){
@@ -1474,6 +1474,8 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			setTabsItemModelEntity( itemModel, sourceFormModelId, (TabsItemModelEntity)entity);
 		} else if (entity instanceof TreeSelectItemModelEntity) {
 			setTreeSelectItemModel(itemModel,  (TreeSelectItemModelEntity)entity);
+		}else if (entity instanceof ReferenceInnerItemModelEntity) {
+			setReferenceInnerItemModel(itemModel, (ReferenceInnerItemModelEntity) entity);
 		}
 
 		List<ItemActivityInfo> activities = new ArrayList<ItemActivityInfo>();
@@ -1509,7 +1511,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				((SelectItemModelEntity) entity).setSelectReferenceType(SelectReferenceType.Dictionary);
 			}
 		}
-
+		//控件和字段的输入类型和字段类型校验
 		if(itemModel.getColumnModel() != null && itemModel.getColumnModel().getColumnName() != null && itemModel.getColumnModel().getTableName() != null) {
 			List<ColumnModelEntity> columnModelEntities = columnModelService.query().filterEqual("columnName", itemModel.getColumnModel().getColumnName()).filterEqual("dataModel.tableName", itemModel.getColumnModel().getTableName()).list();
 			if(columnModelEntities != null && columnModelEntities.size() > 0) {
@@ -1639,6 +1641,26 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 	}
 
+	/**
+	 * 设置 ReferenceInnerItemModelEntity 内的id, 前端传过来的是uuid, 这里会把外部表单的uuid转成id存放
+	 * @param itemModel 控件模型
+	 * @param entity 控件实体
+	 */
+	private void setReferenceInnerItemModel(ItemModel itemModel, ReferenceInnerItemModelEntity entity) {
+		entity.setReferenceItemUuid(itemModel.getItemUuids());
+		String refenceItemId = itemModelService.findUniqueByProperty("uuid", entity.getReferenceItemUuid()).getId();
+		String refenceOutsideItemId;
+		if (StringUtils.hasText(entity.getReferenceOutsideItemUuid())){
+			refenceOutsideItemId = itemModelService.findUniqueByProperty("uuid", entity.getReferenceOutsideItemUuid()).getId();
+		}else {
+			ItemModelEntity itemModelEntity = formModelService.find(itemModel.getReferenceOutsideFormId()).getItems().stream().filter(modelEntity -> "id".equals(modelEntity.getName())).findAny().get();
+			refenceOutsideItemId = itemModelEntity.getId();
+			entity.setReferenceOutsideItemUuid(itemModelEntity.getUuid());
+		}
+		entity.setReferenceItemId(refenceItemId);
+		entity.setReferenceOutsideItemId(refenceOutsideItemId);
+	}
+
 	private ItemModelEntity getParentItemModel(ItemModel itemModel){
 		ItemModelEntity parentItemModel = formModelService.getItemModelEntity(itemModel.getType(), itemModel.getSystemItemType());
 		BeanUtils.copyProperties(itemModel, parentItemModel, new String[] {"referenceList","parentItem", "searchItems","sortItems", "permissions", "items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});
@@ -1735,7 +1757,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		entity.setPermissions(itemPermissionInfos);
 
 	}
-
+	// 判断是否存在对应的ColumnMode, 不存在则新建字段
 	private void setColumnModel(ItemModelEntity entity, ItemModel itemModel){
 		if(itemModel.getColumnModel() == null){
 			entity.setColumnModel(null);
@@ -2271,7 +2293,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	}
 
 	private ItemModel toDTO(ItemModelEntity entity, boolean isAnalysisItem, String tableName)  {
-		//TODO 根据模型找到对应的参数
+
 		ItemModel itemModel = new ItemModel();
 		BeanUtils.copyProperties(entity, itemModel, new String[]{"formModel", "columnModel", "activities", "options","searchItems","sortItems", "permissions","items","parentItem","referenceList", "defaultValue"});
 
@@ -2535,6 +2557,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 	}
 
+
 	private void setReferenceItemModel(ItemModelEntity entity, ItemModel itemModel, boolean isAnalysisItem){
 		if(((ReferenceItemModelEntity) entity).getItemModelIds() != null) {
 			List<String> resultList = new ArrayList<>(Arrays.asList(((ReferenceItemModelEntity) entity).getItemModelIds().split(",")));
@@ -2647,7 +2670,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		activityInfo.setActivityName(entity.getActivityName());
 		activityInfo.setVisible(entity.isVisible());
 		activityInfo.setReadonly(entity.isReadonly());
-		
-		return activityInfo;		
+
+		return activityInfo;
 	}
 }

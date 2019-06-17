@@ -241,6 +241,18 @@ public class ItemModel extends NameEntity {
 	@ApiModelProperty(value = "流程日志解析形式", position = 60)
 	private ProcessLogParseModel parseModel;
 
+	@ApiModelProperty(value = "关联的外部表单控件Uuid", position = 61)
+	private String referenceOutsideItemUuid;
+
+	@ApiModelProperty(value = "关联的外部表单控件Id", position = 61)
+	private String referenceOutsideItemId;
+
+	@ApiModelProperty(value = "关联的本表内部控件的Uuid", position = 62)
+	private String referenceInnerItemUuid;
+
+	@ApiModelProperty(value = "关联的外部表单id", position = 63)
+	private String referenceOutsideFormId;
+
 	public ItemType getType() {
 		return type;
 	}
@@ -891,6 +903,38 @@ public class ItemModel extends NameEntity {
 
 	public void setParseModel(ProcessLogParseModel parseModel) {
 		this.parseModel = parseModel;
+	}
+
+	public String getReferenceOutsideItemUuid() {
+		return referenceOutsideItemUuid;
+	}
+
+	public void setReferenceOutsideItemUuid(String referenceOutsideItemUuid) {
+		this.referenceOutsideItemUuid = referenceOutsideItemUuid;
+	}
+
+	public String getReferenceInnerItemUuid() {
+		return referenceInnerItemUuid;
+	}
+
+	public void setReferenceInnerItemUuid(String referenceInnerItemUuid) {
+		this.referenceInnerItemUuid = referenceInnerItemUuid;
+	}
+
+    public String getReferenceOutsideFormId() {
+        return referenceOutsideFormId;
+    }
+
+    public void setReferenceOutsideFormId(String referenceOutsideFormId) {
+        this.referenceOutsideFormId = referenceOutsideFormId;
+    }
+
+	public String getReferenceOutsideItemId() {
+		return referenceOutsideItemId;
+	}
+
+	public void setReferenceOutsideItemId(String referenceOutsideItemId) {
+		this.referenceOutsideItemId = referenceOutsideItemId;
 	}
 
 	@Override
