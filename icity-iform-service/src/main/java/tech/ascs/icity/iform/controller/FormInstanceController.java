@@ -774,16 +774,13 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			return dataMap;
 		}
 		Set<String> positionIdSet = positions.stream().map(item->item.getId()).collect(Collectors.toSet());
-		List<Map> list = (List<Map>)redisTemplate.opsForValue().get("app-strategy-group");
-		if (list==null) {
-			Page<FormDataSaveInstance> pageData = formInstanceService.pageFormInstance(formModelEntity, 1, 100, new HashMap());
-			list = new ArrayList(); // 转成columnName与value对应关系
-			for (FormDataSaveInstance formDataSaveInstance : pageData.getResults()) {
-				list.add(toColumnNameValueDTO(formDataSaveInstance));
-			}
-			redisTemplate.opsForValue().set("app-strategy-group", list, 1800, TimeUnit.SECONDS);
+		Page<FormDataSaveInstance> pageData = formInstanceService.pageFormInstance(formModelEntity, 1, 100, new HashMap());
+		if (pageData==null || pageData.getResults()==null || pageData.getResults().size()==0) {
+			dataMap.put("navigations", new ArrayList());
+			dataMap.put("dashboard", new ArrayList());
+			return dataMap;
 		}
-
+		List<FormDataSaveInstance> list = pageData.getResults();
 		JSONArray jsonArray = JSON.parseArray(JSON.toJSONString(list));
 		Map<String,List> positionMap = new HashMap();
 
