@@ -711,7 +711,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	//判断数据是否必填
 	private String verifyDataRequired(List<Map<String, Object>> assignmentList, FormDataSaveInstance formInstance, FormModelEntity formModelEntity, DisplayTimingType displayTimingType){
 		//不能为空的数据
-		List<String> notNullIdList = new ArrayList<>();
+		Map<String, ItemModelEntity> notNullIdMap = new HashMap();
+
 		List<String> idList = new ArrayList<>();
 		//参数类型
 		String paramCondition = null;
@@ -738,7 +739,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 							}
 							for(Map<String, Object> permissionsMap : (List<Map<String, Object>>) funcPropsMap.get("permissions")) {
 								if (permissionsMap.get("required") != null && (Boolean) permissionsMap.get("required")) {
-									notNullIdList.add((String) map.get("id"));
+									notNullIdMap.put((String) map.get("id"), null);
 								}
 								idList.add((String) map.get("id"));
 							}
@@ -746,11 +747,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					}
 				}
 			}
-		}else{
+		} else {
 			for(ItemModelEntity itemModelEntity : formModelService.findAllItems(formModelEntity)) {
-				for (ItemPermissionInfo itemPermissionInfo :itemModelEntity.getPermissions()){
+				for (ItemPermissionInfo itemPermissionInfo :itemModelEntity.getPermissions()) {
 					if(itemPermissionInfo.getDisplayTiming() == displayTimingType && itemPermissionInfo.getRequired() != null && itemPermissionInfo.getRequired()){
-						notNullIdList.add(itemModelEntity.getId());
+						notNullIdMap.put(itemModelEntity.getId(), itemModelEntity);
 					}
 				}
 			}
@@ -758,12 +759,18 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 		for(ItemInstance itemInstance : formInstance.getItems()){
 			if(itemInstance.getValue() != null && String.valueOf(itemInstance.getValue()) != null && !String.valueOf(itemInstance.getValue()).equals("null")){
-				notNullIdList.remove(itemInstance.getId());
+				notNullIdMap.remove(itemInstance.getId());
 			}
 		}
 
-		if(notNullIdList.size() > 0){
-			throw  new IFormException("存在空的字段");
+		if(notNullIdMap.size() > 0) {
+			for (String key:notNullIdMap.keySet()) {
+				ItemModelEntity itemModelEntity = notNullIdMap.get(key);
+				if (itemModelEntity!=null) {
+					throw new IFormException(itemModelEntity.getName()+"  控件的取值不允许为空");
+				}
+			}
+			throw new IFormException("存在空的字段");
 		}
 		Map<String, Object> flowData = formInstance.getFlowData();
 		if(flowData.containsKey("functionId")){
@@ -1564,7 +1571,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	private void setColumnValue(List<Map<String, Object>> assignmentList, Map<String, Object> entity, TaskInstance taskInstance){
 		for(Map<String, Object> map : assignmentList){
 			String id = (String)map.get("id");
-			if(id == null){
+			if(id == null || map.get("id")!=null){
 				continue;
 			}
 			ItemModelEntity itemModelEntity = itemModelManager.get(id);
