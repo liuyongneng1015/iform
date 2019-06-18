@@ -2302,6 +2302,10 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			itemModel.setTableName(tableName);
 		}
 
+		if(itemModel.getSystemItemType() == SystemItemType.ID && !StringUtils.hasText(itemModel.getTypeKey())){
+			itemModel.setTypeKey(SystemItemType.ID.getValue());
+		}
+
 		if(entity instanceof ReferenceItemModelEntity){
 			setReferenceItemModel( entity, itemModel,  isAnalysisItem);
 		}else if(entity instanceof SelectItemModelEntity){
