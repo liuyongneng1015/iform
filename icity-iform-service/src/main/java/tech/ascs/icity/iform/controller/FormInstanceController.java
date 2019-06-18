@@ -760,7 +760,6 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	 */
 	@Override
 	public Map strategyGroup(@PathVariable(name="userId", required = true) String userId) throws IOException {
-		Map returnMap = new HashMap();
 		Map<String, List> dataMap = new HashMap();
 		FormModelEntity formModelEntity = formModelService.findByTableName("strategy_group");
 		if (formModelEntity==null) {
@@ -768,22 +767,23 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		}
 		List<Position> positions = userService.queryUserPositions(userId);
 		if (positions==null || positions.size()==0) {
-			// 该用户没有导航和应用分类时，也要返回 navigations和dashboard 的字段，保持结构一致
+			// 该用户没有导航和应用分类时时，也要返回 navigations和dashboard 的字段，保持结构一致
 			dataMap.put("navigations", new ArrayList());
 			dataMap.put("dashboard", new ArrayList());
 			return dataMap;
 		}
 		Set<String> positionIdSet = positions.stream().map(item->item.getId()).collect(Collectors.toSet());
 		Page<FormDataSaveInstance> pageData = formInstanceService.pageFormInstance(formModelEntity, 1, 100, new HashMap());
-		if (pageData==null || pageData.getResults()==null || pageData.getResults().size()==0) {
-			dataMap.put("navigations", new ArrayList());
-			dataMap.put("dashboard", new ArrayList());
-			return dataMap;
+		List<Map> list = new ArrayList();
+		// 转成columnName与value对应关系
+		for (FormDataSaveInstance formDataSaveInstance:pageData.getResults()) {
+			list.add(toColumnNameValueDTO(formDataSaveInstance));
 		}
-		List<FormDataSaveInstance> list = pageData.getResults();
+
 		JSONArray jsonArray = JSON.parseArray(JSON.toJSONString(list));
 		Map<String,List> positionMap = new HashMap();
 
+		// 封装成
 		for (int i = 0; i < (Integer)JSONPath.eval(jsonArray, "$.size()"); i++) {
 			Object positionObjects = JSONPath.eval(jsonArray, "$["+i+"].position.value");
 			if (positionObjects==null || (positionObjects instanceof List)==false) {
@@ -822,11 +822,12 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			assemblyMapData("navigations", dataMap, positionMap.get(positionId+"-navigations"));
 			assemblyMapData("dashboard", dataMap, positionMap.get(positionId+"-dashboard"));
 		}
+		Map returnMap = new HashMap();
 		// navigations去重
 		if (dataMap.get("navigations")!=null) {
 			returnMap.put("navigations", new LinkedHashSet(dataMap.get("navigations")));
 		} else {
-		// 该用户没有导航时，也要返回 navigations 的字段，保持结构一致
+			// 该用户没有导航时，也要返回 navigations 的字段，保持结构一致
 			returnMap.put("navigations", new ArrayList());
 		}
 
@@ -851,7 +852,8 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 				parent.setChildren(items);
 			}
 			returnMap.put("dashboard", parents);
-		} else { // 该用户没有应用分类时时，也要返回 dashboard 的字段，保持结构一致
+		} else {
+			// 该用户没有应用分类时时，也要返回 dashboard 的字段，保持结构一致
 			returnMap.put("dashboard", new ArrayList());
 		}
 		return returnMap;
