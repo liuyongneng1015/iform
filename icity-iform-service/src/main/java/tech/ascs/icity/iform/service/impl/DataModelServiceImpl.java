@@ -66,6 +66,10 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 	public DataModelEntity save(DataModel dataModel) {
 		boolean flag = dataModel.isNew();
 		DataModelEntity old = flag ? new DataModelEntity() : get(dataModel.getId());
+
+		String oldTableName = old.getPrefix() == null ? old.getTableName() : old.getPrefix()+old.getTableName();
+		String newTableName = dataModel.getPrefix() == null ? dataModel.getTableName() : dataModel.getPrefix()+dataModel.getTableName();
+
 		BeanUtils.copyProperties(dataModel, old, new String[] {"masterModel", "slaverModels", "columns", "indexes"});
 		verifyTableName(old, dataModel.getTableName());
 
@@ -111,6 +115,28 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		//id行
 		ColumnModelEntity idColumn = null;
 		List<ColumnModelEntity> columnModelEntities = new ArrayList<ColumnModelEntity>();
+		setColumns(dataModel, idColumn, old, columnModelEntities);
+		old.setColumns(columnModelEntities);
+
+		List<IndexModelEntity> indexes = new ArrayList<IndexModelEntity>();
+		List<IndexModelEntity> deleteIndexes = setDeleteIndexs(dataModel,  old,  indexes);// 用于存放需删除的索引列表
+
+		old.setIndexes(indexes);
+
+		if(dataModel.getModelType() == DataModelType.Slaver){
+			old.setModelType(DataModelType.Slaver);
+			columnModelService.saveColumnModelEntity(old, "master_id");
+		}
+		DataModelEntity dataModelEntity = save(old, deleteCloumns, deleteIndexes);
+
+		if(!StringUtils.equalsIgnoreCase(oldTableName, newTableName)) {
+			updateTableName(oldTableName, newTableName);
+		}
+
+		return dataModelEntity;
+	}
+
+	private void setColumns(DataModel dataModel, ColumnModelEntity idColumn, DataModelEntity old, List<ColumnModelEntity> columnModelEntities){
 		for (ColumnModel column : dataModel.getColumns()) {
 			ColumnModelEntity columnModelEntity = setColumns(column);
 			if(columnModelEntity.getColumnName().equals("id")){
@@ -138,18 +164,22 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 			columnModelEntities.add(columnModelService.saveColumnModelEntity(old, "update_by"));
 		}
 
-		old.setColumns(columnModelEntities);
+	}
 
-		List<IndexModelEntity> indexes = new ArrayList<IndexModelEntity>();
-		List<IndexModelEntity> deleteIndexes = setDeleteIndexs(dataModel,  old,  indexes);// 用于存放需删除的索引列表
-
-		old.setIndexes(indexes);
-
-		if(dataModel.getModelType() == DataModelType.Slaver){
-			old.setModelType(DataModelType.Slaver);
-			columnModelService.saveColumnModelEntity(old, "master_id");
+	//更新表名
+	private void updateTableName(String oldTableName, String newTableName){
+		if(StringUtils.isBlank(oldTableName) || StringUtils.isBlank(newTableName)){
+			return;
 		}
-		return save(old, deleteCloumns, deleteIndexes);
+		List<Map<String, Object>> mapList = jdbcTemplate.queryForList("select table_name from information_schema.tables");
+		if(mapList != null && mapList.size() >0 ) {
+			for (Map<String, Object> map : mapList) {
+				if (map.get("table_name").equals(oldTableName)) {
+					jdbcTemplate.execute("alter table " + oldTableName + " rename to " + newTableName);
+					break;
+				}
+			}
+		}
 	}
 
 	//设置column
@@ -436,13 +466,13 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		veryDataModelColumnModel(modelEntity);
 		if(modelEntity.getSlaverModels() != null){
 			for(DataModelEntity dataModelEntity  : modelEntity.getSlaverModels()){
-				deleteDatModel(dataModelEntity);
+				deleteDataModelAndTable(dataModelEntity);
 			}
 		}
-		deleteDatModel(modelEntity);
+		deleteDataModelAndTable(modelEntity);
 	}
 
-	private void deleteDatModel(DataModelEntity modelEntity){
+	private void deleteDataModelAndTable(DataModelEntity modelEntity){
 		List<ColumnModelEntity> columnModelEntities = modelEntity.getColumns();
 		deleteColumnModel(columnModelEntities);
 		String tableName = modelEntity.getPrefix() == null ? modelEntity.getTableName() : modelEntity.getPrefix()+modelEntity.getTableName();
@@ -527,12 +557,12 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		if(modelEntity.getSlaverModels() != null){
 			for(DataModelEntity dataModelEntity  : modelEntity.getSlaverModels()){
 				updateColumnItemModel(dataModelEntity);
-				deleteDatModel(dataModelEntity);
+				deleteDataModelAndTable(dataModelEntity);
 			}
 		}
 		updateColumnItemModel(modelEntity);
 		modelEntity.setMasterModel(null);
-		deleteDatModel(modelEntity);
+		deleteDataModelAndTable(modelEntity);
 	}
 
 	@Override
