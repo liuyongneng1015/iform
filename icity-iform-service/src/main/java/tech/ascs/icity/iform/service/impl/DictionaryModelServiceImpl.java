@@ -153,7 +153,7 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 		if(StringUtils.isBlank(tableName)){
 			return;
 		}
-		//deleteTable(tableName);
+
 		List<Map<String, Object>> mapList = dictionaryManager.getJdbcTemplate().queryForList("select table_name from information_schema.tables");
 		if(mapList != null && mapList.size() > 0) {
 			for (Map<String, Object> map : mapList) {
@@ -372,10 +372,11 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 	@Override
 	public DictionaryModelData findDictionaryModelDataByDictionaryId(String dictionaryId) {
 		DictionaryModel dictionaryModelModel = getDictionaryById(dictionaryId);
-		Map<String, Object> map = dictionaryManager.getJdbcTemplate().queryForMap("select * from "+dictionaryModelModel.getTableName()+" where id='root'");
-		if (map == null) {
+		List<Map<String, Object>> maps = dictionaryManager.getJdbcTemplate().queryForList("select * from "+dictionaryModelModel.getTableName()+" where id='root'");
+		if (maps == null || maps.size() < 1) {
 			return null;
 		}
+		Map<String, Object> map = maps.get(0);
 		DictionaryModelData rootDictionaryModelData = dictionaryModelData(dictionaryId, "root", map);
 		List<Map<String, Object>> mapList = dictionaryManager.getJdbcTemplate().queryForList("select * from "+dictionaryModelModel.getTableName()+" where id != 'root' order by order_no asc,parent_id desc,id desc ");
 		if(mapList != null && mapList.size() > 0){
