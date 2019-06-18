@@ -292,10 +292,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			String tableName = dataModelEntity.getPrefix() == null ? dataModelEntity.getTableName(): dataModelEntity.getPrefix()+dataModelEntity.getTableName();
             if(itemModelEntity1 instanceof SubFormItemModelEntity){
                 columnModelService.deleteTable(tableName);
-            }else {
-				ColumnModelEntity column = itemModelEntity1.getColumnModel();
-				String columnName = column.getPrefix() == null ? column.getColumnName() : column.getPrefix()+column.getColumnName();
-                columnModelService.deleteTableColumn(tableName, columnName);
             }
         }
         formModelService.delete(formModelEntity);
