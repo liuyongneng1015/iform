@@ -51,7 +51,7 @@ public class ColMetaBean implements Comparable<ColMetaBean> {
      */
     private static final String NULLABLE = "NULLABLE";
 
-    private static ColumnTypeConvert TYPE_CONVERT = new DefaultColumnTypeConvert();
+    private static ColumnTypeConvert TYPE_CONVERT = new DefaultMysqlColumnTypeConvert();
 
     private String columnName;
     private int columnSize;
