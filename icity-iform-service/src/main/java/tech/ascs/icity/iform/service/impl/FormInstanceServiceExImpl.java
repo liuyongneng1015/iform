@@ -875,6 +875,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					}
 				}
 			}
+			//唯一校验
+			Map<String, String> uniqueneItem = new HashMap<String, String>();
 			for (SubFormRowItemInstance instance : subFormDataItemInstance.getItems()) {
 				for (ItemInstance itemModelService : instance.getItems()) {
 					ItemModelEntity itemModel = itemModelManager.get(itemModelService.getId());
@@ -886,8 +888,18 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 						ColumnModelEntity column = itemModel.getColumnModel();
 						String columnName = column.getPrefix() == null ? column.getColumnName() : column.getPrefix()+column.getColumnName();
 						List<String> list = listByTableName(itemModelService.getType(), tableName, columnName, itemModelService.getValue());
+						String itemKey = itemModel.getId()+"_"+itemModel.getName();
 						if(list != null && list.size() > 0) {
-							stringListMap.put(itemModel.getId()+"_"+itemModel.getName(), list);
+							stringListMap.put(itemKey, list);
+						}
+						String  uniqueneItemValue = uniqueneItem.get(itemKey);
+						if(itemModelService.getValue() != null && StringUtils.hasText(String.valueOf(itemModelService.getValue()))){
+							if( uniqueneItemValue != null &&  uniqueneItemValue.equals(String.valueOf(itemModelService.getValue()))) {
+								throw new IFormException(itemModel.getName() + "必须唯一");
+							}else{
+								uniqueneItemValue = String.valueOf(itemModelService.getValue());
+							}
+							uniqueneItem.put(itemKey, uniqueneItemValue);
 						}
 					}
 					if(itemModel instanceof ReferenceItemModelEntity && itemModel.getType() != ItemType.ReferenceLabel){
