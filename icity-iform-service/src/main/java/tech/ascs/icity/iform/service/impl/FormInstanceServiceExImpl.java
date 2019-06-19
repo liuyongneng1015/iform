@@ -524,8 +524,18 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	//启动流程
 	private void startProces(List<Map<String, Object>> assignmentList, String paramCondition, FormDataSaveInstance formInstance, Map<String, Object> data, FormModelEntity formModel, String newId){
-		List<ListFunctionType> listFunctions = formModel.getFunctions().parallelStream().map(ListFunction::getFunctionType).collect(Collectors.toList());
-		if(listFunctions == null || !listFunctions.contains(ListFunctionType.StartProcess)){
+		Map<String, ListFunction> listFunctions = new HashMap<>();
+		for(ListFunction listFunction : formModel.getFunctions()){
+			if(listFunction.getFunctionType() != null) {
+				listFunctions.put(listFunction.getFunctionType().getValue(), listFunction);
+			}
+		}
+		if(listFunctions == null || !listFunctions.keySet().contains(ListFunctionType.StartProcess)){
+			//TODO 需要有启动流程
+			return;
+		}
+		ListFunction listFunction = listFunctions.get(ListFunctionType.StartProcess.getValue());
+		if(listFunction != null && !listFunction.isVisible()){
 			//TODO 需要有启动流程
 			return;
 		}
