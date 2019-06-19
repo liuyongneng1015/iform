@@ -1625,7 +1625,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			throw new IFormException("控件"+itemModel.getName()+"未找到对应分类或联动目标");
 		}else if(itemModel.getDictionaryValueType() == DictionaryValueType.Fixed && (itemModel.getOptions() == null || itemModel.getOptions().size() < 1)
 				&& (itemModel.getReferenceDictionaryId() == null || itemModel.getReferenceDictionaryItemId() == null)){
-			throw new IFormException("控件"+itemModel.getName()+"未找到对应分类或自定义值");
+			throw new IFormException("控件"+itemModel.getName()+"未找到对应的分类或数据分类");
 		}
 
 		if(itemModel.getDictionaryValueType() == DictionaryValueType.Linkage && itemModel.getParentItem() != null){
