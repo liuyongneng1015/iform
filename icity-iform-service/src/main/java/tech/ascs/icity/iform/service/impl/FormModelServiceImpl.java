@@ -1701,6 +1701,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			idItemModelEntity.setProps("{}");
 			if ("id".equals(name)) {
 				idItemModelEntity.setSystemItemType(SystemItemType.ID);
+				idItemModelEntity.setTypeKey(SystemItemType.ID.getValue());
 			} else {
 				idItemModelEntity.setSystemItemType(SystemItemType.ChildId);
 			}

@@ -292,10 +292,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			String tableName = dataModelEntity.getPrefix() == null ? dataModelEntity.getTableName(): dataModelEntity.getPrefix()+dataModelEntity.getTableName();
             if(itemModelEntity1 instanceof SubFormItemModelEntity){
                 columnModelService.deleteTable(tableName);
-            }else {
-				ColumnModelEntity column = itemModelEntity1.getColumnModel();
-				String columnName = column.getPrefix() == null ? column.getColumnName() : column.getPrefix()+column.getColumnName();
-                columnModelService.deleteTableColumn(tableName, columnName);
             }
         }
         formModelService.delete(formModelEntity);
@@ -1629,7 +1625,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			throw new IFormException("控件"+itemModel.getName()+"未找到对应分类或联动目标");
 		}else if(itemModel.getDictionaryValueType() == DictionaryValueType.Fixed && (itemModel.getOptions() == null || itemModel.getOptions().size() < 1)
 				&& (itemModel.getReferenceDictionaryId() == null || itemModel.getReferenceDictionaryItemId() == null)){
-			throw new IFormException("控件"+itemModel.getName()+"未找到对应分类或自定义值");
+			throw new IFormException("控件"+itemModel.getName()+"未找到对应的分类或数据分类");
 		}
 
 		if(itemModel.getDictionaryValueType() == DictionaryValueType.Linkage && itemModel.getParentItem() != null){
@@ -1645,7 +1641,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	 * @param entity 控件实体
 	 */
 	private void setReferenceInnerItemModel(ItemModel itemModel, ReferenceInnerItemModelEntity entity) {
-		entity.setReferenceItemUuid(itemModel.getItemUuids());
+		entity.setReferenceItemUuid(itemModel.getReferenceItemUuid());
 		String refenceItemId = itemModelService.findUniqueByProperty("uuid", entity.getReferenceItemUuid()).getId();
 		String refenceOutsideItemId;
 		if (StringUtils.hasText(entity.getReferenceOutsideItemUuid())){
@@ -2300,6 +2296,10 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 		if(itemModel.getType() == ItemType.ReferenceLabel || itemModel.getSystemItemType() == SystemItemType.ReferenceLabel){
 			itemModel.setTableName(tableName);
+		}
+
+		if(itemModel.getSystemItemType() == SystemItemType.ID && !StringUtils.hasText(itemModel.getTypeKey())){
+			itemModel.setTypeKey(SystemItemType.ID.getValue());
 		}
 
 		if(entity instanceof ReferenceItemModelEntity){

@@ -524,8 +524,18 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	//启动流程
 	private void startProces(List<Map<String, Object>> assignmentList, String paramCondition, FormDataSaveInstance formInstance, Map<String, Object> data, FormModelEntity formModel, String newId){
-		List<ListFunctionType> listFunctions = formModel.getFunctions().parallelStream().map(ListFunction::getFunctionType).collect(Collectors.toList());
-		if(listFunctions == null || !listFunctions.contains(ListFunctionType.StartProcess)){
+		Map<String, ListFunction> listFunctions = new HashMap<>();
+		for(ListFunction listFunction : formModel.getFunctions()){
+			if(listFunction.getFunctionType() != null) {
+				listFunctions.put(listFunction.getFunctionType().getValue(), listFunction);
+			}
+		}
+		if(listFunctions == null || !listFunctions.keySet().contains(ListFunctionType.StartProcess)){
+			//TODO 需要有启动流程
+			return;
+		}
+		ListFunction listFunction = listFunctions.get(ListFunctionType.StartProcess.getValue());
+		if(listFunction != null && !listFunction.isVisible()){
 			//TODO 需要有启动流程
 			return;
 		}
@@ -533,12 +543,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		if(flowData == null){
 			flowData = new HashMap<>();
 		}
-		if(paramCondition != null && paramCondition.contains(ParamCondition.FormCurrentData.getValue())) {
-			flowData.putAll(data);
-		}else{
-			flowData.put("formId", formInstance.getFormId());
-			flowData.put("id", newId);
-		}
+		//启动流程带入表单数据
+        flowData.putAll(data);
+        flowData.put("formId", formInstance.getFormId());
+        flowData.put("id", newId);
+
 		//跳过第一个流程环节
 		flowData.put("PASS_THROW_FIRST_USERTASK", true);
 		System.out.println("传给工作流的数据=====>>>>>"+flowData);
@@ -866,6 +875,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					}
 				}
 			}
+			//唯一校验
+			Map<String, String> uniqueneItem = new HashMap<String, String>();
 			for (SubFormRowItemInstance instance : subFormDataItemInstance.getItems()) {
 				for (ItemInstance itemModelService : instance.getItems()) {
 					ItemModelEntity itemModel = itemModelManager.get(itemModelService.getId());
@@ -877,8 +888,18 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 						ColumnModelEntity column = itemModel.getColumnModel();
 						String columnName = column.getPrefix() == null ? column.getColumnName() : column.getPrefix()+column.getColumnName();
 						List<String> list = listByTableName(itemModelService.getType(), tableName, columnName, itemModelService.getValue());
+						String itemKey = itemModel.getId()+"_"+itemModel.getName();
 						if(list != null && list.size() > 0) {
-							stringListMap.put(itemModel.getId()+"_"+itemModel.getName(), list);
+							stringListMap.put(itemKey, list);
+						}
+						String  uniqueneItemValue = uniqueneItem.get(itemKey);
+						if(itemModelService.getValue() != null && StringUtils.hasText(String.valueOf(itemModelService.getValue()))){
+							if( uniqueneItemValue != null &&  uniqueneItemValue.equals(String.valueOf(itemModelService.getValue()))) {
+								throw new IFormException(itemModel.getName() + "必须唯一");
+							}else{
+								uniqueneItemValue = String.valueOf(itemModelService.getValue());
+							}
+							uniqueneItem.put(itemKey, uniqueneItemValue);
 						}
 					}
 					if(itemModel instanceof ReferenceItemModelEntity && itemModel.getType() != ItemType.ReferenceLabel){
