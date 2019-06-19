@@ -1641,7 +1641,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	 * @param entity 控件实体
 	 */
 	private void setReferenceInnerItemModel(ItemModel itemModel, ReferenceInnerItemModelEntity entity) {
-		entity.setReferenceItemUuid(itemModel.getItemUuids());
+		entity.setReferenceItemUuid(itemModel.getReferenceItemUuid());
 		String refenceItemId = itemModelService.findUniqueByProperty("uuid", entity.getReferenceItemUuid()).getId();
 		String refenceOutsideItemId;
 		if (StringUtils.hasText(entity.getReferenceOutsideItemUuid())){
