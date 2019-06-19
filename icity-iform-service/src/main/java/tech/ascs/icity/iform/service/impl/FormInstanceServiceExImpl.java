@@ -10,6 +10,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import com.alibaba.fastjson.JSON;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.hibernate.Criteria;
@@ -471,7 +473,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		String paramCondition = verifyDataRequired(assignmentList, formInstance, formModelEntity, DisplayTimingType.Add);
 		Session session = null;
 		String newId = null;
-		Map<String, Object> data = new HashMap<String, Object>();
+		Map<String, Object> data = new HashMap();
 		try {
 			session = getSession(dataModel);
 			session.beginTransaction();
@@ -530,15 +532,14 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				listFunctions.put(listFunction.getFunctionType().getValue(), listFunction);
 			}
 		}
-		if(listFunctions == null || !listFunctions.keySet().contains(ListFunctionType.StartProcess)){
-			//TODO 需要有启动流程
+		if(listFunctions == null || !listFunctions.keySet().contains(ListFunctionType.StartProcess.getValue())){
 			return;
 		}
 		ListFunction listFunction = listFunctions.get(ListFunctionType.StartProcess.getValue());
-		if(listFunction != null && !listFunction.isVisible()){
-			//TODO 需要有启动流程
-			return;
-		}
+//		if(listFunction != null){
+//			//TODO 需要有启动流程
+//			return;
+//		}
 		Map<String, Object> flowData = formInstance.getFlowData();
 		if(flowData == null){
 			flowData = new HashMap<>();
@@ -550,7 +551,12 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 		//跳过第一个流程环节
 		flowData.put("PASS_THROW_FIRST_USERTASK", true);
-		System.out.println("传给工作流的数据=====>>>>>"+flowData);
+		try {
+			ObjectMapper mapper = new ObjectMapper();
+			System.out.println("传给工作流的数据=====>>>>>"+mapper.writeValueAsString(flowData));
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		}
 		String processInstanceId = processInstanceService.startProcess(formModel.getProcess().getKey(), newId, flowData);
 		updateProcessInfo(assignmentList, formModel, data, processInstanceId);
 	}
