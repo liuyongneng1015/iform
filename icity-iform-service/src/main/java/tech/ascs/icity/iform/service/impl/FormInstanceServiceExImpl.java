@@ -543,12 +543,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		if(flowData == null){
 			flowData = new HashMap<>();
 		}
-		if(paramCondition != null && paramCondition.contains(ParamCondition.FormCurrentData.getValue())) {
-			flowData.putAll(data);
-		}else{
-			flowData.put("formId", formInstance.getFormId());
-			flowData.put("id", newId);
-		}
+		//启动流程带入表单数据
+        flowData.putAll(data);
+        flowData.put("formId", formInstance.getFormId());
+        flowData.put("id", newId);
+
 		//跳过第一个流程环节
 		flowData.put("PASS_THROW_FIRST_USERTASK", true);
 		System.out.println("传给工作流的数据=====>>>>>"+flowData);
