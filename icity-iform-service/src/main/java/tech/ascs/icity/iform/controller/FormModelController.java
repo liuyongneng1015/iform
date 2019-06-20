@@ -469,7 +469,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			}
 		}
 		List<FormModelEntity> formModelEntityList = formModels.parallelStream().sorted(Comparator.comparing(FormModelEntity::getId).reversed()).collect(Collectors.toList());
-        return getApplicationModels(formModelEntityList, applicationId, false, null);
+        return getApplicationModels(formModelEntityList, applicationId, true, null);
 	}
 
     @Override
