@@ -502,7 +502,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			data.put("id", newId);
 			// 启动流程
 			if (formModel.getProcess() != null && formModel.getProcess().getKey() != null) {
-				startProces(assignmentList, paramCondition,formInstance, data,  formModel,  newId);
+				startProces(assignmentList, paramCondition, formInstance, data,  formModel,  newId);
 			}
 
 			session.getTransaction().commit();
@@ -524,7 +524,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		return newId;
 	}
 
-	//启动流程
+	// 启动流程，工作流要取出字典表ID对应的数据，不是字典表的ID
 	private void startProces(List<Map<String, Object>> assignmentList, String paramCondition, FormDataSaveInstance formInstance, Map<String, Object> data, FormModelEntity formModel, String newId){
 		Map<String, ListFunction> listFunctions = new HashMap<>();
 		for(ListFunction listFunction : formModel.getFunctions()){
@@ -535,30 +535,77 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		if(listFunctions == null || !listFunctions.keySet().contains(ListFunctionType.StartProcess.getValue())){
 			return;
 		}
-		ListFunction listFunction = listFunctions.get(ListFunctionType.StartProcess.getValue());
-		if(!listFunction.isVisible()){
-			//TODO 需要有启动流程
-			return;
-		}
+
 		Map<String, Object> flowData = formInstance.getFlowData();
 		if(flowData == null){
 			flowData = new HashMap<>();
 		}
+		flowData.putAll(data);
+
 		//启动流程带入表单数据
-        flowData.putAll(data);
         flowData.put("formId", formInstance.getFormId());
         flowData.put("id", newId);
 
 		//跳过第一个流程环节
 		flowData.put("PASS_THROW_FIRST_USERTASK", true);
-		try {
-			ObjectMapper mapper = new ObjectMapper();
-			System.out.println("传给工作流的数据=====>>>>>"+mapper.writeValueAsString(flowData));
-		} catch (JsonProcessingException e) {
-			e.printStackTrace();
-		}
+
+		toProcesDictionaryData(flowData, formModel);
+
+		System.out.println("传给工作流的数据=====>>>>>"+flowData);
 		String processInstanceId = processInstanceService.startProcess(formModel.getProcess().getKey(), newId, flowData);
 		updateProcessInfo(assignmentList, formModel, data, processInstanceId);
+	}
+
+	// 把字典表的数据转成对应的值传给工作流
+	private Map<String, Object> toProcesDictionaryData(Map<String, Object> flowData, FormModelEntity formModel) {
+		Map<String, Object> returnMap = new HashMap(flowData);
+		Map<String, ItemModelEntity> columnNameAndItemModelMap = new HashMap<>();
+		List<ItemModelEntity> list = formModel.getItems();
+		for (ItemModelEntity itemModel:list) {
+			ColumnModelEntity columnModel = itemModel.getColumnModel();
+			if (columnModel!=null) {
+				columnNameAndItemModelMap.put(columnModel.getColumnName(), itemModel);
+			}
+		}
+		for (String key:flowData.keySet()) {
+			ItemModelEntity itemModel = columnNameAndItemModelMap.get(key);
+			Object value = flowData.get(key);
+			if (itemModel!=null && value!=null) {
+				if (itemModel instanceof SelectItemModelEntity) {
+					SelectItemModelEntity selectItemModel = (SelectItemModelEntity)itemModel;
+					if (selectItemModel.getMultiple()==false) {
+						String valueStr = value.toString();
+                        SelectReferenceType selectReferenceType = selectItemModel.getSelectReferenceType();
+                        if (SelectReferenceType.Fixed==selectReferenceType) {
+                            List<ItemSelectOption> options = selectItemModel.getOptions();
+                            if (options==null) {
+                                continue;
+                            }
+							Optional<ItemSelectOption> optional = options.stream().filter(item->item.getId().equals(valueStr)).findFirst();
+                            if (optional.isPresent()) {
+								returnMap.put(key, optional.get().getLabel());
+								returnMap.put(key + "_id", optional.get().getId());
+								returnMap.put(key + "_name", optional.get().getValue());
+							}
+                        } else if (SelectReferenceType.Dictionary==selectReferenceType) {
+							if (selectItemModel.getSelectDataSourceType() == SelectDataSourceType.DictionaryData) {
+								DictionaryDataItemEntity dictionaryDataItemEntity = dictionaryDataService.getDictionaryItemById(valueStr);
+								returnMap.put(key, dictionaryDataItemEntity.getCode());
+								returnMap.put(key + "_id", dictionaryDataItemEntity.getId());
+								returnMap.put(key + "_name", dictionaryDataItemEntity.getName());
+							} else if (selectItemModel.getSelectDataSourceType() == SelectDataSourceType.DictionaryModel) {
+								String referenceDictionaryId = selectItemModel.getReferenceDictionaryId();
+								DictionaryModelData dictionaryModelData = dictionaryModelService.getDictionaryModelDataById(referenceDictionaryId, valueStr);
+								returnMap.put(key, dictionaryModelData.getCode());
+								returnMap.put(key + "_id", dictionaryModelData.getId());
+								returnMap.put(key + "_name", dictionaryModelData.getName());
+							}
+						}
+					}
+				}
+			}
+		}
+		return returnMap;
 	}
 
 	private void sendWebService(FormModelEntity formModelEntity, BusinessTriggerType triggerType,  Map<String, Object> data, String id){
