@@ -184,7 +184,13 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			e.printStackTrace();
 			throw new IFormException("查询数据失败了");
 		}
-		Map<String, ProcessInstance> instanceIdAndProcessMap = pageProcess.getResults().stream().collect(Collectors.toMap(ProcessInstance::getFormInstanceId, processInstance -> processInstance));
+		Map<String, ProcessInstance> instanceIdAndProcessMap = new HashMap<>();
+		for(ProcessInstance processInstance : pageProcess.getResults()) {
+			if(StringUtils.hasText(processInstance.getFormInstanceId())) {
+				instanceIdAndProcessMap.put(processInstance.getFormInstanceId(), processInstance);
+			}
+		}
+
 		String[] formInstanceIds = pageProcess.getResults().stream().map(item->item.getFormInstanceId()).toArray(String[]::new);
 		if (formInstanceIds!=null && formInstanceIds.length>0) {
 			Optional<ItemModelEntity> idItemOption = formModelEntity.getItems().stream().filter(item->SystemItemType.ID == item.getSystemItemType()).findFirst();

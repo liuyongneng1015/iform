@@ -2581,9 +2581,11 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		String referenceFormId = ((ReferenceItemModelEntity) entity).getReferenceFormId();
 		if(referenceFormId != null){
 			FormModelEntity formModelEntity = formModelService.find(referenceFormId);
-			itemModel.setReferenceFormName(formModelEntity == null ? null : formModelEntity.getName());
-			if(formModelEntity.getDataModels() != null && formModelEntity.getDataModels().size() > 0) {
-				itemModel.setTableName(formModelEntity.getDataModels().get(0).getTableName());
+			if(formModelEntity != null){
+				itemModel.setReferenceFormName(formModelEntity.getName());
+				if(formModelEntity.getDataModels() != null && formModelEntity.getDataModels().size() > 0) {
+					itemModel.setTableName(formModelEntity.getDataModels().get(0).getTableName());
+				}
 			}
 		}
 		if(isAnalysisItem) {

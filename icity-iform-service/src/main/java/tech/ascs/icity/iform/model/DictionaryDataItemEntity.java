@@ -92,6 +92,9 @@ public class DictionaryDataItemEntity extends BaseEntity implements Codeable {
 	}
 
 	public Integer getOrderNo() {
+		if(orderNo == null){
+			orderNo = 0;
+		}
 		return orderNo;
 	}
 
