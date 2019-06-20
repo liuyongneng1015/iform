@@ -536,10 +536,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			return;
 		}
 		ListFunction listFunction = listFunctions.get(ListFunctionType.StartProcess.getValue());
-//		if(listFunction != null){
-//			//TODO 需要有启动流程
-//			return;
-//		}
+		if(!listFunction.isVisible()){
+			//TODO 需要有启动流程
+			return;
+		}
 		Map<String, Object> flowData = formInstance.getFlowData();
 		if(flowData == null){
 			flowData = new HashMap<>();
