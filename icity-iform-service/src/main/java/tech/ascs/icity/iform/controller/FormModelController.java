@@ -469,7 +469,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			}
 		}
 		List<FormModelEntity> formModelEntityList = formModels.parallelStream().sorted(Comparator.comparing(FormModelEntity::getId).reversed()).collect(Collectors.toList());
-        return getApplicationModels(formModelEntityList, applicationId, true, null);
+        return getApplicationModels(formModelEntityList, applicationId, false, null);
 	}
 
     @Override
@@ -501,6 +501,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
     }
 
     private void setFormModel(FormModelEntity entity, List<FormModel> formModelList, Map<String, List<FormModel>> map, boolean isNeedDataModel){
+		if(!StringUtils.hasText(entity.getApplicationId())){
+			return;
+		}
 		FormModel formModel = new FormModel();
 		BeanUtils.copyProperties(entity, formModel, new String[] {"items","dataModels","permissions","submitChecks","functions", "triggeres"});
 		if(entity.getDataModels() != null && isNeedDataModel){
@@ -515,9 +518,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 		formModelList.add(formModel);
 
-		if(!StringUtils.hasText(entity.getApplicationId())){
-			return;
-		}
 		List<FormModel> list = map.get(entity.getApplicationId());
 		if(list == null){
 			list = new ArrayList<>();
@@ -1538,20 +1538,24 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			if (defaultValues.size()>0) {
 				List<TreeSelectData> result = formInstanceServiceEx.getTreeSelectData(itemModel.getDataSource(), defaultValues.toArray(new String[]{}));
 				if (result == null || result.size() != defaultValues.size()) {
-					throw new ICityException("树形下拉框的默认值与数据源设置的类型不一致");
+					entity.setDefaultValue(null);
+					//throw new ICityException("树形下拉框的默认值与数据源设置的类型不一致");
+				}else {
+					entity.setDefaultValue(String.join(",", defaultValues));
 				}
-				entity.setDefaultValue(String.join(",", defaultValues));
 			} else {
-				entity.setDefaultValue("");
+				entity.setDefaultValue(null);
 			}
 		}else if (defaultValue!=null && defaultValue instanceof String && !StringUtils.isEmpty(defaultValue)) {
 			List<TreeSelectData> result = formInstanceServiceEx.getTreeSelectData(itemModel.getDataSource(),  new String[] {(String)defaultValue});
-			if (result==null || result.size()!=1) {
-				throw new ICityException("树形下拉框的默认值与数据源设置的类型不一致");
+			if (result == null || result.size() < 1) {
+				entity.setDefaultValue(null);
+				//throw new ICityException("树形下拉框的默认值与数据源设置的类型不一致");
+			}else {
+				entity.setDefaultValue(itemModel.getDefaultValue().toString());
 			}
-			entity.setDefaultValue(itemModel.getDefaultValue().toString());
 		}else{
-			entity.setDefaultValue("");
+			entity.setDefaultValue(null);
 		}
 	}
 
