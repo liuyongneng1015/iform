@@ -23,7 +23,7 @@ eureka:
       defaultZone: http://192.168.4.151:8761/eureka/
 
 spring.datasource:
-  url: jdbc:postgresql://127.0.0.1:5432/icity
+  url: jdbc:postgresql://192.168.4.151:5432/icity
   username: root
   password: icityDB2018!@#
   driver-class-name: org.postgresql.Driver
