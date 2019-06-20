@@ -10,6 +10,7 @@ import tech.ascs.icity.iform.api.model.ItemType;
 import tech.ascs.icity.iform.api.model.SelectMode;
 import tech.ascs.icity.iform.api.model.SystemItemType;
 import tech.ascs.icity.iform.model.*;
+import tech.ascs.icity.iform.service.FormModelService;
 
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
 public final class InnerItemUtils implements ApplicationContextAware {
 
     private static JdbcTemplate jdbcTemplate;
+    private static FormModelService formModelService;
 
     public static List<Map<String, Object>> findInnerDataInfo(DataModelEntity outsideModel, ItemModelEntity outsideItem, ItemModelEntity displayItem, Object matchValue) {
         return jdbcTemplate.queryForList(String.format("SELECT %s FROM %s WHERE %s = ?", displayItem.getColumnModel().getColumnName(), outsideModel.getTableName(), outsideItem.getColumnModel().getColumnName()), matchValue);
@@ -59,7 +61,11 @@ public final class InnerItemUtils implements ApplicationContextAware {
         // 外部的显示控件 TODO 涉及可能是一个关联控件
         ItemModelEntity displayItem = itemFindFunction.apply(displayItemId);
         // select displayItem from outsideDataModel where outsideItem = innerValue
-        List<Map<String, Object>> innerMap = InnerItemUtils.findInnerDataInfo(outsideItem.getFormModel().getDataModels().get(0), outsideItem, displayItem, innerValue);
+        DataModelEntity dataModel = Optional.ofNullable(outsideItem.getFormModel())
+                .map(FormModelEntity::getDataModels)
+                .map(dataModels -> dataModels.get(0))
+                .orElseGet(() -> outsideItem.getColumnModel().getDataModel());
+        List<Map<String, Object>> innerMap = InnerItemUtils.findInnerDataInfo(dataModel, outsideItem, displayItem, innerValue);
         return innerMap
                 .stream()
                 .flatMap(map -> map.values().stream())
@@ -71,6 +77,7 @@ public final class InnerItemUtils implements ApplicationContextAware {
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         jdbcTemplate = applicationContext.getBean(JdbcTemplate.class);
+        formModelService = applicationContext.getBean(FormModelService.class);
     }
 
     public interface InnerItemHandler<T extends ItemModelEntity> {
