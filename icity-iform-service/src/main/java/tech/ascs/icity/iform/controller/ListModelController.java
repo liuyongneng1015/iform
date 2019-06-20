@@ -94,6 +94,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 
 	// 新增列表的时候，自动创建新增、批量删除，为系统自带功能
 	private DefaultFunctionType[] functionDefaultActions = {DefaultFunctionType.Add, DefaultFunctionType.BatchDelete};
+	private String[] parseAreas = { ParseArea.PC.value()+","+ParseArea.APP.value(), null };
 	private String[] functionDefaultIcons = new String[]{null, "icon-xuanzhong"};
 	private String[] functionDefaultMethods = new String[]{"POST", "DELETE"};
 	private Boolean[] functionVisibles = {true, true};
@@ -121,7 +122,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				function.setAction(functionDefaultActions[i].getValue());
 				function.setLabel(functionDefaultActions[i].getDesc());
 				function.setMethod(functionDefaultMethods[i]);
-                function.setParseArea(ParseArea.PC.value());
+                function.setParseArea(parseAreas[i]);
 				function.setReturnResult(ReturnResult.NONE);
                 function.setVisible(functionVisibles[i]);
                 function.setIcon(functionDefaultIcons[i]);
