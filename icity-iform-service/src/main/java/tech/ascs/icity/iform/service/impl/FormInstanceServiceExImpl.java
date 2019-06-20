@@ -811,10 +811,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 		if(paramCondition != null && paramCondition.contains(ParamCondition.FormCurrentData.getValue())) {
 			flowData.putAll(data);
-		}else{
-			flowData.put("formId", formInstance.getFormId());
-			flowData.put("id", formInstance.getId());
 		}
+		flowData.put("formId", formInstance.getFormId());
+		flowData.put("id", formInstance.getId());
 		taskService.completeTask(formInstance.getActivityInstanceId(), flowData);
 		updateProcessInfo(assignmentList, formModel, data, formInstance.getProcessInstanceId());
 	}
@@ -1599,7 +1598,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	private void setColumnValue(List<Map<String, Object>> assignmentList, Map<String, Object> entity, TaskInstance taskInstance){
 		for(Map<String, Object> map : assignmentList){
 			String id = (String)map.get("id");
-			if(id == null || map.get("id")!=null){
+			if(id == null || map.get("id") == null){
 				continue;
 			}
 			ItemModelEntity itemModelEntity = itemModelManager.get(id);
