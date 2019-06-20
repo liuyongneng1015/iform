@@ -49,7 +49,7 @@ public class FormFunctionsServiceImpl extends DefaultJPAService<ListFunction> im
 	private String[] functionDefaultIcons = new String[]{"icon-xuanzhong1", "icon-xuanzhong", "icon-erweima", null};
 	private String[] functionDefaultMethods = new String[]{"PUT", "DELETE", "GET", null};
 	private Boolean[] functionVisibles = {true, true, false, false};
-	private ParseArea[] functionParseAreas = {ParseArea.pcList, ParseArea.pcList};
+	private ParseArea[] functionParseAreas = {ParseArea.pcList, ParseArea.pcList, null, null};
 	@Override
 	public void createDefaultFormFunctions(FormModelEntity formModelEntity) {
 		// 表单创建时，默认创建的权限码：编辑，删除，二维码，暂存

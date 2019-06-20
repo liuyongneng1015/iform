@@ -469,7 +469,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			}
 		}
 		List<FormModelEntity> formModelEntityList = formModels.parallelStream().sorted(Comparator.comparing(FormModelEntity::getId).reversed()).collect(Collectors.toList());
-        return getApplicationModels(formModelEntityList, applicationId, true, null);
+        return getApplicationModels(formModelEntityList, applicationId, false, null);
 	}
 
     @Override
@@ -501,6 +501,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
     }
 
     private void setFormModel(FormModelEntity entity, List<FormModel> formModelList, Map<String, List<FormModel>> map, boolean isNeedDataModel){
+		if(!StringUtils.hasText(entity.getApplicationId())){
+			return;
+		}
 		FormModel formModel = new FormModel();
 		BeanUtils.copyProperties(entity, formModel, new String[] {"items","dataModels","permissions","submitChecks","functions", "triggeres"});
 		if(entity.getDataModels() != null && isNeedDataModel){
@@ -515,9 +518,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 		formModelList.add(formModel);
 
-		if(!StringUtils.hasText(entity.getApplicationId())){
-			return;
-		}
 		List<FormModel> list = map.get(entity.getApplicationId());
 		if(list == null){
 			list = new ArrayList<>();
