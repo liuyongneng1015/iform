@@ -38,6 +38,9 @@ icity:
     qrcode:
       base-url: http://192.168.4.152:8089
       name: 航天智慧cityworks
+  dictionary:
+    areaCode:
+      id: dictionary-areaCode-id
 
 spring.redis:
   database: 0
