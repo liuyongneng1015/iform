@@ -68,6 +68,10 @@ public class ListModelEntity extends BaseEntity implements Serializable {
 	@Column(columnDefinition="text")
 	private String appListTemplate;
 
+	// 门户列表样式展示模板
+	@Column(columnDefinition="text")
+	private String protalListTemplate;
+
 	@Enumerated(EnumType.STRING)
 	private DataPermissionsType dataPermissions;
 
@@ -173,6 +177,14 @@ public class ListModelEntity extends BaseEntity implements Serializable {
 
 	public void setAppListTemplate(String appListTemplate) {
 		this.appListTemplate = appListTemplate;
+	}
+
+	public String getProtalListTemplate() {
+		return protalListTemplate;
+	}
+
+	public void setProtalListTemplate(String protalListTemplate) {
+		this.protalListTemplate = protalListTemplate;
 	}
 
 	public DataPermissionsType getDataPermissions() {
