@@ -262,8 +262,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		}
 		ItemInstance processStatusItemInstance = null;
 		for(ItemInstance instance : formInstance.getItems()){
-			if(instance.getSystemItemType() == SystemItemType.ProcessStatus
-				|| instance.getSystemItemType() == SystemItemType.ProcessPrivateStatus){
+			if(instance.getSystemItemType() == SystemItemType.ProcessStatus){
 				processStatusItemInstance = instance;
 			}
 		}
