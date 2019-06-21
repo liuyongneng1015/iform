@@ -2445,6 +2445,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					subFormItems, items, formInstance);
 		}
 
+		//表单数据标识id集合
 		List<String> labelIdList = null;
 		if(StringUtils.hasText(formModel.getItemModelIds())){
 			labelIdList = new ArrayList<>();
@@ -2457,28 +2458,19 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		List<String> displayIds = new ArrayList<>();
 		if (!isQrCodeFlag && listModelEntity != null) {
 			displayIds = listModelEntity.getDisplayItems().parallelStream().map(ItemModelEntity::getId).collect(Collectors.toList());
-		}else if(isQrCodeFlag && formModel.getQrCodeItemModelIds() != null){
+		}else	if(isQrCodeFlag && formModel.getQrCodeItemModelIds() != null){
 			displayIds = Arrays.asList(formModel.getQrCodeItemModelIds().split(","));
+		}else{
+			displayIds = items.parallelStream().map(ItemInstance::getId).collect(Collectors.toList());
 		}
-		List<String> copyDisplayIds = displayIds.stream().collect(Collectors.toList());
-		//所以的字段
-		List<String> itemIds = items.parallelStream().map(ItemInstance::getId).collect(Collectors.toList());
-		List<String> copyItemIds = new ArrayList<>();
-		for(String string : itemIds){
-			copyItemIds.add(string);
-		}
-		//不展示的字段
-		itemIds.removeAll(displayIds);
 
-
-        List<ItemInstance> newDisplayItems = new ArrayList<>();
-
+		//所有显示的控件实例
+        List<ItemInstance> newAllDisplayItems = new ArrayList<>();
 		for(ItemInstance itemInstance : items){
-            newDisplayItems.add(itemInstance);
+            newAllDisplayItems.add(itemInstance);
 		}
 
-		copyDisplayIds.removeAll(copyItemIds);
-
+		//主键id值
 		Object idVlaue = null;
 		for(int i = 0; i < items.size(); i++ ){
 			ItemInstance itemInstance = items.get(i);
@@ -2486,9 +2478,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				idVlaue = itemInstance.getValue();
 			}
 		}
+
 		// referenceDataModelList的数据对应的是关联表单的数据标识的item的数据
 		for (ReferenceDataInstance referenceDataInstance : referenceDataModelList) {
-			if(copyDisplayIds.contains(referenceDataInstance.getId())){
+			if(displayIds.contains(referenceDataInstance.getId())){
 				ItemModelEntity itemModelEntity = itemModelManager.get(referenceDataInstance.getId());
 				ItemInstance itemInstance = new ItemInstance();
 				itemInstance.setSystemItemType(itemModelEntity == null ? SystemItemType.ReferenceList : itemModelEntity.getSystemItemType());
@@ -2496,13 +2489,14 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				itemInstance.setId(referenceDataInstance.getId());
 				itemInstance.setValue(referenceDataInstance.getValue());
 				itemInstance.setDisplayValue(referenceDataInstance.getDisplayValue());
-				newDisplayItems.add(itemInstance);
+				newAllDisplayItems.add(itemInstance);
 			}
 		}
 
+		//显示的数据标识label
 		if(labelIdList != null) {
 			Map<String, ItemInstance> labelItemMap = new HashMap<>();
-			for(ItemInstance itemInstance : newDisplayItems) {
+			for(ItemInstance itemInstance : newAllDisplayItems) {
 				if (labelIdList.contains(itemInstance.getId())) {
 					labelItemMap.put(itemInstance.getId(), itemInstance);
 				}
@@ -2510,7 +2504,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			formInstance.setLabel(getLabel(labelIdList, labelItemMap));
 		}
 
-		formInstance.getItems().addAll(newDisplayItems);
+		formInstance.getItems().addAll(newAllDisplayItems);
 
 
 		//二维码只有一张图
@@ -2522,10 +2516,13 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				formInstance.setFileUploadModel(fileUploadModel);
 			}
 		}
+
+		//控件实例转data map
 		Map<String, Object> map = new HashMap<>();
 		setItemInstanceMap(map, formInstance.getItems());
 		formInstance.addAllData(map);
 
+		//子表数据
 		for(SubFormItemInstance subFormItemInstance : formInstance.getSubFormData()) {
 			formInstance.addData(subFormItemInstance.getTableName(), listValue(subFormItemInstance));
 		}
