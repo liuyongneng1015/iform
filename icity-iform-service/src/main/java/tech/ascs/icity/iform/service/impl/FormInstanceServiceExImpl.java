@@ -120,6 +120,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	public	FormInstanceServiceExImpl() {
 		super(FormModelEntity.class);
+		InnerItemUtils.setReferenceDataHandler(this::createDataModelInstance);
 	}
 	@Override
 	protected void initManager() {
@@ -2885,6 +2886,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 		map.put(key,flag);
 		return map;
+	}
+
+	private ReferenceDataInstance createDataModelInstance(ReferenceItemModelEntity fromItem, FormModelEntity toModelEntity, String id, List<String> itemIds) {
+		return createDataModelInstance(false, fromItem, toModelEntity, id, itemIds, false);
 	}
 
 	private ReferenceDataInstance createDataModelInstance(boolean isQrCodeFlag, ReferenceItemModelEntity fromItem, FormModelEntity toModelEntity, String id, List<String> stringList, boolean referenceFlag){
