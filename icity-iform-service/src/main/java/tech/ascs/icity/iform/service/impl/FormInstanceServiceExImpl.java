@@ -556,7 +556,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		updateProcessInfo(assignmentList, formModel, data, processInstanceId);
 	}
 
-	// 把字典表的数据转成对应的值传给工作流
+	// 把主表字典表的数据转成对应的值传给工作流
 	private Map<String, Object> toProcesDictionaryData(Map<String, Object> flowData, FormModelEntity formModel) {
 		Map<String, Object> returnMap = new HashMap(flowData);
 		Map<String, ItemModelEntity> columnNameAndItemModelMap = new HashMap<>();
@@ -763,7 +763,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				throw e;
 			}
 			throw new IFormException("保存【" + dataModel.getTableName() + "】表，id【"+instanceId+"】的数据失败");
-		}finally {
+		} finally {
 			if(session != null){
 				session.close();
 			}
@@ -861,6 +861,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 		flowData.put("formId", formInstance.getFormId());
 		flowData.put("id", formInstance.getId());
+		flowData = toProcesDictionaryData(flowData, formModel);
 		taskService.completeTask(formInstance.getActivityInstanceId(), flowData);
 		updateProcessInfo(assignmentList, formModel, data, formInstance.getProcessInstanceId());
 	}
