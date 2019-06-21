@@ -556,7 +556,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		updateProcessInfo(assignmentList, formModel, data, processInstanceId);
 	}
 
-	// 把主表字典表的数据转成对应的值传给工作流
+	// 把主表单选控件的字典表的数据封装好对应的ID，name，code值，传给工作流
 	private Map<String, Object> toProcesDictionaryData(Map<String, Object> flowData, FormModelEntity formModel) {
 		Map<String, Object> returnMap = new HashMap(flowData);
 		Map<String, ItemModelEntity> columnNameAndItemModelMap = new HashMap<>();

@@ -78,9 +78,12 @@ public class ListModel extends NameEntity {
 	@ApiModelProperty(value ="APP列表展示模板", position = 14)
 	private String appListTemplate;
 
-	@ApiModelProperty(value="关联关系控件集合",position = 10)
+	@ApiModelProperty(value="关联关系控件集合",position = 15)
 	@JsonInclude(JsonInclude.Include.NON_EMPTY)
 	private List<ItemModel> relevanceItemModelList = new ArrayList();
+
+	@ApiModelProperty(value="门户列表模板",position = 16)
+	private String protalListTemplate;
 
 	public String getUniqueCode() {
 		return uniqueCode;
@@ -200,6 +203,14 @@ public class ListModel extends NameEntity {
 
 	public void setRelevanceItemModelList(List<ItemModel> relevanceItemModelList) {
 		this.relevanceItemModelList = relevanceItemModelList;
+	}
+
+	public String getProtalListTemplate() {
+		return protalListTemplate;
+	}
+
+	public void setProtalListTemplate(String protalListTemplate) {
+		this.protalListTemplate = protalListTemplate;
 	}
 
 	@Override
