@@ -9,6 +9,7 @@ import org.springframework.beans.BeanUtils;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.DictionaryDataItemModel;
 import tech.ascs.icity.iform.api.model.DictionaryDataModel;
+import tech.ascs.icity.iform.model.AreaCodeEntity;
 import tech.ascs.icity.iform.model.DictionaryDataEntity;
 import tech.ascs.icity.iform.model.DictionaryDataItemEntity;
 import tech.ascs.icity.iform.service.DictionaryDataService;
@@ -21,6 +22,7 @@ import javax.validation.constraints.NotNull;
 public class DictionaryDataServiceImpl extends DefaultJPAService<DictionaryDataEntity> implements DictionaryDataService {
 
 	private JPAManager<DictionaryDataItemEntity> dictionaryItemManager;
+	private JPAManager<AreaCodeEntity> areaCodeEntityManager;
 
 	public DictionaryDataServiceImpl() {
 		super(DictionaryDataEntity.class);
@@ -30,6 +32,7 @@ public class DictionaryDataServiceImpl extends DefaultJPAService<DictionaryDataE
 	protected void initManager() {
 		super.initManager();
 		dictionaryItemManager = getJPAManagerFactory().getJPAManager(DictionaryDataItemEntity.class);
+		areaCodeEntityManager = getJPAManagerFactory().getJPAManager(AreaCodeEntity.class);
 	}
 
 	@Override
