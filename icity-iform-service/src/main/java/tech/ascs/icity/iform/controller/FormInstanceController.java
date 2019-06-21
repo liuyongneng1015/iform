@@ -426,6 +426,16 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		return formInstanceService.pageFormInstance(formModel, page, pagesize, queryParameters);
 	}
 
+	@Override
+	public List<FormDataSaveInstance> queryformData(@PathVariable(name="formId") String formId, @RequestParam Map<String, Object> parameters) {
+		FormModelEntity formModel = formModelService.find(formId);
+		if (formModel == null) {
+			return null;
+		}
+		Page<FormDataSaveInstance> page = formInstanceService.pageFormInstance(formModel, 1, Integer.MAX_VALUE, parameters);
+		return page.getResults();
+	}
+
 	public Map<String, Object> assemblyQueryParameters(@RequestParam Map<String, Object> parameters) {
 		Map<String, Object> queryParameters = new HashMap<>();
 		for (Map.Entry<String, Object> entry:parameters.entrySet()) {
