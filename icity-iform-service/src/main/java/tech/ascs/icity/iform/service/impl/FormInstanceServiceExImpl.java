@@ -3485,7 +3485,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	public List<String> setSelectItemDisplayValue(ItemInstance itemInstance, SelectItemModelEntity selectItemModelEntity, List<String> list){
 		if(list == null || list.size() < 1){
-			return null;
+			return new ArrayList();
 		}
 		List<String> displayValuelist = new ArrayList<>();
 		List<Object> displayObjectList = new ArrayList<>();
