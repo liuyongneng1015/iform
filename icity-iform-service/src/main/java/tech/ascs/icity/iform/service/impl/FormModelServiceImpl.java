@@ -1228,7 +1228,8 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			entity = new ReferenceItemModelEntity();
 		}else if(systemItemType == SystemItemType.CreateDate){
 			entity = new TimeItemModelEntity();
-		}else if(systemItemType == SystemItemType.ProcessStatus){
+		}else if(systemItemType == SystemItemType.ProcessStatus
+				|| systemItemType == SystemItemType.ProcessPrivateStatus){
 			entity = new ProcessStatusItemModelEntity();
 		}
 		return entity;

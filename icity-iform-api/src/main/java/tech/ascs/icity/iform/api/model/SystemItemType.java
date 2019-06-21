@@ -88,8 +88,11 @@ public enum SystemItemType {
 	/** 流程日志 */
 	ProcessLog("ProcessLog"),
 
-	/** 流程状态 */
-	ProcessStatus("ProcessStatus");
+	/** 流程事件状态 */
+	ProcessStatus("ProcessStatus"),
+
+	/** 流程个人状态 */
+	ProcessPrivateStatus("ProcessPrivateStatus");
 
 	private String value;
 	private SystemItemType(String value) {

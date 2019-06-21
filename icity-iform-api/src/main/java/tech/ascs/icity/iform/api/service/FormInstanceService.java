@@ -125,7 +125,23 @@ public interface FormInstanceService {
 				@RequestParam(name="pagesize", defaultValue = "10") int pagesize,
 				@RequestParam Map<String, Object> parameters);
 
-	/**
+
+    /**
+     * 通过表单ID和条件查询表单实例数据集合
+     *
+     * @param formId 表单模型ID
+     * @return
+     */
+    @ApiOperation(value = "通过表单ID和条件查询表单实例数据集合", notes = "附加查询条件（可选）：列表建模中的查询条件，以key=value的形式拼接到url，其中key为字段模型ID", position = 1)
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "path", name = "formId", value = "表单模型ID", required = true, dataType = "String"),
+            @ApiImplicitParam(paramType = "query", name = "parameters", value = "查询参数", required = false)
+    })
+    @GetMapping("/form/{formId}")
+    List<FormDataSaveInstance> queryformData(@PathVariable(name="formId") String formId, @RequestParam Map<String, Object> parameters);
+
+
+    /**
 	 * 获取表单实例分页数据
 	 *
 	 * @param tableName 表名

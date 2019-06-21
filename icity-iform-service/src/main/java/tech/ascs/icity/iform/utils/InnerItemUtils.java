@@ -5,17 +5,13 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-import tech.ascs.icity.iform.api.model.ItemInstance;
-import tech.ascs.icity.iform.api.model.ItemType;
-import tech.ascs.icity.iform.api.model.SelectMode;
-import tech.ascs.icity.iform.api.model.SystemItemType;
+import org.springframework.util.StringUtils;
+import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.model.*;
+import tech.ascs.icity.iform.service.FormInstanceServiceEx;
 import tech.ascs.icity.iform.service.FormModelService;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -30,9 +26,15 @@ public final class InnerItemUtils implements ApplicationContextAware {
 
     private static JdbcTemplate jdbcTemplate;
     private static FormModelService formModelService;
+    private static FormInstanceServiceEx formInstanceServiceEx;
+    private static ReferenceDataHandler REF_HANDLER = null;
+
+    public static void setReferenceDataHandler(ReferenceDataHandler referenceDataHandler) {
+        REF_HANDLER = referenceDataHandler;
+    }
 
     public static List<Map<String, Object>> findInnerDataInfo(DataModelEntity outsideModel, ItemModelEntity outsideItem, ItemModelEntity displayItem, Object matchValue) {
-        return jdbcTemplate.queryForList(String.format("SELECT %s FROM %s WHERE %s = ?", displayItem.getColumnModel().getColumnName(), outsideModel.getTableName(), outsideItem.getColumnModel().getColumnName()), matchValue);
+        return InnerDataInfoFactory.getInstance(displayItem).findInnerDataInfo(outsideModel, outsideItem, displayItem, matchValue);
     }
 
     /**
@@ -52,6 +54,7 @@ public final class InnerItemUtils implements ApplicationContextAware {
         instance.setCanFill(false);
         instance.setItemName(modelEntity.getName());
         instance.setProps(modelEntity.getProps());
+        instance.setId(modelEntity.getId());
         return instance;
     }
 
@@ -78,6 +81,7 @@ public final class InnerItemUtils implements ApplicationContextAware {
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         jdbcTemplate = applicationContext.getBean(JdbcTemplate.class);
         formModelService = applicationContext.getBean(FormModelService.class);
+        formInstanceServiceEx = applicationContext.getBean(FormInstanceServiceEx.class);
     }
 
     public interface InnerItemHandler<T extends ItemModelEntity> {
@@ -91,6 +95,14 @@ public final class InnerItemUtils implements ApplicationContextAware {
          * @return 返回内嵌关联属性的显示值
          */
         String findDisplayValue(ReferenceInnerItemModelEntity model, T innerItem, Function<String, ItemModelEntity> itemFindFunction, Map<String, Object> rowData);
+    }
+
+    private interface InnerDataInfoHandler {
+        List<Map<String, Object>> findInnerDataInfo(DataModelEntity outsideModel, ItemModelEntity outsideItem, ItemModelEntity displayItem, Object matchValue);
+    }
+
+    public interface ReferenceDataHandler {
+        ReferenceDataInstance createDataModelInstance(ReferenceItemModelEntity fromItem, FormModelEntity toModelEntity, String id, List<String> itemIds);
     }
 
     /**
@@ -155,5 +167,61 @@ public final class InnerItemUtils implements ApplicationContextAware {
                 .map(innerData -> InnerItemUtils.findInnerDisplayValue(model.getReferenceOutsideItemId(), model.getReferenceItemId(), itemFindFunction, innerData))
                 .orElse("");
 
+    }
+
+    private static class InnerDataInfoFactory {
+
+        private static final InnerDataInfoHandler DEFAULT = (outsideModel, outsideItem, displayItem, matchValue) -> jdbcTemplate.queryForList(String.format("SELECT %s FROM %s WHERE %s = ?", displayItem.getColumnModel().getColumnName(), outsideModel.getTableName(), outsideItem.getColumnModel().getColumnName()), matchValue);
+
+        private static final InnerDataInfoHandler SELECT = (outsideModel, outsideItem, displayItem, matchValue) -> {
+            List<String> selectIds = DEFAULT.findInnerDataInfo(outsideModel, outsideItem, displayItem, matchValue)
+                    .stream()
+                    .flatMap(map -> map.values().stream())
+                    .filter(Objects::nonNull)
+                    .map(Objects::toString)
+                    .collect(Collectors.toList());
+            String value = String.join(",", formInstanceServiceEx.setSelectItemDisplayValue(null, (SelectItemModelEntity) displayItem, selectIds));
+            Map<String, Object> result = new HashMap<>();
+            result.put("value", value);
+            return Collections.singletonList(result);
+        };
+
+        private static final InnerDataInfoHandler REFERENCE_LIST = (outsideModel, outsideItem, displayItem, matchValue) -> {
+            if (REF_HANDLER == null) {
+                return DEFAULT.findInnerDataInfo(outsideModel, outsideItem, displayItem, matchValue);
+            }
+            ReferenceItemModelEntity refDisplayItem = ((ReferenceItemModelEntity) displayItem);
+            FormModelEntity formModelEntity = formModelService.find(refDisplayItem.getReferenceFormId());
+            String ids = formModelEntity.getItemModelIds();
+            if (!StringUtils.hasText(ids)) {
+                return DEFAULT.findInnerDataInfo(outsideModel, outsideItem, displayItem, matchValue);
+            }
+
+            List<String> selectIds = DEFAULT.findInnerDataInfo(outsideModel, outsideItem, displayItem, matchValue)
+                    .stream()
+                    .flatMap(map -> map.values().stream())
+                    .filter(Objects::nonNull)
+                    .map(Objects::toString)
+                    .collect(Collectors.toList());
+
+            ReferenceDataInstance referenceDataInstance = REF_HANDLER.createDataModelInstance(refDisplayItem, formModelEntity, selectIds.get(0), Arrays.asList(ids.split(",")));
+
+            Map<String, Object> result = new HashMap<>();
+            result.put("value", referenceDataInstance.getDisplayValue());
+            return Collections.singletonList(result);
+
+        };
+
+        public static InnerDataInfoHandler getInstance(ItemModelEntity displayItem) {
+            System.out.println(displayItem.getType());
+            switch (displayItem.getType()) {
+                case Select:
+                    return SELECT;
+                case ReferenceList:
+                    return REFERENCE_LIST;
+                default:
+                    return DEFAULT;
+            }
+        }
     }
 }
