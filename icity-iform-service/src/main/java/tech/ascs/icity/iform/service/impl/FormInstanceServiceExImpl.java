@@ -3647,7 +3647,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
         }
         ItemInstance processStatusItemInstance = null;
         for(ItemInstance instance : formInstance.getItems()){
-            if(instance.getSystemItemType() == SystemItemType.ProcessStatus){
+            if(instance.getSystemItemType() == SystemItemType.ProcessStatus
+				|| instance.getSystemItemType() == SystemItemType.ProcessPrivateStatus){
                 processStatusItemInstance = instance;
             }
         }
@@ -3658,8 +3659,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
             for(Option option : lists){
                 objectMap.put(option.getId(), option.getLabel());
             }
+            //TODO 个人流程状态不是这个字段
             String status = "0";
-            if(processInstance.getStatus()==ProcessInstance.Status.Ended){
+            if(processInstance.getStatus() == ProcessInstance.Status.Ended){
                 status = "1";
             }
             processStatusItemInstance.setDisplayValue(objectMap.get(status));

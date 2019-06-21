@@ -887,10 +887,14 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		Map<String, Object> processItemModelMap = new HashMap<>();
 		for(ItemModelEntity itemModelEntity : list) {
 			if (itemModelEntity.getSystemItemType() != null && (itemModelEntity.getSystemItemType() == SystemItemType.ProcessStatus
-					|| itemModelEntity.getSystemItemType() == SystemItemType.ProcessLog)) {
+					|| itemModelEntity.getSystemItemType() == SystemItemType.ProcessLog
+					|| itemModelEntity.getSystemItemType() == SystemItemType.ProcessPrivateStatus)) {
 				if (processItemModelMap.get(itemModelEntity.getSystemItemType().getValue()) != null) {
 					if (itemModelEntity.getSystemItemType() == SystemItemType.ProcessStatus) {
-						throw new IFormException("流程状态控件重复");
+						throw new IFormException("事件流程状态控件重复");
+					}
+					if (itemModelEntity.getSystemItemType() == SystemItemType.ProcessPrivateStatus) {
+						throw new IFormException("个人流程状态控件重复");
 					}
 					if (itemModelEntity.getSystemItemType() == SystemItemType.ProcessLog) {
 						throw new IFormException("流程日志控件重复");
@@ -1446,6 +1450,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				&& !(entity instanceof ReferenceItemModelEntity) && !(entity instanceof TabPaneItemModelEntity)
 				&& !(entity instanceof ReferenceInnerItemModelEntity)
 				&& entity.getType() != ItemType.Label && entity.getSystemItemType() != SystemItemType.ProcessStatus
+				&& entity.getSystemItemType() != SystemItemType.ProcessPrivateStatus
 				&& entity.getType() != ItemType.ProcessLog  && entity.getColumnModel() == null){
 			throw  new IFormException("控件"+entity.getName()+"没有对应字段");
 		}

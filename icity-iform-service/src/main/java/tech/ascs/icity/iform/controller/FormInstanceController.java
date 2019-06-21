@@ -167,19 +167,28 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 
 	private  Page<FormDataSaveInstance> queryIflowList(Map<String, Object> queryParameters,  int page, int pagesize, FormModelEntity formModelEntity, ListModelEntity listModel) {
 		List<ItemModelEntity> items = formModelEntity.getItems();
-		//TODO 待删除
-		int status = -1;
-		Optional<ItemModelEntity> optional = items.stream().filter(item-> (item.getSystemItemType() == SystemItemType.ProcessStatus)).findFirst();
+		//事件状态
+		int eventStatus = -1;
+		Optional<ItemModelEntity> eventOptional = items.stream().filter(item-> (item.getSystemItemType() == SystemItemType.ProcessStatus)).findFirst();
 
-		if (optional.isPresent() && queryParameters.get(optional.get().getId()) != null) {
-			status = Integer.parseInt((String.valueOf(queryParameters.get(optional.get().getId()))));
+		if (eventOptional.isPresent() && queryParameters.get(eventOptional.get().getId()) != null) {
+			eventStatus = Integer.parseInt((String.valueOf(queryParameters.get(eventOptional.get().getId()))));
+		}
+
+		//个人状态
+		int privateStatus = -1;
+		Optional<ItemModelEntity> personOptional = items.stream().filter(item-> (item.getSystemItemType() == SystemItemType.ProcessPrivateStatus)).findFirst();
+
+		if (personOptional.isPresent() && queryParameters.get(personOptional.get().getId()) != null) {
+			privateStatus = Integer.parseInt((String.valueOf(queryParameters.get(personOptional.get().getId()))));
 		}
 
 		Map<String, Object> iflowQueryParams = assemblyIflowQueryParams(items, queryParameters);
 		// 查工作流
 		Page<ProcessInstance> pageProcess = null;
 		try {
-			pageProcess = processInstanceService.page(page, pagesize, formModelEntity.getProcess().getKey(), status, iflowQueryParams);
+			//TODO 还没有传个人状态
+			pageProcess = processInstanceService.page(page, pagesize, formModelEntity.getProcess().getKey(), eventStatus, iflowQueryParams);
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new IFormException("查询数据失败了");
@@ -253,7 +262,8 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		}
 		ItemInstance processStatusItemInstance = null;
 		for(ItemInstance instance : formInstance.getItems()){
-			if(instance.getSystemItemType() == SystemItemType.ProcessStatus){
+			if(instance.getSystemItemType() == SystemItemType.ProcessStatus
+				|| instance.getSystemItemType() == SystemItemType.ProcessPrivateStatus){
 				processStatusItemInstance = instance;
 			}
 		}
@@ -264,6 +274,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			for(Option option : lists){
 				objectMap.put(option.getId(), option.getLabel());
 			}
+			//TODO 个人流程状态未配
 			String status = "0";
 			if(processInstance.getStatus()==ProcessInstance.Status.Ended){
 				status = "1";
