@@ -215,7 +215,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		if (processInstance==null) {
 			return;
 		}
-		if (processInstance.getStatus()==ProcessInstance.Status.Running && processInstance.isMyTask()) {
+		if (processInstance.getStatus() == ProcessInstance.Status.Running) {
 			instance.setCanEdit(true);
 		} else {
 			instance.setCanEdit(false);
