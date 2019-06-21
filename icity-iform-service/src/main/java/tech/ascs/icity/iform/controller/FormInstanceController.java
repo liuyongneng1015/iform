@@ -188,7 +188,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		Page<ProcessInstance> pageProcess = null;
 		try {
 			//TODO 还没有传个人状态
-			pageProcess = processInstanceService.page(page, pagesize, formModelEntity.getProcess().getKey(), eventStatus, iflowQueryParams);
+			pageProcess = processInstanceService.page(page, pagesize, formModelEntity.getProcess().getKey(), eventStatus, privateStatus, iflowQueryParams);
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new IFormException("查询数据失败了");
