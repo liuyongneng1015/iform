@@ -435,18 +435,11 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			}
 		    List<QuickSearchEntity> quickSearches = new ArrayList<>();
             int i = 0;
-            int allQuickSearchCount = 0;
 		    for (QuickSearchItem searchItem : listModel.getQuickSearchItems()) {
 		    	if (searchItem==null || StringUtils.isEmpty(searchItem.getName())) {
 					throw new IFormException("快速筛选有导航名为空");
 				}
 				ItemModel itemModel = searchItem.getItemModel();
-		    	if (itemModel==null || StringUtils.isEmpty(itemModel.getId())) {
-					allQuickSearchCount++;
-				}
-				if ((itemModel!=null && !StringUtils.isEmpty(itemModel.getId()) && (searchItem.getSearchValues()==null || searchItem.getSearchValues().size()==0))) {
-					throw new IFormException("快速筛选勾选了筛选控件后必须勾选筛选值");
-				}
                 QuickSearchEntity quickSearchEntity = new QuickSearchEntity();
 		    	if (itemModel!=null && !StringUtils.isEmpty(itemModel.getId())) {
 					ItemModelEntity itemModelEntity = new ItemModelEntity();
@@ -460,9 +453,6 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				quickSearchEntity.setDefaultActive(searchItem.getDefaultActive());
                 quickSearches.add(quickSearchEntity);
             }
-            if (allQuickSearchCount>1) {
-		    	throw new IFormException("快速搜索只允许有一个不绑定筛选控件和筛选值，该刷选用于无条件的刷选");
-			}
             listModelEntity.setQuickSearchItems(quickSearches);
 		}
 		return listModelEntity;
