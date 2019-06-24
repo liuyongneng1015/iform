@@ -1,8 +1,8 @@
 [{
   "id": "id",
-  "name": "模板名称1",
+  "name": "列表解析页1（河湖V1.0统计分析1-1-1在线分析）",
   "visible": false,
-  "uiImg":"https://www.baidu.com/img/bd_logo1.png",
+  "uiImg":"http://citywater-ns.cityworks.cn/minio/icity/2019/06/24/1c36312b-f8d2-4a1c-a78c-666f032b19c4.png",
   "template": [{
     "className": ["center"],
     "items": [{
@@ -56,9 +56,9 @@
   }]
 }, {
   "id": "id",
-  "name": "模板名称2",
+  "name": "列表解析页3（河湖V1.0六个一 ）",
   "visible": false,
-  "uiImg":"https://www.baidu.com/img/bd_logo1.png",
+  "uiImg":"http://citywater-ns.cityworks.cn/minio/icity/2019/06/24/b8ac81e7-4426-41c9-9278-f42fbdc5f0c4.png",
   "template": [{
     "className": ["center"],
     "items": [{
@@ -97,9 +97,9 @@
   }]
 }, {
   "id": "id",
-  "name": "模板名称3",
+  "name": "列表解析页4（河湖V1.0统计分析1-2-1事件统计）",
   "visible": false,
-  "uiImg":"https://www.baidu.com/img/bd_logo1.png",
+  "uiImg":"http://citywater-ns.cityworks.cn/minio/icity/2019/06/24/fcd53234-f46a-4ddf-bbe0-6fd8243fd6b5.png",
   "template": [{
     "className": ["title"],
     "id": "控件id"
@@ -135,9 +135,9 @@
   }]
 }, {
   "id": "id",
-  "name": "模板名称4",
+  "name": "列表解析页5（河湖V1.0巡河历史1-3上报事件）",
   "visible": false,
-  "uiImg":"https://www.baidu.com/img/bd_logo1.png",
+  "uiImg":"http://citywater-ns.cityworks.cn/minio/icity/2019/06/24/9112734e-5f1b-4319-8eeb-ba65ed9001c6.png",
   "template": [{
     "className": ["left"],
     "items": [{
