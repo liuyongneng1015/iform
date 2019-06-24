@@ -1,0 +1,200 @@
+[{
+  "id": "id",
+  "name": "模板名称1",
+  "visible": false,
+  "template": [{
+    "className": ["center"],
+    "items": [{
+      "className": ["status"],
+      "colors": [{
+        "displayValue": "一般",
+        "className": "normal"
+      }, {
+        "displayValue": "紧急",
+        "className": "emergency"
+      }, {
+        "displayValue": "重要",
+        "className": "important"
+      }, {
+        "displayValue": "待处理",
+        "className": "unresolved"
+      }, {
+        "displayValue": "轻度黑臭",
+        "className": "mild"
+      }, {
+        "displayValue": "中度黑臭",
+        "className": "medium"
+      }, {
+        "displayValue": "重度黑臭",
+        "className": "severe"
+      }],
+      "id": "控件id"
+    }, {
+      "items": [{
+        "className": ["sub-title"],
+        "id": "控件id"
+      }, {
+        "className": ["sub-title"],
+        "id": "控件id"
+      }]
+    }]
+  }, {
+    "className": ["center"],
+    "items": [{
+      "items": [{
+        "className": ["sub-title"],
+        "id": "控件id"
+      }, {
+        "className": ["sub-title"],
+        "id": "控件id"
+      }]
+    }, {
+      "className": ["iwater-icon iwater-arrow-r"],
+      "tag": "i"
+    }]
+  }]
+}, {
+  "id": "id",
+  "name": "模板名称2",
+  "visible": false,
+  "template": [{
+    "className": ["center"],
+    "items": [{
+      "className": ["status"],
+      "colors": [{
+        "displayValue": "一般",
+        "className": "normal"
+      }, {
+        "displayValue": "紧急",
+        "className": "emergency"
+      }, {
+        "displayValue": "重要",
+        "className": "important"
+      }, {
+        "displayValue": "待处理",
+        "className": "unresolved"
+      }, {
+        "displayValue": "轻度黑臭",
+        "className": "mild"
+      }, {
+        "displayValue": "中度黑臭",
+        "className": "medium"
+      }, {
+        "displayValue": "重度黑臭",
+        "className": "severe"
+      }],
+      "id": "控件id"
+    }, {
+      "className": ["title"],
+      "width": 180,
+      "id": "控件id"
+    }]
+  }, {
+    "className": ["iwater-icon iwater-arrow-r"],
+    "tag": "i"
+  }]
+}, {
+  "id": "id",
+  "name": "模板名称3",
+  "visible": false,
+  "template": [{
+    "className": ["title"],
+    "id": "控件id"
+  }, {
+    "className": ["between"],
+    "items": [{
+      "className": ["between"],
+      "items": [{
+        "items": [{
+          "className": ["sub-title"],
+          "width": 122,
+          "id": "控件id"
+        }, {
+          "className": ["sub-title"],
+          "width": 122,
+          "id": "控件id"
+        }]
+      }, {
+        "items": [{
+          "className": ["sub-title"],
+          "width": 180,
+          "id": "控件id"
+        }, {
+          "className": ["sub-title"],
+          "width": 180,
+          "id": "控件id"
+        }]
+      }]
+    }, {
+      "className": ["iwater-icon iwater-arrow-r"],
+      "tag": "i"
+    }]
+  }]
+}, {
+  "id": "id",
+  "name": "模板名称4",
+  "visible": false,
+  "template": [{
+    "className": ["left"],
+    "items": [{
+      "className": ["status"],
+      "colors": [{
+        "displayValue": "一般",
+        "className": "normal"
+      }, {
+        "displayValue": "紧急",
+        "className": "emergency"
+      }, {
+        "displayValue": "重要",
+        "className": "important"
+      }, {
+        "displayValue": "待处理",
+        "className": "unresolved"
+      }, {
+        "displayValue": "轻度黑臭",
+        "className": "mild"
+      }, {
+        "displayValue": "中度黑臭",
+        "className": "medium"
+      }, {
+        "displayValue": "重度黑臭",
+        "className": "severe"
+      }],
+      "id": "控件id"
+    }]
+  }, {
+    "className": ["right"],
+    "items": [{
+      "className": ["title"],
+      "id": "控件id"
+    }, {
+      "className": ["between"],
+      "items": [{
+        "items": [{
+          "className": ["between"],
+          "items": [{
+            "className": ["sub-title"],
+            "tag": "span",
+            "id": "控件id"
+          }, {
+            "className": ["sub-title"],
+            "tag": "span",
+            "id": "控件id"
+          }]
+        }, {
+          "className": ["sub-title"],
+          "id": "控件id",
+          "title": "2010-05-06 16:20:20"
+        }]
+      }, {
+        "items": [{
+          "className": ["sub-title"],
+          "id": "控件id"
+        }, {
+          "className": ["sub-title"],
+          "id": "控件id"
+        }]
+      }]
+    }]
+  }]
+}]
