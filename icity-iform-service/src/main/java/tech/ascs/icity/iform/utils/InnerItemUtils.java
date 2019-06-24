@@ -213,7 +213,6 @@ public final class InnerItemUtils implements ApplicationContextAware {
         };
 
         public static InnerDataInfoHandler getInstance(ItemModelEntity displayItem) {
-            System.out.println(displayItem.getType());
             switch (displayItem.getType()) {
                 case Select:
                     return SELECT;
