@@ -2,6 +2,7 @@ package tech.ascs.icity.iform.api.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.annotations.ApiModel;
@@ -76,14 +77,14 @@ public class ListModel extends NameEntity {
 	private DataPermissionsType dataPermissions;
 
 	@ApiModelProperty(value ="APP列表展示模板", position = 14)
-	private String appListTemplate;
+	private List<Map> appListTemplate;
 
 	@ApiModelProperty(value="关联关系控件集合",position = 15)
 	@JsonInclude(JsonInclude.Include.NON_EMPTY)
 	private List<ItemModel> relevanceItemModelList = new ArrayList();
 
 	@ApiModelProperty(value="门户列表模板",position = 16)
-	private String protalListTemplate;
+	private List<Map> protalListTemplate;
 
 	public String getUniqueCode() {
 		return uniqueCode;
@@ -189,11 +190,11 @@ public class ListModel extends NameEntity {
 		this.dataPermissions = dataPermissions;
 	}
 
-	public String getAppListTemplate() {
+	public List<Map> getAppListTemplate() {
 		return appListTemplate;
 	}
 
-	public void setAppListTemplate(String appListTemplate) {
+	public void setAppListTemplate(List<Map> appListTemplate) {
 		this.appListTemplate = appListTemplate;
 	}
 
@@ -205,11 +206,11 @@ public class ListModel extends NameEntity {
 		this.relevanceItemModelList = relevanceItemModelList;
 	}
 
-	public String getProtalListTemplate() {
+	public List<Map> getProtalListTemplate() {
 		return protalListTemplate;
 	}
 
-	public void setProtalListTemplate(String protalListTemplate) {
+	public void setProtalListTemplate(List<Map> protalListTemplate) {
 		this.protalListTemplate = protalListTemplate;
 	}
 
