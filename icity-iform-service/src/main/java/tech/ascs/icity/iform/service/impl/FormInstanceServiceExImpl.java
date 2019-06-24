@@ -802,10 +802,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 							}
 							for(Map<String, Object> permissionsMap : (List<Map<String, Object>>) funcPropsMap.get("permissions")) {
 								if (permissionsMap.get("required") != null && (Boolean) permissionsMap.get("required")) {
-									ItemModelEntity itemModelEntity = itemModelManager.find((String) map.get("id"));
-									notNullIdMap.put((String) map.get("id"), itemModelEntity);
+									ItemModelEntity itemModelEntity = itemModelManager.find((String) permissionsMap.get("id"));
+									notNullIdMap.put((String) permissionsMap.get("id"), itemModelEntity);
 								}
-								idList.add((String) map.get("id"));
+								idList.add((String) permissionsMap.get("id"));
 							}
 						}
 					}
