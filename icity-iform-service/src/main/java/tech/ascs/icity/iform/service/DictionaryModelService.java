@@ -1,5 +1,6 @@
 package tech.ascs.icity.iform.service;
 ;
+import tech.ascs.icity.iform.api.model.DictionaryDataItemModel;
 import tech.ascs.icity.iform.api.model.DictionaryModel;
 import tech.ascs.icity.iform.api.model.DictionaryModelData;
 import tech.ascs.icity.iform.model.DictionaryModelEntity;
@@ -117,5 +118,12 @@ public interface DictionaryModelService extends JPAService<DictionaryModelEntity
 	 * @return
 	 */
 	List<DictionaryModelData> findFirstItems(String dictionaryId, String id);
+
+	/**
+	 * 返回树形结构
+	 * @param parentId
+	 * @return
+	 */
+	List<DictionaryDataItemModel> queryAreaCodeTreeList(String parentId);
 }
 
