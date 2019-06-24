@@ -802,7 +802,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 							}
 							for(Map<String, Object> permissionsMap : (List<Map<String, Object>>) funcPropsMap.get("permissions")) {
 								if (permissionsMap.get("required") != null && (Boolean) permissionsMap.get("required")) {
-									notNullIdMap.put((String) map.get("id"), null);
+									ItemModelEntity itemModelEntity = itemModelManager.find((String) map.get("id"));
+									notNullIdMap.put((String) map.get("id"), itemModelEntity);
 								}
 								idList.add((String) map.get("id"));
 							}
@@ -827,10 +828,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 
 		if(notNullIdMap.size() > 0) {
-			for (String key:notNullIdMap.keySet()) {
+			for (String key : notNullIdMap.keySet()) {
 				ItemModelEntity itemModelEntity = notNullIdMap.get(key);
 				if (itemModelEntity!=null) {
-					throw new IFormException(itemModelEntity.getName()+"  控件的取值不允许为空");
+					throw new IFormException(itemModelEntity.getName() +"的值不允许为空");
 				}
 			}
 			throw new IFormException("存在空的字段");
