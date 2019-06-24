@@ -872,7 +872,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		flowData.put("formId", formInstance.getFormId());
 		flowData.put("id", formInstance.getId());
 		flowData = toProcesDictionaryData(flowData, formModel);
-		taskService.completeTask(formInstance.getActivityInstanceId(), flowData);
 		//上一个流程环节数据
 		TaskInstance taskInstance = null;
 		if(StringUtils.hasText(formInstance.getProcessInstanceId())) {
@@ -880,6 +879,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			taskInstance = processInstance.getCurrentTaskInstance();
 		}
 		setColumnValue(assignmentList, flowData, data, user, taskInstance);
+		taskService.completeTask(formInstance.getActivityInstanceId(), flowData);
 		updateProcessInfo(assignmentList, formModel, data, formInstance.getProcessInstanceId());
 	}
 
