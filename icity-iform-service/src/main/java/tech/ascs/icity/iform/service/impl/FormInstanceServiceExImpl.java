@@ -850,7 +850,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 		for(String id : idList) {
 			if(flowData.containsKey(id)){
-				ItemModelEntity itemModelEntity = itemModelManager.get(id);
+				ItemModelEntity itemModelEntity = itemModelManager.find(id);
+				if(itemModelEntity == null){
+					continue;
+				}
 				Object value = flowData.get(id);
 				flowData.remove(id);
 				flowData.put(itemModelEntity.getColumnModel().getColumnName(), value);
@@ -937,7 +940,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			Map<String, List<String>> stringListMap = new HashMap<>();
 			for (SubFormRowItemInstance instance : subFormDataItemInstance.getItems()) {
 				for (ItemInstance itemModelService : instance.getItems()) {
-					ItemModelEntity itemModel = itemModelManager.get(itemModelService.getId());
+					ItemModelEntity itemModel = itemModelManager.find(itemModelService.getId());
 					if(itemModel != null && itemModelService.getValue() != null && StringUtils.hasText(String.valueOf(itemModelService.getValue())) &&
 							(itemModel.getType() == ItemType.SubForm || itemModel.getColumnModel() != null && itemModel.getColumnModel().getColumnName().equals("id"))){
 						map = (Map<String, Object>)subFormSession.load(dataModelEntity.getTableName(), (String)itemModelService.getValue());
@@ -949,7 +952,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			Map<String, String> uniqueneItem = new HashMap<String, String>();
 			for (SubFormRowItemInstance instance : subFormDataItemInstance.getItems()) {
 				for (ItemInstance itemModelService : instance.getItems()) {
-					ItemModelEntity itemModel = itemModelManager.get(itemModelService.getId());
+					ItemModelEntity itemModel = itemModelManager.find(itemModelService.getId());
 					if((itemModel instanceof ReferenceItemModelEntity) && itemModel.getType() != ItemType.ReferenceLabel ){
 						referenceItemModelEntityList.add(itemModel);
 					}
@@ -1088,7 +1091,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			return;
 		}
 
-		ReferenceItemModelEntity referenceItemModelEntity = (ReferenceItemModelEntity) itemModelManager.get(dataModelInstance.getId());
+		ReferenceItemModelEntity referenceItemModelEntity = (ReferenceItemModelEntity) itemModelManager.find(dataModelInstance.getId());
 
 		if(referenceItemModelEntity.getSystemItemType() == SystemItemType.Creator){
 			return;
@@ -1108,7 +1111,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		boolean toFlag = false;
 		//方向
 		if(referenceItemModelEntity.getSelectMode() == SelectMode.Inverse) {
-			ReferenceItemModelEntity referenceItemModelEntity1 = (ReferenceItemModelEntity)itemModelManager.get(referenceItemModelEntity.getReferenceItemId());
+			ReferenceItemModelEntity referenceItemModelEntity1 = (ReferenceItemModelEntity)itemModelManager.find(referenceItemModelEntity.getReferenceItemId());
 			toReferenceKeyMap = getReferenceMap(referenceItemModelEntity1, masterFormModelEntity);
 			if(toReferenceKeyMap == null){
 				return;
@@ -1318,15 +1321,15 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		ItemInstance idItemInstance = null;
 		data.put("id", formInstance.getId());
 		for (ItemInstance itemInstance : formInstance.getItems()) {
-			ItemModelEntity itemModel = itemModelManager.get(itemInstance.getId());
-			if(itemModel.getName().equals("id")){
+			ItemModelEntity itemModel = itemModelManager.find(itemInstance.getId());
+			if(itemModel != null && itemModel.getName().equals("id")){
 				itemInstance.setValue(formInstance.getId());
 				itemInstance.setDisplayValue(formInstance.getId());
 				idItemInstance = itemInstance;
 			}
 		}
 		for (ItemInstance itemInstance : formInstance.getItems()) {
-            ItemModelEntity itemModel = itemModelManager.get(itemInstance.getId());
+            ItemModelEntity itemModel = itemModelManager.find(itemInstance.getId());
             if(itemModel instanceof ReferenceItemModelEntity || itemModel.getSystemItemType() == SystemItemType.ID
 					|| itemModel instanceof SubFormItemModelEntity || itemModel instanceof TabsItemModelEntity || itemModel instanceof RowItemModelEntity){
             	continue;
@@ -1669,7 +1672,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			if(id == null || map.get("id") == null){
 				continue;
 			}
-			ItemModelEntity itemModelEntity = itemModelManager.get(id);
+			ItemModelEntity itemModelEntity = itemModelManager.find(id);
 			if(itemModelEntity == null || itemModelEntity.getSystemItemType() == SystemItemType.ID){
 				continue;
 			}
@@ -1805,7 +1808,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					propertyName = columnModel.getColumnName()+".id";
 				}else if (referenceItemModel.getSelectMode() == SelectMode.Inverse && (referenceItemModel.getReferenceType() == ReferenceType.ManyToOne
 						|| referenceItemModel.getReferenceType() == ReferenceType.OneToOne)) {
-					ReferenceItemModelEntity referenceItemModelEntity1 = (ReferenceItemModelEntity)itemModelManager.get(referenceItemModel.getReferenceItemId());
+					ReferenceItemModelEntity referenceItemModelEntity1 = (ReferenceItemModelEntity)itemModelManager.find(referenceItemModel.getReferenceItemId());
 					if(referenceItemModelEntity1.getColumnModel() == null){
 						continue;
 					}
@@ -2499,7 +2502,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		// referenceDataModelList的数据对应的是关联表单的数据标识的item的数据
 		for (ReferenceDataInstance referenceDataInstance : referenceDataModelList) {
 			if(displayIds.contains(referenceDataInstance.getId())){
-				ItemModelEntity itemModelEntity = itemModelManager.get(referenceDataInstance.getId());
+				ItemModelEntity itemModelEntity = itemModelManager.find(referenceDataInstance.getId());
 				ItemInstance itemInstance = new ItemInstance();
 				itemInstance.setSystemItemType(itemModelEntity == null ? SystemItemType.ReferenceList : itemModelEntity.getSystemItemType());
 				itemInstance.setType(itemModelEntity == null ? ItemType.ReferenceList : itemModelEntity.getType());
@@ -2934,7 +2937,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			flag = true;
 		}else if (fromItem.getSelectMode() == SelectMode.Inverse && (fromItem.getReferenceType() == ReferenceType.ManyToOne
 				|| fromItem.getReferenceType() == ReferenceType.OneToOne)) {
-			ReferenceItemModelEntity referenceItemModelEntity1 = (ReferenceItemModelEntity)itemModelManager.get(fromItem.getReferenceItemId());
+			ReferenceItemModelEntity referenceItemModelEntity1 = (ReferenceItemModelEntity)itemModelManager.find(fromItem.getReferenceItemId());
 			if(referenceItemModelEntity1.getColumnModel() == null){
 				return null;
 			}
@@ -3668,7 +3671,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
             }
         }
         if(processStatusItemInstance != null){
-            ItemModelEntity itemModelEntity = itemModelManager.get(processStatusItemInstance.getId());
+            ItemModelEntity itemModelEntity = itemModelManager.find(processStatusItemInstance.getId());
             List<Option> lists = (List<Option>) JSON.parseArray(((ProcessStatusItemModelEntity) itemModelEntity).getProcessStatus(),Option.class);
             Map<String, Object> objectMap = new HashMap<>();
             for(Option option : lists){
