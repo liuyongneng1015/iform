@@ -783,7 +783,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		if(StringUtils.hasText(formInstance.getProcessInstanceId())) {
 			if(formInstance.getProcessInstanceId() != null && formInstance.getFlowData() != null && formInstance.getFlowData().get("functionId") != null) {
 				ProcessInstance processInstance = processInstanceService.get(formInstance.getProcessInstanceId());
-				if(processInstance.getCurrentTaskInstance() != null) {
+				if(processInstance.getCurrentTaskInstance() != null && processInstance.getCurrentTaskInstance().getOperations() != null) {
 					for (Map<String, Object> map : (List<Map<String,Object>>) processInstance.getCurrentTaskInstance().getOperations()) {
 						if (!map.get("id").equals(formInstance.getFlowData().get("functionId"))) {
 							continue;
