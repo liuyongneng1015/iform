@@ -551,6 +551,12 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		flowData.put("PASS_THROW_FIRST_USERTASK", true);
 
 		flowData = toProcesDictionaryData(flowData, formModel);
+		//上一个流程环节数据
+		if(StringUtils.hasText(formInstance.getProcessInstanceId())) {
+			ProcessInstance processInstance = processInstanceService.get(formInstance.getProcessInstanceId());
+			TaskInstance taskInstance = processInstance.getCurrentTaskInstance();
+			setColumnValue(assignmentList, flowData, taskInstance);
+		}
 
 		System.out.println("传给工作流的数据=====>>>>>"+flowData);
 		String processInstanceId = processInstanceService.startProcess(formModel.getProcess().getKey(), newId, flowData);
@@ -865,6 +871,12 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		flowData.put("id", formInstance.getId());
 		flowData = toProcesDictionaryData(flowData, formModel);
 		taskService.completeTask(formInstance.getActivityInstanceId(), flowData);
+		//上一个流程环节数据
+		if(StringUtils.hasText(formInstance.getProcessInstanceId())) {
+			ProcessInstance processInstance = processInstanceService.get(formInstance.getProcessInstanceId());
+			TaskInstance taskInstance = processInstance.getCurrentTaskInstance();
+			setColumnValue(assignmentList, flowData, taskInstance);
+		}
 		updateProcessInfo(assignmentList, formModel, data, formInstance.getProcessInstanceId());
 	}
 
@@ -1630,6 +1642,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		return String.join(",", valueList);
 	}
 
+	//更新新流程表单数据
 	protected void updateProcessInfo(List<Map<String, Object>> assignmentList, FormModelEntity formModel, Map<String, Object> entity, String processInstanceId) {
 		entity.put("PROCESS_INSTANCE", processInstanceId);
 		ProcessInstance processInstance = processInstanceService.get(processInstanceId);
@@ -1641,7 +1654,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		if(assignmentList == null || assignmentList.size() < 1){
 			return;
 		}
-		setColumnValue(assignmentList, entity, taskInstance);
 	}
 
 	//更新字段值
