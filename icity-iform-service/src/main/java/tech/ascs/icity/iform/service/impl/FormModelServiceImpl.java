@@ -445,9 +445,11 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			oldReferenceType = ((ReferenceItemModelEntity)saveItemModelEntity).getReferenceType();
 			oldReferenceFormId = ((ReferenceItemModelEntity) saveItemModelEntity).getReferenceFormId();
 		}
-		if(paramerItemModelEntity instanceof NumberItemModelEntity && saveItemModelEntity instanceof NumberItemModelEntity &&
+		if((paramerItemModelEntity instanceof NumberItemModelEntity && saveItemModelEntity instanceof NumberItemModelEntity &&
 						((NumberItemModelEntity)paramerItemModelEntity).getDecimalDigits() != ((NumberItemModelEntity)saveItemModelEntity).getDecimalDigits() &&
-								(((NumberItemModelEntity)paramerItemModelEntity).getDecimalDigits() == 0 || ((NumberItemModelEntity)saveItemModelEntity).getDecimalDigits() == 0)){
+								(((NumberItemModelEntity)paramerItemModelEntity).getDecimalDigits() == 0 || ((NumberItemModelEntity)saveItemModelEntity).getDecimalDigits() == 0))
+		|| (paramerItemModelEntity instanceof TimeItemModelEntity && saveItemModelEntity instanceof TimeItemModelEntity &&
+				!((TimeItemModelEntity) paramerItemModelEntity).getTimeFormat().equals(((TimeItemModelEntity) saveItemModelEntity).getTimeFormat()))){
 			//删除字段
 			if(oldColumnName != null) {
 				DataModelEntity dataModelEntity = saveItemModelEntity.getColumnModel().getDataModel();
@@ -480,16 +482,13 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			((ReferenceItemModelEntity)saveItemModelEntity).setItemUuids(((ReferenceItemModelEntity) paramerItemModelEntity).getItemUuids());
 
 			//删除字段删除索引
-			if(oldColumnName != null && (!StringUtils.equalsIgnoreCase(oldColumnName, newColunmName) || !StringUtils.equalsIgnoreCase(newReferenceFormId, oldReferenceFormId))) {
+			if(oldColumnName != null && (!StringUtils.equalsIgnoreCase(oldColumnName, newColunmName)
+					|| !StringUtils.equalsIgnoreCase(newReferenceFormId, oldReferenceFormId) || oldReferenceType != newReferenceType)) {
 				DataModelEntity dataModelEntity = saveItemModelEntity.getColumnModel().getDataModel();
 				String tableName = dataModelEntity.getPrefix() == null ? dataModelEntity.getTableName(): dataModelEntity.getPrefix()+dataModelEntity.getTableName();
 				ColumnModelEntity column = saveItemModelEntity.getColumnModel();
 				String columnName = column.getPrefix() == null ? column.getColumnName() : column.getPrefix()+column.getColumnName();
 				columnModelService.deleteTableColumn(tableName, columnName);
-			}else if(oldColumnName != null && oldColumnName.equals(newColunmName) && oldReferenceType != newReferenceType){
-				DataModelEntity dataModelEntity = saveItemModelEntity.getColumnModel().getDataModel();
-				String tableName = dataModelEntity.getPrefix() == null ? dataModelEntity.getTableName(): dataModelEntity.getPrefix()+dataModelEntity.getTableName();
-				columnModelService.deleteTableColumnIndex(tableName, oldColumnName);
 			}
 		}
 
