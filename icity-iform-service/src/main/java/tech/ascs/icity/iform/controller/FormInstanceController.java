@@ -191,7 +191,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			pageProcess = processInstanceService.page(page, pagesize, formModelEntity.getProcess().getKey(), eventStatus, privateStatus, iflowQueryParams);
 		} catch (Exception e) {
 			e.printStackTrace();
-			throw new IFormException("查询数据失败了");
+			throw new IFormException(e.getLocalizedMessage(), e);
 		}
 		Map<String, ProcessInstance> instanceIdAndProcessMap = new HashMap<>();
 		for(ProcessInstance processInstance : pageProcess.getResults()) {
