@@ -2,6 +2,7 @@
   "id": "id",
   "name": "模板名称1",
   "visible": false,
+  "uiImg":"https://www.baidu.com/img/bd_logo1.png",
   "template": [{
     "className": ["center"],
     "items": [{
@@ -57,6 +58,7 @@
   "id": "id",
   "name": "模板名称2",
   "visible": false,
+  "uiImg":"https://www.baidu.com/img/bd_logo1.png",
   "template": [{
     "className": ["center"],
     "items": [{
@@ -97,6 +99,7 @@
   "id": "id",
   "name": "模板名称3",
   "visible": false,
+  "uiImg":"https://www.baidu.com/img/bd_logo1.png",
   "template": [{
     "className": ["title"],
     "id": "控件id"
@@ -134,6 +137,7 @@
   "id": "id",
   "name": "模板名称4",
   "visible": false,
+  "uiImg":"https://www.baidu.com/img/bd_logo1.png",
   "template": [{
     "className": ["left"],
     "items": [{
