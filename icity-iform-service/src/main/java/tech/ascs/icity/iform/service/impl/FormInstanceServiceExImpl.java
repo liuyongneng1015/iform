@@ -571,10 +571,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		for (String key:flowData.keySet()) {
 			ItemModelEntity itemModel = columnNameAndItemModelMap.get(key);
 			Object value = flowData.get(key);
-			if (itemModel!=null && value!=null) {
+			if (itemModel != null && value != null) {
 				if (itemModel instanceof SelectItemModelEntity) {
 					SelectItemModelEntity selectItemModel = (SelectItemModelEntity)itemModel;
-					if (selectItemModel.getMultiple()==false) {
+					if (selectItemModel.getMultiple() == null || !selectItemModel.getMultiple()) {
 						String valueStr = value.toString();
                         SelectReferenceType selectReferenceType = selectItemModel.getSelectReferenceType();
                         if (SelectReferenceType.Fixed==selectReferenceType) {
