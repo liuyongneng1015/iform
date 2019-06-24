@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import tech.ascs.icity.iform.api.model.SystemCodeModel;
 import tech.ascs.icity.model.Page;
@@ -26,6 +27,10 @@ import java.util.stream.Collectors;
 @Api(tags = "字典数据表管理",description = "字典数据表管理服务")
 @RestController
 public class DictionaryDataController implements tech.ascs.icity.iform.api.service.DictionaryDataService {
+
+	// 行政区划分类ID
+	@Value("${icity.dictionary.areaCode.id:9fddec6151b14a04bfe21d80d7a4474b}")
+	private String areaCodeId;
 
 	private Logger log = LoggerFactory.getLogger(DictionaryDataController.class);
 
@@ -54,6 +59,9 @@ public class DictionaryDataController implements tech.ascs.icity.iform.api.servi
 
 	@Override
 	public List<DictionaryDataItemModel> listDictionaryItemModel(@PathVariable(name = "id",required = true) String id) {
+		if (areaCodeId.equals(id)) {
+
+		}
 		DictionaryDataEntity dictionaryEntity = dictionaryService.get(id);
 		if(dictionaryEntity == null){
 			throw new IFormException("未找到【"+id+"】对应的分类");

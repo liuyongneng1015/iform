@@ -4,8 +4,10 @@ import com.googlecode.genericdao.search.Sort;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import tech.ascs.icity.iform.IFormException;
+import tech.ascs.icity.iform.api.model.DictionaryDataItemModel;
 import tech.ascs.icity.iform.api.model.DictionaryModel;
 import tech.ascs.icity.iform.api.model.DictionaryModelData;
+import tech.ascs.icity.iform.model.AreaCodeEntity;
 import tech.ascs.icity.iform.model.DictionaryModelEntity;
 import tech.ascs.icity.iform.service.DictionaryModelService;
 import tech.ascs.icity.iform.utils.CommonUtils;
@@ -20,7 +22,7 @@ import java.util.regex.Pattern;
 public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryModelEntity> implements DictionaryModelService {
 
 	private JPAManager<DictionaryModelEntity> dictionaryManager;
-
+	private JPAManager<AreaCodeEntity> areaCodeManager;
 	public DictionaryModelServiceImpl() {
 		super(DictionaryModelEntity.class);
 	}
@@ -29,6 +31,7 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 	protected void initManager() {
 		super.initManager();
 		dictionaryManager = getJPAManagerFactory().getJPAManager(DictionaryModelEntity.class);
+		areaCodeManager = getJPAManagerFactory().getJPAManager(AreaCodeEntity.class);
 	}
 
 
@@ -521,5 +524,56 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 			return list;
 		}
 		return null;
+	}
+
+	@Override
+	public List<DictionaryDataItemModel> queryAreaCodeTreeList(String parentId) {
+		List<DictionaryDataItemModel> dictionaryDataItemModels = new ArrayList<>();
+		if (StringUtils.isEmpty(parentId)) {
+			// 查询所有
+			List<AreaCodeEntity> list = areaCodeManager.query().filterNull("parent.id").sort(Sort.desc("orderNo")).list();
+			if (list!=null && list.size()>0) {
+				for (AreaCodeEntity areaCodeEntity:list) {
+					dictionaryDataItemModels.add(areaCodeEntityToDictionaryItem(areaCodeEntity));
+				}
+			}
+		} else {
+			AreaCodeEntity areaCodeEntity = areaCodeManager.query().filterEqual("id", parentId).first();
+			if (areaCodeEntity!=null) {
+				List<AreaCodeEntity> children = areaCodeEntity.getChildren();
+				if (children!=null && children.size()>0) {
+					for (AreaCodeEntity item:children) {
+						dictionaryDataItemModels.add(areaCodeEntityToDictionaryItem(item));
+					}
+				}
+			}
+		}
+		return dictionaryDataItemModels;
+	}
+
+	/**
+	 * AreaCodeEntity实体类转成字典表
+	 * @param areaCodeEntity
+	 * @return
+	 */
+	private DictionaryDataItemModel areaCodeEntityToDictionaryItem(AreaCodeEntity areaCodeEntity) {
+		DictionaryDataItemModel dictionaryDataItemModel = null;
+		if (areaCodeEntity!=null) {
+			dictionaryDataItemModel = new DictionaryDataItemModel();
+			dictionaryDataItemModel.setId(areaCodeEntity.getId());
+			dictionaryDataItemModel.setCode(areaCodeEntity.getCode());
+			dictionaryDataItemModel.setOrderNo(areaCodeEntity.getOrderNo());
+			AreaCodeEntity parentAreaCode = new AreaCodeEntity();
+			if (parentAreaCode!=null) {
+				dictionaryDataItemModel.setParentId(parentAreaCode.getId());
+			}
+			List<AreaCodeEntity> children = areaCodeEntity.getChildren();
+			if (children!=null && children.size()>0) {
+				for (AreaCodeEntity child:children) {
+					areaCodeEntityToDictionaryItem(child);
+				}
+			}
+		}
+		return dictionaryDataItemModel;
 	}
 }
