@@ -298,7 +298,7 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 		List<ListModel> list = new ArrayList<>();
 		for(ListModelEntity listModelEntity : listModelEntities){
 			ListModel listModel  = new ListModel();
-			BeanUtils.copyProperties(listModelEntity, listModel, new String[]{"displayItems","searchItems","functions","sortItems","slaverForms","masterForm"});
+			BeanUtils.copyProperties(listModelEntity, listModel, new String[]{"displayItems","searchItems","functions","sortItems","slaverForms","masterForm", "protalListTemplate", "appListTemplate"});
 			list.add(listModel);
 		}
 		return list;
@@ -313,7 +313,7 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 			List<ListModel> list = new ArrayList<>();
 			for(ListModelEntity listModelEntity : listModelEntities){
 				ListModel listModel = new ListModel();
-				BeanUtils.copyProperties(listModelEntity, listModel, new String[]{"displayItems","searchItems","functions","sortItems","slaverForms","masterForm"});
+				BeanUtils.copyProperties(listModelEntity, listModel, new String[]{"displayItems","searchItems","functions","sortItems","slaverForms","masterForm", "protalListTemplate", "appListTemplate"});
 				if(listModelEntity.getMasterForm() != null){
 					FormModel masterForm = new FormModel();
 					masterForm.setId(listModelEntity.getMasterForm().getId());
@@ -459,7 +459,7 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 
 	private ListModel entityToModel(ListModelEntity listModelEntity){
 		ListModel listModel = new ListModel();
-		BeanUtils.copyProperties(listModelEntity, listModel, new String[]{"displayItems","searchItems","functions","sortItems","slaverForms","masterForm"});
+		BeanUtils.copyProperties(listModelEntity, listModel, new String[]{"displayItems","searchItems","functions","sortItems","slaverForms","masterForm", "protalListTemplate", "appListTemplate"});
 		return listModel;
 	}
 

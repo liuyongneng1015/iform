@@ -1,9 +1,13 @@
 package tech.ascs.icity.iform.controller;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,10 +29,13 @@ import tech.ascs.icity.iform.service.FormInstanceServiceEx;
 import tech.ascs.icity.iform.service.FormModelService;
 import tech.ascs.icity.iform.service.ItemModelService;
 import tech.ascs.icity.iform.service.ListModelService;
+import tech.ascs.icity.iform.utils.ResourcesUtils;
 import tech.ascs.icity.model.IdEntity;
 import tech.ascs.icity.model.NameEntity;
 import tech.ascs.icity.model.Page;
 import tech.ascs.icity.utils.BeanUtils;
+
+import javax.annotation.PostConstruct;
 
 @Api(tags = "列表模型服务", description = "包含列表模型的增删改查等功能")
 @RestController
@@ -51,6 +58,17 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 
 	@Autowired
 	GroupService groupService;
+
+	@Value("${appListTemplate.file-path:classpath:config/appListTemplate.json}")
+	private String appListTemplatePath;
+	private List<Map> appListTemplateList;
+	private ObjectMapper objectMapper = new ObjectMapper();
+
+	@PostConstruct
+	public void initData() throws IOException {
+		String appListTemplateStr = ResourcesUtils.readFileToString(appListTemplatePath);
+		appListTemplateList = (List<Map>)objectMapper.readValue(appListTemplateStr, List.class);
+	}
 
 	@Override
 	public List<ListModel> list(@RequestParam(name = "name", defaultValue = "") String name,
@@ -112,9 +130,14 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				throw new ICityException("唯一编码与已存在的列表建模有重复");
 			}
 		}
+		ListModelEntity entity = wrap(ListModel);
+		for (Map map:appListTemplateList) {
+			map.put("id", UUID.randomUUID().toString().replaceAll("-",""));
+		}
+
 		try {
+			entity.setAppListTemplate(objectMapper.writeValueAsString(appListTemplateList));
 			ListModel.setDataPermissions(DataPermissionsType.AllPeople);
-			ListModelEntity entity = wrap(ListModel);
 			// 创建默认的功能按钮
 			List<ListFunction> functions = new ArrayList<>();
 			for (int i = 0; i < functionDefaultActions.length; i++) {
@@ -165,9 +188,6 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 	// 校验默认的功能按钮是否被删除
 	private void checkDefaultFuncExists(ListModel listModel) {
 		List<FunctionModel> functions = listModel.getFunctions();
-//		if (functions==null || functions.size()==0) {
-//			throw new IFormException("系统自带的功能按钮允许不启用，但不允许删除");
-//		}
 		// 校验功能按钮的编码不允许为空和同名
 		if (functions.stream().filter(item->item.getAction()!=null).map(item->item.getAction()).collect(Collectors.toSet()).size()<functions.size()) {
 			throw new IFormException("功能按钮的编码不能为空和同名");
@@ -181,17 +201,6 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				throw new IFormException("功能按钮的编码不能包含 - 和 # 字符");
 			}
 		}
-//		// 校验默认的功能按钮是否被删除
-//		for (int i = 0; i < functionDefaultActions.length; i++) {
-//			String action = functionDefaultActions[i].getValue();
-//			String label = functionDefaultActions[i].getDesc();
-//			Optional<FunctionModel> optional = functions.stream().filter(item->!StringUtils.isEmpty(item.getId()) &&
-//																				action.equals(item.getAction()) &&
-//																				label.equals(item.getLabel())).findFirst();
-//			if (optional.isPresent()==false) {
-//				throw new IFormException("系统自带的功能按钮 "+ label +" 不允许删除，改名，或者修改功能编码");
-//			}
-//		}
 	}
 
 	@Override
@@ -326,11 +335,28 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		verfyListName(listModel);
 
 		ListModelEntity listModelEntity =  new ListModelEntity() ;
-		BeanUtils.copyProperties(listModel, listModelEntity, new String[] {"dataModels", "masterForm","slaverForms","sortItems", "searchItems","functions","displayItems", "quickSearchItems", "relevanceItemModelList"});
+		BeanUtils.copyProperties(listModel, listModelEntity, new String[] {"dataModels", "masterForm","slaverForms","sortItems", "searchItems","functions","displayItems", "quickSearchItems", "relevanceItemModelList", "protalListTemplate", "appListTemplate"});
+
+		try {
+			List<Map> protalListTemplate = listModel.getProtalListTemplate();
+			List<Map> appListTemplate = listModel.getAppListTemplate();
+			if (appListTemplate != null) {
+				listModelEntity.setAppListTemplate(objectMapper.writeValueAsString(appListTemplate));
+			} else {
+				listModelEntity.setAppListTemplate("[]");
+			}
+			if (protalListTemplate != null) {
+				listModelEntity.setProtalListTemplate(objectMapper.writeValueAsString(protalListTemplate));
+			} else {
+				listModelEntity.setProtalListTemplate("[]");
+			}
+		} catch (IOException e) {
+			throw new ICityException(e.getLocalizedMessage(), e);
+		}
 
 		if(listModel.getMasterForm() != null && !listModel.getMasterForm().isNew()) {
 			FormModelEntity formModelEntity = new FormModelEntity();
-			BeanUtils.copyProperties(listModel.getMasterForm(), formModelEntity, new String[] {"dataModels","items", "permissions","submitChecks","functions", "triggeres"});
+			BeanUtils.copyProperties(listModel.getMasterForm(), formModelEntity, new String[] {"dataModels","items", "permissions","submitChecks","functions", "triggeres", "protalListTemplate", "appListTemplate"});
 			listModelEntity.setMasterForm(formModelEntity);
 		}
 
@@ -493,9 +519,29 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		return listModels;
 	}
 
+	private List<Map> toAppListTemplate(String appListTemplate) {
+		if (StringUtils.hasText(appListTemplate)) {
+			try {
+				return objectMapper.readValue(appListTemplate, List.class);
+			} catch (IOException e) { }
+		}
+		for (Map map:appListTemplateList) {
+			map.put("id", UUID.randomUUID().toString().replaceAll("-",""));
+		}
+		return appListTemplateList;
+	}
+
+	private List<Map> toProtalListTemplate(String protalListTemplate) {
+		return new ArrayList();
+	}
+
 	private ListModel toDTO(ListModelEntity listModelEntity) {
 		ListModel listModel = new ListModel();
-		BeanUtils.copyProperties(listModelEntity, listModel, new String[] {"masterForm", "slaverForms", "sortItems", "searchItems", "functions", "displayItems", "quickSearchItems"});
+		BeanUtils.copyProperties(listModelEntity, listModel, new String[] {"masterForm", "slaverForms", "sortItems", "searchItems", "functions", "displayItems", "quickSearchItems", "protalListTemplate", "appListTemplate"});
+
+		listModel.setAppListTemplate(toAppListTemplate(listModelEntity.getAppListTemplate()));
+		listModel.setProtalListTemplate(toProtalListTemplate(listModelEntity.getProtalListTemplate()));
+
 
 		if(listModelEntity.getMasterForm() != null){
 			FormModelEntity formModelEntity = listModelEntity.getMasterForm();
