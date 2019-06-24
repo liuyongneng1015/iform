@@ -643,6 +643,10 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		}
 
 		formInstanceService.deleteFormInstance(formModel, id);
+		FormProcessInfo formProcessInfo = formModel.getProcess();
+		if (formProcessInfo!=null) {
+			processInstanceService.deleteByBusinessKey(id);
+		}
 	}
 
 	@Override
@@ -652,8 +656,12 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			if (formModel == null) {
 				throw new IFormException(404, "表单模型【" + formId + "】不存在");
 			}
+			FormProcessInfo formProcessInfo = formModel.getProcess();
 			for (String id:ids) {
 				formInstanceService.deleteFormInstance(formModel, id);
+				if (formProcessInfo!=null) {
+					processInstanceService.deleteByBusinessKey(id);
+				}
 			}
 		}
 	}
