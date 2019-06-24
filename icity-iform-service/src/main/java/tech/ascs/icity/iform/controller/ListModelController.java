@@ -165,9 +165,9 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 	// 校验默认的功能按钮是否被删除
 	private void checkDefaultFuncExists(ListModel listModel) {
 		List<FunctionModel> functions = listModel.getFunctions();
-		if (functions==null || functions.size()==0) {
-			throw new IFormException("系统自带的功能按钮允许不启用，但不允许删除");
-		}
+//		if (functions==null || functions.size()==0) {
+//			throw new IFormException("系统自带的功能按钮允许不启用，但不允许删除");
+//		}
 		// 校验功能按钮的编码不允许为空和同名
 		if (functions.stream().filter(item->item.getAction()!=null).map(item->item.getAction()).collect(Collectors.toSet()).size()<functions.size()) {
 			throw new IFormException("功能按钮的编码不能为空和同名");
@@ -181,17 +181,17 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				throw new IFormException("功能按钮的编码不能包含 - 和 # 字符");
 			}
 		}
-		// 校验默认的功能按钮是否被删除
-		for (int i = 0; i < functionDefaultActions.length; i++) {
-			String action = functionDefaultActions[i].getValue();
-			String label = functionDefaultActions[i].getDesc();
-			Optional<FunctionModel> optional = functions.stream().filter(item->!StringUtils.isEmpty(item.getId()) &&
-																				action.equals(item.getAction()) &&
-																				label.equals(item.getLabel())).findFirst();
-			if (optional.isPresent()==false) {
-				throw new IFormException("系统自带的功能按钮 "+ label +" 不允许删除，改名，或者修改功能编码");
-			}
-		}
+//		// 校验默认的功能按钮是否被删除
+//		for (int i = 0; i < functionDefaultActions.length; i++) {
+//			String action = functionDefaultActions[i].getValue();
+//			String label = functionDefaultActions[i].getDesc();
+//			Optional<FunctionModel> optional = functions.stream().filter(item->!StringUtils.isEmpty(item.getId()) &&
+//																				action.equals(item.getAction()) &&
+//																				label.equals(item.getLabel())).findFirst();
+//			if (optional.isPresent()==false) {
+//				throw new IFormException("系统自带的功能按钮 "+ label +" 不允许删除，改名，或者修改功能编码");
+//			}
+//		}
 	}
 
 	@Override

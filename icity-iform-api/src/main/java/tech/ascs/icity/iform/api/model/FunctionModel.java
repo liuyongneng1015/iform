@@ -61,6 +61,9 @@ public class FunctionModel extends NameEntity implements Comparable<FunctionMode
 	@ApiModelProperty(value ="解析区域", position = 20)
 	private List<String> parseArea = new ArrayList();
 
+	@ApiModelProperty(value ="隐藏条件", position = 21)
+	private String hideCondition;
+
 	public String getLabel() {
 		return label;
 	}
@@ -243,6 +246,14 @@ public class FunctionModel extends NameEntity implements Comparable<FunctionMode
 
 	public void setParseArea(List<String> parseArea) {
 		this.parseArea = parseArea;
+	}
+
+	public String getHideCondition() {
+		return hideCondition;
+	}
+
+	public void setHideCondition(String hideCondition) {
+		this.hideCondition = hideCondition;
 	}
 
 	@Override

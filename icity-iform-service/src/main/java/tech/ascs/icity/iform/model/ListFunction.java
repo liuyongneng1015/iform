@@ -86,6 +86,13 @@ public class ListFunction extends JPAEntity implements Serializable {
 	// 是否是系统的按钮
 	private Boolean systemBtn;
 
+	// 隐藏条件
+	private String hideCondition;
+
+	public ListFunction() {
+
+	}
+
 	public ListModelEntity getListModel() {
 		return listModel;
 	}
@@ -286,4 +293,11 @@ public class ListFunction extends JPAEntity implements Serializable {
 		this.systemBtn = systemBtn;
 	}
 
+	public String getHideCondition() {
+		return hideCondition;
+	}
+
+	public void setHideCondition(String hideCondition) {
+		this.hideCondition = hideCondition;
+	}
 }
