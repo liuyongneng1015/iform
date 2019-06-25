@@ -3649,18 +3649,38 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
         String formName = formModel.getName();
         if(formModel.getProcess() != null && formInstance.getProcessInstanceId() != null){
-            setFormInstanceProcessStatus(formInstance,  formName);
+            setFormInstanceProcessStatus(formModel, formInstance,  formName);
         }
         formInstance.setFormName(formName);
 		return formInstance;
 	}
 
 	//设置流程状态
-	private void setFormInstanceProcessStatus(FormDataSaveInstance formInstance, String formName){
+	private void setFormInstanceProcessStatus(FormModelEntity formModelEntity, FormDataSaveInstance formInstance, String formName){
         ProcessInstance processInstance = processInstanceService.get(formInstance.getProcessInstanceId());
         if(processInstance == null){
             return;
         }
+		//表单控件查询权限
+		Map<String, ItemPermissionInfo> itemPermissionMap = null;
+		if (processInstance.getStatus() == ProcessInstance.Status.Ended) {
+			itemPermissionMap = itemModelService.findItemPermissionByDisplayTimingType(formModelEntity, DisplayTimingType.Check);
+		}
+		if(itemPermissionMap != null) {
+			for (ItemInstance itemInstance : formInstance.getItems()) {
+				itemInstance.setProcessInstanceId(processInstance.getId());
+				ItemPermissionInfo itemPermissionInfo = itemPermissionMap.get(itemInstance.getId());
+				if (itemPermissionInfo == null) {
+					continue;
+				}
+				boolean visible = itemPermissionInfo.getVisible() == null ? false : itemPermissionInfo.getVisible();
+				boolean canFill = false;
+				boolean required = false;
+				itemInstance.setVisible(visible);
+				itemInstance.setCanFill(canFill);
+				itemInstance.setRequired(required);
+			}
+		}
         if(processInstance.getFormTitle() != null){
             formName = processInstance.getFormTitle();
         }
