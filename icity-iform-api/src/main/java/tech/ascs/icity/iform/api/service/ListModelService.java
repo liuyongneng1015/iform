@@ -65,6 +65,19 @@ public interface ListModelService {
 	@GetMapping("/{id}")
 	ListModel get(@PathVariable(name="id") String id);
 
+	/**
+	 * 根据列表模型ID获取列表模型对象
+	 *
+	 * @param id 列表模型ID（uuid）
+	 * @return
+	 */
+	@ApiOperation(value = "根据列表模型ID获取列表模型对象", position = 2)
+	@ApiImplicitParams({
+			@ApiImplicitParam(paramType = "path", name = "id", value = "列表模型ID", required = true, dataType = "String")
+	})
+	@GetMapping("/app/{id}")
+	ListModel getApp(@PathVariable(name="id") String id);
+
 
 	/**
 	 * 根据唯一编码查询列表建模
