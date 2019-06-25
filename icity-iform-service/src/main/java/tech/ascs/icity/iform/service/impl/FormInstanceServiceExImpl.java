@@ -548,8 +548,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		//跳过第一个流程环节
 		flowData.put("PASS_THROW_FIRST_USERTASK", true);
 
-		flowData = toProcesDictionaryData(flowData, formModel);
-
 		//上一个流程环节数据
 		TaskInstance taskInstance = null;
 		if(StringUtils.hasText(formInstance.getProcessInstanceId())) {
@@ -558,7 +556,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 		setColumnValue(assignmentList, flowData, data, user, taskInstance);
 
-		System.out.println("传给工作流的数据=====>>>>>"+flowData);
+		flowData = toProcesDictionaryData(flowData, formModel);
+
+		System.out.println("新增传给工作流的数据=====>>>>>"+flowData);
 		String processInstanceId = processInstanceService.startProcess(formModel.getProcess().getKey(), newId, flowData);
 		updateProcessInfo(assignmentList, formModel, data, processInstanceId);
 	}
@@ -872,7 +872,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 		flowData.put("formId", formInstance.getFormId());
 		flowData.put("id", formInstance.getId());
-		flowData = toProcesDictionaryData(flowData, formModel);
 		//上一个流程环节数据
 		TaskInstance taskInstance = null;
 		if(StringUtils.hasText(formInstance.getProcessInstanceId())) {
@@ -880,6 +879,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			taskInstance = processInstance.getCurrentTaskInstance();
 		}
 		setColumnValue(assignmentList, flowData, data, user, taskInstance);
+		flowData = toProcesDictionaryData(flowData, formModel);
+		System.out.println("更新时传给工作流的数据=====>>>>>"+flowData);
 		taskService.completeTask(formInstance.getActivityInstanceId(), flowData);
 		updateProcessInfo(assignmentList, formModel, data, formInstance.getProcessInstanceId());
 	}
@@ -1684,7 +1685,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				formData.put(id, null);
 				continue;
 			}
-			Object objectValue = null;
+			Object objectValue = map.get("value");
 			if(AssignmentWay.DefaultManual.getValue().equals(map.get("valueType"))){
 				Object value = map.get("value");
 				if(columnModelEntity.getDataType() == ColumnType.Integer){
@@ -1717,6 +1718,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 						objectValue = taskInstance == null ? null : taskInstance.getActivityId();
 					}else if(AssignmentArea.ActivitieName.getValue().equals(map.get("value"))){
 						objectValue = taskInstance == null ? null : taskInstance.getActivityName();
+					}else{
+						flowData.put(id, objectValue);
 					}
 				}
 			}
