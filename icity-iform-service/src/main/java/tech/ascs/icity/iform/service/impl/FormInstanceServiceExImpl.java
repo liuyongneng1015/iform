@@ -590,21 +590,21 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
                             }
 							Optional<ItemSelectOption> optional = options.stream().filter(item->item.getId().equals(valueStr)).findFirst();
                             if (optional.isPresent()) {
-								returnMap.put(key, optional.get().getLabel());
-								returnMap.put(key + "_id", optional.get().getId());
+								returnMap.put(key, optional.get().getId());
+//								returnMap.put(key + "_id", optional.get().getId());
 								returnMap.put(key + "_name", optional.get().getValue());
 							}
                         } else if (SelectReferenceType.Dictionary==selectReferenceType) {
 							if (selectItemModel.getSelectDataSourceType() == SelectDataSourceType.DictionaryData) {
 								DictionaryDataItemEntity dictionaryDataItemEntity = dictionaryDataService.getDictionaryItemById(valueStr);
-								returnMap.put(key, dictionaryDataItemEntity.getCode());
-								returnMap.put(key + "_id", dictionaryDataItemEntity.getId());
+								returnMap.put(key, dictionaryDataItemEntity.getId());
+//								returnMap.put(key + "_id", dictionaryDataItemEntity.getId());
 								returnMap.put(key + "_name", dictionaryDataItemEntity.getName());
 							} else if (selectItemModel.getSelectDataSourceType() == SelectDataSourceType.DictionaryModel) {
 								String referenceDictionaryId = selectItemModel.getReferenceDictionaryId();
 								DictionaryModelData dictionaryModelData = dictionaryModelService.getDictionaryModelDataById(referenceDictionaryId, valueStr);
-								returnMap.put(key, dictionaryModelData.getCode());
-								returnMap.put(key + "_id", dictionaryModelData.getId());
+								returnMap.put(key, dictionaryModelData.getId());
+//								returnMap.put(key + "_id", dictionaryModelData.getId());
 								returnMap.put(key + "_name", dictionaryModelData.getName());
 							}
 						}
@@ -3720,6 +3720,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 			//跳过第一个流程环节
 			flowData.put("PASS_THROW_FIRST_USERTASK", true);
+			flowData = toProcesDictionaryData(flowData, formModel);
 			System.out.println("传给工作流的数据=====>>>>>"+flowData);
 			setColumnValue(null, flowData, data, user, null);
 			processInstanceId = processInstanceService.startProcess(formModelEntity.getProcess().getKey(), instanceId, flowData);
