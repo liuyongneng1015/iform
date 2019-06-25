@@ -102,7 +102,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		ListModel listModel = get(id);
 		if (listModel!=null) {
 			List<Map> appListTemplate = listModel.getAppListTemplate();
-			if (appListTemplate!=null && appListTemplate.size()==0) {
+			if (appListTemplate!=null && appListTemplate.size()>0) {
 				for (Map map:appListTemplate) {
 					Object visible = map.get("visible");
 					if (visible!=null && visible instanceof Boolean && (Boolean)visible) {
