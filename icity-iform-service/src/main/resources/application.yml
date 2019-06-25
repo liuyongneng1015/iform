@@ -40,7 +40,7 @@ icity:
       name: 航天智慧cityworks
   dictionary:
     areaCode:
-      id: dictionary-areaCode-id
+      id: 9fddec6151b14a04bfe21d80d7a4474b
 
 spring.redis:
   database: 0

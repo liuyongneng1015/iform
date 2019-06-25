@@ -9,6 +9,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
+import tech.ascs.icity.ICityException;
 import tech.ascs.icity.iform.api.model.SystemCodeModel;
 import tech.ascs.icity.model.Page;
 import tech.ascs.icity.iform.IFormException;
@@ -59,8 +60,9 @@ public class DictionaryDataController implements tech.ascs.icity.iform.api.servi
 
 	@Override
 	public List<DictionaryDataItemModel> listDictionaryItemModel(@PathVariable(name = "id",required = true) String id) {
+		// 查行政区划
 		if (areaCodeId.equals(id)) {
-
+			return queryAreaCodeTreeList(id);
 		}
 		DictionaryDataEntity dictionaryEntity = dictionaryService.get(id);
 		if(dictionaryEntity == null){
@@ -79,6 +81,29 @@ public class DictionaryDataController implements tech.ascs.icity.iform.api.servi
 		return itemModels;
 	}
 
+	/**
+	 * 查询行政区划的查询所有节点，与之前  /{id}/dictionary-items 的接口结构保持一致
+	 * @param id
+	 * @return
+	 */
+	private List<DictionaryDataItemModel> queryAreaCodeTreeList(String id) {
+		DictionaryDataItemEntity rootDictionaryItem = dictionaryService.findRootDictionaryItem();
+		if (rootDictionaryItem==null) {
+			return new ArrayList();
+		}
+		List<DictionaryDataItemModel> areaCodeList = new ArrayList<>();
+		DictionaryDataItemModel root = new DictionaryDataItemModel();
+		root.setId(rootDictionaryItem.getId());
+		root.setName(rootDictionaryItem.getName());
+		root.setCode(rootDictionaryItem.getCode());
+		areaCodeList.add(root);
+
+		List<DictionaryDataItemModel> areaCodes = dictionaryService.queryAreaCodeTreeList(null);
+		if (areaCodes!=null) {
+			root.setResources(areaCodes);
+		}
+		return areaCodeList;
+	}
 
 	private DictionaryDataModel getByEntity(DictionaryDataEntity dictionaryEntity){
         DictionaryDataModel dictionaryModel = new DictionaryDataModel();
@@ -225,7 +250,10 @@ public class DictionaryDataController implements tech.ascs.icity.iform.api.servi
 
 	@Override
     public void delete(@PathVariable(name="id") String id) {
-    	DictionaryDataEntity dictionary = dictionaryService.get(id);
+		if (areaCodeId.equals(id)) {
+			throw new ICityException("行政区划的系统分类不能删除");
+		}
+		DictionaryDataEntity dictionary = dictionaryService.get(id);
 		if(dictionary == null){
 			throw new IFormException("未找到【"+id+"】对应的系统代码分类");
 		}
