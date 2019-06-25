@@ -496,7 +496,8 @@ public class DictionaryDataController implements tech.ascs.icity.iform.api.servi
 		}
 		List<DictionaryDataItemModel> dictionaryItemModels = new ArrayList<>();
 		if(dictionaryItemEntity != null && dictionaryItemEntity.getChildrenItem() != null && dictionaryItemEntity.getChildrenItem().size() > 0 ) {
-			for(DictionaryDataItemEntity itemEntity : dictionaryItemEntity.getChildrenItem()) {
+			List<DictionaryDataItemEntity> dictionaryDataItemEntities = dictionaryItemEntity.getChildrenItem().parallelStream().sorted((d2, d1) -> d2.getOrderNo().compareTo(d1.getOrderNo())).collect(Collectors.toList());
+			for(DictionaryDataItemEntity itemEntity : dictionaryDataItemEntities) {
 				if(itemEntity.getParentItem() != null && ("root").equals(itemEntity.getParentItem().getCode())){
 					//根节点
 					if(itemEntity.getDictionary() == null || (itemEntity.getDictionary() != null && !itemEntity.getDictionary().getId().equals(id))){
