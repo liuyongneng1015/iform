@@ -10,8 +10,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import com.alibaba.fastjson.JSON;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.hibernate.Criteria;
@@ -3649,61 +3647,16 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
         String formName = formModel.getName();
         if(formModel.getProcess() != null && formInstance.getProcessInstanceId() != null){
-            setFormInstanceProcessStatus(formModel, formInstance,  formName);
+            setFormInstanceProcessStatus(formModel, formInstance);
         }
         formInstance.setFormName(formName);
 		return formInstance;
 	}
 
 	//设置流程状态
-	private void setFormInstanceProcessStatus(FormModelEntity formModelEntity, FormDataSaveInstance formInstance, String formName){
+	private void setFormInstanceProcessStatus(FormModelEntity formModelEntity, FormDataSaveInstance formInstance){
         ProcessInstance processInstance = processInstanceService.get(formInstance.getProcessInstanceId());
-        if(processInstance == null){
-            return;
-        }
-		//表单控件查询权限
-		Map<String, ItemPermissionInfo> itemPermissionMap = null;
-		if (processInstance.getStatus() == ProcessInstance.Status.Ended) {
-			itemPermissionMap = itemModelService.findItemPermissionByDisplayTimingType(formModelEntity, DisplayTimingType.Check);
-		}
-		if(itemPermissionMap != null) {
-			for (ItemInstance itemInstance : formInstance.getItems()) {
-				itemInstance.setProcessInstanceId(processInstance.getId());
-				ItemPermissionInfo itemPermissionInfo = itemPermissionMap.get(itemInstance.getId());
-				if (itemPermissionInfo == null) {
-					continue;
-				}
-				boolean visible = itemPermissionInfo.getVisible() == null ? false : itemPermissionInfo.getVisible();
-				boolean canFill = false;
-				boolean required = false;
-				itemInstance.setVisible(visible);
-				itemInstance.setCanFill(canFill);
-				itemInstance.setRequired(required);
-			}
-		}
-        if(processInstance.getFormTitle() != null){
-            formName = processInstance.getFormTitle();
-        }
-        ItemInstance processStatusItemInstance = null;
-        for(ItemInstance instance : formInstance.getItems()){
-            if(instance.getSystemItemType() == SystemItemType.ProcessStatus){
-                processStatusItemInstance = instance;
-            }
-        }
-        if(processStatusItemInstance != null){
-            ItemModelEntity itemModelEntity = itemModelManager.find(processStatusItemInstance.getId());
-            List<Option> lists = (List<Option>) JSON.parseArray(((ProcessStatusItemModelEntity) itemModelEntity).getProcessStatus(),Option.class);
-            Map<String, Object> objectMap = new HashMap<>();
-            for(Option option : lists){
-                objectMap.put(option.getId(), option.getLabel());
-            }
-            //TODO 个人流程状态不是这个字段
-            String status = "0";
-            if(processInstance.getStatus() == ProcessInstance.Status.Ended){
-                status = "1";
-            }
-            processStatusItemInstance.setDisplayValue(objectMap.get(status));
-        }
+		setFlowFormInstance(formModelEntity, processInstance, formInstance);
     }
 
 	@Override
@@ -3782,5 +3735,84 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		return new IdEntity(processInstanceId);
 	}
 
+	@Override
+	public void setFlowFormInstance(FormModelEntity formModelEntity, ProcessInstance processInstance, FormDataSaveInstance instance) {
+		if (processInstance == null) {
+			return;
+		}
+		//表单控件查询权限
+		Map<String, ItemPermissionInfo> itemPermissionMap = null;
+		if (processInstance.getStatus() != ProcessInstance.Status.Ended) {
+			instance.setCanEdit(true);
+		} else {
+			itemPermissionMap = itemModelService.findItemPermissionByDisplayTimingType(formModelEntity, DisplayTimingType.Check);
+			instance.setCanEdit(false);
+		}
+		instance.setMyTask(processInstance.isMyTask());
+		instance.setFunctions(processInstance.getCurrentTaskInstance() == null ? null : processInstance.getCurrentTaskInstance().getOperations());
+		List<Map<String, Object>> stringObjectMap = processInstance.getCurrentTaskInstance() == null ? null : (List<Map<String, Object>>)(processInstance.getCurrentTaskInstance().getFormDefinition());
+
+		Map<String, Map<String, Object>> map = new HashMap<>();
+		if(stringObjectMap != null) {
+			for(Map<String, Object> objectMap : stringObjectMap){
+				map.put((String)objectMap.get("id"), objectMap);
+			}
+		}
+		for(ItemInstance itemInstance : instance.getItems()){
+			itemInstance.setProcessInstanceId(processInstance.getId());
+			Map<String, Object> instanceMap = map.get(itemInstance.getId());
+			boolean visible = false;
+			boolean canFill =  false;
+			boolean required =  false;
+			if(instanceMap != null) {
+				visible = instanceMap.get("visible") == null ? false : (Boolean)instanceMap.get("visible");
+				canFill = instanceMap.get("canFill") == null ? false : (Boolean)instanceMap.get("canFill");
+				required = instanceMap.get("required") == null ? false : (Boolean)instanceMap.get("required");
+			}else {
+				if(!instance.getCanEdit()){
+					if(itemPermissionMap == null){
+						continue;
+					}
+					ItemPermissionInfo itemPermissionInfo = itemPermissionMap.get(itemInstance.getId());
+					if(itemPermissionInfo == null){
+						continue;
+					}
+					visible = itemPermissionInfo.getVisible() == null ? false : itemPermissionInfo.getVisible();
+				}else if(instance.getCanEdit()){
+					visible = true;
+					canFill = true;
+				}
+			}
+			itemInstance.setVisible(visible);
+			itemInstance.setCanFill(canFill);
+			itemInstance.setRequired(required);
+		}
+		String formName = StringUtils.hasText(processInstance.getFormTitle()) ? processInstance.getFormTitle() : processInstance.getFormTitle();
+		instance.setFormName(formName);
+		setFormInstanceProcessStatus(instance, processInstance);
+	}
+	//设置流程状态
+	private void setFormInstanceProcessStatus(FormDataSaveInstance formInstance, ProcessInstance processInstance){
+		ItemInstance processStatusItemInstance = null;
+		for(ItemInstance instance : formInstance.getItems()){
+			if(instance.getSystemItemType() == SystemItemType.ProcessStatus){
+				processStatusItemInstance = instance;
+			}
+		}
+		if(processStatusItemInstance != null){
+			ItemModelEntity itemModelEntity = itemModelService.get(processStatusItemInstance.getId());
+			List<Option> lists = (List<Option>) JSON.parseArray(((ProcessStatusItemModelEntity) itemModelEntity).getProcessStatus(),Option.class);
+			Map<String, Object> objectMap = new HashMap<>();
+			for(Option option : lists){
+				objectMap.put(option.getId(), option.getLabel());
+			}
+			//TODO 个人流程状态未配
+			String status = "0";
+			if(processInstance.getStatus()==ProcessInstance.Status.Ended){
+				status = "1";
+			}
+			processStatusItemInstance.setDisplayValue(objectMap.get(status));
+		}
+	}
 
 }
