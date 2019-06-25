@@ -2648,7 +2648,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 		if(((ReferenceItemModelEntity) entity).getReferenceList() != null){
 			ListModel referenceList = new ListModel();
-			BeanUtils.copyProperties(((ReferenceItemModelEntity) entity).getReferenceList(), referenceList, new String[] {"masterForm", "slaverForms", "sortItems", "searchItems", "functions", "displayItems", "quickSearchItems"});
+			BeanUtils.copyProperties(((ReferenceItemModelEntity) entity).getReferenceList(), referenceList, new String[] {"masterForm", "slaverForms", "sortItems", "searchItems", "functions", "displayItems", "quickSearchItems", "appListTemplate", "protalListTemplate"});
 			itemModel.setReferenceList(referenceList);
 		}
 	}

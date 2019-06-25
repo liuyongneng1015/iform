@@ -340,15 +340,11 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		try {
 			List<Map> protalListTemplate = listModel.getProtalListTemplate();
 			List<Map> appListTemplate = listModel.getAppListTemplate();
-			if (appListTemplate != null) {
+			if (appListTemplate != null && appListTemplate.size()>0) {
 				listModelEntity.setAppListTemplate(objectMapper.writeValueAsString(appListTemplate));
-			} else {
-				listModelEntity.setAppListTemplate("[]");
 			}
-			if (protalListTemplate != null) {
+			if (protalListTemplate != null && protalListTemplate.size()>0) {
 				listModelEntity.setProtalListTemplate(objectMapper.writeValueAsString(protalListTemplate));
-			} else {
-				listModelEntity.setProtalListTemplate("[]");
 			}
 		} catch (IOException e) {
 			throw new ICityException(e.getLocalizedMessage(), e);
