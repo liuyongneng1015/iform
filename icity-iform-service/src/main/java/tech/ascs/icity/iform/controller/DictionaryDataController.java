@@ -498,12 +498,13 @@ public class DictionaryDataController implements tech.ascs.icity.iform.api.servi
 		if(dictionaryItemEntity != null && dictionaryItemEntity.getChildrenItem() != null && dictionaryItemEntity.getChildrenItem().size() > 0 ) {
 			List<DictionaryDataItemEntity> dictionaryDataItemEntities = dictionaryItemEntity.getChildrenItem().parallelStream().sorted((d2, d1) -> d2.getOrderNo().compareTo(d1.getOrderNo())).collect(Collectors.toList());
 			for(DictionaryDataItemEntity itemEntity : dictionaryDataItemEntities) {
-				if(itemEntity.getParentItem() != null && ("root").equals(itemEntity.getParentItem().getCode())){
-					//根节点
-					if(itemEntity.getDictionary() == null || (itemEntity.getDictionary() != null && !itemEntity.getDictionary().getId().equals(id))){
+				if(("root").equals(dictionaryItemEntity.getCode()) || ("根节点").equals(dictionaryItemEntity.getName())){
+					if(itemEntity.getDictionary() == null || !itemEntity.getDictionary().getId().equals(id)) {
+						//根节点
 						continue;
 					}
 				}
+
 				DictionaryDataItemModel dictionaryItemModel = new DictionaryDataItemModel();
 				tech.ascs.icity.utils.BeanUtils.copyProperties(itemEntity, dictionaryItemModel, new String[]{"dictionary", "paraentItem", "childrenItem"});
 				if(itemEntity.getDictionary() != null) {
