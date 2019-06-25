@@ -224,9 +224,13 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		if (processInstance==null) {
 			return;
 		}
+		//表单控件查询权限
+		Map<String, ItemPermissionInfo> itemPermissionMap = null;
 		if (processInstance.getStatus() != ProcessInstance.Status.Ended) {
 			instance.setCanEdit(true);
 		} else {
+			FormModelEntity formModelEntity = formModelService.find(instance.getFormId());
+			itemPermissionMap = itemModelService.findItemPermissionByDisplayTimingType(formModelEntity, DisplayTimingType.Check);
 			instance.setCanEdit(false);
 		}
 		instance.setMyTask(processInstance.isMyTask());
@@ -242,21 +246,31 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		for(ItemInstance itemInstance : instance.getItems()){
 			itemInstance.setProcessInstanceId(processInstance.getId());
 			Map<String, Object> instanceMap = map.get(itemInstance.getId());
+			boolean visible = false;
+			boolean canFill =  false;
+			boolean required =  false;
 			if(instanceMap != null) {
-				itemInstance.setVisible(instanceMap.get("visible") == null ? false : (Boolean)instanceMap.get("visible"));
-				itemInstance.setCanFill(instanceMap.get("canFill") == null ? false : (Boolean)instanceMap.get("canFill"));
-				itemInstance.setRequired(instanceMap.get("required") == null ? false : (Boolean)instanceMap.get("required"));
+				visible = instanceMap.get("visible") == null ? false : (Boolean)instanceMap.get("visible");
+				canFill = instanceMap.get("canFill") == null ? false : (Boolean)instanceMap.get("canFill");
+				required = instanceMap.get("required") == null ? false : (Boolean)instanceMap.get("required");
 			}else {
 				if(!instance.getCanEdit()){
-					itemInstance.setVisible(true);
-					itemInstance.setCanFill(false);
-					itemInstance.setRequired(false);
+					if(itemPermissionMap == null){
+						continue;
+					}
+					ItemPermissionInfo itemPermissionInfo = itemPermissionMap.get(itemInstance.getId());
+					if(itemPermissionInfo == null){
+						continue;
+					}
+					visible = itemPermissionInfo.getVisible() == null ? false : itemPermissionInfo.getVisible();
 				}else if(instance.getCanEdit()){
-					itemInstance.setVisible(true);
-					itemInstance.setCanFill(true);
-					itemInstance.setRequired(false);
+					visible = true;
+					canFill = true;
 				}
 			}
+			itemInstance.setVisible(visible);
+			itemInstance.setCanFill(canFill);
+			itemInstance.setRequired(required);
 		}
 		String formName = instance.getFormName();
 		setFormInstanceProcessStatus(instance, formName, processInstance);

@@ -67,6 +67,23 @@ public class ItemModelServiceImpl extends DefaultJPAService<ItemModelEntity> imp
 		return saveItem(formModelEntity, itemModelName);
 	}
 
+	@Override
+	public Map<String, ItemPermissionInfo> findItemPermissionByDisplayTimingType(FormModelEntity formModelEntity, DisplayTimingType displayTimingType) {
+		Map<String, ItemPermissionInfo> map = new HashMap<>();
+		List<ItemModelEntity> list = formModelService.findAllItems(formModelEntity);
+		if (list != null) {
+			for (ItemModelEntity itemModelEntity : list) {
+				for(ItemPermissionInfo permissionInfo : itemModelEntity.getPermissions()){
+					if(permissionInfo.getDisplayTiming() == displayTimingType){
+						map.put(itemModelEntity.getId(), permissionInfo);
+						break;
+					}
+				}
+			}
+		}
+		return map;
+	}
+
 	private ItemModelEntity saveItem(FormModelEntity formModelEntity, String itemModelName) {
 		ItemModelEntity itemModelEntity = new ItemModelEntity();
 
