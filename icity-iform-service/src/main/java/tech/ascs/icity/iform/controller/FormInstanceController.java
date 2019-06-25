@@ -192,7 +192,6 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			privateStatus = Integer.parseInt((String.valueOf(queryParameters.get(personOptional.get().getId()))));
 		}
 
-		System.out.println("前端传过来的封装过一次的参数=======>>>>>>"+queryParameters);
 		Map<String, Object> iflowQueryParams = assemblyIflowQueryParams(items, queryParameters);
 		// 查工作流
 		Page<ProcessInstance> pageProcess = null;
