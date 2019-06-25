@@ -80,6 +80,7 @@ public class DictionaryDataServiceImpl extends DefaultJPAService<DictionaryDataE
 					i--;
 				}
 			}
+			item.setDictionary(dictionary);
 			root.getChildrenItem().add(item);
 			item.setParentItem(root);
 			dictionary.getDictionaryItems().add(item);
