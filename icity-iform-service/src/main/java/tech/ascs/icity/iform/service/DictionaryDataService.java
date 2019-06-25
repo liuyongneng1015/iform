@@ -87,5 +87,16 @@ public interface DictionaryDataService extends JPAService<DictionaryDataEntity> 
 	 * @return
 	 */
 	List<DictionaryDataItemModel> findDictionaryItems(String dictionaryId, @NotNull String itemName);
+
+
+
+	// 查询行政区划的树形结构
+	/**
+	 * 返回树形结构
+	 * @param parentId
+	 * @return
+	 */
+	List<DictionaryDataItemModel> queryAreaCodeTreeList(String parentId);
+
 }
 

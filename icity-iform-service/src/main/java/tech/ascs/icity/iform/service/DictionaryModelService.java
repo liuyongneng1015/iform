@@ -119,11 +119,6 @@ public interface DictionaryModelService extends JPAService<DictionaryModelEntity
 	 */
 	List<DictionaryModelData> findFirstItems(String dictionaryId, String id);
 
-	/**
-	 * 返回树形结构
-	 * @param parentId
-	 * @return
-	 */
-	List<DictionaryDataItemModel> queryAreaCodeTreeList(String parentId);
+
 }
 
