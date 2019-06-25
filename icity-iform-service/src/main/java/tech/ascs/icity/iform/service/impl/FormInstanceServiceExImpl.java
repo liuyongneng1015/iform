@@ -1678,6 +1678,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			if(columnModelEntity == null){
 				continue;
 			}
+            flowData.remove(id);
 			if(map.get("value") == null){
 				flowData.put(columnModelEntity.getColumnName(), null);
 				formData.put(id, null);
