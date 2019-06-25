@@ -1793,6 +1793,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 			ColumnModelEntity columnModel = itemModel.getColumnModel();
 
+			boolean equalsFlag = false;
 			String propertyName = null;
 			Boolean propertyIsReferenceCollection = false;
 			if (itemModel instanceof ReferenceItemModelEntity) {
@@ -1804,10 +1805,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					}
 					columnModel = referenceItemModel.getColumnModel();
 					propertyName = columnModel.getColumnName()+".id";
+					equalsFlag  = true;
 				}else if (referenceItemModel.getSelectMode() == SelectMode.Inverse && (referenceItemModel.getReferenceType() == ReferenceType.ManyToOne
 						|| referenceItemModel.getReferenceType() == ReferenceType.OneToOne)) {
 					ReferenceItemModelEntity referenceItemModelEntity1 = (ReferenceItemModelEntity)itemModelManager.find(referenceItemModel.getReferenceItemId());
-					if(referenceItemModelEntity1.getColumnModel() == null){
+					if(referenceItemModelEntity1.getColumnModel() == null) {
 						continue;
 					}
 					propertyIsReferenceCollection = true;
@@ -1822,6 +1824,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					}
 					propertyName = toModelEntity.getDataModels().get(0).getTableName()+"_list";
 				}
+			} else if (itemModel instanceof SelectItemModelEntity && false==((SelectItemModelEntity)itemModel).getMultiple()) {
+				propertyName = columnModel.getColumnName();
+				equalsFlag = true;
 			} else if (itemModel.getColumnModel()!=null) {        // 普通控件
 				propertyName = columnModel.getColumnName();
 			}
@@ -1829,8 +1834,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			if (StringUtils.isEmpty(propertyName) || columnModel == null) {
 				continue;
 			}
-
-			boolean equalsFlag = false;
 
 			for (int i = 0; i < values.length; i++) {
 				value = null;
