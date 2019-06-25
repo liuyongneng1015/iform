@@ -98,6 +98,28 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 	}
 
 	@Override
+	public ListModel getApp(@PathVariable(name="id") String id) {
+		ListModel listModel = get(id);
+		if (listModel!=null) {
+			List<Map> appListTemplate = listModel.getAppListTemplate();
+			if (appListTemplate!=null && appListTemplate.size()>0) {
+				for (Map map:appListTemplate) {
+					Object visible = map.get("visible");
+					if (visible!=null && visible instanceof Boolean && (Boolean)visible) {
+						Object template = map.get("template");
+						if (template!=null && template instanceof List) {
+							listModel.setAppListTemplate((List)template);
+							return listModel;
+						}
+					}
+				}
+			}
+			listModel.setAppListTemplate(new ArrayList<>());
+		}
+		return listModel;
+	}
+
+	@Override
 	public ListModel find(@RequestParam(name = "uniqueCode") String uniqueCode) {
 		if (StringUtils.isEmpty(uniqueCode)) {
 			throw new ICityException("uniqueCode不允许为空");
@@ -518,7 +540,10 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 	private List<Map> toAppListTemplate(String appListTemplate) {
 		if (StringUtils.hasText(appListTemplate)) {
 			try {
-				return objectMapper.readValue(appListTemplate, List.class);
+				List<Map> list = objectMapper.readValue(appListTemplate, List.class);
+				if (list!=null && list.size()>0) {
+					return list;
+				}
 			} catch (IOException e) { }
 		}
 		for (Map map:appListTemplateList) {
