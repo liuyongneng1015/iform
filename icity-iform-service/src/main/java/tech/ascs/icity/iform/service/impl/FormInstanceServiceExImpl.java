@@ -1678,6 +1678,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			if(columnModelEntity == null){
 				continue;
 			}
+            flowData.remove(id);
 			if(map.get("value") == null){
 				flowData.put(columnModelEntity.getColumnName(), null);
 				formData.put(id, null);
@@ -3794,7 +3795,62 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		instance.setFormName(formName);
 		setFormInstanceProcessStatus(instance, processInstance);
 	}
-	//设置流程状态
+
+    @Override
+    public IdEntity saveFormInstance(FormModelEntity formModelEntity, Map<String, Object> parameters) {
+        Session session = null;
+        Map<String, Object> data = null;
+        DataModelEntity dataModel = formModelEntity.getDataModels().get(0);
+        String instanceId = (String)parameters.get("id");
+        try {
+            UserInfo user = null;
+            try {
+                user = CurrentUserUtils.getCurrentUser();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            session = getSession(dataModel);
+            //开启事务
+            session.beginTransaction();
+            if(StringUtils.hasText(instanceId)) {
+                data = (Map<String, Object>) session.load(dataModel.getTableName(), instanceId);
+                data.putAll(parameters);
+                //主表数据
+                data.put("update_at", new Date());
+                data.put("update_by",  user != null ? user.getId() : null);
+                // before
+                sendWebService( formModelEntity, BusinessTriggerType.Update_Before, data, instanceId);
+                session.update(dataModel.getTableName(), data);
+                session.getTransaction().commit();
+                // after
+                sendWebService( formModelEntity, BusinessTriggerType.Update_After, data, instanceId);
+            }else{
+                data = parameters;
+                //主表数据
+                data.put("create_at", new Date());
+                data.put("create_by",  user != null ? user.getId() : null);
+                sendWebService(formModelEntity, BusinessTriggerType.Add_Before, data, null);
+                instanceId = (String) session.save(dataModel.getTableName(), data);
+                session.getTransaction().commit();
+                // after
+                sendWebService( formModelEntity, BusinessTriggerType.Add_After, data, instanceId);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            logger.error("saveFormData error with data=["+OkHttpUtils.mapToJson(data)+"]");
+            if(e instanceof ICityException){
+                throw e;
+            }
+            throw new IFormException("保存【" + dataModel.getTableName() + "】表，id【"+instanceId+"】的数据失败");
+        } finally {
+            if(session != null){
+                session.close();
+            }
+        }
+        return new IdEntity(instanceId);
+    }
+
+    //设置流程状态
 	private void setFormInstanceProcessStatus(FormDataSaveInstance formInstance, ProcessInstance processInstance){
 		ItemInstance processStatusItemInstance = null;
 		for(ItemInstance instance : formInstance.getItems()){
