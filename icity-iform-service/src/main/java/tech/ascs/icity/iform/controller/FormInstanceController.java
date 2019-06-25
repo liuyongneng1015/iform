@@ -271,7 +271,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			} else if (SelectReferenceType.Dictionary == selectItem.getSelectReferenceType()) {
 				DictionaryDataItemEntity dictionaryItem = dictionaryService.getDictionaryItemById(itemValue);
 				if (dictionaryItem != null) {
-					queryNames.append(dictionaryItem.getName() + ",");
+					queryNames.append(dictionaryItem.getCode() + ",");
 				}
 			}
 		}
@@ -291,7 +291,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		} else if (SelectReferenceType.Dictionary == selectItem.getSelectReferenceType()) {
 			DictionaryDataItemEntity dictionaryItem = dictionaryService.getDictionaryItemById(valueStr);
 			if (dictionaryItem != null) {
-				iflowQueryParams.put(columnModel.getColumnName(), dictionaryItem.getName());
+				iflowQueryParams.put(columnModel.getColumnName(), dictionaryItem.getCode());
 			}
 		}
 	}
