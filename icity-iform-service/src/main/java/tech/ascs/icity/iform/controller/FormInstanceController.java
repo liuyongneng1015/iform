@@ -243,9 +243,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 				} else {
 					iflowQueryParams.put(columnModel.getColumnName(), value);
 				}
-			}
-			/**
-			else if (item instanceof SelectItemModelEntity) {
+			} else if (item instanceof SelectItemModelEntity) {
 				// 如果是单选框，多选框，下拉框，手动提取对应的中文出来
 				SelectItemModelEntity selectItem = (SelectItemModelEntity) item;
 				if (value instanceof String[]) {
@@ -256,7 +254,6 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 					assemblyReferenceStringParams(valueStr, selectItem, iflowQueryParams, columnModel);
 				}
 			}
-			 */
 		}
 		return iflowQueryParams;
 	}
@@ -274,7 +271,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			} else if (SelectReferenceType.Dictionary == selectItem.getSelectReferenceType()) {
 				DictionaryDataItemEntity dictionaryItem = dictionaryService.getDictionaryItemById(itemValue);
 				if (dictionaryItem != null) {
-					queryNames.append(dictionaryItem.getName() + ",");
+					queryNames.append(dictionaryItem.getCode() + ",");
 				}
 			}
 		}
@@ -294,7 +291,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		} else if (SelectReferenceType.Dictionary == selectItem.getSelectReferenceType()) {
 			DictionaryDataItemEntity dictionaryItem = dictionaryService.getDictionaryItemById(valueStr);
 			if (dictionaryItem != null) {
-				iflowQueryParams.put(columnModel.getColumnName(), dictionaryItem.getName());
+				iflowQueryParams.put(columnModel.getColumnName(), dictionaryItem.getCode());
 			}
 		}
 	}
