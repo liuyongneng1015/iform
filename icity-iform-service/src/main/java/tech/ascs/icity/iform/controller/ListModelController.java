@@ -874,42 +874,4 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		}
 		return list;
 	}
-
-//	/**
-//	 * 获取表单的所有item控件
-//	 * @param formModelEntity
-//	 * @return
-//	 */
-//	public List<ItemModelEntity> getFormAllItems(FormModelEntity formModelEntity) throws IllegalAccessException {
-//		List<ItemModelEntity> items = new ArrayList<>();
-//		if (formModelEntity!=null && formModelEntity.getItems()!=null) {
-//			for (ItemModelEntity item:formModelEntity.getItems()) {
-//				if (item!=null) {
-//					items.add(item);
-//					items.addAll(getItemsInItem(item));
-//				}
-//			}
-//		}
-//		return items;
-//	}
-//
-//	public List<ItemModelEntity> getItemsInItem(ItemModelEntity itemModelEntity) throws IllegalAccessException {
-//		List<ItemModelEntity> list = new ArrayList<>();
-//		for (Field field:itemModelEntity.getClass().getDeclaredFields()) {   //遍历属性
-//			if (field.getName().equals("items")) {
-//				field.setAccessible(true);
-//				Object itemValues = field.get(itemModelEntity);
-//				if (itemValues!=null && itemValues instanceof List) {
-//					List<ItemModelEntity> items = (List<ItemModelEntity>)itemValues;
-//					for (ItemModelEntity subItem:items) {
-//						if (subItem!=null) {
-//							list.add(subItem);
-//							list.addAll(getItemsInItem(subItem));
-//						}
-//					}
-//				}
-//			}
-//		}
-//		return list;
-//	}
 }
