@@ -3720,7 +3720,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 			//跳过第一个流程环节
 			flowData.put("PASS_THROW_FIRST_USERTASK", true);
-			flowData = toProcesDictionaryData(flowData, formModel);
+			flowData = toProcesDictionaryData(flowData, formModelEntity);
 			System.out.println("传给工作流的数据=====>>>>>"+flowData);
 			setColumnValue(null, flowData, data, user, null);
 			processInstanceId = processInstanceService.startProcess(formModelEntity.getProcess().getKey(), instanceId, flowData);
