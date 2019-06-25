@@ -195,8 +195,10 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		// 查工作流
 		Page<ProcessInstance> pageProcess = null;
 		try {
+			FormProcessInfo process = formModelEntity.getProcess();
+			System.out.println("传给工作流的Key="+process.getKey()+", processStatus="+eventStatus+", userStatus="+privateStatus+", 查询参数============>>>>"+iflowQueryParams);
 			//TODO 还没有传个人状态
-			pageProcess = processInstanceService.page(page, pagesize, formModelEntity.getProcess().getKey(), eventStatus, privateStatus, iflowQueryParams);
+			pageProcess = processInstanceService.page(page, pagesize, process.getKey(), eventStatus, privateStatus, iflowQueryParams);
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new IFormException(e.getLocalizedMessage(), e);
