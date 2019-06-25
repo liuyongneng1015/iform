@@ -70,7 +70,8 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	private DictionaryDataService dictionaryService;
 	@Autowired
 	private ProcessInstanceService processInstanceService;
-
+	@Autowired
+	private DictionaryModelService dictionaryModelService;
 
 	@Value("${icity.iform.qrcode.base-url}")
 	private String qrcodeBaseUrl;
@@ -292,9 +293,16 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 				}
 			}
 		} else if (SelectReferenceType.Dictionary == selectItem.getSelectReferenceType()) {
-			DictionaryDataItemEntity dictionaryItem = dictionaryService.getDictionaryItemById(valueStr);
-			if (dictionaryItem != null) {
-				iflowQueryParams.put(columnModel.getColumnName(), dictionaryItem.getCode());
+			if (SelectDataSourceType.DictionaryData == selectItem.getSelectDataSourceType()) {
+				DictionaryDataItemEntity dictionaryItem = dictionaryService.getDictionaryItemById(valueStr);
+				if (dictionaryItem != null) {
+					iflowQueryParams.put(columnModel.getColumnName(), dictionaryItem.getCode());
+				}
+			} else if (SelectDataSourceType.DictionaryModel == selectItem.getSelectDataSourceType()) {
+				DictionaryModelData dictionaryModelData = dictionaryModelService.getDictionaryModelDataById(selectItem.getReferenceDictionaryId(), valueStr);
+				if (dictionaryModelData != null) {
+					iflowQueryParams.put(columnModel.getColumnName(), dictionaryModelData.getCode());
+				}
 			}
 		}
 	}
