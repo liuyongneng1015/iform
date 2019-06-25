@@ -2,6 +2,7 @@ package tech.ascs.icity.iform.controller;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -20,6 +21,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import io.swagger.annotations.Api;
+import tech.ascs.icity.ICityException;
 import tech.ascs.icity.admin.api.model.Position;
 import tech.ascs.icity.admin.client.UserService;
 import tech.ascs.icity.iflow.api.model.ProcessInstance;
@@ -162,9 +164,10 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		if (listModel == null) {
 			throw new IFormException(404, "列表模型【" + listId + "】不存在");
 		}
-		Map<String, Object> queryParameters = assemblyQueryParameters(parameters);
 		FormModelEntity formModelEntity = listModel.getMasterForm();
+		Map<String, Object> queryParameters = assemblyQueryParameters(parameters);
 		if (formModelHasProcess(formModelEntity)) {
+//			Map<String,ItemModelEntity> formItemsMap = formItemsMap(formModelEntity);
 			return queryIflowList(queryParameters, page, pagesize, formModelEntity, listModel);
 		}
 		return formInstanceService.pageListInstance(listModel, page, pagesize, queryParameters);
@@ -233,7 +236,13 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			}
 			ColumnModelEntity columnModel = item.getColumnModel();
 			if (isCommonItemType(item)) {
-				iflowQueryParams.put(columnModel.getColumnName(), value);
+				if (ItemType.Input == item.getType() || ItemType.Editor == item.getType()) {
+					if (StringUtils.hasText(value.toString())) {
+						iflowQueryParams.put(columnModel.getColumnName(), "%" + value.toString() + "%");
+					}
+				} else {
+					iflowQueryParams.put(columnModel.getColumnName(), value);
+				}
 			} else if (item instanceof SelectItemModelEntity) {
 				// 如果是单选框，多选框，下拉框，手动提取对应的中文出来
 				SelectItemModelEntity selectItem = (SelectItemModelEntity) item;
@@ -865,5 +874,56 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		} else {
 			return false;
 		}
+	}
+
+	public Map<String,ItemModelEntity> formItemsMap(FormModelEntity formModelEntity) {
+		Map<String, ItemModelEntity> formItemsMap = new HashMap<>();
+		List<ItemModelEntity> formAllItemsList = getFormAllItems(formModelEntity);
+		for (ItemModelEntity item:formAllItemsList) {
+			formItemsMap.put(item.getId(), item);
+		}
+		return formItemsMap;
+	}
+
+	/**
+	 * 获取表单的所有item控件
+	 * @param formModelEntity
+	 * @return
+	 */
+	public List<ItemModelEntity> getFormAllItems(FormModelEntity formModelEntity) {
+		List<ItemModelEntity> items = new ArrayList<>();
+		if (formModelEntity!=null && formModelEntity.getItems()!=null) {
+			for (ItemModelEntity item:formModelEntity.getItems()) {
+				if (item!=null) {
+					items.add(item);
+					items.addAll(getItemsInItem(item));
+				}
+			}
+		}
+		return items;
+	}
+
+	public List<ItemModelEntity> getItemsInItem(ItemModelEntity itemModelEntity) {
+		List<ItemModelEntity> list = new ArrayList<>();
+		try {
+			for (Field field:itemModelEntity.getClass().getDeclaredFields()) {   //遍历属性
+				if (field.getName().equals("items")) {
+					field.setAccessible(true);
+					Object itemValues = field.get(itemModelEntity);
+					if (itemValues!=null && itemValues instanceof List) {
+						List<ItemModelEntity> items = (List<ItemModelEntity>)itemValues;
+						for (ItemModelEntity subItem:items) {
+							if (subItem!=null) {
+								list.add(subItem);
+								list.addAll(getItemsInItem(subItem));
+							}
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			throw new ICityException(e.getLocalizedMessage(), e);
+		}
+		return list;
 	}
 }
