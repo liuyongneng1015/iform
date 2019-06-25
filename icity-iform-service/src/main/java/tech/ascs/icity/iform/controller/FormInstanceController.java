@@ -123,28 +123,33 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		if(itemModelEntity != null && itemModelEntity instanceof ReferenceItemModelEntity){
 			List<FormInstance> list = formInstanceService.listInstance(listModel, parameters);
 			List<ItemModelEntity> itemModelEntities = formModelService.getReferenceItemModelList((ReferenceItemModelEntity)itemModelEntity);
-			if(itemModelEntities != null && itemModelEntities.size() > 0){
-				Map<String, ItemModelEntity> map = new HashMap<>();
-				for(ItemModelEntity itemModelEntity1 : itemModelEntities){
-					map.put(itemModelEntity1.getId(), itemModelEntity);
-				}
-				for(FormInstance formInstance : list){
-					DataInstance dataInstance = new DataInstance();
-					List<String> displayValue = new ArrayList<>();
-					for(ItemInstance itemInstance : formInstance.getItems()){
-						if(itemInstance.getSystemItemType() == SystemItemType.ID){
-							dataInstance.setId(itemInstance.getId());
-						}
-						if(map.keySet().contains(itemInstance.getId())){
-							displayValue.add((String)itemInstance.getDisplayValue());
-						}
-					}
-					dataInstance.setDisplayValue(String.join(",", displayValue));
-					dataInstances.add(dataInstance);
-				}
-			}
+			setDataInstances(list, itemModelEntities, itemModelEntity, dataInstances);
 		}
 		return dataInstances;
+	}
+
+	//设置数据实例
+	private void setDataInstances(List<FormInstance> list, List<ItemModelEntity> itemModelEntities, ItemModelEntity itemModelEntity, List<DataInstance> dataInstances){
+		if(itemModelEntities != null && itemModelEntities.size() > 0){
+			Map<String, ItemModelEntity> map = new HashMap<>();
+			for(ItemModelEntity itemModelEntity1 : itemModelEntities){
+				map.put(itemModelEntity1.getId(), itemModelEntity);
+			}
+			for(FormInstance formInstance : list){
+				DataInstance dataInstance = new DataInstance();
+				List<String> displayValue = new ArrayList<>();
+				for(ItemInstance itemInstance : formInstance.getItems()){
+					if(itemInstance.getSystemItemType() == SystemItemType.ID){
+						dataInstance.setId(itemInstance.getId());
+					}
+					if(map.keySet().contains(itemInstance.getId())){
+						displayValue.add((String)itemInstance.getDisplayValue());
+					}
+				}
+				dataInstance.setDisplayValue(String.join(",", displayValue));
+				dataInstances.add(dataInstance);
+			}
+		}
 	}
 
 	// url?param1=value1&param2=value2&param2=value3,value4&param2=value5
@@ -209,76 +214,13 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			}
 			List<FormDataSaveInstance> list = formInstanceService.formInstance(formModelEntity, queryParameters);
 			for (FormDataSaveInstance instance:list) {
-				setFlowFormInstance(instanceIdAndProcessMap, instance);
+				formInstanceService.setFlowFormInstance(formModelEntity, instanceIdAndProcessMap.get(instance.getId()), instance);
 			}
 			Page<FormDataSaveInstance> pageInstance = Page.get(page, pagesize);
 			pageInstance.data(pageProcess.getTotalCount(), list);
 			return pageInstance;
 		} else {
 			return Page.get(page, pagesize);
-		}
-	}
-
-	private void setFlowFormInstance(Map<String, ProcessInstance> instanceIdAndProcessMap, FormDataSaveInstance instance){
-		ProcessInstance processInstance = instanceIdAndProcessMap.get(instance.getId());
-		if (processInstance==null) {
-			return;
-		}
-		if (processInstance.getStatus() == ProcessInstance.Status.Running) {
-			instance.setCanEdit(true);
-		} else {
-			instance.setCanEdit(false);
-		}
-		instance.setMyTask(processInstance.isMyTask());
-		instance.setFunctions(processInstance.getCurrentTaskInstance() == null ? null : processInstance.getCurrentTaskInstance().getOperations());
-		List<Map<String, Object>> stringObjectMap = processInstance.getCurrentTaskInstance() == null ? null : (List<Map<String, Object>>)(processInstance.getCurrentTaskInstance().getFormDefinition());
-		if(stringObjectMap != null) {
-			Map<String, Map<String, Object>> map = new HashMap<>();
-			for(Map<String, Object> objectMap : stringObjectMap){
-				map.put((String)objectMap.get("id"), objectMap);
-			}
-			for(ItemInstance itemInstance : instance.getItems()){
-				itemInstance.setProcessInstanceId(processInstance.getId());
-				Map<String, Object> instanceMap = map.get(itemInstance.getId());
-				if(instanceMap != null) {
-					itemInstance.setVisible(instanceMap.get("visible") == null ? false : (Boolean)instanceMap.get("visible"));
-					itemInstance.setCanFill(instanceMap.get("canFill") == null ? false : (Boolean)instanceMap.get("canFill"));
-					itemInstance.setRequired(instanceMap.get("required") == null ? false : (Boolean)instanceMap.get("required"));
-				}
-			}
-		}
-		String formName = instance.getFormName();
-		setFormInstanceProcessStatus(instance, formName, processInstance);
-		instance.setFormName(formName);
-	}
-
-	//设置流程状态
-	private void setFormInstanceProcessStatus(FormDataSaveInstance formInstance, String formName, ProcessInstance processInstance){
-		if(processInstance == null){
-			return;
-		}
-		if(processInstance.getFormTitle() != null){
-			formName = processInstance.getFormTitle();
-		}
-		ItemInstance processStatusItemInstance = null;
-		for(ItemInstance instance : formInstance.getItems()){
-			if(instance.getSystemItemType() == SystemItemType.ProcessStatus){
-				processStatusItemInstance = instance;
-			}
-		}
-		if(processStatusItemInstance != null){
-			ItemModelEntity itemModelEntity = itemModelService.get(processStatusItemInstance.getId());
-			List<Option> lists = (List<Option>) JSON.parseArray(((ProcessStatusItemModelEntity) itemModelEntity).getProcessStatus(),Option.class);
-			Map<String, Object> objectMap = new HashMap<>();
-			for(Option option : lists){
-				objectMap.put(option.getId(), option.getLabel());
-			}
-			//TODO 个人流程状态未配
-			String status = "0";
-			if(processInstance.getStatus()==ProcessInstance.Status.Ended){
-				status = "1";
-			}
-			processStatusItemInstance.setDisplayValue(objectMap.get(status));
 		}
 	}
 

@@ -10,8 +10,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import com.alibaba.fastjson.JSON;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.hibernate.Criteria;
@@ -850,7 +848,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 		for(String id : idList) {
 			if(flowData.containsKey(id)){
-				ItemModelEntity itemModelEntity = itemModelManager.get(id);
+				ItemModelEntity itemModelEntity = itemModelManager.find(id);
+				if(itemModelEntity == null){
+					continue;
+				}
 				Object value = flowData.get(id);
 				flowData.remove(id);
 				flowData.put(itemModelEntity.getColumnModel().getColumnName(), value);
@@ -937,7 +938,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			Map<String, List<String>> stringListMap = new HashMap<>();
 			for (SubFormRowItemInstance instance : subFormDataItemInstance.getItems()) {
 				for (ItemInstance itemModelService : instance.getItems()) {
-					ItemModelEntity itemModel = itemModelManager.get(itemModelService.getId());
+					ItemModelEntity itemModel = itemModelManager.find(itemModelService.getId());
 					if(itemModel != null && itemModelService.getValue() != null && StringUtils.hasText(String.valueOf(itemModelService.getValue())) &&
 							(itemModel.getType() == ItemType.SubForm || itemModel.getColumnModel() != null && itemModel.getColumnModel().getColumnName().equals("id"))){
 						map = (Map<String, Object>)subFormSession.load(dataModelEntity.getTableName(), (String)itemModelService.getValue());
@@ -949,7 +950,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			Map<String, String> uniqueneItem = new HashMap<String, String>();
 			for (SubFormRowItemInstance instance : subFormDataItemInstance.getItems()) {
 				for (ItemInstance itemModelService : instance.getItems()) {
-					ItemModelEntity itemModel = itemModelManager.get(itemModelService.getId());
+					ItemModelEntity itemModel = itemModelManager.find(itemModelService.getId());
 					if((itemModel instanceof ReferenceItemModelEntity) && itemModel.getType() != ItemType.ReferenceLabel ){
 						referenceItemModelEntityList.add(itemModel);
 					}
@@ -1088,7 +1089,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			return;
 		}
 
-		ReferenceItemModelEntity referenceItemModelEntity = (ReferenceItemModelEntity) itemModelManager.get(dataModelInstance.getId());
+		ReferenceItemModelEntity referenceItemModelEntity = (ReferenceItemModelEntity) itemModelManager.find(dataModelInstance.getId());
 
 		if(referenceItemModelEntity.getSystemItemType() == SystemItemType.Creator){
 			return;
@@ -1108,7 +1109,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		boolean toFlag = false;
 		//方向
 		if(referenceItemModelEntity.getSelectMode() == SelectMode.Inverse) {
-			ReferenceItemModelEntity referenceItemModelEntity1 = (ReferenceItemModelEntity)itemModelManager.get(referenceItemModelEntity.getReferenceItemId());
+			ReferenceItemModelEntity referenceItemModelEntity1 = (ReferenceItemModelEntity)itemModelManager.find(referenceItemModelEntity.getReferenceItemId());
 			toReferenceKeyMap = getReferenceMap(referenceItemModelEntity1, masterFormModelEntity);
 			if(toReferenceKeyMap == null){
 				return;
@@ -1318,15 +1319,15 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		ItemInstance idItemInstance = null;
 		data.put("id", formInstance.getId());
 		for (ItemInstance itemInstance : formInstance.getItems()) {
-			ItemModelEntity itemModel = itemModelManager.get(itemInstance.getId());
-			if(itemModel.getName().equals("id")){
+			ItemModelEntity itemModel = itemModelManager.find(itemInstance.getId());
+			if(itemModel != null && itemModel.getName().equals("id")){
 				itemInstance.setValue(formInstance.getId());
 				itemInstance.setDisplayValue(formInstance.getId());
 				idItemInstance = itemInstance;
 			}
 		}
 		for (ItemInstance itemInstance : formInstance.getItems()) {
-            ItemModelEntity itemModel = itemModelManager.get(itemInstance.getId());
+            ItemModelEntity itemModel = itemModelManager.find(itemInstance.getId());
             if(itemModel instanceof ReferenceItemModelEntity || itemModel.getSystemItemType() == SystemItemType.ID
 					|| itemModel instanceof SubFormItemModelEntity || itemModel instanceof TabsItemModelEntity || itemModel instanceof RowItemModelEntity){
             	continue;
@@ -1669,7 +1670,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			if(id == null || map.get("id") == null){
 				continue;
 			}
-			ItemModelEntity itemModelEntity = itemModelManager.get(id);
+			ItemModelEntity itemModelEntity = itemModelManager.find(id);
 			if(itemModelEntity == null || itemModelEntity.getSystemItemType() == SystemItemType.ID){
 				continue;
 			}
@@ -1805,7 +1806,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					propertyName = columnModel.getColumnName()+".id";
 				}else if (referenceItemModel.getSelectMode() == SelectMode.Inverse && (referenceItemModel.getReferenceType() == ReferenceType.ManyToOne
 						|| referenceItemModel.getReferenceType() == ReferenceType.OneToOne)) {
-					ReferenceItemModelEntity referenceItemModelEntity1 = (ReferenceItemModelEntity)itemModelManager.get(referenceItemModel.getReferenceItemId());
+					ReferenceItemModelEntity referenceItemModelEntity1 = (ReferenceItemModelEntity)itemModelManager.find(referenceItemModel.getReferenceItemId());
 					if(referenceItemModelEntity1.getColumnModel() == null){
 						continue;
 					}
@@ -2499,7 +2500,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		// referenceDataModelList的数据对应的是关联表单的数据标识的item的数据
 		for (ReferenceDataInstance referenceDataInstance : referenceDataModelList) {
 			if(displayIds.contains(referenceDataInstance.getId())){
-				ItemModelEntity itemModelEntity = itemModelManager.get(referenceDataInstance.getId());
+				ItemModelEntity itemModelEntity = itemModelManager.find(referenceDataInstance.getId());
 				ItemInstance itemInstance = new ItemInstance();
 				itemInstance.setSystemItemType(itemModelEntity == null ? SystemItemType.ReferenceList : itemModelEntity.getSystemItemType());
 				itemInstance.setType(itemModelEntity == null ? ItemType.ReferenceList : itemModelEntity.getType());
@@ -2934,7 +2935,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			flag = true;
 		}else if (fromItem.getSelectMode() == SelectMode.Inverse && (fromItem.getReferenceType() == ReferenceType.ManyToOne
 				|| fromItem.getReferenceType() == ReferenceType.OneToOne)) {
-			ReferenceItemModelEntity referenceItemModelEntity1 = (ReferenceItemModelEntity)itemModelManager.get(fromItem.getReferenceItemId());
+			ReferenceItemModelEntity referenceItemModelEntity1 = (ReferenceItemModelEntity)itemModelManager.find(fromItem.getReferenceItemId());
 			if(referenceItemModelEntity1.getColumnModel() == null){
 				return null;
 			}
@@ -3646,41 +3647,16 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
         String formName = formModel.getName();
         if(formModel.getProcess() != null && formInstance.getProcessInstanceId() != null){
-            setFormInstanceProcessStatus(formInstance,  formName);
+            setFormInstanceProcessStatus(formModel, formInstance);
         }
         formInstance.setFormName(formName);
 		return formInstance;
 	}
 
 	//设置流程状态
-	private void setFormInstanceProcessStatus(FormDataSaveInstance formInstance, String formName){
+	private void setFormInstanceProcessStatus(FormModelEntity formModelEntity, FormDataSaveInstance formInstance){
         ProcessInstance processInstance = processInstanceService.get(formInstance.getProcessInstanceId());
-        if(processInstance == null){
-            return;
-        }
-        if(processInstance.getFormTitle() != null){
-            formName = processInstance.getFormTitle();
-        }
-        ItemInstance processStatusItemInstance = null;
-        for(ItemInstance instance : formInstance.getItems()){
-            if(instance.getSystemItemType() == SystemItemType.ProcessStatus){
-                processStatusItemInstance = instance;
-            }
-        }
-        if(processStatusItemInstance != null){
-            ItemModelEntity itemModelEntity = itemModelManager.get(processStatusItemInstance.getId());
-            List<Option> lists = (List<Option>) JSON.parseArray(((ProcessStatusItemModelEntity) itemModelEntity).getProcessStatus(),Option.class);
-            Map<String, Object> objectMap = new HashMap<>();
-            for(Option option : lists){
-                objectMap.put(option.getId(), option.getLabel());
-            }
-            //TODO 个人流程状态不是这个字段
-            String status = "0";
-            if(processInstance.getStatus() == ProcessInstance.Status.Ended){
-                status = "1";
-            }
-            processStatusItemInstance.setDisplayValue(objectMap.get(status));
-        }
+		setFlowFormInstance(formModelEntity, processInstance, formInstance);
     }
 
 	@Override
@@ -3759,5 +3735,84 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		return new IdEntity(processInstanceId);
 	}
 
+	@Override
+	public void setFlowFormInstance(FormModelEntity formModelEntity, ProcessInstance processInstance, FormDataSaveInstance instance) {
+		if (processInstance == null) {
+			return;
+		}
+		//表单控件查询权限
+		Map<String, ItemPermissionInfo> itemPermissionMap = null;
+		if (processInstance.getStatus() != ProcessInstance.Status.Ended) {
+			instance.setCanEdit(true);
+		} else {
+			itemPermissionMap = itemModelService.findItemPermissionByDisplayTimingType(formModelEntity, DisplayTimingType.Check);
+			instance.setCanEdit(false);
+		}
+		instance.setMyTask(processInstance.isMyTask());
+		instance.setFunctions(processInstance.getCurrentTaskInstance() == null ? null : processInstance.getCurrentTaskInstance().getOperations());
+		List<Map<String, Object>> stringObjectMap = processInstance.getCurrentTaskInstance() == null ? null : (List<Map<String, Object>>)(processInstance.getCurrentTaskInstance().getFormDefinition());
+
+		Map<String, Map<String, Object>> map = new HashMap<>();
+		if(stringObjectMap != null) {
+			for(Map<String, Object> objectMap : stringObjectMap){
+				map.put((String)objectMap.get("id"), objectMap);
+			}
+		}
+		for(ItemInstance itemInstance : instance.getItems()){
+			itemInstance.setProcessInstanceId(processInstance.getId());
+			Map<String, Object> instanceMap = map.get(itemInstance.getId());
+			boolean visible = false;
+			boolean canFill =  false;
+			boolean required =  false;
+			if(instanceMap != null) {
+				visible = instanceMap.get("visible") == null ? false : (Boolean)instanceMap.get("visible");
+				canFill = instanceMap.get("canFill") == null ? false : (Boolean)instanceMap.get("canFill");
+				required = instanceMap.get("required") == null ? false : (Boolean)instanceMap.get("required");
+			}else {
+				if(!instance.getCanEdit()){
+					if(itemPermissionMap == null){
+						continue;
+					}
+					ItemPermissionInfo itemPermissionInfo = itemPermissionMap.get(itemInstance.getId());
+					if(itemPermissionInfo == null){
+						continue;
+					}
+					visible = itemPermissionInfo.getVisible() == null ? false : itemPermissionInfo.getVisible();
+				}else if(instance.getCanEdit()){
+					visible = true;
+					canFill = true;
+				}
+			}
+			itemInstance.setVisible(visible);
+			itemInstance.setCanFill(canFill);
+			itemInstance.setRequired(required);
+		}
+		String formName = StringUtils.hasText(processInstance.getFormTitle()) ? processInstance.getFormTitle() : processInstance.getFormTitle();
+		instance.setFormName(formName);
+		setFormInstanceProcessStatus(instance, processInstance);
+	}
+	//设置流程状态
+	private void setFormInstanceProcessStatus(FormDataSaveInstance formInstance, ProcessInstance processInstance){
+		ItemInstance processStatusItemInstance = null;
+		for(ItemInstance instance : formInstance.getItems()){
+			if(instance.getSystemItemType() == SystemItemType.ProcessStatus){
+				processStatusItemInstance = instance;
+			}
+		}
+		if(processStatusItemInstance != null){
+			ItemModelEntity itemModelEntity = itemModelService.get(processStatusItemInstance.getId());
+			List<Option> lists = (List<Option>) JSON.parseArray(((ProcessStatusItemModelEntity) itemModelEntity).getProcessStatus(),Option.class);
+			Map<String, Object> objectMap = new HashMap<>();
+			for(Option option : lists){
+				objectMap.put(option.getId(), option.getLabel());
+			}
+			//TODO 个人流程状态未配
+			String status = "0";
+			if(processInstance.getStatus()==ProcessInstance.Status.Ended){
+				status = "1";
+			}
+			processStatusItemInstance.setDisplayValue(objectMap.get(status));
+		}
+	}
 
 }

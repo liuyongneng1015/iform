@@ -5,6 +5,7 @@ import java.util.Map;
 
 import tech.ascs.icity.admin.api.model.TreeSelectData;
 import tech.ascs.icity.admin.api.model.User;
+import tech.ascs.icity.iflow.api.model.ProcessInstance;
 import tech.ascs.icity.iform.api.model.FormDataSaveInstance;
 import tech.ascs.icity.iform.api.model.FormInstance;
 import tech.ascs.icity.iform.api.model.ItemInstance;
@@ -52,4 +53,7 @@ public interface FormInstanceServiceEx {
 
 	//启动表单实例
 	IdEntity startFormInstanceProcess(FormModelEntity formModel, String id);
+
+	//设置表单流程
+    void setFlowFormInstance(FormModelEntity formModelEntity, ProcessInstance processInstance, FormDataSaveInstance instance);
 }
