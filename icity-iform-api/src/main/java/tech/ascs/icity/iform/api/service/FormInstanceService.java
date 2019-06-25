@@ -296,6 +296,20 @@ public interface FormInstanceService {
 	@PutMapping("/{formId}/{id}")
 	void updateFormInstance(@PathVariable(name="formId", required = true) String formId, @PathVariable(name="id", required = true) String id, @RequestBody FormDataSaveInstance formInstance);
 
+	/**
+	 * 通过表单字段保存表单实例
+	 *
+	 * @param formId 表单模型ID
+	 * @param parameters 表单控件字段参数
+	 */
+	@ApiOperation(value = "通过表单字段保存表单实例", position = 3)
+	@ApiImplicitParams({
+			@ApiImplicitParam(paramType = "path", name = "formId", value = "表单模型ID", required = true, dataType = "String"),
+			@ApiImplicitParam(paramType = "query", name = "parameters", value = "参数", required = false)
+	})
+	@PostMapping("/saveFormInstance/{formId}")
+	IdEntity saveFormInstance(@PathVariable(name="formId", required = true) String formId, @RequestParam Map<String, Object> parameters);
+
 
 	/**
 	 * 删除流程
