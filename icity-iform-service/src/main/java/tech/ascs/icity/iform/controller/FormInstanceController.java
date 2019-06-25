@@ -224,7 +224,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		if (processInstance==null) {
 			return;
 		}
-		if (processInstance.getStatus() == ProcessInstance.Status.Running) {
+		if (processInstance.getStatus() != ProcessInstance.Status.Ended) {
 			instance.setCanEdit(true);
 		} else {
 			instance.setCanEdit(false);
@@ -232,18 +232,29 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		instance.setMyTask(processInstance.isMyTask());
 		instance.setFunctions(processInstance.getCurrentTaskInstance() == null ? null : processInstance.getCurrentTaskInstance().getOperations());
 		List<Map<String, Object>> stringObjectMap = processInstance.getCurrentTaskInstance() == null ? null : (List<Map<String, Object>>)(processInstance.getCurrentTaskInstance().getFormDefinition());
+
+		Map<String, Map<String, Object>> map = new HashMap<>();
 		if(stringObjectMap != null) {
-			Map<String, Map<String, Object>> map = new HashMap<>();
 			for(Map<String, Object> objectMap : stringObjectMap){
 				map.put((String)objectMap.get("id"), objectMap);
 			}
-			for(ItemInstance itemInstance : instance.getItems()){
-				itemInstance.setProcessInstanceId(processInstance.getId());
-				Map<String, Object> instanceMap = map.get(itemInstance.getId());
-				if(instanceMap != null) {
-					itemInstance.setVisible(instanceMap.get("visible") == null ? false : (Boolean)instanceMap.get("visible"));
-					itemInstance.setCanFill(instanceMap.get("canFill") == null ? false : (Boolean)instanceMap.get("canFill"));
-					itemInstance.setRequired(instanceMap.get("required") == null ? false : (Boolean)instanceMap.get("required"));
+		}
+		for(ItemInstance itemInstance : instance.getItems()){
+			itemInstance.setProcessInstanceId(processInstance.getId());
+			Map<String, Object> instanceMap = map.get(itemInstance.getId());
+			if(instanceMap != null) {
+				itemInstance.setVisible(instanceMap.get("visible") == null ? false : (Boolean)instanceMap.get("visible"));
+				itemInstance.setCanFill(instanceMap.get("canFill") == null ? false : (Boolean)instanceMap.get("canFill"));
+				itemInstance.setRequired(instanceMap.get("required") == null ? false : (Boolean)instanceMap.get("required"));
+			}else {
+				if(!instance.getCanEdit()){
+					itemInstance.setVisible(true);
+					itemInstance.setCanFill(false);
+					itemInstance.setRequired(false);
+				}else if(instance.getCanEdit()){
+					itemInstance.setVisible(true);
+					itemInstance.setCanFill(true);
+					itemInstance.setRequired(false);
 				}
 			}
 		}
