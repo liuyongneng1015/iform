@@ -331,8 +331,8 @@ public class DictionaryDataController implements tech.ascs.icity.iform.api.servi
     }
 
 	private  void veryDictionaryItemByCode(DictionaryDataItemModel dictionaryItemModel){
-		if(StringUtils.equals(dictionaryItemModel.getCode(),"root")){
-			throw new IFormException("不允许创建key等于root的节点");
+		if(StringUtils.equals(dictionaryItemModel.getCode(),"root") || StringUtils.equals(dictionaryItemModel.getName(),"根节点")){
+			throw new IFormException("不允许创建key为root或名称为根节点数据字典");
 		}
 		 if(StringUtils.isNoneBlank(dictionaryItemModel.getDictionaryId())){
 			DictionaryDataEntity dictionaryEntity = dictionaryService.get(dictionaryItemModel.getDictionaryId());
