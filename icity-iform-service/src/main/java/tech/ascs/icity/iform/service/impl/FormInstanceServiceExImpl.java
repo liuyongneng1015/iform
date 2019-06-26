@@ -597,25 +597,31 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
                         } else if (SelectReferenceType.Dictionary==selectReferenceType) {
 							if (selectItemModel.getSelectDataSourceType() == SelectDataSourceType.DictionaryData) {
 								DictionaryDataItemEntity dictionaryDataItemEntity = dictionaryDataService.getDictionaryItemById(valueStr);
+								if(dictionaryDataItemEntity == null){
+									continue;
+								}
 								returnMap.put(key, dictionaryDataItemEntity.getCode());
 								returnMap.put(key + "_id", dictionaryDataItemEntity.getId());
 								returnMap.put(key + "_name", dictionaryDataItemEntity.getName());
 							} else if (selectItemModel.getSelectDataSourceType() == SelectDataSourceType.DictionaryModel) {
 								String referenceDictionaryId = selectItemModel.getReferenceDictionaryId();
 								DictionaryModelData dictionaryModelData = dictionaryModelService.getDictionaryModelDataById(referenceDictionaryId, valueStr);
+								if(dictionaryModelData == null){
+									continue;
+								}
 								returnMap.put(key, dictionaryModelData.getCode());
 								returnMap.put(key + "_id", dictionaryModelData.getId());
 								returnMap.put(key + "_name", dictionaryModelData.getName());
 							}
 						}
 					}
-				}else if (itemModel instanceof FileItemModelEntity){
+				}else if (itemModel instanceof FileItemModelEntity || itemModel instanceof LocationItemModelEntity){
 					List<String> valueString = new ArrayList<>();
 					if(value instanceof List){
 						for(Map fileUploadModel :  (List<Map>)value){
 							valueString.add((String)fileUploadModel.get("id"));
 						}
-					}else{
+					}else if(value instanceof Map){
 						valueString.add((String)((Map)value).get("id"));
 					}
 					returnMap.put(key, String.join(",", valueString));
@@ -1704,6 +1710,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				formData.put(id, null);
 				continue;
 			}
+			//更新标致
+			boolean updateFlag = true;
 			Object objectValue = map.get("value");
 			if(AssignmentWay.DefaultManual.getValue().equals(map.get("valueType"))){
 				Object value = map.get("value");
@@ -1737,12 +1745,16 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 						objectValue = taskInstance == null ? null : taskInstance.getActivityId();
 					}else if(AssignmentArea.ActivitieName.getValue().equals(map.get("value"))){
 						objectValue = taskInstance == null ? null : taskInstance.getActivityName();
+					}else{
+						updateFlag = false;
 					}
 				}
 			}
 			flowData.remove(id);
 			flowData.put(columnModelEntity.getColumnName(), objectValue);
-			formData.put(id, objectValue);
+			if(updateFlag) {
+				formData.put(id, objectValue);
+			}
 		}
 
 	}
