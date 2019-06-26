@@ -1422,6 +1422,11 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 		ItemModelEntity entity = formModelService.getItemModelEntity(itemModel.getType(), itemModel.getSystemItemType());
 
+		// 设置隐藏, 触发, 赋值
+		entity.setEvaluateExpression(itemModel.getEvaluateExpression());
+		entity.setHideExpression(itemModel.getHideExpression());
+		entity.setTriggerIds(String.join(",", itemModel.getTriggerIds()));
+
 		if(itemModel.getType() == ItemType.CheckboxGroup){
 			itemModel.setMultiple(true);
 		}else if(itemModel.getType() == ItemType.RadioGroup){
@@ -1439,7 +1444,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		}
 
 		//需要保持column
-		BeanUtils.copyProperties(itemModel, entity, new String[] {"defaultValue","referenceList","parentItem", "searchItems","sortItems", "permissions", "items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});
+		BeanUtils.copyProperties(itemModel, entity, new String[] {"defaultValue","referenceList","parentItem", "searchItems","sortItems", "permissions", "items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options", "triggerIds"});
 
 		//设置控件字段
 		setColumnModel(entity, itemModel);
@@ -2302,6 +2307,10 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 		ItemModel itemModel = new ItemModel();
 		BeanUtils.copyProperties(entity, itemModel, new String[]{"formModel", "columnModel", "activities", "options","searchItems","sortItems", "permissions","items","parentItem","referenceList", "defaultValue"});
+
+		Optional.ofNullable(entity.getTriggerIds())
+				.filter(StringUtils::hasText)
+				.ifPresent(ids -> itemModel.setTriggerIds(Arrays.asList(ids.split(","))));
 
 		if(itemModel.getType() == ItemType.ReferenceLabel || itemModel.getSystemItemType() == SystemItemType.ReferenceLabel){
 			itemModel.setTableName(tableName);
