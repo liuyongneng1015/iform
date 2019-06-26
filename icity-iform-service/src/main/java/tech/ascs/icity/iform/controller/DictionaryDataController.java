@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import tech.ascs.icity.ICityException;
 import tech.ascs.icity.iform.api.model.SystemCodeModel;
+import tech.ascs.icity.iform.model.AreaCodeEntity;
 import tech.ascs.icity.model.Page;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.DictionaryDataItemModel;
@@ -31,7 +32,7 @@ public class DictionaryDataController implements tech.ascs.icity.iform.api.servi
 
 	// 行政区划分类ID
 	@Value("${icity.dictionary.areaCode.id:9fddec6151b14a04bfe21d80d7a4474b}")
-	private String areaCodeId;
+	private String areaCodeDictionaryId;
 
 	private Logger log = LoggerFactory.getLogger(DictionaryDataController.class);
 
@@ -61,8 +62,8 @@ public class DictionaryDataController implements tech.ascs.icity.iform.api.servi
 	@Override
 	public List<DictionaryDataItemModel> listDictionaryItemModel(@PathVariable(name = "id",required = true) String id) {
 		// 查行政区划
-		if (areaCodeId.equals(id)) {
-			return queryAreaCodeTreeList(id);
+		if (areaCodeDictionaryId.equals(id)) {
+			return queryAreaCodeOneLevelList(id);
 		}
 		DictionaryDataEntity dictionaryEntity = dictionaryService.get(id);
 		if(dictionaryEntity == null){
@@ -82,11 +83,11 @@ public class DictionaryDataController implements tech.ascs.icity.iform.api.servi
 	}
 
 	/**
-	 * 查询行政区划的查询所有节点，与之前  /{id}/dictionary-items 的接口结构保持一致
+	 * 查询行政区划的一层的所有节点
 	 * @param id
 	 * @return
 	 */
-	private List<DictionaryDataItemModel> queryAreaCodeTreeList(String id) {
+	private List<DictionaryDataItemModel> queryAreaCodeOneLevelList(String id) {
 		DictionaryDataItemEntity rootDictionaryItem = dictionaryService.findRootDictionaryItem();
 		if (rootDictionaryItem==null) {
 			return new ArrayList();
@@ -98,7 +99,7 @@ public class DictionaryDataController implements tech.ascs.icity.iform.api.servi
 		root.setCode(rootDictionaryItem.getCode());
 		areaCodeList.add(root);
 
-		List<DictionaryDataItemModel> areaCodes = dictionaryService.queryAreaCodeTreeList(null);
+		List<DictionaryDataItemModel> areaCodes = dictionaryService.queryAreaCodeOneLevel(null);
 		if (areaCodes!=null) {
 			root.setResources(areaCodes);
 		}
@@ -250,7 +251,7 @@ public class DictionaryDataController implements tech.ascs.icity.iform.api.servi
 
 	@Override
     public void delete(@PathVariable(name="id") String id) {
-		if (areaCodeId.equals(id)) {
+		if (areaCodeDictionaryId.equals(id)) {
 			throw new ICityException("行政区划的系统分类不能删除");
 		}
 		DictionaryDataEntity dictionary = dictionaryService.get(id);
@@ -262,6 +263,9 @@ public class DictionaryDataController implements tech.ascs.icity.iform.api.servi
 
 	@Override
 	public List<DictionaryDataItemModel> listItem(@PathVariable(name="id", required = true) String id) {
+		if (areaCodeDictionaryId.equals(id)) {
+			return dictionaryService.queryAreaCodeOneLevel(null);
+		}
     	DictionaryDataEntity dictionary = dictionaryService.find(id);
     	if(dictionary == null){
 			throw new IFormException("未找到【"+id+"】对应的系统代码分类");
@@ -284,6 +288,10 @@ public class DictionaryDataController implements tech.ascs.icity.iform.api.servi
 
 	@Override
     public void addItem(@RequestBody(required = true) DictionaryDataItemModel dictionaryItemModel ) {
+		if (areaCodeDictionaryId.equals(dictionaryItemModel.getDictionaryId())) {
+			dictionaryService.addAreaCodeItem(dictionaryItemModel);
+			return;
+		}
 		veryDictionaryItemByCode(dictionaryItemModel);
 		DictionaryDataItemEntity parentItemEntity = null;
 		if(StringUtils.isNoneBlank(dictionaryItemModel.getParentId())) {

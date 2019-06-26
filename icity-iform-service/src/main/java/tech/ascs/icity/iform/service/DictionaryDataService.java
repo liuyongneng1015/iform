@@ -4,6 +4,7 @@ import java.util.List;
 
 import tech.ascs.icity.iform.api.model.DictionaryDataItemModel;
 import tech.ascs.icity.iform.api.model.DictionaryDataModel;
+import tech.ascs.icity.iform.model.AreaCodeEntity;
 import tech.ascs.icity.iform.model.DictionaryDataEntity;
 import tech.ascs.icity.iform.model.DictionaryDataItemEntity;
 import tech.ascs.icity.jpa.service.JPAService;
@@ -90,13 +91,17 @@ public interface DictionaryDataService extends JPAService<DictionaryDataEntity> 
 
 
 
-	// 查询行政区划的树形结构
 	/**
-	 * 返回树形结构
+	 * 一层层查询行政区划
 	 * @param parentId
 	 * @return
 	 */
-	List<DictionaryDataItemModel> queryAreaCodeTreeList(String parentId);
+	List<DictionaryDataItemModel> queryAreaCodeOneLevel(String parentId);
 
+	void addAreaCodeItem(DictionaryDataItemModel dictionaryItemModel);
+
+	AreaCodeEntity findAreaCodeEntityById(String id);
+
+	Integer findMaxIndexAreaCodeEntity();
 }
 
