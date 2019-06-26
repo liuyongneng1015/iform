@@ -6,6 +6,8 @@ import java.util.stream.Collectors;
 import com.googlecode.genericdao.search.Sort;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.DictionaryDataItemModel;
 import tech.ascs.icity.iform.api.model.DictionaryDataModel;
@@ -286,39 +288,33 @@ public class DictionaryDataServiceImpl extends DefaultJPAService<DictionaryDataE
 	}
 
 	@Override
-	public List<DictionaryDataItemModel> queryAreaCodeTreeList(String parentId) {
-		List<DictionaryDataItemModel> dictionaryDataItemModels = new ArrayList<>();
+	public List<DictionaryDataItemModel> queryAreaCodeOneLevel(String parentId) {
 		if (StringUtils.isEmpty(parentId)) {
 			// 查询所有
 			List<AreaCodeEntity> list = areaCodeManager.query().filterNull("parent.id").sort(Sort.desc("orderNo")).list();
-			if (list!=null && list.size()>0) {
-				for (AreaCodeEntity areaCodeEntity:list) {
-					dictionaryDataItemModels.add(areaCodeEntityToDictionaryItem(areaCodeEntity));
-				}
-			}
+			return areaCodeEntityToDictionaryItem(list);
 		} else {
 			AreaCodeEntity areaCodeEntity = areaCodeManager.query().filterEqual("id", parentId).first();
 			if (areaCodeEntity!=null) {
 				List<AreaCodeEntity> children = areaCodeEntity.getChildren();
-				if (children!=null && children.size()>0) {
-					for (AreaCodeEntity item:children) {
-						dictionaryDataItemModels.add(areaCodeEntityToDictionaryItem(item));
-					}
-				}
+				return areaCodeEntityToDictionaryItem(children);
 			}
 		}
-		return dictionaryDataItemModels;
+		return new ArrayList();
 	}
 
 	/**
-	 * AreaCodeEntity实体类转成字典表
-	 * @param areaCodeEntity
+	 * AreaCodeEntity实体类转成字典表，不转义子item
+	 * @param list
 	 * @return
 	 */
-	private DictionaryDataItemModel areaCodeEntityToDictionaryItem(AreaCodeEntity areaCodeEntity) {
-		DictionaryDataItemModel dictionaryDataItemModel = null;
-		if (areaCodeEntity!=null) {
-			dictionaryDataItemModel = new DictionaryDataItemModel();
+	private List<DictionaryDataItemModel> areaCodeEntityToDictionaryItem(List<AreaCodeEntity> list) {
+		if (list==null || list.size()==0) {
+			return new ArrayList();
+		}
+		List<DictionaryDataItemModel> returnList = new ArrayList<>();
+		for (AreaCodeEntity areaCodeEntity:list) {
+			DictionaryDataItemModel dictionaryDataItemModel = new DictionaryDataItemModel();
 			dictionaryDataItemModel.setId(areaCodeEntity.getId());
 			dictionaryDataItemModel.setName(areaCodeEntity.getName());
 			dictionaryDataItemModel.setCode(areaCodeEntity.getCode());
@@ -327,15 +323,34 @@ public class DictionaryDataServiceImpl extends DefaultJPAService<DictionaryDataE
 			if (parentAreaCode!=null) {
 				dictionaryDataItemModel.setParentId(parentAreaCode.getId());
 			}
-			/**
-			List<AreaCodeEntity> children = areaCodeEntity.getChildren();
-			if (children!=null && children.size()>0) {
-				for (AreaCodeEntity child:children) {
-					areaCodeEntityToDictionaryItem(child);
-				}
-			}
-			 */
+			returnList.add(dictionaryDataItemModel);
 		}
-		return dictionaryDataItemModel;
+		return returnList;
+	}
+
+	@Override
+	public void addAreaCodeItem(DictionaryDataItemModel dictionaryItemModel) {
+		String parentId = dictionaryItemModel.getParentId();
+		AreaCodeEntity parent = findAreaCodeEntityById(parentId);
+		AreaCodeEntity areaCodeEntity = new AreaCodeEntity();
+		areaCodeEntity.setParent(parent);
+		areaCodeEntity.setName(dictionaryItemModel.getName());
+		areaCodeEntity.setCode(dictionaryItemModel.getCode());
+		areaCodeEntity.setOrderNo(findMaxIndexAreaCodeEntity());
+		areaCodeManager.save(areaCodeEntity);
+	}
+
+	@Override
+	public AreaCodeEntity findAreaCodeEntityById(String id) {
+		return areaCodeManager.find(id);
+	}
+
+	@Override
+	public Integer findMaxIndexAreaCodeEntity() {
+		Map<String, Object> map = dictionaryItemManager.getJdbcTemplate().queryForMap("select max(order_no) as order_no from ifm_area_code ");
+		if (map != null && map.get("order_no") != null) {
+			return Integer.parseInt(String.valueOf(map.get("order_no")));
+		}
+		return 0;
 	}
 }
