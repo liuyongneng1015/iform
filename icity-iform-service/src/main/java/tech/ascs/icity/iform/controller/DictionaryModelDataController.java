@@ -1,6 +1,7 @@
 package tech.ascs.icity.iform.controller;
 
 import io.swagger.annotations.Api;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +58,9 @@ public class DictionaryModelDataController implements tech.ascs.icity.iform.api.
 					   @RequestBody(required = true) DictionaryModelData dictionaryModel) {
 		if(!id.equals(dictionaryModel.getId())){
 			throw new IFormException("id不一致");
+		}
+		if(StringUtils.equals(dictionaryModel.getCode(),"root") || StringUtils.equals(dictionaryModel.getName(),"根节点")){
+			throw new IFormException("不允许创建key为root或名称为根节点字典代码");
 		}
 		dictionaryService.saveDictionaryModelData(dictionaryModel);
 	}
