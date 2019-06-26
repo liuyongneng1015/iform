@@ -1679,7 +1679,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			if(columnModelEntity == null){
 				continue;
 			}
-            flowData.remove(id);
 			if(map.get("value") == null){
 				flowData.put(columnModelEntity.getColumnName(), null);
 				formData.put(id, null);
@@ -1718,8 +1717,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 						objectValue = taskInstance == null ? null : taskInstance.getActivityId();
 					}else if(AssignmentArea.ActivitieName.getValue().equals(map.get("value"))){
 						objectValue = taskInstance == null ? null : taskInstance.getActivityName();
-					}else{
-						flowData.put(id, objectValue);
 					}
 				}
 			}
