@@ -581,7 +581,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				if (itemModel instanceof SelectItemModelEntity) {
 					SelectItemModelEntity selectItemModel = (SelectItemModelEntity)itemModel;
 					if (selectItemModel.getMultiple() == null || !selectItemModel.getMultiple()) {
-						String valueStr = value.toString();
+						String valueStr = value instanceof List ? String.join(",", (List<String>)value) : value.toString();
                         SelectReferenceType selectReferenceType = selectItemModel.getSelectReferenceType();
                         if (SelectReferenceType.Fixed==selectReferenceType) {
                             List<ItemSelectOption> options = selectItemModel.getOptions();
@@ -609,6 +609,16 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 							}
 						}
 					}
+				}else if (itemModel instanceof FileItemModelEntity){
+					List<String> valueString = new ArrayList<>();
+					if(value instanceof List){
+						for(Map fileUploadModel :  (List<Map>)value){
+							valueString.add((String)fileUploadModel.get("id"));
+						}
+					}else{
+						valueString.add((String)((Map)value).get("id"));
+					}
+					returnMap.put(key, String.join(",", valueString));
 				}
 			}
 		}
@@ -782,6 +792,12 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		//不能为空的数据
 		Map<String, ItemModelEntity> notNullIdMap = new HashMap();
 
+		//表单数据
+		Map<String, ItemInstance> formItemInstanceMap = new HashMap();
+		for(ItemInstance itemInstance : formInstance.getItems()){
+			formItemInstanceMap.put(itemInstance.getId(), itemInstance);
+		}
+
 		List<String> idList = new ArrayList<>();
 		//参数类型
 		String paramCondition = null;
@@ -847,14 +863,18 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			flowData.remove("functionId");
 		}
 		for(String id : idList) {
+			ItemModelEntity itemModelEntity = itemModelManager.find(id);
+			if(itemModelEntity == null){
+				continue;
+			}
 			if(flowData.containsKey(id)){
-				ItemModelEntity itemModelEntity = itemModelManager.find(id);
-				if(itemModelEntity == null){
-					continue;
-				}
 				Object value = flowData.get(id);
-				flowData.remove(id);
 				flowData.put(itemModelEntity.getColumnModel().getColumnName(), value);
+			}else{
+				ItemInstance itemInstance = formItemInstanceMap.get(id);
+				if(itemInstance != null) {
+					flowData.put(itemModelEntity.getColumnModel().getColumnName(), itemInstance.getValue());
+				}
 			}
 		}
 		formInstance.setFlowData(flowData);
@@ -1720,6 +1740,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					}
 				}
 			}
+			flowData.remove(id);
 			flowData.put(columnModelEntity.getColumnName(), objectValue);
 			formData.put(id, objectValue);
 		}
