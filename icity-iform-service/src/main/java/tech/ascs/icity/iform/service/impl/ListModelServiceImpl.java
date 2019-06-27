@@ -526,7 +526,7 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 				}
 			}
 		} else if (formModel!=null) {
-			List<ListFunction> listFunctions = listModel.getFunctions();
+			List<ListFunction> listFunctions = formModel.getFunctions();
 			// 当表单的关联了流程，不把按钮功能传给admin服务
 			if (listFunctions!=null && listFunctions.size()>0 && formModel.getProcess()==null) {
 				for (ListFunction function:listFunctions) {
