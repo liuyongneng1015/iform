@@ -395,7 +395,10 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 					throw new IFormException("列表字段勾选的item的ID不能为空");
 				}
 				ItemModelEntity itemModelEntity = new ItemModelEntity();
-				BeanUtils.copyProperties(itemModel, itemModelEntity, new String[]{"formModel", "columnModel", "activities", "options", "permissions","items","parentItem","referenceList"});
+				BeanUtils.copyProperties(itemModel, itemModelEntity, new String[]{"formModel", "columnModel", "activities", "options", "permissions","items","parentItem","referenceList", "triggerIds"});
+				if (itemModel.getTriggerIds()!=null && itemModel.getTriggerIds().size()>0) {
+					itemModelEntity.setTriggerIds(String.join(",", itemModel.getTriggerIds()));
+				}
 				itemModelEntities.add(itemModelEntity);
 			}
 			listModelEntity.setDisplayItems(itemModelEntities);
@@ -410,7 +413,10 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				ListSortItem sortItemEntity = new ListSortItem();
 				sortItemEntity.setListModel(listModelEntity);
 				ItemModelEntity itemModelEntity = new ItemModelEntity();
-				BeanUtils.copyProperties(sortItem.getItemModel(), itemModelEntity, new String[]{"formModel", "columnModel", "activities", "options", "permissions","items","parentItem","referenceList"});
+				BeanUtils.copyProperties(sortItem.getItemModel(), itemModelEntity, new String[]{"formModel", "columnModel", "activities", "options", "permissions","items","parentItem","referenceList", "triggerIds"});
+				if (sortItem.getItemModel().getTriggerIds()!=null && sortItem.getItemModel().getTriggerIds().size()>0) {
+					itemModelEntity.setTriggerIds(String.join(",", sortItem.getItemModel().getTriggerIds()));
+				}
 				sortItemEntity.setItemModel(itemModelEntity);
 				sortItemEntity.setAsc(sortItem.isAsc());
 				sortItems.add(sortItemEntity);
@@ -826,7 +832,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 					TreeSelectItemModelEntity treeSelectItem = (TreeSelectItemModelEntity) itemModelEntity;
 					Boolean multiple = treeSelectItem.getMultiple();
 					TreeSelectDataSource dataSource = treeSelectItem.getDataSource();
-					Set<String> set = new HashSet(Arrays.asList("Department", "Position", "Personnel", "PositionIdentify"));
+					Set<String> set = new HashSet(Arrays.asList("Department", "Position", "Personnel", "PositionIdentify", "Role"));
 					if (dataSource != null && set.contains(dataSource.getValue()) && multiple != null && multiple) {
 						search.setDefaultValue(defaultValue.split(","));
 						List<TreeSelectData> list = formInstanceServiceEx.getTreeSelectData(dataSource, defaultValue.split(","));
