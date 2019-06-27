@@ -1886,7 +1886,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					}
 					propertyName = toModelEntity.getDataModels().get(0).getTableName()+"_list";
 				}
-			} else if (itemModel instanceof SelectItemModelEntity && false==((SelectItemModelEntity)itemModel).getMultiple()) {
+			} else if (itemModel instanceof SelectItemModelEntity &&
+					((SelectItemModelEntity)itemModel).getMultiple()!=null &&
+					((SelectItemModelEntity)itemModel).getMultiple()==false) {
+				// 市河务通数据录入平台时，有些数据录入字典表是单个长度的字符串，单个字符串的匹配不能用like，否则查询河流ID为1的数据，会把ID为11,12,13的查出来
 				propertyName = columnModel.getColumnName();
 				equalsFlag = true;
 			} else if (itemModel.getColumnModel()!=null) {        // 普通控件
