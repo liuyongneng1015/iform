@@ -642,15 +642,17 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				}
 				returnMap.put(key, String.join(",", valueString));
 			}else{
-				List<String> valueString = new ArrayList<>();
 				if (value instanceof List) {
+					List<String> valueString = new ArrayList<>();
 					for (String string : (List<String>) value) {
 						valueString.add(string);
 					}
-				} else {
-					valueString.add((String) value);
+					returnMap.put(key, String.join(",", valueString));
+				} else if(value instanceof String){
+					returnMap.put(key, (String) value);
+				}else{
+					returnMap.put(key, value);
 				}
-				returnMap.put(key, String.join(",", valueString));
 			}
 		}
 
