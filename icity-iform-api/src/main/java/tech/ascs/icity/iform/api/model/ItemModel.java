@@ -256,6 +256,15 @@ public class ItemModel extends NameEntity {
 	@ApiModelProperty(value = "关联的外部表单展示控件", position = 64)
 	private String referenceItemUuid;
 
+	@ApiModelProperty(value = "隐藏表达式", position = 65)
+	private String hideExpression;
+
+	@ApiModelProperty(value = "赋值表达式", position = 66)
+	private String evaluateExpression;
+
+	@ApiModelProperty(value = "onchange触发的控件集合", position = 67)
+	private List<String> triggerIds = new ArrayList<>();
+
 	public ItemType getType() {
 		return type;
 	}
@@ -946,6 +955,30 @@ public class ItemModel extends NameEntity {
 
 	public void setReferenceItemUuid(String referenceItemUuid) {
 		this.referenceItemUuid = referenceItemUuid;
+	}
+
+	public String getHideExpression() {
+		return hideExpression;
+	}
+
+	public void setHideExpression(String hideExpression) {
+		this.hideExpression = hideExpression;
+	}
+
+	public String getEvaluateExpression() {
+		return evaluateExpression;
+	}
+
+	public void setEvaluateExpression(String evaluateExpression) {
+		this.evaluateExpression = evaluateExpression;
+	}
+
+	public List<String> getTriggerIds() {
+		return triggerIds;
+	}
+
+	public void setTriggerIds(List<String> triggerIds) {
+		this.triggerIds = triggerIds;
 	}
 
 	@Override

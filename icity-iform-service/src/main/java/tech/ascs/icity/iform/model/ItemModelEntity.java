@@ -1,15 +1,13 @@
 package tech.ascs.icity.iform.model;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.persistence.*;
-
 import org.hibernate.annotations.DiscriminatorOptions;
 import tech.ascs.icity.iform.api.model.ItemType;
 import tech.ascs.icity.iform.api.model.SystemItemType;
 import tech.ascs.icity.jpa.dao.model.BaseEntity;
+
+import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 表单控件模型
@@ -78,6 +76,15 @@ public class ItemModelEntity extends  BaseEntity{
 
 	@Column(name="icon") // 控件图片
 	private String icon;
+
+	@Column(name = "hide_expression", length = 2048) // 隐藏表达式
+	private String hideExpression;
+
+	@Column(name = "evaluate_expression", length = 2048) // 赋值表达式
+	private String evaluateExpression;
+
+	@Column(name = "trigger_items") //控件change的时候会触发的控件uuid列表
+	private String triggerIds;
 
 	public FormModelEntity getFormModel() {
 		return formModel;
@@ -213,5 +220,29 @@ public class ItemModelEntity extends  BaseEntity{
 
 	public void setIcon(String icon) {
 		this.icon = icon;
+	}
+
+    public String getHideExpression() {
+        return hideExpression;
+    }
+
+    public void setHideExpression(String hideExpression) {
+        this.hideExpression = hideExpression;
+    }
+
+    public String getEvaluateExpression() {
+        return evaluateExpression;
+    }
+
+    public void setEvaluateExpression(String evaluateExpression) {
+        this.evaluateExpression = evaluateExpression;
+    }
+
+	public String getTriggerIds() {
+		return triggerIds;
+	}
+
+	public void setTriggerIds(String triggerIds) {
+		this.triggerIds = triggerIds;
 	}
 }

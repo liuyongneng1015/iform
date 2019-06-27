@@ -58,5 +58,5 @@ public interface FormInstanceServiceEx {
     void setFlowFormInstance(FormModelEntity formModelEntity, ProcessInstance processInstance, FormDataSaveInstance instance);
 
     //通过表单控件字段保存表单数据
-    IdEntity saveFormInstance(FormModelEntity formModel, Map<String, Object> parameters);
+	Map<String, Object> saveFormInstance(FormModelEntity formModel, Map<String, Object> parameters);
 }
