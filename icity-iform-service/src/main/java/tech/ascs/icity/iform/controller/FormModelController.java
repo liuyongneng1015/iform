@@ -2395,7 +2395,8 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				}else if(itemPermissionInfo.getDisplayTiming() == DisplayTimingType.Update){
 					itemPermissionModel.setUpdatePermissions(itemPermissionInfoModel);
 				}else{
-				    if(isAnalysisItem && (entity.getSystemItemType() == SystemItemType.Editor || entity.getSystemItemType() == SystemItemType.MoreInput)){
+				    if(isAnalysisItem && (entity.getSystemItemType() == SystemItemType.Editor || entity.getSystemItemType() == SystemItemType.MoreInput
+					|| entity.getSystemItemType() == SystemItemType.Media || entity.getSystemItemType() == SystemItemType.Attachment)){
                         itemPermissionInfoModel.setCanFill(true);
                     }
 					itemPermissionModel.setCheckPermissions(itemPermissionInfoModel);
