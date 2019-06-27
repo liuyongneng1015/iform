@@ -1671,7 +1671,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 	private ItemModelEntity getParentItemModel(ItemModel itemModel){
 		ItemModelEntity parentItemModel = formModelService.getItemModelEntity(itemModel.getType(), itemModel.getSystemItemType());
-		BeanUtils.copyProperties(itemModel, parentItemModel, new String[] {"referenceList","parentItem", "searchItems","sortItems", "permissions", "items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});
+		BeanUtils.copyProperties(itemModel, parentItemModel, new String[] {"referenceList","parentItem", "searchItems","sortItems", "permissions", "items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options", "triggerIds"});
 		ColumnModelEntity columnModel = new ColumnModelEntity();
 		columnModel.setColumnName(itemModel.getColumnName());
 		DataModelEntity dataModelEntity = new DataModelEntity();
@@ -2306,7 +2306,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	private ItemModel toDTO(ItemModelEntity entity, boolean isAnalysisItem, String tableName)  {
 
 		ItemModel itemModel = new ItemModel();
-		BeanUtils.copyProperties(entity, itemModel, new String[]{"formModel", "columnModel", "activities", "options","searchItems","sortItems", "permissions","items","parentItem","referenceList", "defaultValue"});
+		BeanUtils.copyProperties(entity, itemModel, new String[]{"formModel", "columnModel", "activities", "options","searchItems","sortItems", "permissions","items","parentItem","referenceList", "defaultValue", "triggerIds"});
 
 		Optional.ofNullable(entity.getTriggerIds())
 				.filter(StringUtils::hasText)
