@@ -511,26 +511,32 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 	}
 
 	public List<BtnPermission> assemblyBtnPermissions(ListModelEntity listModel, FormModelEntity formModel) {
-		List<ListFunction> listFunctions = null;
-		String suffix = null;
 		List<BtnPermission> btnPermissions = new ArrayList<>();
 		if (listModel!=null) {
-			listFunctions = listModel.getFunctions();
-			suffix = "(列表)";
+			List<ListFunction> listFunctions = listModel.getFunctions();
+			if (listFunctions!=null && listFunctions.size()>0) {
+				for (ListFunction function:listFunctions) {
+					if (function.getAction()!=null && function.getLabel()!=null && function.isVisible()) {
+						BtnPermission permission = new BtnPermission();
+						permission.setId(function.getId());
+						permission.setCode(function.getAction());
+						permission.setName(function.getLabel() + "(列表)");
+						btnPermissions.add(permission);
+					}
+				}
+			}
 		} else if (formModel!=null) {
-			listFunctions = formModel.getFunctions();
-			suffix = "(表单)";
-		} else {
-			return new ArrayList<>();
-		}
-		if (listFunctions!=null && listFunctions.size()>0) {
-			for (ListFunction function:listFunctions) {
-				if (function.getAction()!=null && function.getLabel()!=null && function.isVisible()) {
-					BtnPermission permission = new BtnPermission();
-					permission.setId(function.getId());
-					permission.setCode(function.getAction());
-					permission.setName(function.getLabel() + suffix);
-					btnPermissions.add(permission);
+			List<ListFunction> listFunctions = listModel.getFunctions();
+			// 当表单的关联了流程，不把按钮功能传给admin服务
+			if (listFunctions!=null && listFunctions.size()>0 && formModel.getProcess()==null) {
+				for (ListFunction function:listFunctions) {
+					if (function.getAction()!=null && function.getLabel()!=null && function.isVisible()) {
+						BtnPermission permission = new BtnPermission();
+						permission.setId(function.getId());
+						permission.setCode(function.getAction());
+						permission.setName(function.getLabel() + "(表单)");
+						btnPermissions.add(permission);
+					}
 				}
 			}
 		}
