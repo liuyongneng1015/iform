@@ -3857,7 +3857,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	}
 
     @Override
-    public IdEntity saveFormInstance(FormModelEntity formModelEntity, Map<String, Object> parameters) {
+    public Map<String, Object> saveFormInstance(FormModelEntity formModelEntity, Map<String, Object> parameters) {
         Session session = null;
         Map<String, Object> data = null;
         DataModelEntity dataModel = formModelEntity.getDataModels().get(0);
@@ -3895,6 +3895,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
                 // after
                 sendWebService( formModelEntity, BusinessTriggerType.Add_After, data, instanceId);
             }
+			data.put("id", instanceId);
         } catch (Exception e) {
             e.printStackTrace();
             logger.error("saveFormData error with data=["+OkHttpUtils.mapToJson(data)+"]");
@@ -3907,7 +3908,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
                 session.close();
             }
         }
-        return new IdEntity(instanceId);
+        return data;
     }
 
     //设置流程状态

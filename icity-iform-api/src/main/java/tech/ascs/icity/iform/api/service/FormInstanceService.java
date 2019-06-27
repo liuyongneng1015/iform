@@ -308,7 +308,7 @@ public interface FormInstanceService {
 			@ApiImplicitParam(paramType = "query", name = "parameters", value = "参数", required = false)
 	})
 	@PostMapping("/saveFormInstance/{formId}")
-	IdEntity saveFormInstance(@PathVariable(name="formId", required = true) String formId, @RequestParam Map<String, Object> parameters);
+	Map<String, Object> saveFormInstance(@PathVariable(name="formId", required = true) String formId, @RequestParam Map<String, Object> parameters);
 
 
 	/**
