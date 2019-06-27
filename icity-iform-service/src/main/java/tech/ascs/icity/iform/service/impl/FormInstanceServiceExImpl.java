@@ -3881,10 +3881,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					required = instanceMap.get("required") == null ? false : (Boolean) instanceMap.get("required");
 				}
 			}else {
-				if(instance.getCanEdit()){
-					visible = true;
-					canFill = true;
-				}else{
+				if(!instance.getCanEdit()){
 					if(itemPermissionMap != null && itemPermissionMap.get(itemInstance.getId()) != null){
 						ItemPermissionInfo itemPermissionInfo = itemPermissionMap.get(itemInstance.getId());
 						visible = itemPermissionInfo.getVisible() == null ? false : itemPermissionInfo.getVisible();
