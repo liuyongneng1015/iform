@@ -395,7 +395,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 					throw new IFormException("列表字段勾选的item的ID不能为空");
 				}
 				ItemModelEntity itemModelEntity = new ItemModelEntity();
-				BeanUtils.copyProperties(itemModel, itemModelEntity, new String[]{"formModel", "columnModel", "activities", "options", "permissions","items","parentItem","referenceList", "triggerIds"});
+				itemModelService.copyItemModelToItemModelEntity(itemModel, itemModelEntity);
 				if (itemModel.getTriggerIds()!=null && itemModel.getTriggerIds().size()>0) {
 					itemModelEntity.setTriggerIds(String.join(",", itemModel.getTriggerIds()));
 				}
@@ -413,7 +413,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				ListSortItem sortItemEntity = new ListSortItem();
 				sortItemEntity.setListModel(listModelEntity);
 				ItemModelEntity itemModelEntity = new ItemModelEntity();
-				BeanUtils.copyProperties(sortItem.getItemModel(), itemModelEntity, new String[]{"formModel", "columnModel", "activities", "options", "permissions","items","parentItem","referenceList", "triggerIds"});
+				itemModelService.copyItemModelToItemModelEntity(sortItem.getItemModel(), itemModelEntity);
 				if (sortItem.getItemModel().getTriggerIds()!=null && sortItem.getItemModel().getTriggerIds().size()>0) {
 					itemModelEntity.setTriggerIds(String.join(",", sortItem.getItemModel().getTriggerIds()));
 				}
@@ -619,7 +619,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			for(ItemModelEntity itemModelEntity : listModelEntity.getDisplayItems()) {
 				if (masterFormItemIds.contains(itemModelEntity.getId())) {
 					ItemModel itemModel = new ItemModel();
-					BeanUtils.copyProperties(itemModelEntity, itemModel, new String[]{"defaultValue", "formModel", "columnModel", "activities", "options", "searchItems", "sortItems", "permissions", "referenceList", "items", "parentItem", "triggerIds"});
+					itemModelService.copyItemModelEntityToItemModel(itemModelEntity, itemModel);
 					list.add(itemModel);
 				}
 			}
@@ -671,7 +671,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 					SortItem sortItem = new SortItem();
 					BeanUtils.copyProperties(sortItemEntity, sortItem, new String[]{"listModel", "itemModel"});
 					ItemModel itemModel = new ItemModel();
-					BeanUtils.copyProperties(sortItemEntity.getItemModel(), itemModel, new String[]{"defaultValue", "formModel", "columnModel", "activities", "options", "searchItems", "sortItems", "permissions", "referenceList", "items", "parentItem", "triggerIds"});
+					itemModelService.copyItemModelEntityToItemModel(sortItemEntity.getItemModel(), itemModel);
 					sortItem.setItemModel(itemModel);
 					sortItems.add(sortItem);
 				}
@@ -694,7 +694,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				}
 				if (quickSearchEntity.getItemModel() != null) {
 					ItemModel itemModel = new ItemModel();
-					BeanUtils.copyProperties(quickSearchEntity.getItemModel(), itemModel, new String[]{"formModel", "columnModel", "activities", "options", "searchItems", "sortItems", "permissions", "items", "parentItem", "referenceList", "triggerIds"});
+					itemModelService.copyItemModelEntityToItemModel(quickSearchEntity.getItemModel(), itemModel);
 					quickSearch.setItemModel(itemModel);
 				}
 				quickSearches.add(quickSearch);
@@ -733,7 +733,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 							}
 						}
 					}
-					BeanUtils.copyProperties(itemModelEntity, searchItem, new String[]{"defaultValue", "formModel", "columnModel", "activities", "options","searchItems","sortItems", "permissions","items","parentItem","referenceList","triggerIds"});
+					itemModelService.copyItemModelEntityToItemModel(itemModelEntity, searchItem);
 					List<ItemSelectOption> options = itemModelEntity.getOptions();
 					// 自定义的下拉框，在列表建模的渲染页面，要返回options属性
 					if (options!=null && options.size()>0) {
@@ -766,7 +766,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 						// 联动的下拉选择框，若存在parentItem，返回parentItem信息
 						if(selectItemModelEntity.getParentItem() != null){
 							ItemModel parentItemModel = new ItemModel();
-							BeanUtils.copyProperties(selectItemModelEntity.getParentItem(), parentItemModel, new String[]{"formModel", "columnModel", "activities", "options","searchItems","sortItems", "permissions","items","parentItem","referenceList","triggerIds"});
+							itemModelService.copyItemModelEntityToItemModel(selectItemModelEntity.getParentItem(), parentItemModel);
 							if(selectItemModelEntity.getParentItem().getColumnModel() != null){
 								ColumnModelInfo columnModel = new ColumnModelInfo();
 								BeanUtils.copyProperties(selectItemModelEntity.getParentItem().getColumnModel(), columnModel, new String[] {"dataModel","columnReferences"});
@@ -784,17 +784,17 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 						if(selectItemModelEntity.getItems() != null && selectItemModelEntity.getItems().size() > 0) {
 							List<ItemModel> chiildrenItemModel = new ArrayList<>();
 							for(SelectItemModelEntity childSelectItemModelEntity : selectItemModelEntity.getItems()) {
-								ItemModel chiildItemModel = new ItemModel();
-								BeanUtils.copyProperties(childSelectItemModelEntity, chiildItemModel, new String[]{"formModel", "columnModel", "activities", "options", "searchItems", "sortItems", "permissions", "items", "parentItem", "referenceList","triggerIds"});
+								ItemModel childItemModel = new ItemModel();
+								itemModelService.copyItemModelEntityToItemModel(childSelectItemModelEntity.getParentItem(), childItemModel);
 								if (childSelectItemModelEntity.getColumnModel() != null) {
 									ColumnModelInfo columnModel = new ColumnModelInfo();
 									BeanUtils.copyProperties(childSelectItemModelEntity.getColumnModel(), columnModel, new String[]{"dataModel", "columnReferences"});
 									if (childSelectItemModelEntity.getColumnModel().getDataModel() != null) {
 										columnModel.setTableName(childSelectItemModelEntity.getColumnModel().getDataModel().getTableName());
 									}
-									chiildItemModel.setColumnModel(columnModel);
+									childItemModel.setColumnModel(columnModel);
 								}
-								chiildrenItemModel.add(chiildItemModel);
+								chiildrenItemModel.add(childItemModel);
 							}
 							searchItem.setItems(chiildrenItemModel);
 						}

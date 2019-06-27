@@ -1,6 +1,7 @@
 package tech.ascs.icity.iform.service;
 
 import tech.ascs.icity.iform.api.model.DisplayTimingType;
+import tech.ascs.icity.iform.api.model.ItemModel;
 import tech.ascs.icity.iform.model.FormModelEntity;
 import tech.ascs.icity.iform.model.ItemModelEntity;
 import tech.ascs.icity.iform.model.ItemPermissionInfo;
@@ -14,8 +15,11 @@ public interface ItemModelService extends JPAService<ItemModelEntity> {
 
     List<ReferenceItemModelEntity> findRefenceItemByFormModelId(String formModelId);
 
-   ItemModelEntity saveItemModelEntity(FormModelEntity formModelEntity, String itemModelName);
+    ItemModelEntity saveItemModelEntity(FormModelEntity formModelEntity, String itemModelName);
 
     Map<String, ItemPermissionInfo> findItemPermissionByDisplayTimingType(FormModelEntity formModelEntity, DisplayTimingType displayTimingType);
 
+    void copyItemModelEntityToItemModel(ItemModelEntity itemModelEntity, ItemModel itemModel);
+
+    void copyItemModelToItemModelEntity(ItemModel itemModel, ItemModelEntity itemModelEntity);
 }
