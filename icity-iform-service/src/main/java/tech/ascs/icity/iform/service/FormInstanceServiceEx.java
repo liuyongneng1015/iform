@@ -20,6 +20,8 @@ public interface FormInstanceServiceEx {
 
 	List<FormDataSaveInstance> formInstance(FormModelEntity formModel, Map<String, Object> queryParameters);
 
+	List<Map<String, Object>> findFormInstanceByColumnMap(FormModelEntity formModel, Map<String, Object> queryParameters);
+
 	Page<FormDataSaveInstance> pageFormInstance(FormModelEntity formModel, int page, int pagesize, Map<String, Object> queryParameters);
 
 	Page<FormDataSaveInstance> pageListInstance(ListModelEntity listModel, int page, int pagesize, Map<String, Object> queryParameters);
@@ -59,4 +61,6 @@ public interface FormInstanceServiceEx {
 
     //通过表单控件字段保存表单数据
 	Map<String, Object> saveFormInstance(FormModelEntity formModel, Map<String, Object> parameters);
+
+	Page<FormDataSaveInstance> pageByColumnMap(FormModelEntity formModel, int page, int pagesize, Map<String, Object> parameters);
 }

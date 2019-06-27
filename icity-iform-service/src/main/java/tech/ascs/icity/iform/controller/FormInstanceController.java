@@ -174,7 +174,58 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		return formInstanceService.pageListInstance(listModel, page, pagesize, queryParameters);
 	}
 
+	@Override
+	public Page<FormDataSaveInstance> pageByColumnMap(@PathVariable(name = "formId") String formId, @RequestParam(name = "page", defaultValue = "1") int page,
+			@RequestParam(name = "pagesize", defaultValue = "10") int pagesize, @RequestParam Map<String, Object> parameters) {
+		FormModelEntity formModel = formModelService.find(formId);
+		if (formModel==null) {
+			return Page.get(page, pagesize);
+		}
+		if (formModelHasProcess(formModel)) {
+			int totalCount = 0;
+			Map<String, ProcessInstance> instanceIdAndProcessMap = queryProcessInstance(formModel, parameters, page, pagesize, totalCount);
+			if (instanceIdAndProcessMap == null || instanceIdAndProcessMap.keySet().size() < 1) {
+				return Page.get(page, pagesize);
+			}
+			Optional<ItemModelEntity> idItemOption = formModel.getItems().stream().filter(item->SystemItemType.ID == item.getSystemItemType()).findFirst();
+			Map<String, Object> queryParameters = new HashMap<>();
+			if (idItemOption.isPresent()) {
+				queryParameters.put(idItemOption.get().getId(), instanceIdAndProcessMap.keySet());
+			}
+			Page<FormDataSaveInstance> pageInstance = Page.get(page, pagesize);
+			List<FormDataSaveInstance> list = formInstanceService.formInstance(formModel, queryParameters);
+			for (FormDataSaveInstance instance:list) {
+				formInstanceService.setFlowFormInstance(formModel, instanceIdAndProcessMap.get(instance.getId()), instance);
+			}
+			pageInstance.data(totalCount, list);
+			return pageInstance;
+		}
+		return formInstanceService.pageByColumnMap(formModel, page, pagesize, parameters);
+	}
+
 	private  Page<FormDataSaveInstance> queryIflowList(Map<String, Object> queryParameters,  int page, int pagesize, FormModelEntity formModelEntity, ListModelEntity listModel) {
+		int totalCount = 0;
+		Map<String, ProcessInstance> instanceIdAndProcessMap = queryProcessInstance(formModelEntity, queryParameters,  page,  pagesize, totalCount);
+		String[] formInstanceIds = instanceIdAndProcessMap.keySet().parallelStream().toArray(String[]::new);
+		if (formInstanceIds!=null && formInstanceIds.length>0) {
+			Optional<ItemModelEntity> idItemOption = formModelEntity.getItems().stream().filter(item->SystemItemType.ID == item.getSystemItemType()).findFirst();
+			queryParameters = new HashMap<>();
+			if (idItemOption.isPresent()) {
+				queryParameters.put(idItemOption.get().getId(), formInstanceIds);
+			}
+			List<FormDataSaveInstance> list = formInstanceService.formInstance(formModelEntity, queryParameters);
+			for (FormDataSaveInstance instance:list) {
+				formInstanceService.setFlowFormInstance(formModelEntity, instanceIdAndProcessMap.get(instance.getId()), instance);
+			}
+			Page<FormDataSaveInstance> pageInstance = Page.get(page, pagesize);
+			pageInstance.data(totalCount, list);
+			return pageInstance;
+		} else {
+			return Page.get(page, pagesize);
+		}
+	}
+
+	private Map<String, ProcessInstance> queryProcessInstance(FormModelEntity formModelEntity, Map<String, Object> queryParameters, int page, int pagesize, int totalCount){
 		List<ItemModelEntity> items = formModelEntity.getItems();
 		//事件状态
 		int eventStatus = -1;
@@ -204,35 +255,32 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			e.printStackTrace();
 			throw new IFormException(e.getLocalizedMessage(), e);
 		}
+		//总条数
+		totalCount = pageProcess.getTotalCount();
 		Map<String, ProcessInstance> instanceIdAndProcessMap = new HashMap<>();
 		for(ProcessInstance processInstance : pageProcess.getResults()) {
 			if(StringUtils.hasText(processInstance.getFormInstanceId())) {
 				instanceIdAndProcessMap.put(processInstance.getFormInstanceId(), processInstance);
 			}
 		}
-
-		String[] formInstanceIds = pageProcess.getResults().stream().map(item->item.getFormInstanceId()).toArray(String[]::new);
-		if (formInstanceIds!=null && formInstanceIds.length>0) {
-			Optional<ItemModelEntity> idItemOption = formModelEntity.getItems().stream().filter(item->SystemItemType.ID == item.getSystemItemType()).findFirst();
-			queryParameters = new HashMap<>();
-			if (idItemOption.isPresent()) {
-				queryParameters.put(idItemOption.get().getId(), formInstanceIds);
-			}
-			List<FormDataSaveInstance> list = formInstanceService.formInstance(formModelEntity, queryParameters);
-			for (FormDataSaveInstance instance:list) {
-				formInstanceService.setFlowFormInstance(formModelEntity, instanceIdAndProcessMap.get(instance.getId()), instance);
-			}
-			Page<FormDataSaveInstance> pageInstance = Page.get(page, pagesize);
-			pageInstance.data(pageProcess.getTotalCount(), list);
-			return pageInstance;
-		} else {
-			return Page.get(page, pagesize);
-		}
+		return instanceIdAndProcessMap;
 	}
 
 	private Map<String, Object> assemblyIflowQueryParams(List<ItemModelEntity> items, Map<String, Object> queryParameters) {
 		Map<String, Object> iflowQueryParams = new HashMap<>();
+		Map<String, ItemModelEntity> itemModelEntityMap = new HashMap<>();
 		for (ItemModelEntity item : items) {
+			itemModelEntityMap.put(item.getId(), item);
+		}
+		for(String key : queryParameters.keySet()) {
+			if("page".equals(key) || "pagesize".equals(key)){
+				continue;
+			}
+			if(!itemModelEntityMap.keySet().contains(key)){
+				iflowQueryParams.put(key, queryParameters.get(key));
+				continue;
+			}
+			ItemModelEntity item = itemModelEntityMap.get(key);
 			Object value = queryParameters.get(item.getId());
 			ColumnModelEntity columnModel = item.getColumnModel();
 			if (value == null || columnModel == null) {

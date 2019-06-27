@@ -173,6 +173,24 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		return list;
 	}
 
+	@Override
+	public List<Map<String, Object>> findFormInstanceByColumnMap(FormModelEntity formModel, Map<String, Object> queryParameters) {
+		Session session = getSession(formModel.getDataModels().get(0));
+		List<Map<String, Object>> list = new ArrayList<>();
+		try {
+			Criteria criteria = generateColumnMapCriteria(session, formModel, queryParameters);
+			criteria.list();
+		} catch (Exception e) {
+			e.printStackTrace();
+			new ICityException(e.getLocalizedMessage(), e);
+		} finally {
+			if (session != null) {
+				session.close();
+			}
+		}
+		return list;
+	}
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public Page<FormDataSaveInstance> pageFormInstance(FormModelEntity formModel, int page, int pagesize, Map<String, Object> queryParameters) {
@@ -215,7 +233,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			criteria.setMaxResults(pagesize);
 
 			List data = criteria.list();
-			List<FormDataSaveInstance> list = wrapFormDataList(null, listModel, data);
+			List<FormDataSaveInstance> list = wrapFormDataList(listModel.getMasterForm(), listModel, data);
 
 			criteria.setFirstResult(0);
 			criteria.setProjection(Projections.rowCount());
@@ -1953,6 +1971,26 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					}
 					criteria.add(Restrictions.or(conditions));
 				}
+			}
+		}
+		return criteria;
+	}
+
+
+	public Criteria generateColumnMapCriteria(Session session, FormModelEntity formModel, Map<String, Object> queryParameters) {
+		DataModelEntity dataModel = formModel.getDataModels().get(0);
+
+		Criteria criteria = session.createCriteria(dataModel.getTableName());
+
+		for (String columnName:queryParameters.keySet()) {
+			Object value = queryParameters.get(columnName);
+			if (value==null || "".equals(value.toString())) {
+				continue;
+			}
+			if("id".equals(columnName)) {
+				criteria.add(Restrictions.in(columnName, value));
+			}else{
+				criteria.add(Restrictions.eq(columnName, value));
 			}
 		}
 		return criteria;
@@ -3913,7 +3951,46 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
         return data;
     }
 
-    //设置流程状态
+	@Override
+	public Page<FormDataSaveInstance> pageByColumnMap(FormModelEntity formModel, int page, int pagesize, Map<String, Object> parameters) {
+		Page<FormDataSaveInstance> result = Page.get(page, pagesize);
+		Session session = getSession(formModel.getDataModels().get(0));
+		try {
+			Criteria criteria = generateColumnMapCriteria(session, formModel,  parameters);
+			criteria.setFirstResult((page - 1) * pagesize);
+			criteria.setMaxResults(pagesize);
+			criteria.setFirstResult((page - 1) * pagesize);
+			criteria.setMaxResults(pagesize);
+
+			List data = criteria.list();
+			List<FormDataSaveInstance> list = wrapFormDataList(formModel, null, data);
+
+			criteria.setFirstResult(0);
+			criteria.setProjection(Projections.rowCount());
+
+			// 清除排序字段
+			for (Iterator<CriteriaImpl.OrderEntry> i = ((CriteriaImpl) criteria).iterateOrderings(); i.hasNext(); ) {
+				i.next();
+				i.remove();
+			}
+			Number count = (Number) criteria.uniqueResult();
+
+			result.data(count.intValue(), list);
+		} catch (Exception e) {
+			e.printStackTrace();
+			if (e instanceof ICityException) {
+				throw e;
+			}
+			throw new IFormException(e.getLocalizedMessage(), e);
+		} finally {
+			if (session != null) {
+				session.close();
+			}
+		}
+		return result;
+	}
+
+	//设置流程状态
 	private void setFormInstanceProcessStatus(FormDataSaveInstance formInstance, ProcessInstance processInstance){
 		ItemInstance processStatusItemInstance = null;
 		for(ItemInstance instance : formInstance.getItems()){
