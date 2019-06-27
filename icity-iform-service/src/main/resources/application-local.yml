@@ -32,6 +32,11 @@ spring.jpa:
   properties.hibernate.dialect: org.hibernate.dialect.PostgreSQLDialect
   properties.hibernate.temp.use_jdbc_metadata_defaults: false
 
+#请求处理的超时时间
+ribbon.ReadTimeout: 120000
+#请求连接的超时时间
+ribbon.ConnectTimeout: 120000
+
 icity:
   iform:
     qrcode:

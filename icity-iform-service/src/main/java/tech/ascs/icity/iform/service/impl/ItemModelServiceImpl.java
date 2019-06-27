@@ -98,4 +98,18 @@ public class ItemModelServiceImpl extends DefaultJPAService<ItemModelEntity> imp
 		formModelEntity.getItems().add(itemModelEntity);
 		return itemModelEntity;
 	}
+
+	@Override
+	public void copyItemModelEntityToItemModel(ItemModelEntity itemModelEntity, ItemModel itemModel) {
+		if (itemModelEntity!=null && itemModel!=null) {
+			BeanUtils.copyProperties(itemModelEntity, itemModel, new String[]{"formModel","columnModel","activities","options","permissions","items","parentItem","defaultValue","itemModelList","dataModel","columnReferences","referenceTables","referenceList","triggerIds"});
+		}
+	}
+
+	@Override
+	public void copyItemModelToItemModelEntity(ItemModel itemModel, ItemModelEntity itemModelEntity) {
+		if (itemModelEntity!=null && itemModel!=null) {
+			BeanUtils.copyProperties(itemModel, itemModelEntity, new String[]{"formModel","columnModel","activities","options","permissions","items","parentItem","defaultValue","itemModelList","dataModel","columnReferences","referenceTables","referenceList","triggerIds"});
+		}
+	}
 }
