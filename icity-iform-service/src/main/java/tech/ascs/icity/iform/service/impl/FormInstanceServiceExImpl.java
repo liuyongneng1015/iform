@@ -3849,7 +3849,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		//表单控件查询权限
 		Map<String, ItemPermissionInfo> itemPermissionMap = null;
 		if (processInstance.getStatus() != ProcessInstance.Status.Ended) {
-			instance.setCanEdit(true);
+			if(processInstance.isMyTask()) {
+				instance.setCanEdit(true);
+			}else{
+				instance.setCanEdit(false);
+			}
 		} else {
 			itemPermissionMap = itemModelService.findItemPermissionByDisplayTimingType(formModelEntity, DisplayTimingType.Check);
 			instance.setCanEdit(false);
@@ -3872,21 +3876,19 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			boolean required =  false;
 			if(instanceMap != null) {
 				visible = instanceMap.get("visible") == null ? false : (Boolean)instanceMap.get("visible");
-				canFill = instanceMap.get("canFill") == null ? false : (Boolean)instanceMap.get("canFill");
-				required = instanceMap.get("required") == null ? false : (Boolean)instanceMap.get("required");
+				if(processInstance.isMyTask()) {
+					canFill = instanceMap.get("canFill") == null ? false : (Boolean) instanceMap.get("canFill");
+					required = instanceMap.get("required") == null ? false : (Boolean) instanceMap.get("required");
+				}
 			}else {
-				if(!instance.getCanEdit()){
-					if(itemPermissionMap == null){
-						continue;
-					}
-					ItemPermissionInfo itemPermissionInfo = itemPermissionMap.get(itemInstance.getId());
-					if(itemPermissionInfo == null){
-						continue;
-					}
-					visible = itemPermissionInfo.getVisible() == null ? false : itemPermissionInfo.getVisible();
-				}else if(instance.getCanEdit()){
+				if(instance.getCanEdit()){
 					visible = true;
 					canFill = true;
+				}else{
+					if(itemPermissionMap != null && itemPermissionMap.get(itemInstance.getId()) != null){
+						ItemPermissionInfo itemPermissionInfo = itemPermissionMap.get(itemInstance.getId());
+						visible = itemPermissionInfo.getVisible() == null ? false : itemPermissionInfo.getVisible();
+					}
 				}
 			}
 			itemInstance.setVisible(visible);
