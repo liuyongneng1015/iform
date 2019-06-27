@@ -262,7 +262,7 @@ public class ItemModel extends NameEntity {
 	@ApiModelProperty(value = "赋值表达式", position = 66)
 	private String evaluateExpression;
 
-	@ApiModelProperty(value = "onchange触发的控件集合")
+	@ApiModelProperty(value = "onchange触发的控件集合", position = 67)
 	private List<String> triggerIds = new ArrayList<>();
 
 	public ItemType getType() {
