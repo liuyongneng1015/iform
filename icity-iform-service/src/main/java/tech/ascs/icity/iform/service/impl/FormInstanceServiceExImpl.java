@@ -3889,8 +3889,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				}
 			}
 			itemInstance.setVisible(visible);
-			if(visible && (itemInstance.getSystemItemType() == SystemItemType.MoreInput || itemInstance.getSystemItemType() == SystemItemType.Editor
-				|| itemInstance.getSystemItemType() == SystemItemType.Media || itemInstance.getSystemItemType() == SystemItemType.Attachment)){
+			if(visible && (itemInstance.getSystemItemType() == SystemItemType.MoreInput || itemInstance.getSystemItemType() == SystemItemType.Editor)){
 				itemInstance.setCanFill(true);
 			}else {
 				itemInstance.setCanFill(canFill);
