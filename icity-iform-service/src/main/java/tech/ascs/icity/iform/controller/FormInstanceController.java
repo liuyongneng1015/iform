@@ -182,8 +182,10 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			return Page.get(page, pagesize);
 		}
 		if (formModelHasProcess(formModel)) {
-			int totalCount = 0;
-			Map<String, ProcessInstance> instanceIdAndProcessMap = queryProcessInstance(formModel, parameters, page, pagesize, totalCount);
+			Map<String, Object> data = queryProcessInstance(formModel, parameters, page, pagesize);
+			//总条数
+			Integer totalCount = (Integer)data.get("totalCount");
+			Map<String, ProcessInstance> instanceIdAndProcessMap = (Map<String, ProcessInstance>)data.get("data");
 			if (instanceIdAndProcessMap == null || instanceIdAndProcessMap.keySet().size() < 1) {
 				return Page.get(page, pagesize);
 			}
@@ -204,8 +206,10 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	}
 
 	private  Page<FormDataSaveInstance> queryIflowList(Map<String, Object> queryParameters,  int page, int pagesize, FormModelEntity formModelEntity, ListModelEntity listModel) {
-		int totalCount = 0;
-		Map<String, ProcessInstance> instanceIdAndProcessMap = queryProcessInstance(formModelEntity, queryParameters,  page,  pagesize, totalCount);
+		Map<String, Object> data = queryProcessInstance(formModelEntity, queryParameters,  page,  pagesize);
+		//总条数
+		Integer totalCount = (Integer)data.get("totalCount");
+		Map<String, ProcessInstance> instanceIdAndProcessMap = (Map<String, ProcessInstance>)data.get("data");
 		String[] formInstanceIds = instanceIdAndProcessMap.keySet().parallelStream().toArray(String[]::new);
 		if (formInstanceIds!=null && formInstanceIds.length>0) {
 			Optional<ItemModelEntity> idItemOption = formModelEntity.getItems().stream().filter(item->SystemItemType.ID == item.getSystemItemType()).findFirst();
@@ -225,7 +229,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		}
 	}
 
-	private Map<String, ProcessInstance> queryProcessInstance(FormModelEntity formModelEntity, Map<String, Object> queryParameters, int page, int pagesize, int totalCount){
+	private Map<String, Object> queryProcessInstance(FormModelEntity formModelEntity, Map<String, Object> queryParameters, int page, int pagesize){
 		List<ItemModelEntity> items = formModelEntity.getItems();
 		//事件状态
 		int eventStatus = -1;
@@ -255,15 +259,18 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			e.printStackTrace();
 			throw new IFormException(e.getLocalizedMessage(), e);
 		}
-		//总条数
-		totalCount = pageProcess.getTotalCount();
+		Map<String, Object> data = new HashMap<>();
 		Map<String, ProcessInstance> instanceIdAndProcessMap = new HashMap<>();
 		for(ProcessInstance processInstance : pageProcess.getResults()) {
 			if(StringUtils.hasText(processInstance.getFormInstanceId())) {
 				instanceIdAndProcessMap.put(processInstance.getFormInstanceId(), processInstance);
 			}
 		}
-		return instanceIdAndProcessMap;
+		//总条数
+		data.put("totalCount", pageProcess.getTotalCount());
+		data.put("data", instanceIdAndProcessMap);
+
+		return data;
 	}
 
 	private Map<String, Object> assemblyIflowQueryParams(List<ItemModelEntity> items, Map<String, Object> queryParameters) {
