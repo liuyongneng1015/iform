@@ -1583,7 +1583,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		if(tabsItemModels != null) {
 			for (ItemModel itemModel1 : tabsItemModels){
 				TabPaneItemModelEntity tabPaneItemModelEntity = new TabPaneItemModelEntity();
-				BeanUtils.copyProperties(itemModel1, tabPaneItemModelEntity, new String[] {"searchItems","sortItems","items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});
+				itemModelService.copyItemModelToItemModelEntity(itemModel1, tabPaneItemModelEntity);
 				List<ItemModelEntity> rowItemList = new ArrayList<>();
 				if(itemModel1.getItems() != null) {
 					for (ItemModel childrenItem : itemModel1.getItems()) {
@@ -1604,11 +1604,11 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	private void setSubFormItemModelEntity(ItemModel itemModel, String sourceFormModelId, SubFormItemModelEntity entity){
 		List<ItemModel> rowItemModels = itemModel.getItems();
 		List<SubFormRowItemModelEntity> rowItemModelEntities = new ArrayList<>();
-		for(ItemModel rowItemModelEntity : rowItemModels) {
+		for(ItemModel rowItemModel : rowItemModels) {
 			SubFormRowItemModelEntity subFormRowItemModelEntity = new SubFormRowItemModelEntity();
-			BeanUtils.copyProperties(rowItemModelEntity, subFormRowItemModelEntity, new String[] {"searchItems","sortItems","items","itemModelList","formModel","dataModel", "columnReferences","referenceTables", "activities","options"});
+			itemModelService.copyItemModelToItemModelEntity(rowItemModel, subFormRowItemModelEntity);
 			List<ItemModelEntity> rowItemList = new ArrayList<>();
-			for(ItemModel childrenItem : rowItemModelEntity.getItems()) {
+			for(ItemModel childrenItem : rowItemModel.getItems()) {
 				ItemModelEntity itemModelEntity1 = wrap(sourceFormModelId, childrenItem);
 				itemModelEntity1.setFormModel(null);
 				rowItemList.add(itemModelEntity1);
