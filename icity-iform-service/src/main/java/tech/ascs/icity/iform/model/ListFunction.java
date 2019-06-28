@@ -60,14 +60,6 @@ public class ListFunction extends JPAEntity implements Serializable {
 
 	private String jumpNewUrl;
 
-	private Boolean listActionBarVisible;
-
-	private Boolean checkPageVisible;
-
-	private Boolean addPageVisible;
-
-	private Boolean updatePageVisible;
-
 	@Column(name="order_no",columnDefinition = "int default 0")//排序号
 	private Integer orderNo = 0;
 
@@ -219,38 +211,6 @@ public class ListFunction extends JPAEntity implements Serializable {
 
 	public void setJumpNewUrl(String jumpNewUrl) {
 		this.jumpNewUrl = jumpNewUrl;
-	}
-
-	public Boolean getListActionBarVisible() {
-		return listActionBarVisible;
-	}
-
-	public void setListActionBarVisible(Boolean listActionBarVisible) {
-		this.listActionBarVisible = listActionBarVisible;
-	}
-
-	public Boolean getCheckPageVisible() {
-		return checkPageVisible;
-	}
-
-	public void setCheckPageVisible(Boolean checkPageVisible) {
-		this.checkPageVisible = checkPageVisible;
-	}
-
-	public Boolean getAddPageVisible() {
-		return addPageVisible;
-	}
-
-	public void setAddPageVisible(Boolean addPageVisible) {
-		this.addPageVisible = addPageVisible;
-	}
-
-	public Boolean getUpdatePageVisible() {
-		return updatePageVisible;
-	}
-
-	public void setUpdatePageVisible(Boolean updatePageVisible) {
-		this.updatePageVisible = updatePageVisible;
 	}
 
 	public Integer getOrderNo() {

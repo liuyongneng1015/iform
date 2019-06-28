@@ -43,14 +43,6 @@ public class FunctionModel extends NameEntity implements Comparable<FunctionMode
 	private ReturnOperation returnOperation;
 	@ApiModelProperty(value ="跳转新url", position = 14)
 	private String jumpNewUrl;
-	@ApiModelProperty(value ="列表操作栏", position = 15)
-	private Boolean listActionBarVisible = false;
-	@ApiModelProperty(value ="查看页", position = 16)
-	private Boolean checkPageVisible = false;
-	@ApiModelProperty(value ="新增页", position = 17)
-	private Boolean addPageVisible = false;
-	@ApiModelProperty(value ="编辑页", position = 18)
-	private Boolean updatePageVisible = false;
 	@ApiModelProperty(value ="返回结果", position = 18)
 	private ReturnResult returnResult;
 
@@ -190,38 +182,6 @@ public class FunctionModel extends NameEntity implements Comparable<FunctionMode
 
 	public void setJumpNewUrl(String jumpNewUrl) {
 		this.jumpNewUrl = jumpNewUrl;
-	}
-
-	public Boolean getListActionBarVisible() {
-		return listActionBarVisible;
-	}
-
-	public void setListActionBarVisible(Boolean listActionBarVisible) {
-		this.listActionBarVisible = listActionBarVisible;
-	}
-
-	public Boolean getCheckPageVisible() {
-		return checkPageVisible;
-	}
-
-	public void setCheckPageVisible(Boolean checkPageVisible) {
-		this.checkPageVisible = checkPageVisible;
-	}
-
-	public Boolean getAddPageVisible() {
-		return addPageVisible;
-	}
-
-	public void setAddPageVisible(Boolean addPageVisible) {
-		this.addPageVisible = addPageVisible;
-	}
-
-	public Boolean getUpdatePageVisible() {
-		return updatePageVisible;
-	}
-
-	public void setUpdatePageVisible(Boolean updatePageVisible) {
-		this.updatePageVisible = updatePageVisible;
 	}
 
 	public ReturnResult getReturnResult() {

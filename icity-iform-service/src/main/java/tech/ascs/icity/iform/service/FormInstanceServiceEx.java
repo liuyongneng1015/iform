@@ -62,5 +62,9 @@ public interface FormInstanceServiceEx {
     //通过表单控件字段保存表单数据
 	Map<String, Object> saveFormInstance(FormModelEntity formModel, Map<String, Object> parameters);
 
+	//根据字段参数查询表单分页数据
 	Page<FormDataSaveInstance> pageByColumnMap(FormModelEntity formModel, int page, int pagesize, Map<String, Object> parameters);
+
+	//根据字段参数查询表单数据
+	List<FormDataSaveInstance> findByColumnMap(FormModelEntity formModel, Map<String, Object> columnMap);
 }
