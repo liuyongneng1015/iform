@@ -204,7 +204,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	}
 
 	private  Page<FormDataSaveInstance> queryIflowList(Map<String, Object> queryParameters,  int page, int pagesize, FormModelEntity formModelEntity, ListModelEntity listModel) {
-		int totalCount = 0;
+		Integer totalCount = 0;
 		Map<String, ProcessInstance> instanceIdAndProcessMap = queryProcessInstance(formModelEntity, queryParameters,  page,  pagesize, totalCount);
 		String[] formInstanceIds = instanceIdAndProcessMap.keySet().parallelStream().toArray(String[]::new);
 		if (formInstanceIds!=null && formInstanceIds.length>0) {
@@ -225,7 +225,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		}
 	}
 
-	private Map<String, ProcessInstance> queryProcessInstance(FormModelEntity formModelEntity, Map<String, Object> queryParameters, int page, int pagesize, int totalCount){
+	private Map<String, ProcessInstance> queryProcessInstance(FormModelEntity formModelEntity, Map<String, Object> queryParameters, int page, int pagesize, Integer totalCount){
 		List<ItemModelEntity> items = formModelEntity.getItems();
 		//事件状态
 		int eventStatus = -1;
