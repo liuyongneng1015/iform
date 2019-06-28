@@ -3264,6 +3264,25 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			if( listMap == null || listMap.size() == 0) {
 				return;
 			}
+			// 根据创建时间排序，如何creat_at存在，并且为Date类型类型或者是Date的子类对象，才排序
+			Optional<Map<String, Object>> optional = listMap.stream().filter(item->item.get("create_at")!=null).findFirst();
+			if (optional.isPresent()) {
+				if (Date.class.isAssignableFrom(optional.get().get("create_at").getClass())) {
+					Collections.sort(listMap, new Comparator<Map<String, Object>>() {
+						public int compare(Map<String, Object> o1, Map<String, Object> o2) {
+							if (o1 == null || o1.get("create_at") == null) {
+								return -1;
+							}
+							if (o2 == null || o2.get("create_at") == null) {
+								return 1;
+							}
+							Date date1 = (Date) o1.get("create_at");
+							Date date2 = (Date) o2.get("create_at");
+							return date1.compareTo(date2);
+						}
+					});
+				}
+			}
 			SubFormItemInstance subFormItemInstance = new SubFormItemInstance();
 			List<SubFormDataItemInstance> subFormItemInstances = new ArrayList<SubFormDataItemInstance>();
 			subFormItemInstance.setId(itemModelEntity.getId());
