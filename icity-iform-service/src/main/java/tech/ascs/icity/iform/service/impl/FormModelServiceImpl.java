@@ -1569,10 +1569,6 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
         newListFunction.setConfirmForm(functionParams.getConfirmForm());
         newListFunction.setReturnOperation(functionParams.getReturnOperation());
         newListFunction.setJumpNewUrl(functionParams.getJumpNewUrl());
-        newListFunction.setListActionBarVisible(functionParams.getListActionBarVisible());
-        newListFunction.setCheckPageVisible(functionParams.getCheckPageVisible());
-        newListFunction.setAddPageVisible(functionParams.getAddPageVisible());
-        newListFunction.setUpdatePageVisible(functionParams.getUpdatePageVisible());
         //显示时机 若为空标识所有时机都显示
         newListFunction.setDisplayTiming(functionParams.getDisplayTiming());
         // 返回结果

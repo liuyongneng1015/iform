@@ -649,10 +649,6 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				if (StringUtils.hasText(listFunction.getParseArea())) {
 					function.setParseArea(Arrays.asList(listFunction.getParseArea().split(",")));
 				}
-				function.setListActionBarVisible(null);
-				function.setUpdatePageVisible(null);
-				function.setCheckPageVisible(null);
-				function.setAddPageVisible(null);
 				functions.add(function);
 			}
 			Collections.sort(functions);
