@@ -229,6 +229,21 @@ public interface FormInstanceService {
     FormDataSaveInstance get(@PathVariable(name="formId") String formId, @PathVariable(name="id") String id);
 
 	/**
+	 * 根据表单字段参数获取表单实例对象
+	 *
+	 * @param formId 表单模型ID
+	 * @param columnMap 表单字段参数
+	 * @return
+	 */
+	@ApiOperation(value = "根据表单实例ID获取表单实例对象", position = 2)
+	@ApiImplicitParams({
+			@ApiImplicitParam(paramType = "path", name = "formId", value = "表单模型ID", required = true, dataType = "String"),
+			@ApiImplicitParam(paramType = "query", name = "columnMap", value = "表单字段参数")
+	})
+	@GetMapping("/{formId}/find-by-columnMap")
+	List<FormDataSaveInstance> findByColumnMap(@PathVariable(name="formId") String formId, @RequestParam(name="columnMap") Map<String, Object> columnMap);
+
+	/**
 	 * 根据表单实例ID获取表单实例对象
 	 *
 	 * @param formId 表单模型ID

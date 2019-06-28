@@ -3995,7 +3995,39 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		return result;
 	}
 
-	//设置流程状态
+    @Override
+    public List<FormDataSaveInstance> findByColumnMap(FormModelEntity formModel, Map<String, Object> columnMap) {
+        List<FormDataSaveInstance> result = null;
+        Session session = getSession(formModel.getDataModels().get(0));
+        try {
+            Criteria criteria = generateColumnMapCriteria(session, formModel,  columnMap);
+            List data = criteria.list();
+            result = wrapFormDataList(formModel, null, data);
+
+            criteria.setFirstResult(0);
+            criteria.setProjection(Projections.rowCount());
+
+            // 清除排序字段
+            for (Iterator<CriteriaImpl.OrderEntry> i = ((CriteriaImpl) criteria).iterateOrderings(); i.hasNext(); ) {
+                i.next();
+                i.remove();
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (e instanceof ICityException) {
+                throw e;
+            }
+            throw new IFormException(e.getLocalizedMessage(), e);
+        } finally {
+            if (session != null) {
+                session.close();
+            }
+        }
+        return result;
+    }
+
+    //设置流程状态
 	private void setFormInstanceProcessStatus(FormDataSaveInstance formInstance, ProcessInstance processInstance){
 		ItemInstance processStatusItemInstance = null;
 		for(ItemInstance instance : formInstance.getItems()){
