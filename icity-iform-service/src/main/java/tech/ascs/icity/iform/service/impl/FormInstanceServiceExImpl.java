@@ -1982,6 +1982,16 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	public Criteria generateColumnMapCriteria(Session session, FormModelEntity formModel, Map<String, Object> queryParameters) {
 		DataModelEntity dataModel = formModel.getDataModels().get(0);
 
+		List<String> refereceColumn = new ArrayList<>();
+        for(ColumnModelEntity columnModelEntity : dataModel.getColumns()){
+		    if(columnModelEntity.getColumnReferences() != null && columnModelEntity.getColumnReferences().size() > 0){
+		        if("id".equals(columnModelEntity.getColumnName())){
+		            continue;
+                }
+		        refereceColumn.add(columnModelEntity.getColumnName());
+            }
+        }
+
 		Criteria criteria = session.createCriteria(dataModel.getTableName());
 
 		for (String columnName:queryParameters.keySet()) {
@@ -1992,7 +2002,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			if("id".equals(columnName)) {
 				criteria.add(Restrictions.in(columnName, value));
 			}else{
-				criteria.add(Restrictions.eq(columnName, value));
+			    if(refereceColumn.contains(columnName)) {
+                    criteria.createCriteria(columnName).add(Restrictions.in("id", value));
+                }else {
+                    criteria.add(Restrictions.eq(columnName, value));
+                }
 			}
 		}
 		return criteria;
