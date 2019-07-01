@@ -1983,7 +1983,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		DataModelEntity dataModel = formModel.getDataModels().get(0);
 
 		List<String> refereceColumn = new ArrayList<>();
-        for(ColumnModelEntity columnModelEntity : dataModel.getColumns()){
+		Map<String, ColumnModelEntity> refereceColumnMap = new HashMap<>();
+
+		for(ColumnModelEntity columnModelEntity : dataModel.getColumns()){
+			refereceColumnMap.put(columnModelEntity.getColumnName(), columnModelEntity);
 		    if(columnModelEntity.getColumnReferences() != null && columnModelEntity.getColumnReferences().size() > 0){
 		        if("id".equals(columnModelEntity.getColumnName())){
 		            continue;
@@ -2005,7 +2008,25 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			    if(refereceColumn.contains(columnName)) {
                     criteria.createCriteria(columnName).add(Restrictions.in("id", value));
                 }else {
-                    criteria.add(Restrictions.eq(columnName, value));
+			    	ColumnModelEntity columnModelEntity = refereceColumnMap.get(columnName);
+					if (columnModelEntity.getDataType() == ColumnType.Date || columnModelEntity.getDataType() == ColumnType.Time || columnModelEntity.getDataType() == ColumnType.Timestamp) {
+						String dateStr = String.valueOf(value);
+						String[] s = dateStr.split(",");
+						Date[] objects = new Date[s.length];
+						for(int i = 0; i < s.length; i++){
+							objects[i] = new Date(Long.parseLong(s[i]));
+						}
+						if(objects.length == 2) {
+							criteria.add(Restrictions.ge(columnName, objects[0]));
+							criteria.add(Restrictions.lt(columnName, objects[1]));
+						}else if(objects.length == 1){
+							criteria.add(Restrictions.ge(columnName, objects[0]));
+							Date endDate = DateUtils.ceiling(objects[0], Calendar.DAY_OF_MONTH);
+							criteria.add(Restrictions.lt(columnName, endDate));
+						}
+					}else {
+						criteria.add(Restrictions.eq(columnName, value));
+					}
                 }
 			}
 		}
