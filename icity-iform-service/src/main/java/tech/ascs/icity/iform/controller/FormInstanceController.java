@@ -516,7 +516,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	}
 
 	@Override
-	public List<FormDataSaveInstance> findByColumnMap(@PathVariable(name="formId") String formId, @RequestParam(name="columnMap") Map<String, Object> columnMap) {
+	public List<FormDataSaveInstance> findByColumnMap(@PathVariable(name="formId") String formId, @RequestParam Map<String, Object> columnMap) {
 		FormModelEntity formModel = formModelService.find(formId);
 		if (formModel == null) {
 			return null;

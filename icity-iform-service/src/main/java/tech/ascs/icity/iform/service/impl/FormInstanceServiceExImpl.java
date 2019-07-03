@@ -1983,17 +1983,52 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	public Criteria generateColumnMapCriteria(Session session, FormModelEntity formModel, Map<String, Object> queryParameters) {
 		DataModelEntity dataModel = formModel.getDataModels().get(0);
 
+		List<String> refereceColumn = new ArrayList<>();
+		Map<String, ColumnModelEntity> columnMap = new HashMap<>();
+
+		for(ColumnModelEntity columnModelEntity : dataModel.getColumns()){
+			columnMap.put(columnModelEntity.getColumnName(), columnModelEntity);
+		    if(columnModelEntity.getColumnReferences() != null && columnModelEntity.getColumnReferences().size() > 0){
+		        if("id".equals(columnModelEntity.getColumnName())){
+		            continue;
+                }
+		        refereceColumn.add(columnModelEntity.getColumnName());
+            }
+        }
+
 		Criteria criteria = session.createCriteria(dataModel.getTableName());
 
 		for (String columnName:queryParameters.keySet()) {
 			Object value = queryParameters.get(columnName);
-			if (value==null || "".equals(value.toString())) {
+			if (value == null || !columnMap.keySet().contains(columnName) || "".equals(value.toString())) {
 				continue;
 			}
 			if("id".equals(columnName)) {
 				criteria.add(Restrictions.in(columnName, value));
 			}else{
-				criteria.add(Restrictions.eq(columnName, value));
+			    if(refereceColumn.contains(columnName)) {
+                    criteria.createCriteria(columnName).add(Restrictions.in("id", value));
+                }else {
+			    	ColumnModelEntity columnModelEntity = columnMap.get(columnName);
+					if (columnModelEntity.getDataType() == ColumnType.Date || columnModelEntity.getDataType() == ColumnType.Time || columnModelEntity.getDataType() == ColumnType.Timestamp) {
+						String dateStr = String.valueOf(value);
+						String[] s = dateStr.split(",");
+						Date[] objects = new Date[s.length];
+						for(int i = 0; i < s.length; i++){
+							objects[i] = new Date(Long.parseLong(s[i]));
+						}
+						if(objects.length == 2) {
+							criteria.add(Restrictions.ge(columnName, objects[0]));
+							criteria.add(Restrictions.lt(columnName, objects[1]));
+						}else if(objects.length == 1){
+							criteria.add(Restrictions.ge(columnName, objects[0]));
+							Date endDate = DateUtils.ceiling(objects[0], Calendar.DAY_OF_MONTH);
+							criteria.add(Restrictions.lt(columnName, endDate));
+						}
+					}else {
+						criteria.add(Restrictions.eq(columnName, value));
+					}
+                }
 			}
 		}
 		return criteria;

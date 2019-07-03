@@ -241,7 +241,7 @@ public interface FormInstanceService {
 			@ApiImplicitParam(paramType = "query", name = "columnMap", value = "表单字段参数")
 	})
 	@GetMapping("/{formId}/find-by-columnMap")
-	List<FormDataSaveInstance> findByColumnMap(@PathVariable(name="formId") String formId, @RequestParam(name="columnMap") Map<String, Object> columnMap);
+	List<FormDataSaveInstance> findByColumnMap(@PathVariable(name="formId") String formId, @RequestParam Map<String, Object> columnMap);
 
 	/**
 	 * 根据表单实例ID获取表单实例对象
