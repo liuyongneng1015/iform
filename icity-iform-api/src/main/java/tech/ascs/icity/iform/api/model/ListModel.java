@@ -86,6 +86,8 @@ public class ListModel extends NameEntity {
 	@ApiModelProperty(value="门户列表模板",position = 16)
 	private List<Map> protalListTemplate;
 
+	private String searchItemsSort;
+
 	public String getUniqueCode() {
 		return uniqueCode;
 	}
@@ -212,6 +214,14 @@ public class ListModel extends NameEntity {
 
 	public void setProtalListTemplate(List<Map> protalListTemplate) {
 		this.protalListTemplate = protalListTemplate;
+	}
+
+	public String getSearchItemsSort() {
+		return searchItemsSort;
+	}
+
+	public void setSearchItemsSort(String searchItemsSort) {
+		this.searchItemsSort = searchItemsSort;
 	}
 
 	@Override
