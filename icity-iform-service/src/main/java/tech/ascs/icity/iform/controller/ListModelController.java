@@ -813,8 +813,8 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			List<SearchItem> searchItemSortList = new ArrayList<>();
 
 			// searchItem是有排序的，排序的ID全部拼接到searchItemsSort这个字段
-			if (!StringUtils.isEmpty(listModelEntity.getDisplayItemsSort())) {
-				List<String> ids = Arrays.asList(listModelEntity.getDisplayItemsSort().split(","));
+			if (!StringUtils.isEmpty(listModelEntity.getSearchItemsSort())) {
+				List<String> ids = Arrays.asList(listModelEntity.getSearchItemsSort().split(","));
 				for (String id:ids) {
 					SearchItem searchItem = map.get(id);
 					if (searchItem!=null) {
@@ -825,6 +825,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			} else {
 				listModel.setSearchItems(searchItems);
 			}
+			listModel.setSearchItemsSort(null);
 		}
 	}
 
