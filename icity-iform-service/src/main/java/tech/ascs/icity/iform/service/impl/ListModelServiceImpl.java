@@ -204,14 +204,14 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 				old.setQuickSearchItems(quickSearches);
 			}
 			ListModelEntity returnEntity = doUpdate(old, oldSortMap.keySet(), oldSearchItemMap.keySet(), oldFunctionMap.keySet(), oldQuickSearchMap.keySet());
-			saveDisplayItemSort(returnEntity);
+//			saveDisplayItemSort(returnEntity);
 			// 给admin服务提交按钮权限
 			submitListBtnPermission(returnEntity);
 			return returnEntity;
 		} else {
             setFormModel(entity);
 			ListModelEntity returnEntity = super.save(entity);
-			saveDisplayItemSort(returnEntity);
+//			saveDisplayItemSort(returnEntity);
 			return returnEntity;
 		}
 	}
@@ -239,14 +239,14 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 		newListFunction.setSystemBtn(functionParams.getSystemBtn());
 	}
 
-	private void saveDisplayItemSort(ListModelEntity entity) {
-		List<ItemModelEntity> displayItems = entity.getDisplayItems();
-		if (displayItems!=null && displayItems.size()>0) {
-			List<String> ids = displayItems.stream().map(item->item.getId()).collect(Collectors.toList());
-			entity.setDisplayItemsSort(String.join(",", ids));
-			super.save(entity);
-		}
-	}
+//	private void saveDisplayItemSort(ListModelEntity entity) {
+//		List<ItemModelEntity> displayItems = entity.getDisplayItems();
+//		if (displayItems!=null && displayItems.size()>0) {
+//			List<String> ids = displayItems.stream().map(item->item.getId()).collect(Collectors.toList());
+//			entity.setDisplayItemsSort(String.join(",", ids));
+//			super.save(entity);
+//		}
+//	}
 
 	private  void setFormModel(ListModelEntity entity){
         if(entity.getMasterForm() != null && !entity.getMasterForm().isNew()){
