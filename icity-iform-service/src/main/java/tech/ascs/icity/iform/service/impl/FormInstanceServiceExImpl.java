@@ -2840,12 +2840,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		if(column == null && !(itemModel instanceof  ReferenceItemModelEntity) && !(itemModel instanceof  RowItemModelEntity)
 				&& !(itemModel instanceof SubFormItemModelEntity) && !(itemModel instanceof TabsItemModelEntity)
                 && !(itemModel instanceof ReferenceInnerItemModelEntity)){
-			ItemInstance itemInstance = new ItemInstance();
-			itemInstance.setId(itemModel.getId());
-			itemInstance.setType(itemModel.getType());
-			itemInstance.setSystemItemType(itemModel.getSystemItemType());
-			itemInstance.setItemName(itemModel.getName());
-			items.add(itemInstance);
+			items.add(setItemInstance(itemModel));
 			return;
 		}
 		Object value = new Object();
@@ -2863,12 +2858,15 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}
 			setSubFormItemInstance(itemModel,  entity,  subFormItems, formInstance.getActivityId());
 		}else if(itemModel instanceof RowItemModelEntity){
+			items.add(setItemInstance(itemModel));
 			for(ItemModelEntity itemModelEntity : ((RowItemModelEntity) itemModel).getItems()) {
 				setFormDataItemInstance(isQrCodeFlag, itemModelEntity, referenceFlag, entity, referenceDataModelList,
 						subFormItems,  items, formInstance);
 			}
 		}else if(itemModel instanceof TabsItemModelEntity){
+			items.add(setItemInstance(itemModel));
 			for(TabPaneItemModelEntity itemModelEntity : ((TabsItemModelEntity) itemModel).getItems()) {
+				items.add(setItemInstance(itemModelEntity));
 				for(ItemModelEntity itemModelEntity1 : itemModelEntity.getItems()) {
 					setFormDataItemInstance(isQrCodeFlag, itemModelEntity1, referenceFlag, entity, referenceDataModelList,
 							subFormItems, items, formInstance);
@@ -2880,6 +2878,15 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			ItemInstance itemInstance = setItemInstance(column.getKey(), itemModel, value, formInstance.getActivityId());
 			items.add(itemInstance);
 		}
+	}
+
+	private ItemInstance setItemInstance(ItemModelEntity itemModel){
+		ItemInstance itemInstance = new ItemInstance();
+		itemInstance.setId(itemModel.getId());
+		itemInstance.setType(itemModel.getType());
+		itemInstance.setSystemItemType(itemModel.getSystemItemType());
+		itemInstance.setItemName(itemModel.getName());
+		return itemInstance;
 	}
 
 	/**
