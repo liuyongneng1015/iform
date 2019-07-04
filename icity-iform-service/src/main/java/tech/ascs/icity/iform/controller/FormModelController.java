@@ -78,6 +78,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
 
+	@Autowired
+	private ELProcessorService elProcessorService;
+
 	@Override
 	public List<FormModel> list(@RequestParam(name="name", defaultValue="") String name, @RequestParam(name = "type", required = false ) String type,
 								@RequestParam(name = "dataModelId", required = false ) String dataModelId, @RequestParam(name = "applicationId", required = false) String applicationId) {
@@ -1120,8 +1123,13 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		if(formModel.getSubmitChecks() != null){
 			List<FormSubmitCheckInfo> checkInfos = new ArrayList<>();
 			for(FormSubmitCheckModel model : formModel.getSubmitChecks()){
+				boolean isExpression = elProcessorService.checkExpressionState(model.getCueExpression());
+				if (!isExpression){
+					throw new IFormException(model.getCueExpression() + " 不是一个正确的表达式");
+				}
 				FormSubmitCheckInfo checkInfo =  new FormSubmitCheckInfo();
 				BeanUtils.copyProperties(model, checkInfo, new String[]{"formModel"});
+				checkInfo.setName(model.getName());
 				checkInfos.add(checkInfo);
 			}
 			List<FormSubmitCheckInfo> checkInfoList = checkInfos.size() < 2 ? checkInfos : checkInfos.parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
@@ -1174,6 +1182,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			for(FormSubmitCheckModel model : formModel.getSubmitChecks()){
 				FormSubmitCheckInfo checkInfo =  new FormSubmitCheckInfo();
 				BeanUtils.copyProperties(model, checkInfo, new String[]{"formModel"});
+				checkInfo.setName(model.getName());
 				checkInfo.setFormModel(entity);
 				checkInfos.add(checkInfo);
 			}
