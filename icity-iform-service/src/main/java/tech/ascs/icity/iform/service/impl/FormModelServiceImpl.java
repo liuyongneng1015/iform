@@ -499,7 +499,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			((SelectItemModelEntity)saveItemModelEntity).setParentItem(((SelectItemModelEntity) paramerItemModelEntity).getParentItem());
 		}
 
-		setColumnModelEntity(  modelEntityMap,  paramerItemModelEntity,  saveItemModelEntity);
+		setColumnModelEntity(modelEntityMap,  paramerItemModelEntity,  saveItemModelEntity);
 
 		return saveItemModelEntity;
 	}
