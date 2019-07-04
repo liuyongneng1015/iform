@@ -14,8 +14,13 @@ public class FormSubmitCheckModel extends NameEntity {
 	@ApiModelProperty(value = "表单模型", position = 3)
 	private FormModel formModel;
 
-	@ApiModelProperty(value = "提示语", position = 5)
+
+	@ApiModelProperty(value = "提示语", position = 4)
 	private String cueWords;
+
+	//校验规则
+	@ApiModelProperty(value = "校验表达式", position = 5)
+	private String cueExpression;
 
 	@ApiModelProperty(value = "排序号", position = 6)
 	private Integer orderNo = 0;
@@ -43,6 +48,14 @@ public class FormSubmitCheckModel extends NameEntity {
 
 	public void setOrderNo(Integer orderNo) {
 		this.orderNo = orderNo;
+	}
+
+	public String getCueExpression() {
+		return cueExpression;
+	}
+
+	public void setCueExpression(String cueExpression) {
+		this.cueExpression = cueExpression;
 	}
 
 	@Override
