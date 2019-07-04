@@ -811,18 +811,19 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			}
 		}
 		List<ItemPermissionInfo> list = saveItemModelEntity.getPermissions();
-		saveItemModelEntity.setPermissions(null);
-		List<String> idList = new ArrayList<>(oldItemPermission.keySet());
-		for(int i = 0 ; i < list.size(); i++) {
-			ItemPermissionInfo info = list.get(i);
-			if (idList.contains(info.getId())) {
-				list.remove(info);
-                info.setItemModel(null);
-                i--;
-				itemPermissionManager.delete(info);
-			}
-		}
 		saveItemModelEntity.setPermissions(newItemPermissionInfos);
+		List<String> idList = new ArrayList<>(oldItemPermission.keySet());
+		if(idList.size() > 0) {
+            for (int i = 0; i < list.size(); i++) {
+                ItemPermissionInfo info = list.get(i);
+                if (idList.contains(info.getId())) {
+                    list.remove(info);
+                    info.setItemModel(null);
+                    i--;
+                    itemPermissionManager.delete(info);
+                }
+            }
+        }
 	}
 
 	//得到最新的item
@@ -847,13 +848,15 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		List<ItemSelectOption> list = newEntity.getOptions();
 		newEntity.setOptions(options);
 		List<String> idList = new ArrayList<>(itemSelectOptionMap.keySet());
-		for(int i = 0 ; i < list.size(); i++){
-			ItemSelectOption info = list.get(i);
-			if(idList.contains(info.getId())) {
-				list.remove(info);
-				info.setItemModel(null);
-                i--;
-				itemSelectOptionManager.delete(info);
+		if(idList.size() > 0) {
+			for (int i = 0; i < list.size(); i++) {
+				ItemSelectOption info = list.get(i);
+				if (idList.contains(info.getId())) {
+					list.remove(info);
+					info.setItemModel(null);
+					i--;
+					itemSelectOptionManager.delete(info);
+				}
 			}
 		}
 	}

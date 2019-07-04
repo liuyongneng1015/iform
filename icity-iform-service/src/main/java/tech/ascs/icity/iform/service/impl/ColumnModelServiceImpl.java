@@ -229,15 +229,6 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
                     e.printStackTrace();
                 }
             }
-            if (colummList.contains(columnName)) {
-                deleteTableColumnIndex(tableName, columnName);
-                try {
-                    String deleteColumnSql = "ALTER TABLE " + tableName + " DROP " + columnName;
-                    jdbcTemplate.execute(deleteColumnSql);
-                } catch (DataAccessException e) {
-                    e.printStackTrace();
-                }
-            }
         } catch( DataAccessException e) {
              e.printStackTrace();
         }
