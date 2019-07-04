@@ -1180,6 +1180,10 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		if(formModel.getSubmitChecks() != null){
 			List<FormSubmitCheckInfo> checkInfos = new ArrayList<>();
 			for(FormSubmitCheckModel model : formModel.getSubmitChecks()){
+                boolean isExpression = elProcessorService.checkExpressionState(model.getCueExpression());
+                if (!isExpression){
+                    throw new IFormException(model.getCueExpression() + " 不是一个正确的表达式");
+                }
 				FormSubmitCheckInfo checkInfo =  new FormSubmitCheckInfo();
 				BeanUtils.copyProperties(model, checkInfo, new String[]{"formModel"});
 				checkInfo.setName(model.getName());
