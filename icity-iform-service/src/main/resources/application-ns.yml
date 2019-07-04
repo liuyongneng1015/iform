@@ -1,14 +1,13 @@
 server:
   port: 8085
 
-#spring.profiles.active: ns
-
-spring.application.name: iform_test
+spring.application.name: iform_local
 
 info:
   app:
     name: ${spring.application.name}
-    version: V0.7.1.0
+    # info.app.version 这个变量在 tech.ascs.icity.iform.SwaggerConfiguration 文件中有注入，用来修改swagger文档显示的版本号
+    version: V0.7.0.0
     time: 2018年09月18日 13:55:11
   describe: 表单引擎
   home: /
@@ -17,13 +16,13 @@ info:
 eureka:
   instance:
     prefer-ip-address: true
-    ip-address: 192.168.1.188
+    ip-address: 192.168.1.208
   client:
     serviceUrl:
-      defaultZone: http://192.168.4.151:8761/eureka/
+      defaultZone: http://192.168.100.86:8761/eureka/
 
 spring.datasource:
-  url: jdbc:postgresql://192.168.4.151:5432/icity
+  url: jdbc:postgresql://192.168.100.86:5432/icity
   username: root
   password: icityDB2018!@#
   driver-class-name: org.postgresql.Driver
@@ -41,21 +40,18 @@ ribbon.ConnectTimeout: 120000
 icity:
   iform:
     qrcode:
-      base-url: http://192.168.4.152:8089
+      base-url:  https://192.168.100.86:8089
       name: 航天智慧cityworks
-  dictionary:
-    areaCode:
-      id: 9fddec6151b14a04bfe21d80d7a4474b
 
 spring.redis:
   database: 0
-  host: 192.168.4.151
+  host: 192.168.100.86
   port: 6379
   password:
   timeout: 5000ms
 
 spring.rabbitmq:
-  host: 192.168.4.151
+  host: 192.168.100.86
   port: 5672
   username: guest
   password: guest
@@ -76,7 +72,7 @@ cas:
 
 oauth2:
   enabled: true
-  server: http://192.168.4.152:8090
+  server: http://192.168.100.86:8090
   baseUrl: ${oauth2.server}/gateway/reception-center
   clientId: a1c7b4a4ade84e888009dcdad83909a1
   clientSecret: 8d28a7aef4af477a8da685a3afaa75d8
@@ -92,7 +88,7 @@ jwt:
 
 shiro:
   pathDefinitions:
-    - /** = anon
+  - /** = anon
 
 minio:
   bucket: iform
@@ -100,10 +96,10 @@ minio:
     key:  icity
   secret:
     key: icity.ascs.tech
-  host: http://192.168.4.151:9000 #存二维码图片的服务器地址（内网地址就可以了）
-  url: http://192.168.4.151:9000 #二维码图片对应的地址前缀（如有必要需要变成外网地址）
-  logoUrl: http://192.168.4.151:9000 #二维码中间商标 （内网地址就可以了）
-  backUrl: http://192.168.4.151:9000 #二维码背景图 （内网地址就可以了）
+  host: http://192.168.100.86:9000
+  url: http://192.168.100.86:9000
+  logoUrl: http://192.168.100.86:9000
+  backUrl: http://192.168.100.86:9000
 
 multipart:
   maxFileSize: 10240Mb
