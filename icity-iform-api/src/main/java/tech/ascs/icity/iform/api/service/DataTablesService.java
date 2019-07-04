@@ -38,8 +38,7 @@ public interface DataTablesService {
      */
     @ApiOperation("生成表模型")
     @ApiImplicitParams({
-            @ApiImplicitParam(paramType = "path", name = "applicationId", value = "应用id"),
-            @ApiImplicitParam(paramType = "body", name = "dataTables")
+            @ApiImplicitParam(paramType = "path", name = "applicationId", value = "应用id")
     })
     @PostMapping(value = "/{applicationId}", consumes = {MediaType.APPLICATION_JSON_UTF8_VALUE})
     boolean buildDataModelByTables(@PathVariable("applicationId") String applicationId, @RequestBody ArrayList<DataTable> dataTables);

@@ -1,6 +1,6 @@
 package tech.ascs.icity.iform.model;
 
-import tech.ascs.icity.jpa.dao.model.JPAEntity;
+import tech.ascs.icity.jpa.dao.model.BaseEntity;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -10,7 +10,7 @@ import java.io.Serializable;
  */
 @Entity
 @Table(name = "ifm_form_submit_checks")
-public class FormSubmitCheckInfo extends JPAEntity implements Serializable {
+public class FormSubmitCheckInfo extends BaseEntity implements Serializable, Comparable<FormSubmitCheckInfo> {
 
 	private static final long serialVersionUID = 1L;
 
@@ -18,8 +18,11 @@ public class FormSubmitCheckInfo extends JPAEntity implements Serializable {
 	@JoinColumn(name="form_id")
 	private FormModelEntity formModel;
 
-	//提示语
+	//校验失败提示
 	private String cueWords;
+
+	//校验规则
+	private String cueExpression;
 
 	//排序号
 	private Integer orderNo = 0;
@@ -46,5 +49,18 @@ public class FormSubmitCheckInfo extends JPAEntity implements Serializable {
 
 	public void setOrderNo(Integer orderNo) {
 		this.orderNo = orderNo;
+	}
+
+    public String getCueExpression() {
+        return cueExpression;
+    }
+
+    public void setCueExpression(String cueExpression) {
+        this.cueExpression = cueExpression;
+    }
+
+    @Override
+	public int compareTo(FormSubmitCheckInfo o) {
+		return this.getOrderNo() - o.getOrderNo();
 	}
 }
