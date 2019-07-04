@@ -1412,7 +1412,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		for (ItemInstance itemInstance : formInstance.getItems()) {
             ItemModelEntity itemModel = itemModelManager.find(itemInstance.getId());
             if(itemModel instanceof ReferenceItemModelEntity || itemModel.getSystemItemType() == SystemItemType.ID
-					|| itemModel instanceof SubFormItemModelEntity || itemModel instanceof TabsItemModelEntity || itemModel instanceof RowItemModelEntity){
+					|| itemModel instanceof SubFormItemModelEntity || itemModel instanceof TabsItemModelEntity || itemModel instanceof RowItemModelEntity
+					|| itemModel instanceof TabPaneItemModelEntity || itemModel instanceof SubFormRowItemModelEntity){
             	continue;
 			}
             //唯一校验
@@ -2839,6 +2840,12 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		if(column == null && !(itemModel instanceof  ReferenceItemModelEntity) && !(itemModel instanceof  RowItemModelEntity)
 				&& !(itemModel instanceof SubFormItemModelEntity) && !(itemModel instanceof TabsItemModelEntity)
                 && !(itemModel instanceof ReferenceInnerItemModelEntity)){
+			ItemInstance itemInstance = new ItemInstance();
+			itemInstance.setId(itemModel.getId());
+			itemInstance.setType(itemModel.getType());
+			itemInstance.setSystemItemType(itemModel.getSystemItemType());
+			itemInstance.setItemName(itemModel.getName());
+			items.add(itemInstance);
 			return;
 		}
 		Object value = new Object();
