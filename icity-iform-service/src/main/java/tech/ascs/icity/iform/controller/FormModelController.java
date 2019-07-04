@@ -23,6 +23,7 @@ import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.*;
 import tech.ascs.icity.iform.utils.CommonUtils;
+import tech.ascs.icity.iform.utils.DtoUtils;
 import tech.ascs.icity.jpa.dao.Query;
 import tech.ascs.icity.model.IdEntity;
 import tech.ascs.icity.model.Page;
@@ -2280,6 +2281,20 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				((FormModel) object).setQrCodeItemModelList(getItemModelList(resultList));
 			}
 		}
+
+		//表单提交校验
+        if (entity.getSubmitChecks() != null) {
+            List<FormSubmitCheckModel> submitChecks = entity.getSubmitChecks().stream()
+                    .map(DtoUtils::toFormSubmitCheckModel)
+                    .sorted()
+                    .collect(Collectors.toList());
+            if(isAnalysisForm) {
+                ((AnalysisFormModel) object).setSubmitChecks(submitChecks);
+            }else{
+                ((FormModel) object).setSubmitChecks(submitChecks);
+            }
+        }
+
 	}
 
 	@Deprecated

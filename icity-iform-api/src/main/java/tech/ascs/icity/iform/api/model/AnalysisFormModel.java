@@ -67,6 +67,9 @@ public class AnalysisFormModel extends NameEntity {
 	@ApiModelProperty(value = "业务触发器", position = 9)
 	private List<BusinessTriggerModel> triggeres;
 
+	@ApiModelProperty(value = "表单提交校验", position = 13)
+	private List<FormSubmitCheckModel> submitChecks = new ArrayList<FormSubmitCheckModel>();
+
 	public AnalysisProceeeModel getProcess() {
 		return process;
 	}
@@ -161,6 +164,14 @@ public class AnalysisFormModel extends NameEntity {
 
 	public void setTriggeres(List<BusinessTriggerModel> triggeres) {
 		this.triggeres = triggeres;
+	}
+
+	public List<FormSubmitCheckModel> getSubmitChecks() {
+		return submitChecks;
+	}
+
+	public void setSubmitChecks(List<FormSubmitCheckModel> submitChecks) {
+		this.submitChecks = submitChecks;
 	}
 
 	@Override
