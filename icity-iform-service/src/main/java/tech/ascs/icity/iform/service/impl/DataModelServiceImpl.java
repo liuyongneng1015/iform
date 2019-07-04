@@ -191,7 +191,7 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 			if(columnEntity == null){
 				throw new IFormException("未找到【"+column.getId()+"】对应的字段模型");
 			}
-			if(column.getColumnName().equals(columnEntity.getColumnName())){
+			if(!column.getColumnName().equals(columnEntity.getColumnName())){
 				columnModelService.updateTableColumn(columnEntity.getDataModel().getTableName(), columnEntity.getColumnName(), column.getColumnName());
 			}
 		}
