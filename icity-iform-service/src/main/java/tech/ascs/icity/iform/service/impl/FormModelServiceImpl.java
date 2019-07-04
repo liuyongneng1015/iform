@@ -499,7 +499,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			((SelectItemModelEntity)saveItemModelEntity).setParentItem(((SelectItemModelEntity) paramerItemModelEntity).getParentItem());
 		}
 
-		setColumnModelEntity(  modelEntityMap,  paramerItemModelEntity,  saveItemModelEntity);
+		setColumnModelEntity(modelEntityMap,  paramerItemModelEntity,  saveItemModelEntity);
 
 		return saveItemModelEntity;
 	}
@@ -576,7 +576,11 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		if(!oldItemModelEntity.isNew()){
 			newItemModelEntity = oldMapItmes.get(oldItemModelEntity.getId());
 		}
+		setItempermissions(newItemModelEntity, oldItemModelEntity);
+		setOptions(newItemModelEntity, oldItemModelEntity);
+
 		BeanUtils.copyProperties(oldItemModelEntity, newItemModelEntity, new String[]{"permissions","searchItems", "sortItems", "parentItem","referenceList","items","formModel","columnModel","activities","options"});
+
 		return newItemModelEntity;
 	}
 
@@ -585,6 +589,8 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		if(!oldItemModelEntity.isNew()){
 			newItemModelEntity = (TabPaneItemModelEntity)oldMapItmes.get(oldItemModelEntity.getId());
 		}
+		setItempermissions(newItemModelEntity, oldItemModelEntity);
+		setOptions(newItemModelEntity, oldItemModelEntity);
 		BeanUtils.copyProperties(oldItemModelEntity, newItemModelEntity, new String[]{"permissions","searchItems", "sortItems", "parentItem","referenceList","items","formModel","columnModel","activities","options"});
 		return newItemModelEntity;
 	}

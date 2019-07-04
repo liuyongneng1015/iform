@@ -3,7 +3,7 @@ server:
 
 #spring.profiles.active: local
 
-spring.application.name: iformdfsf
+spring.application.name: iform_test
 
 info:
   app:

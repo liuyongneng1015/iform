@@ -243,7 +243,25 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
         }
     }
 
-	@Override
+    @Override
+    public void updateTableColumn(String tableName, String oldColumnName, String newColumnName) {
+        String columnSql = "select COLUMN_NAME from information_schema.COLUMNS where table_name = '" + tableName + "'";
+        try {
+            List<String> colummList = jdbcTemplate.queryForList(columnSql, String.class);
+            if (colummList.contains(oldColumnName)) {
+                try {
+                    String updateColumnSql = "ALTER TABLE "+tableName+" RENAME "+oldColumnName+" TO "+newColumnName;
+                    jdbcTemplate.execute(updateColumnSql);
+                } catch (DataAccessException e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch( DataAccessException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
 	public void deleteTable(String tableName) {
         if("sys_user".equals(tableName)){
             return;

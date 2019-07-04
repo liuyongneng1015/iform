@@ -103,7 +103,28 @@ public class ItemModelServiceImpl extends DefaultJPAService<ItemModelEntity> imp
 	public void copyItemModelEntityToItemModel(ItemModelEntity itemModelEntity, ItemModel itemModel) {
 		if (itemModelEntity!=null && itemModel!=null) {
 			BeanUtils.copyProperties(itemModelEntity, itemModel, new String[]{"formModel","columnModel","activities","options","permissions","items","parentItem","defaultValue","itemModelList","dataModel","columnReferences","referenceTables","referenceList","triggerIds"});
+			if(itemModelEntity.getPermissions() != null && itemModelEntity.getPermissions().size() > 0){
+				ItemPermissionModel itemPermissionModel = new ItemPermissionModel();
+				itemPermissionModel.setId(itemModelEntity.getId());
+				itemPermissionModel.setName(itemModelEntity.getName());
+				ItemModel itemModel1 = new ItemModel();
+				itemModel1.setId(itemModelEntity.getId());
+				itemModel1.setName(itemModelEntity.getName());
+				for(ItemPermissionInfo itemPermissionInfo : itemModelEntity.getPermissions()){
+					ItemPermissionInfoModel itemPermissionInfoModel = new ItemPermissionInfoModel();
+					BeanUtils.copyProperties(itemPermissionInfo, itemPermissionInfoModel, new String[]{"itemModel"});
+					if(itemPermissionInfo.getDisplayTiming() == DisplayTimingType.Add){
+						itemPermissionModel.setAddPermissions(itemPermissionInfoModel);
+					}else if(itemPermissionInfo.getDisplayTiming() == DisplayTimingType.Update){
+						itemPermissionModel.setUpdatePermissions(itemPermissionInfoModel);
+					}else{
+						itemPermissionModel.setCheckPermissions(itemPermissionInfoModel);
+					}
+				}
+				itemModel.setPermissions(itemPermissionModel);
+			}
 		}
+
 	}
 
 	@Override

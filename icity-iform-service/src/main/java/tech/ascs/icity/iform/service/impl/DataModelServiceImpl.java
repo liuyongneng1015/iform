@@ -188,6 +188,12 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		ColumnModelEntity columnEntity = new ColumnModelEntity();
 		if(!column.isNew()){
 			columnEntity = columnModelService.find(column.getId());
+			if(columnEntity == null){
+				throw new IFormException("未找到【"+column.getId()+"】对应的字段模型");
+			}
+			if(!column.getColumnName().equals(columnEntity.getColumnName())){
+				columnModelService.updateTableColumn(columnEntity.getDataModel().getTableName(), columnEntity.getColumnName(), column.getColumnName());
+			}
 		}
 		BeanUtils.copyProperties(column, columnEntity, new String[]{"dataModel","referenceTables"});
 		if(column.isNew()){
