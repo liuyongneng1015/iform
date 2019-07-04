@@ -64,6 +64,10 @@ public class ListModelEntity extends BaseEntity implements Serializable {
 	@Column(name = "display_item_sort", length = 4096)
 	private String displayItemsSort;
 
+	// 查询字段排序
+	@Column(name = "search_item_sort", length = 4096)
+	private String searchItemsSort;
+
 	// APP列表展示模板
 	@Column(columnDefinition="text")
 	private String appListTemplate;
@@ -169,6 +173,14 @@ public class ListModelEntity extends BaseEntity implements Serializable {
 
 	public void setDisplayItemsSort(String displayItemsSort) {
 		this.displayItemsSort = displayItemsSort;
+	}
+
+	public String getSearchItemsSort() {
+		return searchItemsSort;
+	}
+
+	public void setSearchItemsSort(String searchItemsSort) {
+		this.searchItemsSort = searchItemsSort;
 	}
 
 	public String getAppListTemplate() {

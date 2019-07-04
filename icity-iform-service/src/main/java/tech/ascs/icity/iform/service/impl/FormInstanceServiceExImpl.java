@@ -542,6 +542,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				throw e;
 			}
 			logger.error("saveFormData add error with data=[" + OkHttpUtils.mapToJson(data) + "]");
+			e.printStackTrace();
 			throw new IFormException("保存数据失败");
 		} finally {
 			if (session != null) {
@@ -1992,10 +1993,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		DataModelEntity dataModel = formModel.getDataModels().get(0);
 
 		List<String> refereceColumn = new ArrayList<>();
-		Map<String, ColumnModelEntity> refereceColumnMap = new HashMap<>();
+		Map<String, ColumnModelEntity> columnMap = new HashMap<>();
 
 		for(ColumnModelEntity columnModelEntity : dataModel.getColumns()){
-			refereceColumnMap.put(columnModelEntity.getColumnName(), columnModelEntity);
+			columnMap.put(columnModelEntity.getColumnName(), columnModelEntity);
 		    if(columnModelEntity.getColumnReferences() != null && columnModelEntity.getColumnReferences().size() > 0){
 		        if("id".equals(columnModelEntity.getColumnName())){
 		            continue;
@@ -2008,7 +2009,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 		for (String columnName:queryParameters.keySet()) {
 			Object value = queryParameters.get(columnName);
-			if (value==null || "".equals(value.toString())) {
+			if (value == null || !columnMap.keySet().contains(columnName) || "".equals(value.toString())) {
 				continue;
 			}
 			if("id".equals(columnName)) {
@@ -2017,7 +2018,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			    if(refereceColumn.contains(columnName)) {
                     criteria.createCriteria(columnName).add(Restrictions.in("id", value));
                 }else {
-			    	ColumnModelEntity columnModelEntity = refereceColumnMap.get(columnName);
+			    	ColumnModelEntity columnModelEntity = columnMap.get(columnName);
 					if (columnModelEntity.getDataType() == ColumnType.Date || columnModelEntity.getDataType() == ColumnType.Time || columnModelEntity.getDataType() == ColumnType.Timestamp) {
 						String dateStr = String.valueOf(value);
 						String[] s = dateStr.split(",");

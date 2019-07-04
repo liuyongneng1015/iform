@@ -100,22 +100,22 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 	@Override
 	public ListModel getApp(@PathVariable(name="id") String id) {
 		ListModel listModel = get(id);
-		if (listModel!=null) {
-			List<Map> appListTemplate = listModel.getAppListTemplate();
-			if (appListTemplate!=null && appListTemplate.size()>0) {
-				for (Map map:appListTemplate) {
-					Object visible = map.get("visible");
-					if (visible!=null && visible instanceof Boolean && (Boolean)visible) {
-						Object template = map.get("template");
-						if (template!=null && template instanceof List) {
-							listModel.setAppListTemplate((List)template);
-							return listModel;
-						}
-					}
+		if (listModel==null) {
+			return listModel;
+		}
+		List<Map> appListTemplate = listModel.getAppListTemplate();
+		if (appListTemplate!=null && appListTemplate.size()>0) {
+			for (Map map:appListTemplate) {
+				Object visible = map.get("visible");
+				if (visible!=null && visible instanceof Boolean && (Boolean)visible &&
+						map.get("template")!=null && map.get("template") instanceof List) {
+					listModel.setAppListTemplate((List)map.get("template"));
+					return listModel;
 				}
 			}
-			listModel.setAppListTemplate(new ArrayList<>());
 		}
+		// appListTemplate字段要返回
+		listModel.setAppListTemplate(new ArrayList<>());
 		return listModel;
 	}
 
@@ -388,6 +388,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			listModelEntity.setSlaverForms(formModelEntities);
 		}
 
+		List<String> displayItemsSortIds = new ArrayList<>();
 		if(listModel.getDisplayItems() != null) {
 			List<ItemModelEntity> itemModelEntities = new ArrayList<>();
 			for (ItemModel itemModel : listModel.getDisplayItems()) {
@@ -400,9 +401,11 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 					itemModelEntity.setTriggerIds(String.join(",", itemModel.getTriggerIds()));
 				}
 				itemModelEntities.add(itemModelEntity);
+				displayItemsSortIds.add(itemModel.getId());
 			}
 			listModelEntity.setDisplayItems(itemModelEntities);
 		}
+		listModelEntity.setDisplayItemsSort(String.join(",", displayItemsSortIds));
 
 		if (listModel.getSortItems() != null) {
 			List<ListSortItem> sortItems = new ArrayList<ListSortItem>();
@@ -424,6 +427,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			listModelEntity.setSortItems(sortItems);
 		}
 
+		List<String> searchItemsSortIds = new ArrayList<>();
 		if (listModel.getSearchItems() != null) {
 			List<ListSearchItem> searchItems = new ArrayList();
 			for (int i = 0; i < listModel.getSearchItems().size(); i++) {
@@ -455,9 +459,12 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				searchItemEntity.setOrderNo(i);
 				searchItemEntity.setSearch(searchInfo);
 				searchItems.add(searchItemEntity);
+				searchItemsSortIds.add(searchItem.getId());
 			}
 			listModelEntity.setSearchItems(searchItems);
 		}
+		listModelEntity.setSearchItemsSort(String.join(",", searchItemsSortIds));
+
 		if (listModel.getFunctions() != null) {
 			List<ListFunction> functions = new ArrayList<>();
 			int i = 0;
@@ -615,27 +622,29 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 
 	private void setDisplayItems(ListModelEntity listModelEntity, ListModel listModel, Set<String> masterFormItemIds) {
 		if(listModelEntity.getDisplayItems() != null){
-			List<ItemModel> list = new ArrayList<>();
+			List<ItemModel> displaySortList = new ArrayList<>();
+			List<ItemModel> displayItems = new ArrayList<>();
+			Map<String, ItemModel> map = new HashMap<>();
 			for(ItemModelEntity itemModelEntity : listModelEntity.getDisplayItems()) {
 				if (masterFormItemIds.contains(itemModelEntity.getId())) {
 					ItemModel itemModel = new ItemModel();
 					itemModelService.copyItemModelEntityToItemModel(itemModelEntity, itemModel);
-					list.add(itemModel);
+					displayItems.add(itemModel);
+					map.put(itemModel.getId(), itemModel);
 				}
 			}
 			// displayItem是有排序的，排序的ID全部拼接到displayItemsSort这个字段
 			if (!StringUtils.isEmpty(listModelEntity.getDisplayItemsSort())) {
 				List<String> ids = Arrays.asList(listModelEntity.getDisplayItemsSort().split(","));
-				List<ItemModel> displaySortList = new ArrayList<>();
 				for (String id:ids) {
-					Optional<ItemModel> optional = list.stream().filter(item->id.equals(item.getId())).findFirst();
-					if (optional.isPresent()) {
-						displaySortList.add(optional.get());
+					ItemModel itemModel = map.get(id);
+					if (itemModel!=null) {
+						displaySortList.add(itemModel);
 					}
 				}
 				listModel.setDisplayItems(displaySortList);
-			} else {
-				listModel.setDisplayItems(list);
+			} else { // 兼容旧数据，没有排序字段的话，直接赋值displayItems
+				listModel.setDisplayItems(displayItems);
 			}
 		}
 	}
@@ -702,7 +711,8 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 
 	private void setSearchItems(ListModelEntity listModelEntity, ListModel listModel, Set<String> masterFormItemIds) {
 		if (listModelEntity.getSearchItems().size() > 0) {
-			List<SearchItem> searchItems = new ArrayList();
+			Map<String, SearchItem> map = new HashMap<>();
+			List<SearchItem> searchItems = new ArrayList<>();
 			for (ListSearchItem searchItemEntity : listModelEntity.getSearchItems()) {
 				ItemModelEntity itemModelEntity = searchItemEntity.getItemModel();
 				if (itemModelEntity != null) {
@@ -797,11 +807,26 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 					}
 
 					setSearch(searchItemEntity, searchItem, itemModelEntity);
+					map.put(searchItem.getId(), searchItem);
 					searchItems.add(searchItem);
 				}
 			}
-			Collections.sort(searchItems);
-			listModel.setSearchItems(searchItems);
+			List<SearchItem> searchItemSortList = new ArrayList<>();
+
+			// searchItem是有排序的，排序的ID全部拼接到searchItemsSort这个字段
+			if (!StringUtils.isEmpty(listModelEntity.getSearchItemsSort())) {
+				List<String> ids = Arrays.asList(listModelEntity.getSearchItemsSort().split(","));
+				for (String id:ids) {
+					SearchItem searchItem = map.get(id);
+					if (searchItem!=null) {
+						searchItemSortList.add(searchItem);
+					}
+				}
+				listModel.setSearchItems(searchItemSortList);
+			} else {
+				listModel.setSearchItems(searchItems);
+			}
+			listModel.setSearchItemsSort(null);
 		}
 	}
 
