@@ -30,6 +30,9 @@ public interface ColumnModelService extends JPAService<ColumnModelEntity> {
     //删除数据库字段
     void deleteTableColumn(String tableName, String columnName);
 
+    //修改数据库字段名
+    void updateTableColumn(String tableName, String oldColumnName, String newColumnName);
+
     //删除数据库
     void deleteTable(String tableName);
 

@@ -1,14 +1,5 @@
 package tech.ascs.icity.iform.service.impl;
 
-import java.lang.reflect.Field;
-import java.math.BigDecimal;
-import java.sql.SQLException;
-import java.text.DecimalFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.stream.Collectors;
-
 import com.alibaba.fastjson.JSON;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.commons.lang.time.DateUtils;
@@ -24,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-
 import tech.ascs.icity.ICityException;
 import tech.ascs.icity.admin.api.model.TreeSelectData;
 import tech.ascs.icity.admin.api.model.User;
@@ -49,6 +39,15 @@ import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 import tech.ascs.icity.model.IdEntity;
 import tech.ascs.icity.model.Page;
 import tech.ascs.icity.rbac.feign.model.UserInfo;
+
+import java.lang.reflect.Field;
+import java.math.BigDecimal;
+import java.sql.SQLException;
+import java.text.DecimalFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity> implements FormInstanceServiceEx {
@@ -83,6 +82,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	@Autowired
 	private ProcessService processService;
+
+	@Autowired
+	private ELProcessorService elProcessorService;
 
 	private JPAManager<FormModelEntity> formModelEntityJPAManager;
 
@@ -435,6 +437,13 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		for (ItemInstance itemInstance : list) {
 			itemMap.put(itemInstance.getId(), itemInstance);
 		}
+
+		// 表单提交校验
+		List<String> checkResult = elProcessorService.checkSubmitProcessor(itemMap, formModelEntity.getSubmitChecks());
+		if (!checkResult.isEmpty()) {
+			throw new IFormException(403, checkResult.get(0));
+		}
+
 		UserInfo user = null;
 		try {
 			user = CurrentUserUtils.getCurrentUser();
@@ -3944,11 +3953,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				}
 			}
 			itemInstance.setVisible(visible);
-			if(visible && (itemInstance.getSystemItemType() == SystemItemType.MoreInput || itemInstance.getSystemItemType() == SystemItemType.Editor)){
-				itemInstance.setCanFill(true);
-			}else {
-				itemInstance.setCanFill(canFill);
-			}
+			itemInstance.setCanFill(canFill);
 			itemInstance.setRequired(required);
 		}
 		String formName = StringUtils.hasText(processInstance.getFormTitle()) ? processInstance.getFormTitle() : processInstance.getFormTitle();

@@ -1,7 +1,7 @@
 server:
   port: 8085
 
-spring.application.name: lyn-iform
+spring.application.name: iform_local
 
 info:
   app:
