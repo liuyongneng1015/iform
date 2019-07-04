@@ -5,11 +5,8 @@ import io.swagger.annotations.ApiModelProperty;
 import org.apache.commons.lang3.StringUtils;
 import tech.ascs.icity.model.NameEntity;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @ApiModel("表单模型提交校验")
-public class FormSubmitCheckModel extends NameEntity {
+public class FormSubmitCheckModel extends NameEntity implements Comparable<FormSubmitCheckModel> {
 
 	@ApiModelProperty(value = "表单模型", position = 3)
 	private FormModel formModel;
@@ -65,5 +62,10 @@ public class FormSubmitCheckModel extends NameEntity {
 			return null;
 		}
 		return id;
+	}
+
+	@Override
+	public int compareTo(FormSubmitCheckModel o) {
+		return this.getOrderNo() - o.getOrderNo();
 	}
 }
