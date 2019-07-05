@@ -41,7 +41,9 @@ public class ELProcessorServiceImpl implements ELProcessorService {
 
     @Override
     public boolean checkExpressionState(String expression) {
-
+        if (expression == null) {
+            return true;
+        }
         try {
             expressionFactory.createValueExpression(emptyContext, ELProcessorUtils.process(expression), Object.class);
             return true;
