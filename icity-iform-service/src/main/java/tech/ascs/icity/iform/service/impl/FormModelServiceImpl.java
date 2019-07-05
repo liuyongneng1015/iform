@@ -785,7 +785,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 	//设备表单权限
 	private void setItempermissions(ItemModelEntity saveItemModelEntity, ItemModelEntity paramerItemModelEntity){
-		if(paramerItemModelEntity.getColumnModel() != null && "id".equals(paramerItemModelEntity.getColumnModel().getColumnName())) {
+		if(paramerItemModelEntity.getColumnModel() != null && !(paramerItemModelEntity instanceof SubFormItemModelEntity) && "id".equals(paramerItemModelEntity.getColumnModel().getColumnName())) {
 			return;
 		}
 		//旧数据
