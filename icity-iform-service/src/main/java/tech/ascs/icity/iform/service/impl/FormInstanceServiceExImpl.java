@@ -2103,6 +2103,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				criteria.addOrder(Order.asc(str));
 			}
 		}
+		if(queryParameters.get("DESC") == null || queryParameters.get("ASC") == null) {
+			//默认id
+			criteria.addOrder(Order.desc("id"));
+		}
 		return criteria;
 	}
 
