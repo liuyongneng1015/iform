@@ -195,6 +195,9 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 				columnModelService.updateTableColumn(columnEntity.getDataModel().getTableName(), columnEntity.getColumnName(), column.getColumnName());
 			}
 		}
+        if(!column.isNew() && columnEntity.getDataType() != column.getDataType()){
+            columnModelService.deleteTableColumn(columnEntity.getDataModel().getTableName(), columnEntity.getColumnName());
+        }
 		BeanUtils.copyProperties(column, columnEntity, new String[]{"dataModel","referenceTables"});
 		if(column.isNew()){
 			columnEntity.setId(null);
