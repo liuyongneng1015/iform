@@ -2057,6 +2057,17 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				for(ItemPermissionInfo itemPermissionInfo : itemModelEntity.getPermissions()) {
 					ItemPermissionInfoModel itemPermissionInfoModel = new ItemPermissionInfoModel();
 					BeanUtils.copyProperties(itemPermissionInfo, itemPermissionInfoModel, new String[]{"itemModel"});
+					if(isFlowForm){
+						if(itemPermissionInfoModel.getCanFill() == null){
+							itemPermissionInfoModel.setCanFill(false);
+						}
+						if(itemPermissionInfoModel.getVisible() == null){
+							itemPermissionInfoModel.setVisible(false);
+						}
+						if(itemPermissionInfoModel.getRequired() == null){
+							itemPermissionInfoModel.setRequired(false);
+						}
+					}
 					if(itemPermissionInfo.getDisplayTiming() == DisplayTimingType.Add) {
 						itemPermissionModel.setAddPermissions(itemPermissionInfoModel);
 					}else if(itemPermissionInfo.getDisplayTiming() == DisplayTimingType.Update && !isFlowForm){
@@ -2089,8 +2100,10 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
                     }else if(displayTimingType == DisplayTimingType.Update) {
                         itemPermissionModel.setUpdatePermissions(permissionInfoModel);
                     }else {
-                        permissionInfoModel.setCanFill(null);
-                        permissionInfoModel.setRequired(null);
+                    	if(!isFlowForm) {
+							permissionInfoModel.setCanFill(null);
+							permissionInfoModel.setRequired(null);
+						}
                         itemPermissionModel.setCheckPermissions(permissionInfoModel);
                     }
                 }
