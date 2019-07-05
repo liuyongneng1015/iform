@@ -1537,10 +1537,12 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				}
 				value = String.join(",", newList.parallelStream().map(FileUploadEntity::getId).collect(Collectors.toList()));
 			}else{
-				Map<String, String> fileUploadModel = o == null || o == "" ? null : (Map<String, String>)o;
-				if(fileUploadModel != null && fileUploadModel.values() != null && fileUploadModel.values().size() > 0){
-					FileUploadEntity fileUploadEntity = saveFileUploadEntity( fileUploadModel, fileUploadEntityMap, itemModel);
-					value = fileUploadEntity.getId();
+				if(o instanceof Map) {
+					Map<String, String> fileUploadModel = o == null || o == "" ? null : (Map<String, String>) o;
+					if (fileUploadModel != null && fileUploadModel.values() != null && fileUploadModel.values().size() > 0) {
+						FileUploadEntity fileUploadEntity = saveFileUploadEntity(fileUploadModel, fileUploadEntityMap, itemModel);
+						value = fileUploadEntity.getId();
+					}
 				}
 			}
 			for(String key : fileUploadEntityMap.keySet()){
@@ -1814,7 +1816,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}
 			if(map.get("value") == null){
 				flowData.put(columnModelEntity.getColumnName(), null);
-				formData.put(id, null);
+				formData.put(columnModelEntity.getColumnName(), null);
 				continue;
 			}
 			//更新标致
@@ -1860,7 +1862,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			flowData.remove(id);
 			flowData.put(columnModelEntity.getColumnName(), objectValue);
 			if(updateFlag) {
-				formData.put(id, objectValue);
+				formData.put(columnModelEntity.getColumnName(), objectValue);
 			}
 		}
 
