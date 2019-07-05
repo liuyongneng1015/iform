@@ -19,6 +19,7 @@ import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.FormInstanceService;
 import tech.ascs.icity.iform.service.FormInstanceServiceEx;
+import tech.ascs.icity.iform.utils.OkHttpUtils;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 import tech.ascs.icity.model.Page;
@@ -262,7 +263,7 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 
 		// 启动流程
 		if (formModel.getProcess() != null && formModel.getProcess().getKey() != null) {
-			System.out.println("传给工作流的数据=====>>>>>"+data);
+			System.out.println("传给工作流的数据=====>>>>>"+ OkHttpUtils.mapToJson(data));
 			String processInstanceId = processInstanceService.startProcess(formModel.getProcess().getKey(), newId, data);
 			updateProcessInfo(formModel, newId, processInstanceId);
 		}

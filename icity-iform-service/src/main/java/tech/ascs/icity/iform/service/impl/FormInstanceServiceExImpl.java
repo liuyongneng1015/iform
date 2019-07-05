@@ -1,6 +1,8 @@
 package tech.ascs.icity.iform.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.hibernate.Criteria;
@@ -53,6 +55,8 @@ import java.util.stream.Collectors;
 public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity> implements FormInstanceServiceEx {
 
 	private static final Random random = new Random();
+
+	private ObjectMapper objectMapper = new ObjectMapper();
 
 	private final Logger logger = LoggerFactory.getLogger(FormInstanceServiceExImpl.class);
 
@@ -588,7 +592,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 		flowData = toProcesDictionaryData(flowData, formModel);
 
-		System.out.println("新增传给工作流的数据=====>>>>>" + flowData);
+		System.out.println("新增传给工作流的数据=====>>>>>" + OkHttpUtils.mapToJson(flowData));
 		String processInstanceId = processInstanceService.startProcess(formModel.getProcess().getKey(), newId, flowData);
 		updateProcessInfo(assignmentList, formModel, data, processInstanceId);
 	}
@@ -607,7 +611,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		for (String key : flowData.keySet()) {
 			ItemModelEntity itemModel = columnNameAndItemModelMap.get(key);
 			Object value = flowData.get(key);
-			if (itemModel == null || value == null) {
+			if(value == null){
+				continue;
+			}
+			if (itemModel == null) {
+				returnMap.put(key, getValueStr(value));
 				continue;
 			}
 			if (itemModel instanceof SelectItemModelEntity) {
@@ -669,6 +677,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					valueString.add((String) ((Map) value).get("id"));
 				}
 				returnMap.put(key, String.join(",", valueString));
+			} else if (itemModel instanceof SubFormItemModelEntity) {
+				returnMap.put(key, getValueStr(value));
 			}else{
 				if (value instanceof List) {
 					List<String> valueString = new ArrayList<>();
@@ -683,8 +693,42 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				}
 			}
 		}
-
 		return returnMap;
+	}
+
+	private String getValueStr(Object value){
+		try {
+			Object object = null;
+			if(value instanceof Map){
+				Map<String, Object> map = new HashMap<>();
+				for(String keyStr : ((Map<String, Object>)value).keySet()){
+					Object o = ((Map<String, Object>)value).get(keyStr);
+					if(o instanceof Map || o instanceof List){
+						continue;
+					}
+					map.put(keyStr, o);
+				}
+				object = map;
+			}else if(value instanceof List){
+				List<Map<String, Object>> mapList = new ArrayList<>();
+				for(Map<String, Object> map : (List<Map<String, Object>>)value){
+					Map<String, Object> mapdata = new HashMap<>();
+					for(String keyStr : map.keySet()) {
+						Object o = map.get(keyStr);
+						if (o instanceof Map || o instanceof List) {
+							continue;
+						}
+						mapdata.put(keyStr, o);
+					}
+					mapList.add(mapdata);
+				}
+				object = mapList;
+			}
+			return objectMapper.writeValueAsString(object);
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 	private void sendWebService(FormModelEntity formModelEntity, BusinessTriggerType triggerType,  Map<String, Object> data, String id){
@@ -962,7 +1006,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 		setColumnValue(assignmentList, flowData, data, user, taskInstance);
 		flowData = toProcesDictionaryData(flowData, formModel);
-		System.out.println("更新时传给工作流的数据=====>>>>>"+flowData);
+		System.out.println("更新时传给工作流的数据=====>>>>>"+OkHttpUtils.mapToJson(flowData));
 		taskService.completeTask(formInstance.getActivityInstanceId(), flowData);
 		updateProcessInfo(assignmentList, formModel, data, formInstance.getProcessInstanceId());
 	}
@@ -1034,6 +1078,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			for (SubFormRowItemInstance instance : subFormDataItemInstance.getItems()) {
 				for (ItemInstance itemModelService : instance.getItems()) {
 					ItemModelEntity itemModel = itemModelManager.find(itemModelService.getId());
+					if(itemModel == null){
+						continue;
+					}
 					if((itemModel instanceof ReferenceItemModelEntity) && itemModel.getType() != ItemType.ReferenceLabel ){
 						referenceItemModelEntityList.add(itemModel);
 					}
@@ -1411,6 +1458,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 		for (ItemInstance itemInstance : formInstance.getItems()) {
             ItemModelEntity itemModel = itemModelManager.find(itemInstance.getId());
+            if(itemModel == null){
+            	continue;
+			}
             if(itemModel instanceof ReferenceItemModelEntity || itemModel.getSystemItemType() == SystemItemType.ID
 					|| itemModel instanceof SubFormItemModelEntity || itemModel instanceof TabsItemModelEntity || itemModel instanceof RowItemModelEntity
 					|| itemModel instanceof TabPaneItemModelEntity || itemModel instanceof SubFormRowItemModelEntity){
@@ -2811,7 +2861,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			if(!referenceFlag){
 				return;
 			}
-			setSubFormItemInstance( itemModel,  entity,  subFormItems, formInstance.getActivityId());
+			setSubFormItemInstance( itemModel,  entity,  subFormItems, items, formInstance.getActivityId());
 		}else if(itemModel instanceof RowItemModelEntity){
 			for(ItemModelEntity itemModelEntity : ((RowItemModelEntity) itemModel).getItems()) {
 				setItemInstance(itemModelEntity, referenceFlag, entity, referenceDataModelList,
@@ -2856,7 +2906,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			if(!referenceFlag){
 				return;
 			}
-			setSubFormItemInstance(itemModel,  entity,  subFormItems, formInstance.getActivityId());
+			setSubFormItemInstance(itemModel,  entity,  subFormItems, items, formInstance.getActivityId());
 		}else if(itemModel instanceof RowItemModelEntity){
 			items.add(setItemInstance(itemModel));
 			for(ItemModelEntity itemModelEntity : ((RowItemModelEntity) itemModel).getItems()) {
@@ -3308,12 +3358,17 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
         return dataModelInstance;
     }
 
-	private void setSubFormItemInstance(ItemModelEntity itemModel, Map<String, Object> entity, List<SubFormItemInstance> subFormItems, String activityId){
+	private void setSubFormItemInstance(ItemModelEntity itemModel, Map<String, Object> entity, List<SubFormItemInstance> subFormItems, List<ItemInstance> items, String activityId){
 		//TODO 子表数据结构
 		SubFormItemModelEntity itemModelEntity = (SubFormItemModelEntity)itemModel;
 		//子表
+		ItemInstance subFormitemModelInstance = new ItemInstance();
+		subFormitemModelInstance.setId(itemModel.getId());
+		subFormitemModelInstance.setType(itemModel.getType());
+		subFormitemModelInstance.setItemName(itemModel.getName());
+		items.add(subFormitemModelInstance);
         if (itemModelEntity.getColumnModel()==null) {
-            return;
+			return;
         }
 		DataModelEntity subFormDataModel = itemModelEntity.getColumnModel().getDataModel();
 		Session subFormSession = getSession(subFormDataModel);
@@ -3352,6 +3407,13 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				SubFormDataItemInstance subFormDataItemInstance = new SubFormDataItemInstance();
 				List<SubFormRowItemInstance> subFormRowItemInstanceList = new ArrayList<>();
 				for (SubFormRowItemModelEntity subFormRowItemModelEntity : itemModelEntity.getItems()) {
+					ItemInstance subFormRowItemModelIntance = new ItemInstance();
+					subFormRowItemModelIntance.setId(subFormRowItemModelEntity.getId());
+					subFormRowItemModelIntance.setType(subFormRowItemModelEntity.getType());
+					subFormRowItemModelIntance.setItemName(subFormRowItemModelEntity.getName());
+					items.add(subFormRowItemModelIntance);
+
+
 					SubFormRowItemInstance subFormRowItemInstance = new SubFormRowItemInstance();
 					subFormRowItemInstance.setRowNumber(subFormRowItemModelEntity.getRowNumber());
 					subFormRowItemInstance.setId(subFormRowItemModelEntity.getId());
@@ -3897,7 +3959,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			//跳过第一个流程环节
 			flowData.put("PASS_THROW_FIRST_USERTASK", true);
 			flowData = toProcesDictionaryData(flowData, formModelEntity);
-			System.out.println("传给工作流的数据=====>>>>>"+flowData);
+			System.out.println("传给工作流的数据=====>>>>>"+OkHttpUtils.mapToJson(flowData));
 			setColumnValue(null, flowData, data, user, null);
 			processInstanceId = processInstanceService.startProcess(formModelEntity.getProcess().getKey(), instanceId, flowData);
 			updateProcessInfo(null, formModelEntity, data, processInstanceId);

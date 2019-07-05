@@ -40,4 +40,5 @@ public class SubFormItemInstance extends IdEntity {
 	public void setTableName(String tableName) {
 		this.tableName = tableName;
 	}
+
 }
