@@ -2093,7 +2093,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
                 }
 			}
 		}
-		criteria.addOrder(Order.desc("id"));
+		if(columnMap.containsKey("create_at")){
+			criteria.addOrder(Order.desc("create_at"));
+		}else {
+			criteria.addOrder(Order.desc("id"));
+		}
 		return criteria;
 	}
 
