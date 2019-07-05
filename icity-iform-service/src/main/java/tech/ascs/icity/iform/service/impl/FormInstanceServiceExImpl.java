@@ -2093,10 +2093,15 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
                 }
 			}
 		}
-		if(columnMap.containsKey("create_at")){
-			criteria.addOrder(Order.desc("create_at"));
-		}else {
-			criteria.addOrder(Order.desc("id"));
+		if(queryParameters.get("DESC") != null){
+			for(String str : ((String)queryParameters.get("DESC")).split(",")){
+				criteria.addOrder(Order.desc(str));
+			}
+		}
+		if(queryParameters.get("ASC") != null){
+			for(String str : ((String)queryParameters.get("ASC")).split(",")){
+				criteria.addOrder(Order.asc(str));
+			}
 		}
 		return criteria;
 	}
