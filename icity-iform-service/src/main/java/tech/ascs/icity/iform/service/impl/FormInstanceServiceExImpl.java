@@ -2091,6 +2091,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
                 }
 			}
 		}
+		criteria.addOrder(Order.desc("id"));
 		return criteria;
 	}
 
