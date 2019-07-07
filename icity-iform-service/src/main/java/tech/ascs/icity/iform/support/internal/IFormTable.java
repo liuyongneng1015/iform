@@ -191,17 +191,19 @@ public class IFormTable extends Table {
 
 	protected String getTypeCastingString(Dialect dialect, Metadata metadata, Column column, ColumnInformation columnInfo) {
 		if (column.getValue() instanceof SimpleValue && dialect instanceof IFormPostgreSQLDialect) {
-			String prefix = " USING " + column.getQuotedName(dialect) + "::";
 			String type = ((SimpleValue)column.getValue()).getTypeName();
-			switch(type) {
-				case "integer": return prefix + "integer";
-				case "long": return prefix + "bigint";
-				case "float": return prefix + "real";
-				case "double": return prefix + "double precision";
-				case "boolean": return prefix + "boolean";
-				case "timestamp": return prefix + "timestamp without time zone";
-				case "date": return prefix + "date";
-				case "time": return prefix + "time without time zone";
+			if (type != null) {
+				String prefix = " USING " + column.getQuotedName(dialect) + "::";
+				switch(type) {
+					case "integer": return prefix + "integer";
+					case "long": return prefix + "bigint";
+					case "float": return prefix + "real";
+					case "double": return prefix + "double precision";
+					case "boolean": return prefix + "boolean";
+					case "timestamp": return prefix + "timestamp without time zone";
+					case "date": return prefix + "date";
+					case "time": return prefix + "time without time zone";
+				}
 			}
 		}
 		return "";
