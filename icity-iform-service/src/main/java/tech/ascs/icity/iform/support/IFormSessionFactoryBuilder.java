@@ -1,6 +1,7 @@
 package tech.ascs.icity.iform.support;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.*;
 
@@ -11,14 +12,12 @@ import org.apache.commons.io.IOUtils;
 import org.hibernate.EntityMode;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.Metadata;
-import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.SessionFactoryBuilder;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.engine.jdbc.spi.JdbcServices;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
-import org.hibernate.tool.schema.Action;
 import org.springframework.orm.hibernate5.SessionFactoryUtils;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
@@ -34,6 +33,7 @@ import freemarker.template.TemplateExceptionHandler;
 import tech.ascs.icity.iform.model.ColumnModelEntity;
 import tech.ascs.icity.iform.model.ColumnReferenceEntity;
 import tech.ascs.icity.iform.model.DataModelEntity;
+import tech.ascs.icity.iform.support.internal.IFormMetadataSources;
 
 @Service
 public class IFormSessionFactoryBuilder {
@@ -70,9 +70,18 @@ public class IFormSessionFactoryBuilder {
 		sessionFactories.entrySet().removeIf(matches -> sessionFactory.equals(matches.getValue()));
 	}
 
+	public SessionFactory createNewSessionFactory(InputStream stream) throws Exception {
+		Metadata metadata;
+		metadata = new IFormMetadataSources(standardRegistry())
+				.addInputStream(stream)
+				.getMetadataBuilder().build();
+		SessionFactoryBuilder sessionFactoryBuilder = metadata.getSessionFactoryBuilder();
+		return sessionFactoryBuilder.build();
+	}
+
 	protected SessionFactory createNewSessionFactory(DataModelEntity dataModel) throws Exception {
 		Metadata metadata;
-		metadata = new MetadataSources(standardRegistry())
+		metadata = new IFormMetadataSources(standardRegistry())
 				.addInputStream(IOUtils.toInputStream(generateHibernateMapping(dataModel), "UTF-8"))
 				.getMetadataBuilder().build();
 		SessionFactoryBuilder sessionFactoryBuilder = metadata.getSessionFactoryBuilder();
@@ -86,7 +95,8 @@ public class IFormSessionFactoryBuilder {
 					.applySetting(AvailableSettings.DATASOURCE, SessionFactoryUtils.getDataSource(sessionFactory))
 					.applySetting(AvailableSettings.DIALECT, ((SessionFactoryImplementor) sessionFactory).getServiceRegistry().getService( JdbcServices.class ).getDialect().getClass())
 					.applySetting(AvailableSettings.DEFAULT_ENTITY_MODE, EntityMode.MAP.getExternalName())
-					.applySetting(AvailableSettings.HBM2DDL_AUTO, Action.UPDATE)
+					.applySetting(AvailableSettings.HBM2DDL_AUTO, "update")
+					.applySetting("hibernate.temp.use_jdbc_metadata_defaults", false)
 					.build();
 		}
 		return serviceRegistry;
