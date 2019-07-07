@@ -5,8 +5,8 @@
 <hibernate-mapping package="tech.ascs.icity.iform.table.service">
     <class entity-name="${dataModel.tableName!''}" table="${dataModel.prefix!''}${dataModel.tableName!''}">
         <comment>${dataModel.name!"自定义主表"}</comment>
-        <id name="id" type="string" length="32">
-            <column name="id">
+        <id name="id" type="string">
+            <column name="id" length="32">
                 <comment>主键</comment>
             </column>
             <generator class="uuid" />
@@ -57,8 +57,8 @@
     <#list dataModel.referencesDataModel as referencesData>
 	 <class entity-name="${referencesData.tableName!''}" table="${referencesData.prefix!''}${referencesData.tableName!''}">
          <comment>${referencesData.name!"自定义关联表"}</comment>
-         <id name="id" type="string" length="32">
-             <column name="id">
+         <id name="id" type="string">
+             <column name="id" length="32">
                  <comment>主键</comment>
              </column>
              <generator class="uuid" />
@@ -103,8 +103,8 @@
     <#list dataModel.slaverModels as slaver>
             <class entity-name="${slaver.tableName!''}" table="${slaver.prefix!''}${slaver.tableName!''}">
                 <comment>${slaver.name!"自定义子表"}</comment>
-                <id name="id" type="string" length="32">
-                    <column name="id">
+                <id name="id" type="string">
+                    <column name="id" length="32">
                         <comment>主键</comment>
                     </column>
                     <generator class="uuid" />
