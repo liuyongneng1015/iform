@@ -28,32 +28,26 @@ public class IFormTable extends Table {
 
 	public IFormTable() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
 	public IFormTable(Identifier catalog, Identifier schema, Identifier physicalTableName, boolean isAbstract) {
 		super(catalog, schema, physicalTableName, isAbstract);
-		// TODO Auto-generated constructor stub
 	}
 
 	public IFormTable(Namespace namespace, Identifier physicalTableName, boolean isAbstract) {
 		super(namespace, physicalTableName, isAbstract);
-		// TODO Auto-generated constructor stub
 	}
 
 	public IFormTable(Namespace namespace, Identifier physicalTableName, String subselect, boolean isAbstract) {
 		super(namespace, physicalTableName, subselect, isAbstract);
-		// TODO Auto-generated constructor stub
 	}
 
 	public IFormTable(Namespace namespace, String subselect, boolean isAbstract) {
 		super(namespace, subselect, isAbstract);
-		// TODO Auto-generated constructor stub
 	}
 
 	public IFormTable(String name) {
 		super(name);
-		// TODO Auto-generated constructor stub
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -162,6 +156,7 @@ public class IFormTable extends Table {
 		if ( results.isEmpty() ) {
 			log.debugf( "No alter strings for table : %s", getQuotedName() );
 		}
+		results.forEach(n -> log.debug(n));
 
 		return results.iterator();
 	}
