@@ -1,6 +1,7 @@
 package tech.ascs.icity.iform.service;
 ;
 import tech.ascs.icity.iform.api.model.DictionaryDataItemModel;
+import tech.ascs.icity.iform.api.model.DictionaryDataModel;
 import tech.ascs.icity.iform.api.model.DictionaryModel;
 import tech.ascs.icity.iform.api.model.DictionaryModelData;
 import tech.ascs.icity.iform.model.DictionaryModelEntity;
@@ -76,8 +77,8 @@ public interface DictionaryModelService extends JPAService<DictionaryModelEntity
 	//更新排序
 	void updateDictionaryModelDataOrderNo(String dictionaryId, String id, String status);
 
-	//查询字典模型数据名称
-	String getDictionaryModelDataName(String dictionaryId, List<String> ids);
+	//查询字典模型数据
+	List<DictionaryModelData> findDictionaryModelDataName(String dictionaryId, List<String> ids);
 
 	/**
 	 * 根据字典模型id获取模型数据

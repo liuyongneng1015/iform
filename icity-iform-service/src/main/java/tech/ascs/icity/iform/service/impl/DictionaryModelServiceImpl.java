@@ -5,6 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.DictionaryDataItemModel;
+import tech.ascs.icity.iform.api.model.DictionaryDataModel;
 import tech.ascs.icity.iform.api.model.DictionaryModel;
 import tech.ascs.icity.iform.api.model.DictionaryModelData;
 import tech.ascs.icity.iform.model.AreaCodeEntity;
@@ -347,7 +348,7 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 	}
 
 	@Override
-	public String getDictionaryModelDataName(String dictionaryId, List<String> ids) {
+	public List<DictionaryModelData> findDictionaryModelDataName(String dictionaryId, List<String> ids) {
 
 		DictionaryModel dictionaryModelModel = getDictionaryById(dictionaryId);
 		StringBuffer sub = new StringBuffer("('");
@@ -360,15 +361,20 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 		}
 		sub.append("')");
 
-		List<Map<String, Object>> mapList = dictionaryManager.getJdbcTemplate().queryForList("select name from "+dictionaryModelModel.getTableName()+" where id in "+sub.toString());
+		List<Map<String, Object>> mapList = dictionaryManager.getJdbcTemplate().queryForList("select id,name,code,icon from "+dictionaryModelModel.getTableName()+" where id in "+sub.toString());
 		if (mapList == null || mapList.size() < 1) {
-			return "";
+			return null;
 		}
-		List<String> list = new ArrayList<>();
+		List<DictionaryModelData> list = new ArrayList<>();
 		for(Map<String, Object> map  : mapList){
-			list.add(map.get("name") == null ? "" : (String)map.get("name"));
+			DictionaryModelData dataModel = new DictionaryModelData();
+			dataModel.setId((String)map.get("id"));
+			dataModel.setName((String)map.get("name"));
+			dataModel.setCode((String)map.get("code"));
+			dataModel.setIcon((String)map.get("icon"));
+			list.add(dataModel);
 		}
-		return String.join(",", list);
+		return list;
 	}
 
 	@Override

@@ -39,6 +39,7 @@ import tech.ascs.icity.iform.utils.OkHttpUtils;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 import tech.ascs.icity.model.IdEntity;
+import tech.ascs.icity.model.NameEntity;
 import tech.ascs.icity.model.Page;
 import tech.ascs.icity.rbac.feign.model.UserInfo;
 
@@ -3802,8 +3803,14 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				}
 			}
 		}else if(selectItemModelEntity.getSelectDataSourceType() == SelectDataSourceType.DictionaryModel){
-			//字典模型数据
-			displayValuelist.add(dictionaryModelService.getDictionaryModelDataName(selectItemModelEntity.getReferenceDictionaryId(), list));
+            List<DictionaryModelData> dictionaryModelDatas = dictionaryModelService.findDictionaryModelDataName(selectItemModelEntity.getReferenceDictionaryId(), list);
+            if(dictionaryModelDatas != null){
+                //字典模型数据
+                displayValuelist.add(String.join(",", dictionaryModelDatas.parallelStream().map(DictionaryModelData::getName).collect(Collectors.toList())));
+                for(DictionaryModelData dictionaryModelData : dictionaryModelDatas){
+                    displayObjectList.add(dictionaryModelData);
+                }
+            }
 		}else if(list != null){
 			displayValuelist.add(String.join(",", list));
 		}
@@ -4020,17 +4027,17 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 		instance.setMyTask(processInstance.isMyTask());
 		instance.setFunctions(processInstance.getCurrentTaskInstance() == null ? null : processInstance.getCurrentTaskInstance().getOperations());
-		List<Map<String, Object>> stringObjectMap = processInstance.getCurrentTaskInstance() == null ? null : (List<Map<String, Object>>)(processInstance.getCurrentTaskInstance().getFormDefinition());
-
-		Map<String, Map<String, Object>> map = new HashMap<>();
-		if(stringObjectMap != null) {
-			for(Map<String, Object> objectMap : stringObjectMap){
-				map.put((String)objectMap.get("id"), objectMap);
+		//流程表单控件权限
+		List<Map<String, Object>> flowFormDefinition = processInstance.getCurrentTaskInstance() == null ? null : (List<Map<String, Object>>)(processInstance.getCurrentTaskInstance().getFormDefinition());
+		Map<String, Map<String, Object>> flowPermissionsMap = new HashMap<>();
+		if(flowFormDefinition != null) {
+			for(Map<String, Object> objectMap : flowFormDefinition){
+				flowPermissionsMap.put((String)objectMap.get("id"), objectMap);
 			}
 		}
 		for(ItemInstance itemInstance : instance.getItems()){
 			itemInstance.setProcessInstanceId(processInstance.getId());
-			Map<String, Object> instanceMap = map.get(itemInstance.getId());
+			Map<String, Object> instanceMap = flowPermissionsMap.get(itemInstance.getId());
 			boolean visible = false;
 			boolean canFill =  false;
 			boolean required =  false;
