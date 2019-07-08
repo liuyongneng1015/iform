@@ -871,7 +871,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			sendWebService( formModelEntity, BusinessTriggerType.Update_Before, data, instanceId);
 
 			// 流程操作
-			if (StringUtils.hasText(formInstance.getActivityInstanceId())) {
+			if (StringUtils.hasText(formInstance.getActivityInstanceId()) && formInstance.getFlowData() != null && formInstance.getFlowData().get("functionid") != null) {
 				completedProcess(assignmentList, paramCondition, formInstance, data, formModel, user);
 			}
 			session.update(dataModel.getTableName(), data);
@@ -4061,6 +4061,17 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
         Session session = null;
         Map<String, Object> data = null;
         DataModelEntity dataModel = formModelEntity.getDataModels().get(0);
+
+		Map<String, ColumnReferenceEntity> columnReferencesMap = new HashMap<>();
+		for(ColumnModelEntity columnModelEntity : dataModel.getColumns()) {
+			if(columnModelEntity.getColumnName() == null || "id".equals(columnModelEntity.getColumnName())){
+				continue;
+			}
+			if(columnModelEntity.getColumnReferences() != null && columnModelEntity.getColumnReferences().size() > 0){
+				columnReferencesMap.put(columnModelEntity.getColumnName(), columnModelEntity.getColumnReferences().get(0));
+			}
+		}
+
         String instanceId = (String)parameters.get("id");
         try {
             UserInfo user = null;
@@ -4072,6 +4083,17 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
             session = getSession(dataModel);
             //开启事务
             session.beginTransaction();
+            for(String key : parameters.keySet()){
+            	if(columnReferencesMap.containsKey(key)){
+					Map<String, Object> map = null;
+					try {
+						map = (Map<String, Object>)session.load(columnReferencesMap.get(key).getToColumn().getDataModel().getTableName(), (String)parameters.get(key));
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+					parameters.put(key, map);
+				}
+			}
             if(StringUtils.hasText(instanceId)) {
                 data = (Map<String, Object>) session.load(dataModel.getTableName(), instanceId);
                 data.putAll(parameters);
@@ -4110,6 +4132,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
         }
         return data;
     }
+
 
 	@Override
 	public Page<FormDataSaveInstance> pageByColumnMap(FormModelEntity formModel, int page, int pagesize, Map<String, Object> parameters) {

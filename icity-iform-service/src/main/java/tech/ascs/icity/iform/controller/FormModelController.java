@@ -2142,9 +2142,6 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 		List<ItemModelEntity> itemModelEntities = formModelService.findAllItems(entity);
 		boolean isFlowForm = false;
 		setFlowParams(entity, null, isFlowForm);
-		//设置控件权限
-		List<ItemPermissionModel> itemPermissionModels = setItemPermissions(itemModelEntities, isFlowForm);
-		formModel.setPermissions(itemPermissionModels);
 
 		Map<String, DataModelEntity> dataModelEntities = new HashMap<>();
 		Map<String, List<String>> columnsMap = new HashMap<>();
