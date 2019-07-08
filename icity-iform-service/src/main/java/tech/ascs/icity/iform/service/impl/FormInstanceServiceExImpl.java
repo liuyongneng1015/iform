@@ -871,7 +871,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			sendWebService( formModelEntity, BusinessTriggerType.Update_Before, data, instanceId);
 
 			// 流程操作
-			if (StringUtils.hasText(formInstance.getActivityInstanceId()) && formInstance.getFlowData() != null && formInstance.getFlowData().get("functionid") != null) {
+			if (StringUtils.hasText(formInstance.getActivityInstanceId()) && formInstance.getFlowData() != null && formInstance.getFlowData().get("functionId") != null) {
 				completedProcess(assignmentList, paramCondition, formInstance, data, formModel, user);
 			}
 			session.update(dataModel.getTableName(), data);
