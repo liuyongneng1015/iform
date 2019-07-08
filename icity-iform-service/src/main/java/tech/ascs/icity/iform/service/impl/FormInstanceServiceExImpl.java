@@ -845,7 +845,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	}
 
 	private void saveFormData(DataModelEntity dataModel, FormDataSaveInstance formInstance, UserInfo user, FormModelEntity formModelEntity, FormModelEntity formModel, String instanceId){
-		List<Map<String, Object>> assignmentList = new ArrayList<>();
+		Object functionid = formInstance.getFlowData() == null ? null: formInstance.getFlowData().get("functionId");
+	    List<Map<String, Object>> assignmentList = new ArrayList<>();
 		String paramCondition = verifyDataRequired( assignmentList, formInstance, formModelEntity, DisplayTimingType.Update);
 		Session session = null;
 		Map<String, Object> data = null;
@@ -871,7 +872,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			sendWebService( formModelEntity, BusinessTriggerType.Update_Before, data, instanceId);
 
 			// 流程操作
-			if (StringUtils.hasText(formInstance.getActivityInstanceId()) && formInstance.getFlowData() != null && formInstance.getFlowData().get("functionId") != null) {
+			if (StringUtils.hasText(formInstance.getActivityInstanceId()) && functionid != null) {
 				completedProcess(assignmentList, paramCondition, formInstance, data, formModel, user);
 			}
 			session.update(dataModel.getTableName(), data);
