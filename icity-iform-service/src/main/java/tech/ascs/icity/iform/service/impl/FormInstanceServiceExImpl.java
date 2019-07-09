@@ -4071,10 +4071,13 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
         DataModelEntity dataModel = formModelEntity.getDataModels().get(0);
 
 		Map<String, ColumnReferenceEntity> columnReferencesMap = new HashMap<>();
+		Map<String, ColumnModelEntity> columnMap = new HashMap<>();
+
 		for(ColumnModelEntity columnModelEntity : dataModel.getColumns()) {
 			if(columnModelEntity.getColumnName() == null || "id".equals(columnModelEntity.getColumnName())){
 				continue;
 			}
+			columnMap.put(columnModelEntity.getColumnName(), columnModelEntity);
 			if(columnModelEntity.getColumnReferences() != null && columnModelEntity.getColumnReferences().size() > 0){
 				columnReferencesMap.put(columnModelEntity.getColumnName(), columnModelEntity.getColumnReferences().get(0));
 			}
@@ -4092,6 +4095,15 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
             //开启事务
             session.beginTransaction();
             for(String key : parameters.keySet()){
+            	Object vlaue = parameters.get(key);
+            	if(vlaue == null){
+            		continue;
+				}
+            	ColumnModelEntity columnModelEntity = columnMap.get(key);
+            	if(!(vlaue instanceof Date) && columnMap.keySet().contains(key) && (columnModelEntity.getDataType() == ColumnType.Date
+						|| columnModelEntity.getDataType() == ColumnType.Time || columnModelEntity.getDataType() == ColumnType.Timestamp)){
+					parameters.put(key, new Date((Long)parameters.get(key)));
+				}
             	if(columnReferencesMap.containsKey(key)){
 					Map<String, Object> map = null;
 					try {
