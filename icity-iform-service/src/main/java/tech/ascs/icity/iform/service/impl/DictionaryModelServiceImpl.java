@@ -248,7 +248,9 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 	public void saveDictionaryModelData(DictionaryModelData dictionaryModelData) {
 		DictionaryModel dictionaryModel = getDictionaryById(dictionaryModelData.getDictionaryId());
 		verifyDictionaryModelData(dictionaryModel, dictionaryModelData);
-
+		if(StringUtils.isNotBlank(dictionaryModelData.getDictionaryId()) && StringUtils.isBlank(dictionaryModelData.getParentId())){
+			dictionaryModelData.setParentId("root");
+		}
 		if(dictionaryModelData.getId() == null){
 			Integer maxOrderNo = maxTableOrderNo(dictionaryModel.getTableName());
 			dictionaryModelData.setOrderNo(maxOrderNo == null ? 1 :  maxOrderNo + 1);
