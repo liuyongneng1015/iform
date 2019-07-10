@@ -2206,7 +2206,10 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			if(parameters == null || itemModel.getColumnModel() == null ){
 				continue;
 			}
-			Object defaultValue =  parameters.get(itemModel.getColumnModel().getColumnName());
+			Object defaultValue = parameters.get(itemModel.getId());
+			if(defaultValue == null || !org.springframework.util.StringUtils.hasText(defaultValue.toString())) {
+				defaultValue = parameters.get(itemModel.getColumnModel().getColumnName());
+			}
 			if(defaultValue == null || !org.springframework.util.StringUtils.hasText(defaultValue.toString())){
 				continue;
 			}
