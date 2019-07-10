@@ -269,11 +269,11 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 				return;
 			}
 			if(dictionaryModelData.isNew() || !list.contains(dictionaryModelData.getId())){
-				throw  new IFormException("字典建模key不能重复");
+				throw  new IFormException("字典代码key不能重复");
 			}
 		}
 		if (dictionaryModelData.getName() == null || dictionaryModelData.getName().length() > 128) {
-			throw new IFormException("字典代码长度错误");
+			throw new IFormException("字典代码名称长度错误");
 		}
 	}
 
