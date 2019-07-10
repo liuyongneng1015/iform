@@ -459,11 +459,10 @@ public class ItemModelServiceImpl extends DefaultJPAService<ItemModelEntity> imp
 			List<String> defaultValues = (List)defaultValue;
 			if (defaultValues.size()>0) {
 				List<TreeSelectData> result = formInstanceServiceEx.getTreeSelectData(itemModel.getDataSource(), defaultValues.toArray(new String[]{}));
-				if (result == null || result.size() != defaultValues.size()) {
-					entity.setDefaultValue(null);
-					//throw new ICityException("树形下拉框的默认值与数据源设置的类型不一致");
+				if (result != null) {
+					entity.setDefaultValue(String.join(",", result.stream().map(item->item.getId()).collect(Collectors.toList())));
 				}else {
-					entity.setDefaultValue(String.join(",", defaultValues));
+					entity.setDefaultValue(null);
 				}
 			} else {
 				entity.setDefaultValue(null);
@@ -472,7 +471,6 @@ public class ItemModelServiceImpl extends DefaultJPAService<ItemModelEntity> imp
 			List<TreeSelectData> result = formInstanceServiceEx.getTreeSelectData(itemModel.getDataSource(),  new String[] {(String)defaultValue});
 			if (result == null || result.size() < 1) {
 				entity.setDefaultValue(null);
-				//throw new ICityException("树形下拉框的默认值与数据源设置的类型不一致");
 			}else {
 				entity.setDefaultValue(itemModel.getDefaultValue().toString());
 			}

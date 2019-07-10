@@ -855,15 +855,18 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 					TreeSelectDataSource dataSource = treeSelectItem.getDataSource();
 					Set<String> set = new HashSet(Arrays.asList("Department", "Position", "Personnel", "PositionIdentify", "Role"));
 					if (dataSource != null && set.contains(dataSource.getValue()) && multiple != null && multiple) {
-						search.setDefaultValue(defaultValue.split(","));
 						List<TreeSelectData> list = formInstanceServiceEx.getTreeSelectData(dataSource, defaultValue.split(","));
 						if (list != null) {
+							search.setDefaultValue(list.stream().map(item->item.getId()).collect(Collectors.toList()));
 							search.setDefaultValueName(list.stream().map(item -> item.getName()).collect(Collectors.toList()));
+						} else {
+							search.setDefaultValue(new ArrayList<>());
+							search.setDefaultValueName(new ArrayList<>());
 						}
 					} else if (dataSource != null && set.contains(dataSource.getValue()) && multiple != null && multiple == false) {
 						List<TreeSelectData> list = formInstanceServiceEx.getTreeSelectData(dataSource, new String[]{defaultValue});
-						search.setDefaultValue(defaultValue);
 						if (list != null && list.size() > 0) {
+							search.setDefaultValue(list.get(0).getId());
 							search.setDefaultValueName(list.get(0).getName());
 						}
 					}
