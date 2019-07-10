@@ -6,6 +6,7 @@ import tech.ascs.icity.iform.model.DataModelEntity;
 import tech.ascs.icity.jpa.service.JPAService;
 
 import java.util.List;
+import java.util.Map;
 
 public interface DataModelService extends JPAService<DataModelEntity> {
 
@@ -34,4 +35,17 @@ public interface DataModelService extends JPAService<DataModelEntity> {
 	void deleteDataModelWithoutVerify(DataModelEntity modelEntity);
 
 	List<DataModel> queryAllList();
+
+	//校验表单的数据建模
+	void verifyDataModel(FormModel formModel, DataModel masterDataModel);
+
+	//设置主表数据
+	void setMasterDataModelEntity(DataModelEntity masterDataModelEntity, DataModel masterDataModel, FormModel formModel, Map<String, DataModelEntity> oldMasterDataModelMap);
+
+	//设置子表数据
+	void setSlaverDataModel(DataModel dataModel, Map<String, DataModelEntity> oldMasterDataModelMap, DataModelEntity masterDataModelEntity,
+								   List<DataModelEntity> slaverDataModelEntities);
+
+	//校验数据建模
+	void veryTableName(DataModelEntity oldDataModelEntity);
 }

@@ -5,11 +5,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
+import tech.ascs.icity.iflow.api.model.Activity;
+import tech.ascs.icity.iflow.api.model.Process;
 import tech.ascs.icity.iflow.client.ProcessService;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.*;
+import tech.ascs.icity.iform.utils.DtoUtils;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 import tech.ascs.icity.utils.BeanUtils;
@@ -70,6 +73,12 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 	@Autowired
 	ItemModelService itemModelService;
+
+	@Autowired
+	FormInstanceServiceEx formInstanceServiceEx;
+
+	@Autowired
+	ELProcessorService elProcessorService;
 
 	public FormModelServiceImpl() {
 		super(FormModelEntity.class);
@@ -1524,6 +1533,830 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		formModelManager.save(formModelEntity);
 		//同步流程字段
 		dataModelService.sync(formModelEntity.getDataModels().get(0));
+	}
+
+	@Override
+	public AnalysisFormModel toAnalysisDTO(FormModelEntity entity, Map<String, Object> parameters) {
+		String parseArea = parameters == null ? null : (String)parameters.get("parseArea");
+		DefaultFunctionType functionType = parameters == null ? null : DefaultFunctionType.getByValue((String)parameters.get("functionType"));
+		if(parameters != null) {
+			parameters.remove("parseArea");
+			parameters.remove("functionType");
+		}
+
+		AnalysisFormModel formModel = new AnalysisFormModel();
+		entityToDTO(entity,  formModel, true, parseArea, functionType);
+
+		List<AnalysisDataModel> dataModelList = new ArrayList<>();
+		List<ItemModelEntity> itemModelEntities = findAllItems(entity);
+		boolean isFlowForm = false;
+		setFlowParams(entity, null, isFlowForm);
+
+		Map<String, DataModelEntity> dataModelEntities = new HashMap<>();
+		Map<String, List<String>> columnsMap = new HashMap<>();
+		//关联表单
+		Set<AnalysisFormModel> referenceFormModelList = new HashSet<>();
+		for(ItemModelEntity itemModelEntity : itemModelEntities){
+			if(itemModelEntity instanceof ReferenceItemModelEntity && ((ReferenceItemModelEntity) itemModelEntity).getReferenceList() != null) {
+				setPCReferenceItemModel((ReferenceItemModelEntity)itemModelEntity, referenceFormModelList, dataModelEntities, columnsMap, parseArea);
+			}
+		}
+		formModel.setReferenceFormModel(new ArrayList<>(referenceFormModelList));
+
+		for(String formId : dataModelEntities.keySet()){
+			AnalysisDataModel dataModel = dataModelService.transitionToModel(formId, dataModelEntities.get(formId), columnsMap.get(formId));
+			dataModelList.add(dataModel);
+		}
+		formModel.setDataModels(dataModelList.size() < 1 ? null : dataModelList);
+
+		String tableName = entity.getDataModels() == null || entity.getDataModels().size() < 1 ? null :  entity.getDataModels().get(0).getTableName();
+		if (entity.getItems().size() > 0) {
+			List<ItemModel> items = new ArrayList<ItemModel>();
+			List<ItemModelEntity> itemModelEntityList = entity.getItems() == null || entity.getItems().size() < 2 ? entity.getItems() : entity.getItems().parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
+			for (ItemModelEntity itemModelEntity : itemModelEntityList) {
+				items.add(itemModelService.toDTO(itemModelEntity, true, tableName));
+			}
+			formModel.setItems(items);
+			updateItemDefaultName( items, parameters);
+		}else{
+			formModel.setItems(null);
+		}
+		return formModel;
+	}
+
+	//设置表单流程数据
+	@Override
+	public void setFlowParams(FormModelEntity entity, List<Activity> activities , boolean isFlowForm){
+		if(entity.getProcess() == null || !org.springframework.util.StringUtils.hasText(entity.getProcess().getKey())){
+			return;
+		}
+		try {
+			Process process = null ;
+			if(entity.getProcess().getKey() != null) {
+				process = processService.get(entity.getProcess().getKey());
+				if (process != null) {
+					isFlowForm = true;
+				}
+			}
+			if(activities != null && process != null) {
+				activities.addAll(process.getActivities());
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	//设置表单控件数据标识
+	@Override
+	public List<ItemModel> getItemModelList(List<String> idResultList){
+		if(idResultList == null || idResultList.size() < 1){
+			return null;
+		}
+		List<ItemModelEntity> itemModelEntities = new ArrayList<>();
+		for(String itemId : idResultList) {
+			ItemModelEntity itemModelEntity = itemModelService.find(itemId);
+			if (itemModelEntity!=null) {
+				itemModelEntities.add(itemModelEntity);
+			}
+		}
+
+		List<ItemModel> list = new ArrayList<>();
+		for(ItemModelEntity itemModelEntity : itemModelEntities){
+			ItemModel itemModel = new ItemModel();
+			itemModel.setId(itemModelEntity.getId());
+			itemModel.setName(itemModelEntity.getName());
+			itemModel.setUuid(itemModelEntity.getUuid());
+			itemModel.setTypeKey(itemModelEntity.getTypeKey());
+			if(itemModelEntity.getColumnModel() != null) {
+				itemModel.setTableName(itemModelEntity.getColumnModel().getDataModel().getTableName());
+				itemModel.setColumnName(itemModelEntity.getColumnModel().getColumnName());
+			}
+			list.add(itemModel);
+		}
+		return list;
+	}
+
+	//设置表单实体装模型
+	@Override
+	public FormModel toDTODetail(FormModelEntity entity)  {
+		FormModel formModel = new FormModel();
+		entityToDTO( entity,  formModel, false, null, null);
+		List<Activity> activities = new ArrayList<>();
+		//是否流程表单
+		boolean isFlowForm = false;
+		setFlowParams(entity, activities, isFlowForm);
+
+		if (entity.getItems().size() > 0) {
+			List<ItemModel> items = new ArrayList<ItemModel>();
+			List<ItemModelEntity> itemModelEntities = entity.getItems() == null || entity.getItems().size() < 2 ? entity.getItems() : entity.getItems().parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
+
+			//设置控件权限
+			List<ItemPermissionModel> itemPermissionModels = setItemPermissions(findAllItems(entity), isFlowForm);
+			formModel.setPermissions(itemPermissionModels);
+			String tableName = entity.getDataModels() == null || entity.getDataModels().size() < 1 ? null :  entity.getDataModels().get(0).getTableName();
+			for (ItemModelEntity itemModelEntity : itemModelEntities) {
+				ItemModel itemModel = itemModelService.toDTO(itemModelEntity, false, tableName);
+				if(itemModel.getSelectMode() == SelectMode.Attribute){
+					itemModel.setTableName(tableName);
+				}
+				items.add(itemModel);
+			}
+			formModel.setItems(items);
+		}
+
+		if(entity.getSubmitChecks() != null && entity.getSubmitChecks().size() > 0){
+			List<FormSubmitCheckModel> submitCheckModels = new ArrayList<>();
+			for(FormSubmitCheckInfo info : entity.getSubmitChecks()){
+				FormSubmitCheckModel checkModel = new FormSubmitCheckModel();
+				BeanUtils.copyProperties(info, checkModel, new String[] {"formModel"});
+				FormModel submitCheckFormModel = new FormModel();
+				BeanUtils.copyProperties(entity, submitCheckFormModel, new String[] {"items","dataModels","permissions","submitChecks","functions", "triggeres"});
+				checkModel.setFormModel(submitCheckFormModel);
+				submitCheckModels.add(checkModel);
+			}
+			List<FormSubmitCheckModel> formSubmitCheckModels = submitCheckModels.size() < 2 ? submitCheckModels : submitCheckModels.parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
+			formModel.setSubmitChecks(formSubmitCheckModels);
+		}
+
+		if(entity.getDataModels() != null && entity.getDataModels().size() > 0){
+			List<DataModel> dataModelList = new ArrayList<>();
+			List<DataModelEntity> dataModelEntities = new ArrayList<>();
+			for (DataModelEntity dataModelEntity : entity.getDataModels()) {
+				dataModelEntities.add(dataModelEntity);
+				if(dataModelEntity.getSlaverModels() != null && dataModelEntity.getSlaverModels().size() > 0) {
+					dataModelEntities.addAll(dataModelEntity.getSlaverModels());
+				}
+			}
+			for (DataModelEntity dataModelEntity : dataModelEntities) {
+				dataModelList.add(getDataModel(dataModelEntity));
+			}
+			formModel.setDataModels(dataModelList);
+		}
+
+		List<ItemModel> itemModels = findAllItemModels(formModel.getItems());
+		itemModelService.setFormItemActvitiy(itemModels,  activities);
+
+		return formModel;
+	}
+
+	//模型转实体
+	@Override
+	public FormModelEntity wrap(FormModel formModel) {
+		veryFormModel(formModel);
+		FormModelEntity entity = new FormModelEntity();
+		BeanUtils.copyProperties(formModel, entity, new String[] {"items","dataModels","permissions","submitChecks","functions","triggeres"});
+
+		verifyFormModelName(formModel);
+
+		//TODO 获取主数据模型
+		DataModel masterDataModel = null;
+		for(DataModel dataModel : formModel.getDataModels()){
+			if(dataModel.getMasterModel() == null){
+				masterDataModel = dataModel;
+				break;
+			}
+		}
+		dataModelService.verifyDataModel(formModel,  masterDataModel);
+
+		//主表的数据建模
+		DataModelEntity masterDataModelEntity = dataModelService.find(masterDataModel.getId());
+
+		//旧的子数据建模
+		Map<String, DataModelEntity> oldMasterDataModelMap = new HashMap<>();
+		for(DataModelEntity dataModelEntity : masterDataModelEntity.getSlaverModels()){
+			oldMasterDataModelMap.put(dataModelEntity.getId(), dataModelEntity);
+		}
+
+
+		List<ItemModelEntity> items = new ArrayList<ItemModelEntity>();
+		List<ItemModelEntity> itemModelEntityList = new ArrayList<>();
+		//为了设置关联
+		Map<String, List<ItemModelEntity>> formMap = new HashMap<>();
+		for (ItemModel itemModel : formModel.getItems()) {
+			itemModelService.setItemModelEntity(formModel, itemModel, entity, items,	itemModelEntityList,  formMap);
+		}
+		formMap.put(masterDataModel.getTableName(), itemModelEntityList);
+
+		Map<String, DataModel> newDataModelMap = new HashMap<>();
+		for(DataModel dataModel : formModel.getDataModels()){
+			newDataModelMap.put(dataModel.getTableName(), dataModel);
+		}
+
+		for(String key : formMap.keySet()){
+			setReference(newDataModelMap.get(key), formMap.get(key));
+		}
+
+		//设置主表字段
+		dataModelService.setMasterDataModelEntity(masterDataModelEntity, masterDataModel, formModel, oldMasterDataModelMap);
+
+		//设置数据模型结构了
+		List<DataModelEntity> dataModelEntities = new ArrayList<>();
+		dataModelEntities.add(masterDataModelEntity);
+		entity.setDataModels(dataModelEntities);
+		entity.setItems(items);
+
+		Map<String, ItemModelEntity> uuidItemModelEntityMap = new HashMap<>();
+
+		List<ItemModelEntity> itemlist = findAllItems(entity);
+		verifyProcessItemModel(itemlist);
+
+		for(ItemModelEntity itemModelEntity : itemlist){
+			if(org.springframework.util.StringUtils.hasText(itemModelEntity.getUuid())) {
+				uuidItemModelEntityMap.put(itemModelEntity.getUuid(), itemModelEntity);
+			}
+		}
+		//设置控件权限
+		if(formModel.getPermissions() != null && formModel.getPermissions().size() > 0) {
+			List<ItemPermissionModel> itemPermissionModels = formModel.getPermissions();
+			for(int i = 0 ;i < itemPermissionModels.size() ; i++) {
+				ItemPermissionModel itemPermissionModel = itemPermissionModels.get(i);
+				setItemPermissions(itemPermissionModel, uuidItemModelEntityMap);
+			}
+		}
+
+		if(formModel.getFunctions() != null && formModel.getFunctions().size() > 0){
+			wrapFormFunctions(entity, formModel);
+		}
+
+		if(formModel.getTriggeres() != null && formModel.getTriggeres().size() > 0){
+			wrapFormTriggeres(entity, formModel);
+		}
+
+		if(formModel.getSubmitChecks() != null && formModel.getSubmitChecks().size() > 0){
+			wrapFormModelSubmitCheck(entity, formModel);
+		}
+
+		for(String key : oldMasterDataModelMap.keySet()){
+			deleteDataModel(oldMasterDataModelMap.get(key));
+		}
+
+		//数据标识对应的字段
+		if(formModel.getItemModelList() != null && formModel.getItemModelList().size() > 0) {
+			List<String> list = new ArrayList<>();
+			for(ItemModel itemModel1 : formModel.getItemModelList()) {
+				list.add(itemModel1.getUuid());
+			}
+			entity.setItemUuids(String.join(",", list));
+		}else{
+			entity.setItemUuids(null);
+		}
+
+		//二维码数据标识对应的字段
+		if(formModel.getQrCodeItemModelList() != null && formModel.getQrCodeItemModelList().size() > 0) {
+			List<String> list = new ArrayList<>();
+			for(ItemModel itemModel1 : formModel.getQrCodeItemModelList()) {
+				if(org.springframework.util.StringUtils.hasText(itemModel1.getUuid())) {
+					list.add(itemModel1.getUuid());
+				}
+			}
+			entity.setQrCodeItemUuids(String.join(",", list));
+		}else{
+			entity.setQrCodeItemUuids(null);
+		}
+		//保存数据模型
+		dataModelService.save(masterDataModelEntity);
+
+		return entity;
+	}
+
+	//删除数据建模
+	private void deleteDataModel(DataModelEntity dataModelEntity){
+		dataModelService.deleteDataModelWithoutVerify(dataModelEntity);
+	}
+
+
+	//提交表单提交校验
+	private void wrapFormModelSubmitCheck(FormModelEntity entity, FormModel formModel) {
+		if(formModel.getSubmitChecks() != null){
+			List<FormSubmitCheckInfo> checkInfos = new ArrayList<>();
+			for(FormSubmitCheckModel model : formModel.getSubmitChecks()){
+				boolean isExpression = elProcessorService.checkExpressionState(model.getCueExpression());
+				if (!isExpression){
+					throw new IFormException(model.getCueExpression() + " 不是一个正确的表达式");
+				}
+				FormSubmitCheckInfo checkInfo =  new FormSubmitCheckInfo();
+				BeanUtils.copyProperties(model, checkInfo, new String[]{"formModel"});
+				checkInfo.setName(model.getName());
+				checkInfos.add(checkInfo);
+			}
+			List<FormSubmitCheckInfo> checkInfoList = checkInfos.size() < 2 ? checkInfos : checkInfos.parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
+			entity.setSubmitChecks(checkInfoList);
+		}
+	}
+
+	//设置表单功能
+	private void wrapFormFunctions(FormModelEntity entity, FormModel formModel) {
+		if(formModel.getFunctions() != null){
+			List<ListFunction> functions = new ArrayList<>();
+			for (int i = 0; i < formModel.getFunctions().size(); i++) {
+				FunctionModel model = formModel.getFunctions().get(i);
+				ListFunction function =  new ListFunction();
+				BeanUtils.copyProperties(model, function, new String[]{"formModel", "parseArea"});
+				if (model.getParseArea()!=null && model.getParseArea().size()>0) {
+					function.setParseArea(String.join(",", model.getParseArea()));
+				}
+				function.setOrderNo(i+1);
+				functions.add(function);
+			}
+			entity.setFunctions(functions);
+		}
+	}
+
+	//设置表单业务触发
+	private void wrapFormTriggeres(FormModelEntity entity, FormModel formModel) {
+		if(formModel.getTriggeres() != null){
+			List<BusinessTriggerEntity> list = new ArrayList<>();
+			for (int i = 0; i < formModel.getTriggeres().size(); i++) {
+				BusinessTriggerModel model = formModel.getTriggeres().get(i);
+				BusinessTriggerEntity triggerEntity =  new BusinessTriggerEntity();
+				BeanUtils.copyProperties(model, triggerEntity, new String[]{"formModel"});
+				triggerEntity.setOrderNo(i+1);
+				list.add(triggerEntity);
+			}
+			entity.setTriggeres(list);
+		}
+	}
+
+	//校验流程表单控件
+	private void verifyProcessItemModel(List<ItemModelEntity> list){
+		Map<String, Object> processItemModelMap = new HashMap<>();
+		for(ItemModelEntity itemModelEntity : list) {
+			if (itemModelEntity.getSystemItemType() != null && (itemModelEntity.getSystemItemType() == SystemItemType.ProcessStatus
+					|| itemModelEntity.getSystemItemType() == SystemItemType.ProcessLog
+					|| itemModelEntity.getSystemItemType() == SystemItemType.ProcessPrivateStatus)) {
+				if (processItemModelMap.get(itemModelEntity.getSystemItemType().getValue()) != null) {
+					if (itemModelEntity.getSystemItemType() == SystemItemType.ProcessStatus) {
+						throw new IFormException("事件流程状态控件重复");
+					}
+					if (itemModelEntity.getSystemItemType() == SystemItemType.ProcessPrivateStatus) {
+						throw new IFormException("个人流程状态控件重复");
+					}
+					if (itemModelEntity.getSystemItemType() == SystemItemType.ProcessLog) {
+						throw new IFormException("流程日志控件重复");
+					}
+				}
+				processItemModelMap.put(itemModelEntity.getSystemItemType().getValue(), System.currentTimeMillis());
+			}
+		}
+	}
+
+	//设置关联关系
+	private void setReference(DataModel dataModel, List<ItemModelEntity> itemModelEntityList){
+		for(ItemModelEntity itemModelEntity : itemModelEntityList){
+			if(itemModelEntity instanceof ReferenceItemModelEntity ){
+				if(((ReferenceItemModelEntity) itemModelEntity).getCreateForeignKey() == null || !((ReferenceItemModelEntity) itemModelEntity).getCreateForeignKey()){
+					continue;
+				}
+				if(itemModelEntity.getType() == ItemType.ReferenceLabel || ((ReferenceItemModelEntity) itemModelEntity).getSelectMode() == SelectMode.Inverse){
+					continue;
+				}
+				String key = "id";
+				if(((ReferenceItemModelEntity) itemModelEntity).getSelectMode() != SelectMode.Multiple){
+					if(itemModelEntity.getColumnModel() == null){
+						continue;
+					}
+					key = itemModelEntity.getColumnModel().getColumnName();
+				}
+				ColumnModel referenceColumnModel = null;
+				if(dataModel.isNew()){
+					ColumnModel columnModel = new ColumnModel();
+					BeanUtils.copyProperties(columnModelService.saveColumnModelEntity(new DataModelEntity(), "id"), columnModel, new String[]{"dataModel","columnReferences"});
+					dataModel.getColumns().add(columnModel);
+				}
+				for(ColumnModel columnModel : dataModel.getColumns()){
+					if(columnModel.getColumnName().equals(key)){
+						referenceColumnModel = columnModel;
+						break;
+					}
+				}
+				FormModelEntity formModelEntity = find(((ReferenceItemModelEntity) itemModelEntity).getReferenceFormId());
+				if(referenceColumnModel != null){
+					Map<String, Object> map = new HashMap<>();
+					for(int i = 0; i <  referenceColumnModel.getReferenceTables().size(); i ++){
+						ReferenceModel referenceModel  = referenceColumnModel.getReferenceTables().get(i);
+						String referenceKey = referenceModel.getReferenceTable()+"_"+referenceModel.getReferenceType().getValue();
+						if(map.get(referenceKey) != null){
+							referenceColumnModel.getReferenceTables().remove(referenceModel);
+							i--;
+						}
+						map.put(referenceKey, System.currentTimeMillis());
+					}
+					List<String> refenceTables = referenceColumnModel.getReferenceTables().parallelStream().map(ReferenceModel::getReferenceTable).collect(Collectors.toList());
+					if(!refenceTables.contains(formModelEntity.getDataModels().get(0).getTableName()) ||
+							map.get(formModelEntity.getDataModels().get(0).getTableName()+"_"+((ReferenceItemModelEntity) itemModelEntity).getReferenceType().getValue()) == null){
+						ReferenceModel referenceModel = new ReferenceModel();
+						referenceModel.setReferenceType(((ReferenceItemModelEntity) itemModelEntity).getReferenceType());
+						referenceModel.setReferenceTable(formModelEntity.getDataModels().get(0).getTableName());
+						referenceColumnModel.getReferenceTables().add(referenceModel);
+					}
+				}
+			}
+		}
+	}
+
+	//校验表单建模
+	private void veryFormModel(FormModel formModel){
+		if(!formModel.isNew()){
+			FormModelEntity formModelEntity = find(formModel.getId());
+			if(formModelEntity == null){
+				throw new IFormException("未找到【"+formModel.getId()+"】对应的表单模型");
+			}
+		}
+
+		if(formModel.getDataModels() == null || formModel.getDataModels().isEmpty()){
+			throw new IFormException("请先关联数据模型");
+		}
+
+		if(formModel.getFunctions() != null && formModel.getFunctions().size() > 0){
+			Map<String, String> map = new HashMap<>();
+			for(FunctionModel function : formModel.getFunctions()){
+				if(!org.springframework.util.StringUtils.hasText(function.getAction()) || !org.springframework.util.StringUtils.hasText(function.getLabel())){
+					throw new IFormException("功能编码或者功能名为空");
+				}
+				if(map.get(function.getAction()) != null){
+					throw new IFormException("功能编码重复");
+				}
+
+				if(function.getAction().length() > 20){
+					throw new IFormException("功能编码超长");
+				}
+
+				if(function.getLabel().length() > 20){
+					throw new IFormException("功能名超长");
+				}
+
+				map.put(function.getAction(), function.getLabel());
+			}
+		}
+
+		if(formModel.getTriggeres() != null && formModel.getTriggeres().size() > 0){
+			Map<String, String> map = new HashMap<>();
+			for(BusinessTriggerModel triggerModel : formModel.getTriggeres()){
+				if(triggerModel.getType() == null){
+					throw new IFormException("业务触发类型不能为空");
+				}
+				if(!org.springframework.util.StringUtils.hasText(triggerModel.getUrl()) || !triggerModel.getUrl().startsWith("http") ){
+					throw new IFormException("调用微服务地址格式错误");
+				}
+				if(map.get(triggerModel.getType().getValue()) != null){
+					throw new IFormException("功能编码重复");
+				}
+				map.put(triggerModel.getType().getValue(), triggerModel.getUrl());
+			}
+		}
+	}
+
+
+	//校验表单名称
+	@Override
+	public void verifyFormModelName(FormModel formModel){
+		if(formModel == null || org.springframework.util.StringUtils.isEmpty(formModel.getName())){
+			return;
+		}
+		if(org.springframework.util.StringUtils.isEmpty(formModel.getApplicationId())){
+			throw new IFormException("表单未关联应用");
+		}
+		List<FormModelEntity> list  = query().filterEqual("name", formModel.getName()).filterEqual("applicationId", formModel.getApplicationId()).list();
+		if(list == null || list.size() < 1){
+			return;
+		}
+		if(list.size() > 0 && formModel.isNew()){
+			throw new IFormException("表单名称重复了");
+		}
+		List<String> idList = list.parallelStream().map(FormModelEntity::getId).collect(Collectors.toList());
+		if(!formModel.isNew() && !idList.contains(formModel.getId())) {
+			throw new IFormException("表单名称重复了");
+		}
+	}
+
+	@Override
+	public FormModel toDTO(FormModelEntity entity, boolean setFormProcessFlag) {
+		FormModel formModel = new FormModel();
+		BeanUtils.copyProperties(entity, formModel, new String[] {"items","dataModels","permissions","submitChecks","functions", "triggeres"});
+		if(entity.getDataModels() != null && entity.getDataModels().size() > 0){
+			List<DataModel> dataModelList = new ArrayList<>();
+			List<DataModelEntity> dataModelEntities = entity.getDataModels();
+			for(DataModelEntity dataModelEntity : dataModelEntities){
+				DataModel dataModel = new DataModel();
+				BeanUtils.copyProperties(dataModelEntity, dataModel, new String[] {"masterModel","slaverModels","columns","indexes","referencesDataModel"});
+				dataModelList.add(dataModel);
+			}
+			formModel.setDataModels(dataModelList);
+		}
+		if(setFormProcessFlag) {
+			setFormItemColumn(entity, formModel);
+		}
+		return formModel;
+	}
+
+	//设置表单流程字段
+	private void setFormItemColumn(FormModelEntity entity, FormModel formModel){
+		List<ItemModelEntity> itemModelEntityList = getAllColumnItems(entity.getItems());
+		List<ItemModel> itemModels = new ArrayList<>();
+		for(ItemModelEntity entity1 : itemModelEntityList){
+			ColumnModelEntity columnModelEntity = entity1.getColumnModel();
+			if(columnModelEntity.getColumnName().equals("id") || columnModelEntity.getColumnName().equals("master_id")
+					|| !columnModelEntity.getDataModel().getTableName().equals(entity.getDataModels().get(0).getTableName())){
+				continue;
+			}
+			ItemModel itemModel = new ItemModel();
+			itemModel.setName(entity1.getName());
+			itemModel.setId(entity1.getId());
+			if(entity1.getActivities() != null && entity1.getActivities().size() > 0) {
+				List<ActivityInfo> activityInfos = new ArrayList<>();
+				for(ItemActivityInfo info : entity1.getActivities()){
+					ActivityInfo activityInfo = new ActivityInfo();
+					BeanUtils.copyProperties(info, activityInfo, new String[]{"itemModel"});
+					activityInfos.add(activityInfo);
+				}
+				itemModel.setActivities(activityInfos);
+			}
+
+			itemModels.add(itemModel);
+		}
+		formModel.setItems(itemModels);
+		List<Activity> activities = new ArrayList<>();
+		if(entity.getProcess() != null && org.springframework.util.StringUtils.hasText(entity.getProcess().getKey())){
+			try {
+				Process process = processService.get(entity.getProcess().getKey());
+				if(process != null){
+					activities.addAll(process.getActivities());
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		itemModelService.setFormItemActvitiy( formModel.getItems(),  activities);
+	}
+
+	private List<ItemPermissionModel> setItemPermissions(List<ItemModelEntity> items, boolean isFlowForm){
+		List<ItemPermissionModel> itemPermissionsList = new ArrayList<>();
+		for(ItemModelEntity itemModelEntity : items){
+			ColumnModelEntity columnModelEntity = itemModelEntity.getColumnModel();
+			ItemPermissionModel itemPermissionModel = setItemPermissionModel(itemModelEntity);
+			if(itemModelEntity.getPermissions() != null && itemModelEntity.getPermissions().size() > 0){
+				for(ItemPermissionInfo itemPermissionInfo : itemModelEntity.getPermissions()) {
+					ItemPermissionInfoModel itemPermissionInfoModel = new ItemPermissionInfoModel();
+					BeanUtils.copyProperties(itemPermissionInfo, itemPermissionInfoModel, new String[]{"itemModel"});
+					if(isFlowForm){
+						if(itemPermissionInfoModel.getCanFill() == null){
+							itemPermissionInfoModel.setCanFill(false);
+						}
+						if(itemPermissionInfoModel.getVisible() == null){
+							itemPermissionInfoModel.setVisible(false);
+						}
+						if(itemPermissionInfoModel.getRequired() == null){
+							itemPermissionInfoModel.setRequired(false);
+						}
+					}
+					if(itemPermissionInfo.getDisplayTiming() == DisplayTimingType.Add) {
+						itemPermissionModel.setAddPermissions(itemPermissionInfoModel);
+					}else if(itemPermissionInfo.getDisplayTiming() == DisplayTimingType.Update && !isFlowForm){
+						itemPermissionModel.setUpdatePermissions(itemPermissionInfoModel);
+					}else if(!isFlowForm) {
+						itemPermissionModel.setCheckPermissions(itemPermissionInfoModel);
+					}
+				}
+			}else{
+				List<DisplayTimingType> displayTimingTypes = new ArrayList<>();
+				if(columnModelEntity != null){
+					displayTimingTypes.add(DisplayTimingType.Add);
+					if(!isFlowForm) {
+						displayTimingTypes.add(DisplayTimingType.Update);
+						displayTimingTypes.add(DisplayTimingType.Check);
+					}
+				}else{
+					if(!isFlowForm) {
+						displayTimingTypes.add(DisplayTimingType.Check);
+					}
+				}
+				for(DisplayTimingType displayTimingType : displayTimingTypes){
+					ItemPermissionInfoModel permissionInfoModel = new ItemPermissionInfoModel();
+					permissionInfoModel.setVisible(false);
+					permissionInfoModel.setCanFill(false);
+					permissionInfoModel.setRequired(false);
+					permissionInfoModel.setDisplayTiming(displayTimingType);
+					if(displayTimingType == DisplayTimingType.Add) {
+						itemPermissionModel.setAddPermissions(permissionInfoModel);
+					}else if(displayTimingType == DisplayTimingType.Update) {
+						itemPermissionModel.setUpdatePermissions(permissionInfoModel);
+					}else {
+						if(!isFlowForm) {
+							permissionInfoModel.setCanFill(null);
+							permissionInfoModel.setRequired(null);
+						}
+						itemPermissionModel.setCheckPermissions(permissionInfoModel);
+					}
+				}
+			}
+			itemPermissionsList.add(itemPermissionModel);
+		}
+		return itemPermissionsList;
+	}
+
+
+	private ItemPermissionModel setItemPermissionModel(ItemModelEntity itemModelEntity1){
+		ItemPermissionModel itemPermissionModel = new ItemPermissionModel();
+		itemPermissionModel.setId(itemModelEntity1.getId());
+		itemPermissionModel.setName(itemModelEntity1.getName());
+		itemPermissionModel.setUuid(itemModelEntity1.getUuid());
+		itemPermissionModel.setTypeKey(itemModelEntity1.getTypeKey());
+		return itemPermissionModel;
+	}
+
+	//控件权限
+	private void setItemPermissions(ItemPermissionModel itemPermissionModel, Map<String, ItemModelEntity> uuidItemModelEntityMap){
+		List<ItemPermissionInfo> itemPermissionInfos = new ArrayList<>();
+		ItemModelEntity entity = uuidItemModelEntityMap.get(itemPermissionModel.getUuid());
+		if(entity == null || entity.getSystemItemType() == SystemItemType.ID ){
+			return;
+		}
+		if(itemPermissionModel.getAddPermissions() != null){
+			ItemPermissionInfo itemAddPermissionInfo = new ItemPermissionInfo();
+			BeanUtils.copyProperties(itemPermissionModel.getAddPermissions(), itemAddPermissionInfo, new String[]{"itemModel"});
+			itemAddPermissionInfo.setDisplayTiming(DisplayTimingType.Add);
+			itemAddPermissionInfo.setItemModel(entity);
+			itemPermissionInfos.add(itemAddPermissionInfo);
+		}
+		if(itemPermissionModel.getUpdatePermissions() != null){
+			ItemPermissionInfo itemUpdatePermissionInfo = new ItemPermissionInfo();
+			BeanUtils.copyProperties(itemPermissionModel.getUpdatePermissions(), itemUpdatePermissionInfo, new String[]{"itemModel"});
+			itemUpdatePermissionInfo.setDisplayTiming(DisplayTimingType.Update);
+			itemUpdatePermissionInfo.setItemModel(entity);
+			itemPermissionInfos.add(itemUpdatePermissionInfo);
+		}
+
+		if(itemPermissionModel.getCheckPermissions() != null){
+			ItemPermissionInfo itemCheckPermissionInfo = new ItemPermissionInfo();
+			BeanUtils.copyProperties(itemPermissionModel.getCheckPermissions(), itemCheckPermissionInfo, new String[]{"itemModel"});
+			itemCheckPermissionInfo.setDisplayTiming(DisplayTimingType.Check);
+			itemCheckPermissionInfo.setItemModel(entity);
+			itemPermissionInfos.add(itemCheckPermissionInfo);
+		}
+		entity.setPermissions(itemPermissionInfos);
+
+	}
+
+
+	//更新表单默认值
+	private void updateItemDefaultName(List<ItemModel> items, Map<String, Object> parameters){
+		List<ItemModel> itemModels = findAllItemModels(items);
+		for(ItemModel itemModel : itemModels){
+			if(parameters == null || itemModel.getColumnModel() == null ){
+				continue;
+			}
+			Object defaultValue =  parameters.get(itemModel.getColumnModel().getColumnName());
+			if(defaultValue == null || !org.springframework.util.StringUtils.hasText(defaultValue.toString())){
+				continue;
+			}
+			ItemModelEntity itemModelEntity = itemModelService.find(itemModel.getId());
+			ItemInstance itemInstance = new ItemInstance();
+			if(defaultValue instanceof List){
+				defaultValue = String.join(",", (List<String>)defaultValue);
+			}else if(defaultValue instanceof String[]){
+				defaultValue = String.join(",", Arrays.asList((String[])defaultValue));
+			}else if(itemModel.getSystemItemType() == SystemItemType.CreateDate || itemModel.getType() == ItemType.DatePicker){
+				defaultValue = new Date(Long.parseLong(String.valueOf(defaultValue)));
+			}
+			formInstanceServiceEx.updateValue(itemModelEntity, itemInstance, defaultValue);
+			itemModel.setDefaultValue(itemInstance.getValue());
+			itemModel.setDefaultValueName(itemInstance.getDisplayValue());
+		}
+	}
+
+	private void getSelectItemChildRenItems(LinkedItemModel itemModel,SelectItemModelEntity itemModelEntity){
+		List<LinkedItemModel> childrenItemModel = new ArrayList<>();
+		for (SelectItemModelEntity selectItemModelEntity : itemModelEntity.getItems()) {
+			LinkedItemModel childItemModel = new LinkedItemModel();
+			childItemModel.setId(selectItemModelEntity.getId());
+			childItemModel.setParentItemId(itemModelEntity.getId());
+			//chiildItemModel.setReferenceDictionaryId(selectItemModelEntity.getReferenceDictionaryId());
+			getSelectItemChildRenItems(childItemModel, selectItemModelEntity);
+			childrenItemModel.add(childItemModel);
+		}
+		itemModel.setItems(childrenItemModel.size() > 0 ? childrenItemModel : null);
+	}
+
+	private void setPCReferenceItemModel(ReferenceItemModelEntity itemModelEntity, Set<AnalysisFormModel> referenceFormModelList, Map<String, DataModelEntity> dataModelEntities,
+										 Map<String, List<String>> columnsMap, String parseArea){
+		AnalysisFormModel referencePCFormModel = new AnalysisFormModel();
+		entityToDTO(itemModelEntity.getReferenceList().getMasterForm(), referencePCFormModel, true, parseArea, null);
+		referenceFormModelList.add(referencePCFormModel);
+
+		List<String> displayColuns = new ArrayList<>();
+		ListModelEntity listModelEntity = itemModelEntity.getReferenceList();
+		if(listModelEntity == null || listModelEntity.getMasterForm() == null){
+			return;
+		}
+		Map<String, ItemModelEntity> itemModelEntityMap = new HashMap<>();
+		for(ItemModelEntity itemModelEntity1 : listModelEntity.getDisplayItems()){
+			itemModelEntityMap.put(itemModelEntity1.getId(), itemModelEntity1);
+
+		}
+		List<String> idList = new ArrayList<>();
+		if(org.springframework.util.StringUtils.hasText(itemModelEntity.getReferenceList().getDisplayItemsSort())) {
+			idList = Arrays.asList(itemModelEntity.getReferenceList().getDisplayItemsSort().split(","));
+		}
+		for(String id : idList){
+			if(itemModelEntityMap.get(id) != null && itemModelEntityMap.get(id).getColumnModel() != null){
+				displayColuns.add(itemModelEntityMap.get(id).getColumnModel().getColumnName());
+			}
+		}
+		columnsMap.put(listModelEntity.getMasterForm().getId(), displayColuns);
+		dataModelEntities.put(listModelEntity.getMasterForm().getId(), listModelEntity.getMasterForm().getDataModels().get(0));
+	}
+
+	@Override
+	public void entityToDTO(FormModelEntity entity, Object object, boolean isAnalysisForm, String parseArea, DefaultFunctionType functionType){
+		BeanUtils.copyProperties(entity, object, new String[] {"dataModels","items","permissions","submitChecks","functions", "triggeres"});
+		if(entity.getFunctions() != null && entity.getFunctions().size() > 0){
+			List<ListFunction> functions = entity.getFunctions().parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
+			List<FunctionModel> functionModels = new ArrayList<>();
+			for (int i = 0; i < functions.size(); i++) {
+				ListFunction function = functions.get(i);
+				if(parseArea != null && (function.getParseArea() == null || !function.getParseArea().contains(parseArea))){
+					continue;
+				}
+				FunctionModel functionModel = new FunctionModel();
+				BeanUtils.copyProperties(function, functionModel, new String[] {"formModel","itemModel", "parseArea"});
+				if (org.springframework.util.StringUtils.hasText(function.getParseArea())) {
+					functionModel.setParseArea(Arrays.asList(function.getParseArea().split(",")));
+				}
+				functionModel.setOrderNo(i+1);
+				functionModels.add(functionModel);
+			}
+			if(isAnalysisForm) {
+				((AnalysisFormModel) object).setFunctions(functionModels.size() < 1 ? null : functionModels);
+				if(entity.getProcess() != null && functionType != null && functionType != DefaultFunctionType.Add) {
+					((AnalysisFormModel) object).setFunctions(null);
+				}
+			}else{
+				((FormModel) object).setFunctions(functionModels.size() < 1 ? null : functionModels);
+			}
+		}
+
+		if(entity.getTriggeres() != null && entity.getTriggeres().size() > 0){
+			List<BusinessTriggerEntity> triggerEntityList = entity.getTriggeres().parallelStream().sorted((d1, d2) -> d1.getOrderNo().compareTo(d2.getOrderNo())).collect(Collectors.toList());
+			List<BusinessTriggerModel> triggerModels = new ArrayList<>();
+			for (int i = 0; i < triggerEntityList.size(); i++) {
+				BusinessTriggerEntity triggerEntity = triggerEntityList.get(i);
+				BusinessTriggerModel model = new BusinessTriggerModel();
+				BeanUtils.copyProperties(triggerEntity, model, new String[] {"formModel"});
+				triggerModels.add(model);
+			}
+			if(isAnalysisForm) {
+				((AnalysisFormModel) object).setTriggeres(triggerModels.size() < 1 ? null : triggerModels);
+			}else{
+				((FormModel) object).setTriggeres(triggerModels.size() < 1 ? null : triggerModels);
+			}
+		}
+
+		//数据标识
+		if(org.springframework.util.StringUtils.hasText(entity.getItemModelIds())) {
+			String[] strings = entity.getItemModelIds().split(",");
+			List<String> resultList = new ArrayList<>();
+			for(String str : strings){
+				if(!resultList.contains(str)) {
+					resultList.add(str);
+				}
+			}
+			if(isAnalysisForm) {
+				((AnalysisFormModel) object).setItemModelList(getItemModelList(resultList));
+			}else{
+				((FormModel) object).setItemModelList(getItemModelList(resultList));
+			}
+		}
+
+		//二维码
+		if(org.springframework.util.StringUtils.hasText(entity.getQrCodeItemModelIds())) {
+			String[] strings = entity.getQrCodeItemModelIds().split(",");
+			List<String> resultList = new ArrayList<>();
+			for(String str : strings){
+				if(!resultList.contains(str)) {
+					resultList.add(str);
+				}
+			}
+			if(isAnalysisForm) {
+				((AnalysisFormModel) object).setQrCodeItemModelList(getItemModelList(resultList));
+			}else{
+				((FormModel) object).setQrCodeItemModelList(getItemModelList(resultList));
+			}
+		}
+
+		//表单提交校验
+		if (entity.getSubmitChecks() != null) {
+			List<FormSubmitCheckModel> submitChecks = entity.getSubmitChecks().stream()
+					.map(DtoUtils::toFormSubmitCheckModel)
+					.sorted()
+					.collect(Collectors.toList());
+			if(isAnalysisForm) {
+				((AnalysisFormModel) object).setSubmitChecks(submitChecks);
+			}else{
+				((FormModel) object).setSubmitChecks(submitChecks);
+			}
+		}
+
 	}
 
 	@Override

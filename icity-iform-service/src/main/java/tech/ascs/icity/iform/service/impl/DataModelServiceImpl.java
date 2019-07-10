@@ -3,6 +3,7 @@ package tech.ascs.icity.iform.service.impl;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -18,6 +19,7 @@ import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.ColumnModelService;
 import tech.ascs.icity.iform.service.DataModelService;
 import tech.ascs.icity.iform.service.FormModelService;
+import tech.ascs.icity.iform.service.ItemModelService;
 import tech.ascs.icity.iform.support.IFormSessionFactoryBuilder;
 import tech.ascs.icity.iform.utils.CommonUtils;
 import tech.ascs.icity.jpa.service.JPAManager;
@@ -44,6 +46,9 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 
 	@Autowired
 	private FormModelService formModelService;
+
+	@Autowired
+	private ItemModelService itemModelService;
 
 	@Autowired
 	JdbcTemplate jdbcTemplate;
@@ -615,6 +620,337 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		}
 		return list;
 	}
+
+	/**
+	 * 判断字符串中是否字母、数字和连接符
+	 * @param str
+	 * 待校验字符串
+	 * @warn 能校验是否为中文标点符号
+	 */
+	public static boolean isLetterDigit(String str) {
+		String regex = "^[a-z0-9A-Z\\-\\_]+$";
+		return str.matches(regex);
+	}
+
+	//校验表单的数据建模
+	@Override
+	public void verifyDataModel(FormModel formModel, DataModel masterDataModel){
+		Map<String, Object> dataMap = new HashMap<>();
+		for(DataModel dataModel : formModel.getDataModels()){
+			if(dataMap.get(dataModel.getTableName()) != null){
+				throw new IFormException("存在相同数据建模");
+			}
+			dataMap.put(dataModel.getTableName(), System.currentTimeMillis());
+			if(!org.springframework.util.StringUtils.hasText(dataModel.getTableName())){
+				throw new IFormException("表名不允许为空");
+			}
+			if(!isLetterDigit(dataModel.getTableName())){
+				throw new IFormException("表名只允许包含字母、数字和下划线连接符");
+			}
+			if (!Pattern.matches(CommonUtils.regEx, dataModel.getTableName())) {
+				throw new IFormException("表名必须以字母开头，只能包含数字，字母，下划线，不能包含中文，横杆等特殊字符");
+			}
+			List<String> columnModelEntities = dataModel.getColumns().parallelStream().map(ColumnModel::getColumnName).collect(Collectors.toList());
+			Map<String, Object> map = new HashMap<String, Object>();
+			for(String string : columnModelEntities){
+				String key = string.toLowerCase();
+				if(!org.springframework.util.StringUtils.hasText(key.trim())){
+					throw new IFormException("字段名不能为空");
+				}
+				if(map.containsKey(key)){
+					throw new IFormException(key+"字段重复了");
+				}
+				map.put(key, string);
+			}
+		}
+
+		if(masterDataModel == null || masterDataModel.getId() == null){
+			throw new IFormException("未找到列表对应的数据建模");
+		}
+	}
+
+	//设置主表数据
+	@Override
+	public void setMasterDataModelEntity(DataModelEntity masterDataModelEntity, DataModel masterDataModel, FormModel formModel, Map<String, DataModelEntity> oldMasterDataModelMap){
+		//是否需要关联字段
+		boolean needMasterId = false;
+		if(masterDataModelEntity.getMasterModel() != null) {
+			needMasterId = true;
+		}
+		//设置数据模型行
+		setDataModelEntityColumns(masterDataModel, masterDataModelEntity, needMasterId);
+
+		BeanUtils.copyProperties(masterDataModel, masterDataModelEntity, new String[]{"masterModel", "slaverModels", "columns", "indexes" });
+
+		//创建获取主键未持久化到数据库
+		columnModelService.saveColumnModelEntity(masterDataModelEntity, "create_at");
+		columnModelService.saveColumnModelEntity(masterDataModelEntity, "update_at");
+		columnModelService.saveColumnModelEntity(masterDataModelEntity, "create_by");
+		columnModelService.saveColumnModelEntity(masterDataModelEntity, "update_by");
+
+		if(masterDataModelEntity.getModelType() == DataModelType.Single && formModel.getDataModels().size() > 1) {
+			masterDataModelEntity.setModelType(DataModelType.Master);
+		}
+		masterDataModelEntity.setSynchronized(false);
+
+		List<DataModelEntity> slaverDataModelEntities = new ArrayList<>();
+		for(int i = 1; i < formModel.getDataModels().size(); i++) {//第一个是主表
+			DataModel dataModel = formModel.getDataModels().get(i);
+			if (dataModel.getMasterModel() == null) {
+				setSlaverDataModel(dataModel, oldMasterDataModelMap, null, slaverDataModelEntities);
+			}else {
+				setSlaverDataModel(dataModel, oldMasterDataModelMap, masterDataModelEntity, slaverDataModelEntities);
+			}
+		}
+		masterDataModelEntity.setSlaverModels(slaverDataModelEntities);
+	}
+
+	private String regEx = "[a-zA-Z]{1,}[a-zA-Z0-9_]{0,}";
+
+	//校验数据建模
+	@Override
+	public void veryTableName(DataModelEntity oldDataModelEntity){
+		if (!Pattern.matches(regEx, oldDataModelEntity.getTableName())) {
+			throw new IFormException("表名必须以字母开头，只能包含数字，字母，下划线，不能包含中文，横杆等特殊字符");
+		}
+		List<DataModelEntity> list = findByProperty("tableName", oldDataModelEntity.getTableName());
+		if(!org.springframework.util.StringUtils.hasText(oldDataModelEntity.getId()) && list.size() > 0){
+			throw new IFormException("数据模型表名重复了");
+		}
+		for(DataModelEntity dataModelEntity : list){
+			if(!dataModelEntity.getId().equals(oldDataModelEntity.getId())){
+				throw new IFormException("数据模型表名重复了");
+			}
+		}
+	}
+	//设置数据模型行
+	private void setDataModelEntityColumns(DataModel newDataModel, DataModelEntity oldDataModelEntity, boolean needMasterId){
+
+		veryTableName(oldDataModelEntity);
+
+		List<String> newColumns = newDataModel.getColumns().parallelStream().map(ColumnModel::getColumnName).collect(Collectors.toList());
+
+
+		//待更新的行
+		List<String> newColumnIds = new ArrayList<>();
+		ColumnModel idColumnModel = null;
+		ColumnModel masterIdColumnModel= null;
+		for(int i = 0 ; i < newDataModel.getColumns().size() ; i++){
+			ColumnModel newColumnModel = newDataModel.getColumns().get(i);
+			if(newColumnModel.getId() != null){
+				newColumnIds.add(newColumnModel.getId());
+			}
+			if(newColumnModel.getColumnName().equals("id")){
+				idColumnModel = newColumnModel;
+			}
+			if(newColumnModel.getColumnName().equals("master_id")){
+				masterIdColumnModel = newColumnModel;
+			}
+		}
+
+		if(idColumnModel != null){
+			deleteReferenceModel( oldDataModelEntity,  newColumns,  idColumnModel);
+		}
+
+		//待保存的行
+		List<ColumnModelEntity> saveModelEntities = new ArrayList<ColumnModelEntity>();
+
+		if(idColumnModel == null){
+			saveModelEntities.add(columnModelService.saveColumnModelEntity(oldDataModelEntity,"id"));
+		}
+		if(masterIdColumnModel == null && needMasterId){
+			//创建获取关联字段未持久化到数据库
+			saveModelEntities.add(columnModelService.saveColumnModelEntity(oldDataModelEntity, "master_id"));
+		}
+
+		//待删除的行
+		for(int i = 0 ; i <  oldDataModelEntity.getColumns().size() ; i++ ){
+			ColumnModelEntity columnModelEntity = oldDataModelEntity.getColumns().get(i);
+			deleteColumnModelEntity(newColumnIds, columnModelEntity, needMasterId, oldDataModelEntity, i, newDataModel);
+		}
+		Map<String, Object> map = new HashMap<>();
+		for(ColumnModel columnModel : newDataModel.getColumns()){
+			ColumnModelEntity oldColumnModelEntity = setColumn(columnModel);
+			setColumnModel(oldColumnModelEntity, oldDataModelEntity, columnModel, map);
+			saveModelEntities.add(oldColumnModelEntity);
+		}
+
+		oldDataModelEntity.setColumns(saveModelEntities);
+	}
+
+	private ColumnModelEntity setColumn(ColumnModel columnModel){
+		ColumnModelEntity oldColumnModelEntity = new ColumnModelEntity();
+		if(!columnModel.isNew()) {
+			oldColumnModelEntity = columnModelService.get(columnModel.getId());
+		}
+		BeanUtils.copyProperties(columnModel, oldColumnModelEntity, new String[]{"dataModel", "columnReferences","referenceTables"});
+		if(columnModel.getDataModel() != null){
+			DataModelEntity dataModelEntity = new DataModelEntity();
+			if(!columnModel.getDataModel().isNew()) {
+				dataModelEntity = find(columnModel.getDataModel().getId());
+			}
+			BeanUtils.copyProperties(columnModel.getDataModel(), dataModelEntity, new String[]{"masterModel", "slaverModels", "columns", "indexes" });
+			oldColumnModelEntity.setDataModel(dataModelEntity);
+		}
+		return oldColumnModelEntity;
+	}
+
+
+	private void deleteColumnModelEntity(List<String> newColumnIds, ColumnModelEntity columnModelEntity, boolean needMasterId, DataModelEntity oldDataModelEntity, int i, DataModel newDataModel){
+		//删除字段索引
+		if(!newColumnIds.contains(columnModelEntity.getId())){
+			List<ColumnReferenceEntity> referenceEntityList = columnModelEntity.getColumnReferences();
+			for(int m = 0 ; m < referenceEntityList.size(); m++ ){
+				ColumnReferenceEntity referenceEntity = referenceEntityList.get(m);
+				if(columnModelEntity.getColumnName().equals("id") &&  referenceEntity.getReferenceType() != ReferenceType.ManyToMany){
+					continue;
+				}
+				List<ColumnReferenceEntity> toReferenceEntityList = referenceEntity.getToColumn().getColumnReferences();
+				for(int j = 0 ; j < toReferenceEntityList.size(); j++){
+					ColumnReferenceEntity columnReferenceEntity = toReferenceEntityList.get(j);
+					if(columnReferenceEntity.getToColumn().getId().equals(columnModelEntity.getId())){
+						if(columnReferenceEntity.getReferenceType() == ReferenceType.ManyToMany){
+							columnModelService.deleteTable(columnReferenceEntity.getReferenceMiddleTableName()+"_list");
+						}
+						toReferenceEntityList.remove(columnReferenceEntity);
+						j--;
+						columnModelService.deleteColumnReferenceEntity(columnReferenceEntity);
+						columnModelService.save(referenceEntity.getToColumn());
+					}
+				}
+				referenceEntityList.remove(referenceEntity);
+				m--;
+				columnModelService.deleteColumnReferenceEntity(referenceEntity);
+			}
+
+			if((needMasterId && "master_id".equals(columnModelEntity.getColumnName())) || "id".equals(columnModelEntity.getColumnName())){
+				return;
+			}
+
+			oldDataModelEntity.getColumns().remove(columnModelEntity);
+			i--;
+			List<ItemModelEntity> itemModelEntity = itemModelService.findByProperty("columnModel.id", columnModelEntity.getId());
+			if(itemModelEntity != null) {
+				for(ItemModelEntity itemModel : itemModelEntity) {
+					itemModel.setColumnModel(null);
+					itemModelService.save(itemModel);
+				}
+			}
+			//删除数据库字段
+			String tableName = newDataModel.getPrefix() == null ? newDataModel.getTableName(): newDataModel.getPrefix()+newDataModel.getTableName();
+			ColumnModelEntity column = columnModelEntity;
+			String columnName = column.getPrefix() == null ? column.getColumnName() : column.getPrefix()+column.getColumnName();
+			columnModelService.deleteTableColumn(tableName, columnName);
+			//更新字段索引
+			columnModelService.updateColumnModelEntityIndex(columnModelEntity);
+			columnModelService.delete(columnModelEntity);
+		}
+	}
+
+	private void setColumnModel(ColumnModelEntity oldColumnModelEntity, DataModelEntity oldDataModelEntity, ColumnModel columnModel, Map<String, Object> map){
+		List<ColumnReferenceEntity> oldColumnReferences = oldColumnModelEntity.getColumnReferences();
+		for(int i = 0 ; i < oldColumnReferences.size() ; i++) {
+			ColumnReferenceEntity columnReferenceEntity = oldColumnReferences.get(i);
+			oldColumnReferences.remove(columnReferenceEntity);
+			i--;
+			columnModelService.deleteColumnReferenceEntity(columnReferenceEntity);
+		}
+		oldColumnModelEntity.setColumnReferences(new ArrayList<ColumnReferenceEntity>());
+		oldColumnModelEntity.setDataModel(oldDataModelEntity);
+		if(columnModel.getReferenceTables() != null){
+			for(ReferenceModel columnReferenceEntity : columnModel.getReferenceTables()){
+				if(map.get(columnModel.getColumnName()+"_"+columnReferenceEntity.getReferenceTable()+"_"+columnReferenceEntity.getReferenceValueColumn()) != null){
+					continue;
+				}else{
+					map.put(columnModel.getColumnName()+"_"+columnReferenceEntity.getReferenceTable()+"_"+columnReferenceEntity.getReferenceValueColumn(), System.currentTimeMillis());
+				}
+
+				DataModelEntity dataModelEntity = findUniqueByProperty("tableName", columnReferenceEntity.getReferenceTable());
+				if(dataModelEntity == null){
+					throw new IFormException("未找到【"+columnReferenceEntity.getReferenceTable()+"】对应的数据表");
+				}
+				ColumnModelEntity columnModelEntity = columnModelService.saveColumnModelEntity(dataModelEntity, columnReferenceEntity.getReferenceValueColumn());
+				if(columnModelEntity == null){
+					throw new IFormException("未找到【"+columnReferenceEntity.getReferenceValueColumn()+"】对应的字段");
+				}
+				ColumnModel referenceColumnModel = new ColumnModel();
+				referenceColumnModel.setId(columnModelEntity.getId());
+				columnModelService.saveColumnReferenceEntity(oldColumnModelEntity, setColumn(referenceColumnModel), columnReferenceEntity.getReferenceType(), columnReferenceEntity.getReferenceMiddleTableName());
+			}
+		}
+	}
+
+
+	//删除主表id关联
+	private void deleteReferenceModel(DataModelEntity oldDataModelEntity, List<String> newColumns, ColumnModel idColumnModel){
+		List<ColumnReferenceEntity> list = columnModelService.saveColumnModelEntity(oldDataModelEntity,"id").getColumnReferences();
+		List<String> deleteIds = new ArrayList<>();
+		List<String> stringList = new ArrayList<>();
+		for(int j = 0 ; j < list.size() ; j++){
+			ColumnReferenceEntity columnReferenceEntity = list.get(j);
+			if(!newColumns.contains(columnReferenceEntity.getFromColumn().getColumnName()) && columnReferenceEntity.getFromColumn().getDataModel().getId().equals(oldDataModelEntity.getId())){
+				//删除自己字段
+				deleteIds.add(columnReferenceEntity.getId());
+				stringList.add(columnReferenceEntity.getToColumn().getId()+"_"+columnReferenceEntity.getFromColumn().getId());
+			}
+		}
+		for(int j = 0 ; j < list.size() ; j++){
+			ColumnReferenceEntity columnReferenceEntity = list.get(j);
+			if(stringList.contains(columnReferenceEntity.getFromColumn().getId()+"_"+columnReferenceEntity.getToColumn().getId())){
+				//删除自己字段
+				deleteIds.add(columnReferenceEntity.getId());
+			}
+		}
+
+		for(int j = 0 ; j < idColumnModel.getReferenceTables().size() ; j++){
+			ReferenceModel referenceModel = idColumnModel.getReferenceTables().get(j);
+			if(deleteIds.contains(referenceModel.getId())){
+				idColumnModel.getReferenceTables().remove(j);
+				j--;
+			}
+		}
+	}
+
+
+	//设置子表数据
+	@Override
+	public void setSlaverDataModel(DataModel dataModel, Map<String, DataModelEntity> oldMasterDataModelMap, DataModelEntity masterDataModelEntity,
+									List<DataModelEntity> slaverDataModelEntities){
+		//创建关联字段
+		DataModelEntity dataModelEntity = dataModel.isNew() ? new DataModelEntity() :  oldMasterDataModelMap.remove(dataModel.getId());
+		if(dataModelEntity == null && !dataModel.isNew()){
+			dataModelEntity = find(dataModel.getId());
+		}
+		if(dataModelEntity == null){
+			throw  new IFormException("未找到"+dataModel.getTableName()+"对应的数据模型");
+		}
+
+		BeanUtils.copyProperties(dataModel, dataModelEntity, new String[]{"masterModel","slaverModels","columns","indexes"});
+		dataModelEntity.setSynchronized(false);
+		if(masterDataModelEntity != null){
+			dataModelEntity.setModelType(DataModelType.Slaver);
+			dataModelEntity.setMasterModel(masterDataModelEntity);
+		}else{
+			dataModelEntity.setMasterModel(null);
+		}
+
+
+		//设置数据模型行
+		setDataModelEntityColumns(dataModel, dataModelEntity, true);
+
+		//获取主键未持久化到数据库
+		columnModelService.saveColumnModelEntity(dataModelEntity, "id");
+		columnModelService.saveColumnModelEntity(dataModelEntity, "create_at");
+		columnModelService.saveColumnModelEntity(dataModelEntity, "update_at");
+		columnModelService.saveColumnModelEntity(dataModelEntity, "create_by");
+		columnModelService.saveColumnModelEntity(dataModelEntity, "update_by");
+		if(masterDataModelEntity != null) {
+			slaverDataModelEntities.add(dataModelEntity);
+		}else{
+			save(dataModelEntity);
+		}
+	}
+
 
 	private void updateColumnItemModel(DataModelEntity modelEntity){
 		for(ColumnModelEntity columnModelEntity : modelEntity.getColumns() ) {
