@@ -15,13 +15,17 @@ import java.util.List;
 public class PortalModelEntity extends BaseEntity {
     /**
      * 对象可能是列表，报表，通知，新闻，流程时间，快捷表单，邮件，资料栏，消息提醒，日历，通讯录，布局控件标题，描述，一行多列，标签页
-    private List<Object> items;
+     * private List<Object> items;
      */
     private String description;
 
     // 控件的排序顺序字段
-    @Column(name = "item_sort", length = 4096)
+    @Column(name = "items_sort", length = 4096)
     private String itemsSort;
+
+    /** 排序号 */
+    @Column(name = "order_no")
+    private Integer orderNo = 0;
 
     public PortalModelEntity() { }
 
@@ -44,5 +48,13 @@ public class PortalModelEntity extends BaseEntity {
 
     public void setItemsSort(String itemsSort) {
         this.itemsSort = itemsSort;
+    }
+
+    public Integer getOrderNo() {
+        return orderNo;
+    }
+
+    public void setOrderNo(Integer orderNo) {
+        this.orderNo = orderNo;
     }
 }
