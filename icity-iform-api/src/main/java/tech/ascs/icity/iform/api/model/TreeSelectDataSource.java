@@ -1,6 +1,7 @@
 package tech.ascs.icity.iform.api.model;
 
 public enum TreeSelectDataSource {
+    Role("Role"),                        //角色
     Department("Department"),            //部门
     Position("Position"),                //岗位
     Personnel("Personnel"),              //人员
