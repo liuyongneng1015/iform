@@ -661,7 +661,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	}
 
     @Override
-    public Map<String, Object> saveFormInstance(@PathVariable(name="formId", required = true) String formId, @RequestParam Map<String, Object> parameters) {
+    public Map<String, Object> saveFormInstance(@PathVariable(name="formId", required = true) String formId, @RequestBody Map<String, Object> parameters) {
         FormModelEntity formModel = formModelService.find(formId);
         if (formModel == null) {
             throw new IFormException(404, "表单模型【" + formId + "】不存在");
