@@ -21,7 +21,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * ELProcessorService基于JUEL的实现类
+ * ELProcessorService基于Spel的实现类
  *
  * @author renjie
  * @since 0.7.3.0
@@ -30,10 +30,6 @@ import java.util.stream.Collectors;
 public class ELProcessorServiceImpl implements ELProcessorService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ELProcessorServiceImpl.class);
-
-//    private final ExpressionFactory expressionFactory;
-
-//    private final SimpleContext emptyContext = new SimpleContext();
 
     private final SpelExpressionParser parser;
 
@@ -108,15 +104,6 @@ public class ELProcessorServiceImpl implements ELProcessorService {
             //子表内容展开
             List<Map<String, ItemInstance>> subFormInstanceList = extendSubFormData(instance.getSubFormData());
             Set<String> skipId = findSkipId(subFormItemModelEntities, subFormInstanceList.stream().limit(1).findAny().orElse(new HashMap<>(0)));
-//            submitCheckInfos.stream()
-//                    .map(info -> {
-//                        //过滤查询是否包含id, 如果表达式包含其中一个跳过id, 则整个表达式跳过
-//                        if (skipId.stream().anyMatch(id -> info.getCueExpression().contains(id))){
-//                            return new FormSubmitCheckInfoWrapper(info, true);
-//                        }else {
-//                            return new FormSubmitCheckInfoWrapper(info);
-//                        }
-//                    })
 
             // 执行的表达式
             List<FormSubmitCheckInfo> submitCheckInfoExec = submitCheckInfos.stream()
@@ -142,10 +129,8 @@ public class ELProcessorServiceImpl implements ELProcessorService {
     }
 
     private boolean isPass(EvaluationContext context, String expression) {
-        System.out.println(ELProcessorUtils.process(expression));
-        System.out.println(parser.parseExpression(ELProcessorUtils.process(expression)).getValue(context, Object.class));
-        return parser.parseExpression(ELProcessorUtils.process(expression)).getValue(context, Boolean.class);
-//        LOGGER.warn("表达式里有不存在的属性: {}", e.getMessage().substring(21));
+        Boolean result = parser.parseExpression(ELProcessorUtils.process(expression)).getValue(context, Boolean.class);
+        return result == null ? true : result;
     }
 
     private String processMapKey(Map.Entry<String, ItemInstance> entry) {
@@ -155,8 +140,6 @@ public class ELProcessorServiceImpl implements ELProcessorService {
     /**
      * 展开子表内容, 需要完成 : 多个子表的情况下, 每个返回的Map内都会包含所有子表的内容, 重复也可以
      *
-     * @param subFormItemInstances
-     * @return
      */
     private List<Map<String, ItemInstance>> extendSubFormData(List<SubFormItemInstance> subFormItemInstances) {
 
@@ -178,7 +161,7 @@ public class ELProcessorServiceImpl implements ELProcessorService {
             for (int j = 0; j < subFormSize; j ++) {
                 // 子表
                 List<Map<String, ItemInstance>> subFormData = multiSubFormInstance.get(j);
-                tempMapping.putAll(subFormData.get(getMinValue(i, subFormData)));
+                tempMapping.putAll(getOrLast(i, subFormData));
             }
 
             extendFormData.add(tempMapping);
@@ -186,8 +169,8 @@ public class ELProcessorServiceImpl implements ELProcessorService {
         return extendFormData;
     }
 
-    private int getMinValue(int index, List<?> list) {
-        return Math.min(index, list.size() - 1);
+    private <T> T getOrLast(int index, List<T> list) {
+        return list.get(Math.min(index, list.size() - 1));
     }
 
     private Set<String> findSkipId(List<SubFormItemModelEntity> subFormItemModelEntities, Map<String, ItemInstance> subFormData) {

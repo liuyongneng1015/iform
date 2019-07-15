@@ -3,6 +3,26 @@ package tech.ascs.icity.iform.utils;
 /**
  * EL处理器工具类
  *
+ * 对前端传过来的表达式进行转换加工处理, 目前处理模式为处理为spel能识别的模式, 主要执行
+ *
+ * <ul>
+ *     <li>
+ *         undefined -> null
+ *     </li>
+ *     <li>
+ *         id 添加 #_ , 用作读取spel的变量, 同时防止数字开头的id
+ *     </li>
+ *     <li>
+ *         === 转换为 ==
+ *     </li>
+ *     <li>
+ *         !== 转换为 !=
+ *     </li>
+ *     <li>
+ *         数组格式 [] ,转换为 new Object {} 的形式
+ *     </li>
+ * </ul>
+ *
  * @author renjie
  * @since 0.7.3
  **/
