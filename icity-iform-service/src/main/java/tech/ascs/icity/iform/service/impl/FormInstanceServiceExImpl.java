@@ -2691,25 +2691,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}
 		}
 
-		//展示字段
-		List<String> displayIds = new ArrayList<>();
-		if (!isQrCodeFlag && listModelEntity != null) {
-			displayIds = listModelEntity.getDisplayItems().parallelStream().map(ItemModelEntity::getId).collect(Collectors.toList());
-		}else	if(isQrCodeFlag && formModel.getQrCodeItemModelIds() != null){
-			displayIds = Arrays.asList(formModel.getQrCodeItemModelIds().split(","));
-		}else if(formModel != null){
-			List<ItemModelEntity> allCheckItem = new ArrayList<>();
-			for(ItemModelEntity itemModelEntity : formModelService.findAllItems(formModel)){
-				for(ItemPermissionInfo itemPermissionInfo : itemModelEntity.getPermissions()){
-					if(itemPermissionInfo.getDisplayTiming() == DisplayTimingType.Check && itemPermissionInfo.getVisible() != null && itemPermissionInfo.getVisible()){
-						allCheckItem.add(itemModelEntity);
-					}
-				}
-			}
-			displayIds = allCheckItem.parallelStream().map(ItemModelEntity::getId).collect(Collectors.toList());
-		}else{
-			displayIds = items.parallelStream().map(ItemInstance::getId).collect(Collectors.toList());
-		}
+
 
 		//所有显示的控件实例
         List<ItemInstance> newAllDisplayItems = new ArrayList<>();
@@ -2725,6 +2707,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				idVlaue = itemInstance.getValue();
 			}
 		}
+
+		//展示字段
+		List<String>  displayIds = setDisplayItemIds(isQrCodeFlag, listModelEntity, formModel, items);
 
 		// referenceDataModelList的数据对应的是关联表单的数据标识的item的数据
 		for (ReferenceDataInstance referenceDataInstance : referenceDataModelList) {
@@ -2779,6 +2764,29 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 
 		return formInstance;
+	}
+
+	private List<String> setDisplayItemIds(boolean isQrCodeFlag, ListModelEntity listModelEntity, FormModelEntity formModel, List<ItemInstance> items){
+		//展示字段
+		List<String> displayIds = new ArrayList<>();
+		if (!isQrCodeFlag && listModelEntity != null) {
+			displayIds = listModelEntity.getDisplayItems().parallelStream().map(ItemModelEntity::getId).collect(Collectors.toList());
+		}else	if(isQrCodeFlag && formModel.getQrCodeItemModelIds() != null){
+			displayIds = Arrays.asList(formModel.getQrCodeItemModelIds().split(","));
+		}else if(formModel != null){
+			List<ItemModelEntity> allCheckItem = new ArrayList<>();
+			for(ItemModelEntity itemModelEntity : formModelService.findAllItems(formModel)){
+				for(ItemPermissionInfo itemPermissionInfo : itemModelEntity.getPermissions()){
+					if(itemPermissionInfo.getDisplayTiming() == DisplayTimingType.Check && itemPermissionInfo.getVisible() != null && itemPermissionInfo.getVisible()){
+						allCheckItem.add(itemModelEntity);
+					}
+				}
+			}
+			displayIds = allCheckItem.parallelStream().map(ItemModelEntity::getId).collect(Collectors.toList());
+		}else{
+			displayIds = items.parallelStream().map(ItemInstance::getId).collect(Collectors.toList());
+		}
+		return displayIds;
 	}
 
 	private List<Map<String, Object>> listValue(SubFormItemInstance subFormItemInstance){
