@@ -207,7 +207,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 
 	private  Page<FormDataSaveInstance> queryIflowList(Map<String, Object> queryParameters,  int page, int pagesize, FormModelEntity formModelEntity, ListModelEntity listModel) {
 		Map<String, Object> data = queryProcessInstance(formModelEntity, queryParameters,  page,  pagesize);
-		//总条数
+		// 总条数
 		Integer totalCount = (Integer)data.get("totalCount");
 		Map<String, ProcessInstance> instanceIdAndProcessMap = (Map<String, ProcessInstance>)data.get("data");
 		String[] formInstanceIds = instanceIdAndProcessMap.keySet().parallelStream().toArray(String[]::new);
@@ -221,8 +221,16 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			for (FormDataSaveInstance instance:list) {
 				formInstanceService.setFlowFormInstance(formModelEntity, instanceIdAndProcessMap.get(instance.getId()), instance);
 			}
+			// 列表查出来的数据可能是无序的，按照流程返回的顺序排，封装流程返回的数据data用了LinkedHashMap，直接用LinkedHashMap的Key排序
+			List<FormDataSaveInstance> newList = new ArrayList<>();
+			for (String id:data.keySet()) {
+				Optional<FormDataSaveInstance> optional = list.stream().filter(item->id.equals(item.getId())).findFirst();
+				if (optional.isPresent()) {
+					newList.add(optional.get());
+				}
+			}
 			Page<FormDataSaveInstance> pageInstance = Page.get(page, pagesize);
-			pageInstance.data(totalCount, list);
+			pageInstance.data(totalCount, newList);
 			return pageInstance;
 		} else {
 			return Page.get(page, pagesize);
@@ -260,7 +268,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			throw new IFormException(e.getLocalizedMessage(), e);
 		}
 		Map<String, Object> data = new HashMap<>();
-		Map<String, ProcessInstance> instanceIdAndProcessMap = new HashMap<>();
+		Map<String, ProcessInstance> instanceIdAndProcessMap = new LinkedHashMap<>();
 		for(ProcessInstance processInstance : pageProcess.getResults()) {
 			if(StringUtils.hasText(processInstance.getFormInstanceId())) {
 				instanceIdAndProcessMap.put(processInstance.getFormInstanceId(), processInstance);
