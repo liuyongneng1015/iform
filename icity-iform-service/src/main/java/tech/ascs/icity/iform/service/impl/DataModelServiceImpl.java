@@ -201,7 +201,7 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 			}
 		}
         if(!column.isNew() && columnEntity.getDataType() != column.getDataType()){
-            columnModelService.deleteTableColumn(columnEntity.getDataModel().getTableName(), columnEntity.getColumnName());
+            //columnModelService.deleteTableColumn(columnEntity.getDataModel().getTableName(), columnEntity.getColumnName());
         }
 		BeanUtils.copyProperties(column, columnEntity, new String[]{"dataModel","referenceTables"});
 		if(column.isNew()){

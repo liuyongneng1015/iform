@@ -195,7 +195,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 				queryParameters.put(idItemOption.get().getId(), instanceIdAndProcessMap.keySet());
 			}
 			Page<FormDataSaveInstance> pageInstance = Page.get(page, pagesize);
-			List<FormDataSaveInstance> list = formInstanceService.formInstance(formModel, queryParameters);
+			List<FormDataSaveInstance> list = formInstanceService.formInstance(null, formModel, queryParameters);
 			for (FormDataSaveInstance instance:list) {
 				formInstanceService.setFlowFormInstance(formModel, instanceIdAndProcessMap.get(instance.getId()), instance);
 			}
@@ -217,7 +217,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			if (idItemOption.isPresent()) {
 				queryParameters.put(idItemOption.get().getId(), formInstanceIds);
 			}
-			List<FormDataSaveInstance> list = formInstanceService.formInstance(formModelEntity, queryParameters);
+			List<FormDataSaveInstance> list = formInstanceService.formInstance(listModel, formModelEntity, queryParameters);
 			for (FormDataSaveInstance instance:list) {
 				formInstanceService.setFlowFormInstance(formModelEntity, instanceIdAndProcessMap.get(instance.getId()), instance);
 			}
@@ -669,7 +669,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	}
 
     @Override
-    public Map<String, Object> saveFormInstance(@PathVariable(name="formId", required = true) String formId, @RequestParam Map<String, Object> parameters) {
+    public Map<String, Object> saveFormInstance(@PathVariable(name="formId", required = true) String formId, @RequestBody Map<String, Object> parameters) {
         FormModelEntity formModel = formModelService.find(formId);
         if (formModel == null) {
             throw new IFormException(404, "表单模型【" + formId + "】不存在");
