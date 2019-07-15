@@ -162,12 +162,12 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	}
 
 	@Override
-	public List<FormDataSaveInstance> formInstance(FormModelEntity formModel, Map<String, Object> queryParameters) {
+	public List<FormDataSaveInstance> formInstance(ListModelEntity listModel, FormModelEntity formModel, Map<String, Object> queryParameters) {
 		Session session = getSession(formModel.getDataModels().get(0));
 		List<FormDataSaveInstance> list = new ArrayList<>();
 		try {
-			Criteria criteria = generateCriteria(session, formModel, null, queryParameters);
-			list = wrapFormDataList(formModel, null, criteria.list());
+			Criteria criteria = generateCriteria(session, formModel, listModel, queryParameters);
+			list = wrapFormDataList(formModel, listModel, criteria.list());
 		} catch (Exception e) {
 			e.printStackTrace();
 			new ICityException(e.getLocalizedMessage(), e);
@@ -2697,6 +2697,16 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			displayIds = listModelEntity.getDisplayItems().parallelStream().map(ItemModelEntity::getId).collect(Collectors.toList());
 		}else	if(isQrCodeFlag && formModel.getQrCodeItemModelIds() != null){
 			displayIds = Arrays.asList(formModel.getQrCodeItemModelIds().split(","));
+		}else if(formModel != null){
+			List<ItemModelEntity> allCheckItem = new ArrayList<>();
+			for(ItemModelEntity itemModelEntity : formModelService.findAllItems(formModel)){
+				for(ItemPermissionInfo itemPermissionInfo : itemModelEntity.getPermissions()){
+					if(itemPermissionInfo.getDisplayTiming() == DisplayTimingType.Check && itemPermissionInfo.getVisible() != null && itemPermissionInfo.getVisible()){
+						allCheckItem.add(itemModelEntity);
+					}
+				}
+			}
+			displayIds = allCheckItem.parallelStream().map(ItemModelEntity::getId).collect(Collectors.toList());
 		}else{
 			displayIds = items.parallelStream().map(ItemInstance::getId).collect(Collectors.toList());
 		}
@@ -2724,6 +2734,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				itemInstance.setSystemItemType(itemModelEntity == null ? SystemItemType.ReferenceList : itemModelEntity.getSystemItemType());
 				itemInstance.setType(itemModelEntity == null ? ItemType.ReferenceList : itemModelEntity.getType());
 				itemInstance.setId(referenceDataInstance.getId());
+				itemInstance.setItemName(itemModelEntity.getName());
 				itemInstance.setValue(referenceDataInstance.getValue());
 				ColumnModelEntity columnModelEntity = itemModelEntity.getColumnModel();
 				itemInstance.setColumnModelId(columnModelEntity == null ? null : columnModelEntity.getId());
