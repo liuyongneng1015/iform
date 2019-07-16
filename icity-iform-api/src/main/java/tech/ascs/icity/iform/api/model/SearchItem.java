@@ -53,6 +53,9 @@ public class SearchItem extends ItemModel implements Comparable<SearchItem> {
 	private String referenceListId;
 	@ApiModelProperty(value = "查询定义，用于列表中的查询条件", position = 9)
 	private Search search;
+	/** 联动数据解绑 */
+	@ApiModelProperty(value = "联动数据解绑", position = 10)
+	private Boolean linkageDataUnbind;
 	@ApiModelProperty("搜索框排序号")//排序号
 	private Integer orderNo = 0;
 
@@ -78,6 +81,14 @@ public class SearchItem extends ItemModel implements Comparable<SearchItem> {
 
 	public void setSearch(Search search) {
 		this.search = search;
+	}
+
+	public Boolean getLinkageDataUnbind() {
+		return linkageDataUnbind;
+	}
+
+	public void setLinkageDataUnbind(Boolean linkageDataUnbind) {
+		this.linkageDataUnbind = linkageDataUnbind;
 	}
 
 	public Integer getOrderNo() {

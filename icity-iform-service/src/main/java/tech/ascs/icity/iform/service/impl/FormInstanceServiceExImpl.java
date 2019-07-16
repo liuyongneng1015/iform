@@ -553,7 +553,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}
 			logger.error("saveFormData add error with data=[" + OkHttpUtils.mapToJson(data) + "]");
 			e.printStackTrace();
-			throw new IFormException("保存数据失败");
+			throw new IFormException("保存数据失败，"+e.getLocalizedMessage());
 		} finally {
 			if (session != null) {
 				session.close();
