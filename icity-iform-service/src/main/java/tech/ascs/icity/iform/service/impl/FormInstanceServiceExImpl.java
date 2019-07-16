@@ -50,6 +50,8 @@ import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -60,6 +62,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	private ObjectMapper objectMapper = new ObjectMapper();
 
 	private final Logger logger = LoggerFactory.getLogger(FormInstanceServiceExImpl.class);
+
+	private final static String phoneRegex = "^((13[0-9])|(14[5|7])|(15([0-3]|[5-9]))|(17[013678])|(18[0,5-9]))\\d{8}$";
+	private final static String emailRegEx = "^([a-z0-9A-Z]+[-|\\.]?)+[a-z0-9A-Z]@([a-z0-9A-Z]+(-[a-z0-9A-Z]+)?\\.)+[a-zA-Z]{2,}$";
 
 	@Autowired
 	private DictionaryDataService dictionaryDataService;
@@ -1650,6 +1655,23 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}
 			if(updatePermission != null && updatePermission.getRequired() != null &&  updatePermission.getRequired() && (value == null || !StringUtils.hasText(String.valueOf(value)))){
 				throw  new IFormException(itemModel.getName()+"为必填");
+			}
+			if(addPermission != null || updatePermission != null){
+				if(itemModel.getType() == ItemType.Input){
+					if("phone".equals(itemModel.getTypeKey())){
+						Pattern p = Pattern.compile(phoneRegex);
+						Matcher m = p.matcher(String.valueOf(value));
+						if(!m.matches()){
+							throw  new IFormException(itemModel.getName()+"数据格式错误");
+						}
+					}else if("email".equals(itemModel.getTypeKey())){
+						Pattern p = Pattern.compile(emailRegEx);
+						Matcher m = p.matcher(String.valueOf(value));
+						if(!m.matches()){
+							throw  new IFormException(itemModel.getName()+"数据格式错误");
+						}
+					}
+				}
 			}
 		}
 	}
