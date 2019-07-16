@@ -723,6 +723,7 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 			}
 		}
 	}
+
 	//设置数据模型行
 	private void setDataModelEntityColumns(DataModel newDataModel, DataModelEntity oldDataModelEntity, boolean needMasterId){
 

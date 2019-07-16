@@ -1524,11 +1524,21 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		columnModelService.saveColumnModelEntity(dataModelEntity, "ACTIVITY_ID");
 		columnModelService.saveColumnModelEntity(dataModelEntity, "ACTIVITY_INSTANCE");
 
+		//旧的流程
+		FormProcessInfo oldProcessInfo = formModelEntity.getProcess();
+
 		FormProcessInfo processInfo = null;
 		if(formModel.getProcess() != null) {
 			processInfo = new FormProcessInfo();
 			BeanUtils.copyProperties(formModel.getProcess(), processInfo);
 		}
+
+		if((oldProcessInfo == null && formModel.getProcess() != null) 	|| (oldProcessInfo != null && formModel.getProcess() == null )
+			|| (oldProcessInfo != null && formModel.getProcess() != null && !oldProcessInfo.getKey().equals(formModel.getProcess().getKey()))){
+			//删除旧数据
+			formInstanceServiceEx.deleteFormData(formModelEntity);
+		}
+
 		formModelEntity.setProcess(processInfo);
 		formModelManager.save(formModelEntity);
 		//同步流程字段
