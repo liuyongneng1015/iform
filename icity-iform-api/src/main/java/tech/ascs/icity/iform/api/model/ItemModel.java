@@ -44,7 +44,7 @@ public class ItemModel extends NameEntity {
 	@ApiModelProperty(value = "关联数据建模表名称", position = 10)
 	private String referenceTableName;
 	@ApiModelProperty(value = "是否创建外键", position = 10)
-	private Boolean createForeignKey;
+	private Boolean createForeignKey = true;
 	@ApiModelProperty(value="选择关系",position = 11)
 	private SelectReferenceType selectReferenceType;
 

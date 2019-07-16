@@ -56,7 +56,7 @@ public class ReferenceItemModelEntity extends ItemModelEntity  {
 	private String itemUuids;
 
 	@Column(name="create_foreign_key") // 是否创建外键
-	private Boolean createForeignKey;
+	private Boolean createForeignKey = true;
 
 	@Column(name="create_type")//创建类型
 	@Enumerated(EnumType.STRING)
