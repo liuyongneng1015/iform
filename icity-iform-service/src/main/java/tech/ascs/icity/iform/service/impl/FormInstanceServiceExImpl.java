@@ -982,16 +982,37 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}
 			if(flowData.containsKey(id)){
 				Object value = flowData.get(id);
+				veryInputValue(itemModelEntity, value);
 				flowData.put(itemModelEntity.getColumnModel().getColumnName(), value);
 			}else{
 				ItemInstance itemInstance = formItemInstanceMap.get(id);
 				if(itemInstance != null) {
+					veryInputValue(itemModelEntity, itemInstance.getValue());
 					flowData.put(itemModelEntity.getColumnModel().getColumnName(), itemInstance.getValue());
 				}
 			}
 		}
 		formInstance.setFlowData(flowData);
 		return paramCondition;
+	}
+
+	//校验文本框的值
+	private void veryInputValue(ItemModelEntity itemModel, Object value){
+		if(itemModel.getType() == ItemType.Input){
+			if("phone".equals(itemModel.getTypeKey())){
+				Pattern p = Pattern.compile(phoneRegex);
+				Matcher m = p.matcher(String.valueOf(value));
+				if(!m.matches()){
+					throw  new IFormException(itemModel.getName()+"数据格式错误");
+				}
+			}else if("email".equals(itemModel.getTypeKey())){
+				Pattern p = Pattern.compile(emailRegEx);
+				Matcher m = p.matcher(String.valueOf(value));
+				if(!m.matches()){
+					throw  new IFormException(itemModel.getName()+"数据格式错误");
+				}
+			}
+		}
 	}
 
 	//完成当前任务
@@ -1657,21 +1678,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				throw  new IFormException(itemModel.getName()+"为必填");
 			}
 			if(addPermission != null || updatePermission != null){
-				if(itemModel.getType() == ItemType.Input){
-					if("phone".equals(itemModel.getTypeKey())){
-						Pattern p = Pattern.compile(phoneRegex);
-						Matcher m = p.matcher(String.valueOf(value));
-						if(!m.matches()){
-							throw  new IFormException(itemModel.getName()+"数据格式错误");
-						}
-					}else if("email".equals(itemModel.getTypeKey())){
-						Pattern p = Pattern.compile(emailRegEx);
-						Matcher m = p.matcher(String.valueOf(value));
-						if(!m.matches()){
-							throw  new IFormException(itemModel.getName()+"数据格式错误");
-						}
-					}
-				}
+				veryInputValue(itemModel, value);
 			}
 		}
 	}
