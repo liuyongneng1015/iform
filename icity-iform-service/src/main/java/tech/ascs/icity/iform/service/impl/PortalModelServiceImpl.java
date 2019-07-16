@@ -10,7 +10,6 @@ import tech.ascs.icity.jpa.dao.Query;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 
 import java.util.Map;
-import java.util.Optional;
 
 public class PortalModelServiceImpl extends DefaultJPAService<PortalModelEntity> implements PortalModelService {
     @Autowired
@@ -31,7 +30,7 @@ public class PortalModelServiceImpl extends DefaultJPAService<PortalModelEntity>
     @Override
     public void moveModel(String id, String action) {
         PortalModelEntity entity = find(id);
-        Assert.isTrue(entity!=null, "该记录不存在或者已删除");
+        Assert.notNull(entity, "该记录不存在或者已删除");
         Query<PortalModelEntity, PortalModelEntity> query = query();
         if ("up".equals(action)) {
             query.filterLessThan("orderNo", entity.getOrderNo()).sort(Sort.desc("orderNo"));
