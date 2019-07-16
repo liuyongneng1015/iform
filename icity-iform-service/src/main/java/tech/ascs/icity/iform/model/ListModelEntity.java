@@ -7,6 +7,8 @@ import java.util.List;
 import javax.persistence.*;
 
 import tech.ascs.icity.iform.api.model.DataPermissionsType;
+import tech.ascs.icity.iform.api.model.DisplayDirection;
+import tech.ascs.icity.iform.api.model.Location;
 import tech.ascs.icity.jpa.dao.model.BaseEntity;
 
 /**
@@ -78,6 +80,24 @@ public class ListModelEntity extends BaseEntity implements Serializable {
 
 	@Enumerated(EnumType.STRING)
 	private DataPermissionsType dataPermissions;
+
+	// 字段名称是否显示
+	private Boolean fieldDisplay;
+	// 显示方向，横向或者竖向
+
+	@Enumerated(EnumType.STRING)
+	private DisplayDirection displayDirection;
+
+	// 门户列表的icon图标
+	private String icon;
+
+	// 栏目高度
+	private Integer columnHeight;
+	// 栏目宽度
+	private Integer columnWidth;
+	// 栏目位置
+	@Enumerated(EnumType.STRING)
+	private Location columnLocation;
 
 	public String getDescription() {
 		return description;
@@ -205,5 +225,53 @@ public class ListModelEntity extends BaseEntity implements Serializable {
 
 	public void setDataPermissions(DataPermissionsType dataPermissions) {
 		this.dataPermissions = dataPermissions;
+	}
+
+	public Boolean getFieldDisplay() {
+		return fieldDisplay;
+	}
+
+	public void setFieldDisplay(Boolean fieldDisplay) {
+		this.fieldDisplay = fieldDisplay;
+	}
+
+	public DisplayDirection getDisplayDirection() {
+		return displayDirection;
+	}
+
+	public void setDisplayDirection(DisplayDirection displayDirection) {
+		this.displayDirection = displayDirection;
+	}
+
+	public String getIcon() {
+		return icon;
+	}
+
+	public void setIcon(String icon) {
+		this.icon = icon;
+	}
+
+	public Integer getColumnHeight() {
+		return columnHeight;
+	}
+
+	public void setColumnHeight(Integer columnHeight) {
+		this.columnHeight = columnHeight;
+	}
+
+	public Integer getColumnWidth() {
+		return columnWidth;
+	}
+
+	public void setColumnWidth(Integer columnWidth) {
+		this.columnWidth = columnWidth;
+	}
+
+	public Location getColumnLocation() {
+		return columnLocation;
+	}
+
+	public void setColumnLocation(Location columnLocation) {
+		this.columnLocation = columnLocation;
 	}
 }

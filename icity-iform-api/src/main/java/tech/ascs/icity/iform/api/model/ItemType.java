@@ -60,7 +60,19 @@ public enum ItemType {
 	Location("Location"),
 
 	/** 流程日志 */
-	ProcessLog("ProcessLog");
+	ProcessLog("ProcessLog"),
+
+	/** 门户建模控件 */
+	/** 新闻 */
+	News("News"),
+	/** 快捷菜单 */
+	QuickMenu("QuickMenu"),
+	/** 列表 */
+	List("List"),
+	/** 报表 */
+	Report("Report"),
+	/** 通知 */
+	Notice("Notice");
 
 	private String value;
 	private ItemType(String value) {
