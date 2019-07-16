@@ -167,6 +167,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		}
 		FormModelEntity formModelEntity = listModel.getMasterForm();
 		Map<String, Object> queryParameters = assemblyQueryParameters(parameters);
+		// 如果流程表单作为普通列表查询，要查事件状态和各个环节的处理人时，一定要查工作流
 		if (formModelHasProcess(formModelEntity)) {
 //			Map<String,ItemModelEntity> formItemsMap = formItemsMap(formModelEntity);
 			return queryIflowList(queryParameters, page, pagesize, formModelEntity, listModel);
