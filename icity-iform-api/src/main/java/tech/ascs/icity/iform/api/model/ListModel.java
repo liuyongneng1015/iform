@@ -86,7 +86,24 @@ public class ListModel extends NameEntity {
 	@ApiModelProperty(value="门户列表模板",position = 16)
 	private List<Map> protalListTemplate;
 
+	@ApiModelProperty(value="字段名称是否显示",position = 17)
+	private Boolean fieldDisplay;
+	@ApiModelProperty(value="显示方向，横向或者竖向",position = 18)
+	private DisplayDirection displayDirection;
+
 	private String searchItemsSort;
+
+	@ApiModelProperty(value="门户列表的icon图标", position = 19)
+	private String icon;
+
+	@ApiModelProperty(value="栏目高度", position = 19)
+	private Integer columnHeight;
+
+	@ApiModelProperty(value="栏目宽度", position = 20)
+	private Integer columnWidth;
+
+	@ApiModelProperty(value="栏目位置", position = 21)
+	private Location columnLocation;
 
 	public String getUniqueCode() {
 		return uniqueCode;
@@ -216,12 +233,60 @@ public class ListModel extends NameEntity {
 		this.protalListTemplate = protalListTemplate;
 	}
 
+	public Boolean getFieldDisplay() {
+		return fieldDisplay;
+	}
+
+	public void setFieldDisplay(Boolean fieldDisplay) {
+		this.fieldDisplay = fieldDisplay;
+	}
+
+	public DisplayDirection getDisplayDirection() {
+		return displayDirection;
+	}
+
+	public void setDisplayDirection(DisplayDirection displayDirection) {
+		this.displayDirection = displayDirection;
+	}
+
 	public String getSearchItemsSort() {
 		return searchItemsSort;
 	}
 
 	public void setSearchItemsSort(String searchItemsSort) {
 		this.searchItemsSort = searchItemsSort;
+	}
+
+	public String getIcon() {
+		return icon;
+	}
+
+	public void setIcon(String icon) {
+		this.icon = icon;
+	}
+
+	public Integer getColumnHeight() {
+		return columnHeight;
+	}
+
+	public void setColumnHeight(Integer columnHeight) {
+		this.columnHeight = columnHeight;
+	}
+
+	public Integer getColumnWidth() {
+		return columnWidth;
+	}
+
+	public void setColumnWidth(Integer columnWidth) {
+		this.columnWidth = columnWidth;
+	}
+
+	public Location getColumnLocation() {
+		return columnLocation;
+	}
+
+	public void setColumnLocation(Location columnLocation) {
+		this.columnLocation = columnLocation;
 	}
 
 	@Override
