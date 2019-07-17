@@ -88,9 +88,9 @@ public class ListModelEntity extends BaseEntity implements Serializable {
 	@Enumerated(EnumType.STRING)
 	private DisplayDirection displayDirection;
 
+	private String uuid;
 	// 门户列表的icon图标
 	private String icon;
-
 	// 栏目高度
 	private Integer columnHeight;
 	// 栏目宽度
@@ -241,6 +241,14 @@ public class ListModelEntity extends BaseEntity implements Serializable {
 
 	public void setDisplayDirection(DisplayDirection displayDirection) {
 		this.displayDirection = displayDirection;
+	}
+
+	public String getUuid() {
+		return uuid;
+	}
+
+	public void setUuid(String uuid) {
+		this.uuid = uuid;
 	}
 
 	public String getIcon() {

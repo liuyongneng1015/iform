@@ -13,6 +13,12 @@ public enum ReturnOperation {
     // 跳转新url
     JumpNewUrl("JumpNewUrl"),
 
+    // 新开页面
+    OpenInNewPage("OpenInNewPage"),
+
+    // 在当前页面打开
+    OpenInCurrentPage("OpenInCurrentPage"),
+
     // 关闭当前页
     CloseCurrentPage("CloseCurrentPage");
 

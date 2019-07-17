@@ -11,37 +11,23 @@ import java.util.List;
 
 public interface ListModelService extends JPAService<ListModelEntity> {
 
+    // 实体类转换
+    ListModelEntity toListModelEntity(ListModel listModel);
+
+    // 实体类转换
+    ListModel toListModel(ListModelEntity listModelEntity);
+
     //查询列表模型
     List<ListModel> findListModelsByTableName(String tableName);
 
-    //删除排序
-    void deleteSort(String id);
-
-    //删除排序
-    void deleteSearch(String id);
-
-    //删除排序
-    void deleteFunction(String id);
-
-    //查询所有列表模型
-    List<ListModel> findListModels();
-
     /**
      * 查询列表模型的简要信息
-     * @param name
-     * @param applicationId
-     * @param formId
      * @param hasAcvititi 列表对应的表单是否绑定了工作流，null表示该条件不查询，false表示查询没有绑定工作流的列表，true表示绑定工作流的列表
      * @return
      */
     List<ListModel> findListModelSimpleInfo(String name, String applicationId, String formId, Boolean hasAcvititi);
 
-    /**
-     * 查询列表模型的简要分页信息
-     * @param name
-     * @param applicationId
-     * @return
-     */
+    // 查询列表模型的简要分页信息
     Page<ListModel> findListModelSimplePageInfo(String name, String applicationId, int page, int pagesize);
 
     //通过列表的id集合查询列表模型

@@ -12,10 +12,13 @@ import java.util.List;
 @ApiModel("门户建模Item")
 public class PortalItemModel extends NameEntity {
 
+    @ApiModelProperty(value = "uuid", position = 3)
+    private String uuid;
+
     @ApiModelProperty(value = "主表单模型", position = 4)
     private FormModel masterForm;
 
-    @ApiModelProperty(value = "功能列表", position = 7)
+    @ApiModelProperty(value = "标题按钮设置", position = 7)
     private List<FunctionModel> functions = new ArrayList();
 
     @ApiModelProperty(value = "查询字段列表", position = 8)
@@ -48,6 +51,26 @@ public class PortalItemModel extends NameEntity {
 
     @ApiModelProperty(value="栏目位置", position = 21)
     private Location columnLocation;
+
+    @ApiModelProperty(value="快捷菜单设置", position = 22)
+    private List<QuickMenuItem> menus = new ArrayList<>();
+
+    @ApiModelProperty(value="新闻条数", position = 23)
+    private Integer newsCount = 0;
+
+    /** 门户建模控件，News 新闻 ，QuickMenu 快捷菜单，List 列表，Report 报表 ，通知 Notice */
+    @ApiModelProperty(value="控件类型", position = 24)
+    private ItemType type;
+
+    public PortalItemModel() { }
+
+    public String getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
+    }
 
     public FormModel getMasterForm() {
         return masterForm;
@@ -143,6 +166,30 @@ public class PortalItemModel extends NameEntity {
 
     public void setColumnLocation(Location columnLocation) {
         this.columnLocation = columnLocation;
+    }
+
+    public List<QuickMenuItem> getMenus() {
+        return menus;
+    }
+
+    public void setMenus(List<QuickMenuItem> menus) {
+        this.menus = menus;
+    }
+
+    public Integer getNewsCount() {
+        return newsCount;
+    }
+
+    public void setNewsCount(Integer newsCount) {
+        this.newsCount = newsCount;
+    }
+
+    public ItemType getType() {
+        return type;
+    }
+
+    public void setType(ItemType type) {
+        this.type = type;
     }
 
     @Override
