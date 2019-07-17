@@ -141,10 +141,10 @@ public class IFormTable extends Table {
 					StringBuilder alter = new StringBuilder(dialect.getAlterTableString(tableName))
 							.append(" alter column ").append(column.getQuotedName(dialect));
 					String defaultValue = column.getDefaultValue();
-					if (defaultValue != null) {
+					if (defaultValue != null && !defaultValue.equalsIgnoreCase("null")) {
 						alter.append(" set default ").append(defaultValue);
 					} else {
-						alter.append(" set default null");
+						alter.append(" drop default");
 					}
 
 					results.add(alter.toString());
