@@ -210,9 +210,12 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		Map<String, Object> data = queryProcessInstance(formModelEntity, queryParameters,  page,  pagesize);
 		// 总条数
 		Integer totalCount = (Integer)data.get("totalCount");
+		// 表单实例ID在流程数据中的排序存储在 formInstanceIdOrder 这个字段
+		Set<String> formInstanceIdOrder = ((Map<String, ProcessInstance>) data.get("data")).keySet();
 		Map<String, ProcessInstance> instanceIdAndProcessMap = (Map<String, ProcessInstance>)data.get("data");
 		String[] formInstanceIds = instanceIdAndProcessMap.keySet().parallelStream().toArray(String[]::new);
 		if (formInstanceIds!=null && formInstanceIds.length>0) {
+			System.out.println("流程返回的所有实例ID===>>>"+Arrays.asList(formInstanceIds));
 			Optional<ItemModelEntity> idItemOption = formModelEntity.getItems().stream().filter(item->SystemItemType.ID == item.getSystemItemType()).findFirst();
 			queryParameters = new HashMap<>();
 			if (idItemOption.isPresent()) {
@@ -222,9 +225,9 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			for (FormDataSaveInstance instance:list) {
 				formInstanceService.setFlowFormInstance(formModelEntity, instanceIdAndProcessMap.get(instance.getId()), instance);
 			}
-			// 列表查出来的数据可能是无序的，按照流程返回的顺序排，封装流程返回的数据data用了LinkedHashMap，直接用LinkedHashMap的Key排序
+			// 列表查出来的数据可能是无序的，按照流程返回的顺序排，封装流程返回的数据data用了LinkedHashMap，直接用LinkedHashMap的Key顺序
 			List<FormDataSaveInstance> newList = new ArrayList<>();
-			for (String id:data.keySet()) {
+			for (String id:formInstanceIdOrder) {
 				Optional<FormDataSaveInstance> optional = list.stream().filter(item->id.equals(item.getId())).findFirst();
 				if (optional.isPresent()) {
 					newList.add(optional.get());
