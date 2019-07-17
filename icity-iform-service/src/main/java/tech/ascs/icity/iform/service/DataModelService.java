@@ -48,4 +48,5 @@ public interface DataModelService extends JPAService<DataModelEntity> {
 
 	//校验数据建模
 	void veryTableName(DataModelEntity oldDataModelEntity);
+
 }

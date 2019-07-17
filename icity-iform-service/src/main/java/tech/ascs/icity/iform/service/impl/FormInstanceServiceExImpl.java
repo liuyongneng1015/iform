@@ -1712,6 +1712,12 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
             }
 			// after
 			sendWebService( formModel, BusinessTriggerType.Delete_After, entity, instanceId);
+
+            //删除流程数据
+			FormProcessInfo formProcessInfo = formModel.getProcess();
+			if (formProcessInfo != null) {
+				processInstanceService.deleteByBusinessKey(instanceId);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			if(e instanceof IFormException){
@@ -4274,6 +4280,33 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
         }
         return result;
     }
+
+	@Override
+	public void deleteFormData(FormModelEntity formModelEntity) {
+		DataModelEntity dataModelEntity = formModelEntity.getDataModels().get(0);
+		if(dataModelEntity == null){
+			return;
+		}
+		List<Map<String, Object>> mapList = jdbcTemplate.queryForList("select tablename from pg_tables where schemaname='public'");
+		List<String> tableList = new ArrayList<>();
+		if(mapList != null && mapList.size() >0 ) {
+			for (Map<String, Object> map : mapList) {
+				tableList.add((String)map.get("tablename"));
+			}
+		}
+		String tableName = dataModelEntity.getPrefix() == null ? dataModelEntity.getTableName() : dataModelEntity.getPrefix()+dataModelEntity.getTableName();
+		if(tableList.contains(tableName)){
+			List<Map<String, Object>> idList = jdbcTemplate.queryForList("select id from "+tableName);
+			if(idList != null && idList.size() >0 ) {
+				for (Map<String, Object> map : idList) {
+					if(map.get("id") != null) {
+						deleteFormInstance(formModelEntity, (String) map.get("id"));
+					}
+				}
+			}
+		}
+
+	}
 
     //设置流程状态
 	private void setFormInstanceProcessStatus(FormDataSaveInstance formInstance, ProcessInstance processInstance){

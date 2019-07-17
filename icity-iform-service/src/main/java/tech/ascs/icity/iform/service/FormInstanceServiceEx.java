@@ -67,4 +67,8 @@ public interface FormInstanceServiceEx {
 
 	//根据字段参数查询表单数据
 	List<FormDataSaveInstance> findByColumnMap(FormModelEntity formModel, Map<String, Object> columnMap);
+
+	//删除表单数据
+    void deleteFormData(FormModelEntity formModelEntity);
+
 }
