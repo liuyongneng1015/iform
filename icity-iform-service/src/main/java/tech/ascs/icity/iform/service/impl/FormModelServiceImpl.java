@@ -1329,6 +1329,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 	@Override
 	public FormModelEntity saveFormModelProcessBind(FormModelEntity entity) {
 		FormModelEntity oldFormModelEntity = get(entity.getId());
+		FormProcessInfo oldProcessInfo = oldFormModelEntity.getProcess();
 		BeanUtils.copyProperties(entity, oldFormModelEntity, new String[] {"items","dataModels","permissions","submitChecks","functions", "triggeres"});
 
 		List<ItemModelEntity> parameterItems = entity.getItems();
@@ -1404,6 +1405,12 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		formModelManager.save(oldFormModelEntity);
 		//同步流程字段
 		dataModelService.sync(oldFormModelEntity.getDataModels().get(0));
+
+		if((oldProcessInfo == null && entity.getProcess() != null) 	|| (oldProcessInfo != null && entity.getProcess() == null )
+				|| (oldProcessInfo != null && entity.getProcess() != null && !oldProcessInfo.getKey().equals(entity.getProcess().getKey()))){
+			//删除旧数据
+			formInstanceServiceEx.deleteFormData(oldFormModelEntity);
+		}
 		return oldFormModelEntity;
 	}
 
@@ -1533,16 +1540,16 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			BeanUtils.copyProperties(formModel.getProcess(), processInfo);
 		}
 
-		if((oldProcessInfo == null && formModel.getProcess() != null) 	|| (oldProcessInfo != null && formModel.getProcess() == null )
-			|| (oldProcessInfo != null && formModel.getProcess() != null && !oldProcessInfo.getKey().equals(formModel.getProcess().getKey()))){
-			//删除旧数据
-			formInstanceServiceEx.deleteFormData(formModelEntity);
-		}
-
 		formModelEntity.setProcess(processInfo);
 		formModelManager.save(formModelEntity);
 		//同步流程字段
 		dataModelService.sync(formModelEntity.getDataModels().get(0));
+
+		if((oldProcessInfo == null && formModel.getProcess() != null) 	|| (oldProcessInfo != null && formModel.getProcess() == null )
+				|| (oldProcessInfo != null && formModel.getProcess() != null && !oldProcessInfo.getKey().equals(formModel.getProcess().getKey()))){
+			//删除旧数据
+			formInstanceServiceEx.deleteFormData(formModelEntity);
+		}
 	}
 
 	@Override
