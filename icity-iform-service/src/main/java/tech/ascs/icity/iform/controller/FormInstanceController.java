@@ -225,7 +225,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			for (FormDataSaveInstance instance:list) {
 				formInstanceService.setFlowFormInstance(formModelEntity, instanceIdAndProcessMap.get(instance.getId()), instance);
 			}
-			// 列表查出来的数据可能是无序的，按照流程返回的顺序排，封装流程返回的数据data用了LinkedHashMap，直接用LinkedHashMap的Key顺序
+			// 列表查出来的数据可能是无序的，按照流程返回的顺序排，流程引擎中实例ID的排序存储在 formInstanceIdOrder 这个字段
 			List<FormDataSaveInstance> newList = new ArrayList<>();
 			for (String id:formInstanceIdOrder) {
 				Optional<FormDataSaveInstance> optional = list.stream().filter(item->id.equals(item.getId())).findFirst();
@@ -351,7 +351,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	}
 
 	private void assemblyReferenceStringParams(String valueStr, SelectItemModelEntity selectItem, Map<String, Object> iflowQueryParams, ColumnModelEntity columnModel) {
-		if (SelectReferenceType.Table == selectItem.getSelectReferenceType()) {
+		if (SelectReferenceType.Fixed == selectItem.getSelectReferenceType()) {
 			List<ItemSelectOption> options = selectItem.getOptions();
 			for (ItemSelectOption selectOption : options) {
 				if (selectOption.getId().equals(valueStr)) {
