@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -152,7 +151,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				throw new ICityException("唯一编码与已存在的列表建模有重复");
 			}
 		}
-		ListModelEntity entity = wrap(ListModel);
+		ListModelEntity entity = listModelService.toListModelEntity(ListModel);
 		for (Map map:appListTemplateList) {
 			map.put("id", UUID.randomUUID().toString().replaceAll("-",""));
 		}
@@ -200,7 +199,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		// 校验默认的功能按钮是否被删除
 		checkDefaultFuncExists(ListModel);
 		try {
-			ListModelEntity entity = wrap(ListModel);
+			ListModelEntity entity = listModelService.toListModelEntity(ListModel);
 			listModelService.save(entity);
 		} catch (Exception e) {
 		    throw new IFormException("保存列表模型列表失败：" + e.getMessage(), e);
@@ -351,191 +350,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		return applicationFormModel;
 	}
 
-
-	private ListModelEntity wrap(ListModel listModel)  {
-
-		verfyListName(listModel);
-
-		ListModelEntity listModelEntity =  new ListModelEntity() ;
-		BeanUtils.copyProperties(listModel, listModelEntity, new String[] {"dataModels", "masterForm","slaverForms","sortItems", "searchItems","functions","displayItems", "quickSearchItems", "relevanceItemModelList", "protalListTemplate", "appListTemplate"});
-
-		try {
-			List<Map> protalListTemplate = listModel.getProtalListTemplate();
-			List<Map> appListTemplate = listModel.getAppListTemplate();
-			if (appListTemplate != null && appListTemplate.size()>0) {
-				listModelEntity.setAppListTemplate(objectMapper.writeValueAsString(appListTemplate));
-			}
-			if (protalListTemplate != null && protalListTemplate.size()>0) {
-				listModelEntity.setProtalListTemplate(objectMapper.writeValueAsString(protalListTemplate));
-			}
-		} catch (IOException e) {
-			throw new ICityException(e.getLocalizedMessage(), e);
-		}
-
-		if(listModel.getMasterForm() != null && !listModel.getMasterForm().isNew()) {
-			FormModelEntity formModelEntity = new FormModelEntity();
-			BeanUtils.copyProperties(listModel.getMasterForm(), formModelEntity, new String[] {"dataModels","items", "permissions","submitChecks","functions", "triggeres", "protalListTemplate", "appListTemplate"});
-			listModelEntity.setMasterForm(formModelEntity);
-		}
-
-		if(listModel.getSlaverForms() != null) {
-			List<FormModelEntity> formModelEntities = new ArrayList<>();
-			for (FormModel formModel : listModel.getSlaverForms()){
-				FormModelEntity formModelEntity = new FormModelEntity();
-				BeanUtils.copyProperties(formModel, formModelEntity, new String[]{"dataModels", "items", "permissions", "submitChecks","functions", "triggeres"});
-				formModelEntities.add(formModelEntity);
-			}
-			listModelEntity.setSlaverForms(formModelEntities);
-		}
-
-		List<String> displayItemsSortIds = new ArrayList<>();
-		if(listModel.getDisplayItems() != null) {
-			List<ItemModelEntity> itemModelEntities = new ArrayList<>();
-			for (ItemModel itemModel : listModel.getDisplayItems()) {
-				if (itemModel==null || StringUtils.isEmpty(itemModel.getId())) {
-					throw new IFormException("列表字段勾选的item的ID不能为空");
-				}
-				ItemModelEntity itemModelEntity = new ItemModelEntity();
-				itemModelService.copyItemModelToItemModelEntity(itemModel, itemModelEntity);
-				if (itemModel.getTriggerIds()!=null && itemModel.getTriggerIds().size()>0) {
-					itemModelEntity.setTriggerIds(String.join(",", itemModel.getTriggerIds()));
-				}
-				itemModelEntities.add(itemModelEntity);
-				displayItemsSortIds.add(itemModel.getId());
-			}
-			listModelEntity.setDisplayItems(itemModelEntities);
-		}
-		listModelEntity.setDisplayItemsSort(String.join(",", displayItemsSortIds));
-
-		if (listModel.getSortItems() != null) {
-			List<ListSortItem> sortItems = new ArrayList<ListSortItem>();
-			for (SortItem sortItem : listModel.getSortItems()) {
-				if(sortItem.getItemModel() == null || StringUtils.isEmpty(sortItem.getItemModel().getId())) {
-					throw new IFormException("默认排序勾选的item的ID不能为空");
-				}
-				ListSortItem sortItemEntity = new ListSortItem();
-				sortItemEntity.setListModel(listModelEntity);
-				ItemModelEntity itemModelEntity = new ItemModelEntity();
-				itemModelService.copyItemModelToItemModelEntity(sortItem.getItemModel(), itemModelEntity);
-				if (sortItem.getItemModel().getTriggerIds()!=null && sortItem.getItemModel().getTriggerIds().size()>0) {
-					itemModelEntity.setTriggerIds(String.join(",", sortItem.getItemModel().getTriggerIds()));
-				}
-				sortItemEntity.setItemModel(itemModelEntity);
-				sortItemEntity.setAsc(sortItem.isAsc());
-				sortItems.add(sortItemEntity);
-			}
-			listModelEntity.setSortItems(sortItems);
-		}
-
-		List<String> searchItemsSortIds = new ArrayList<>();
-		if (listModel.getSearchItems() != null) {
-			List<ListSearchItem> searchItems = new ArrayList();
-			for (int i = 0; i < listModel.getSearchItems().size(); i++) {
-				SearchItem searchItem =  listModel.getSearchItems().get(i);
-				if (searchItem==null || StringUtils.isEmpty(searchItem.getId())) {
-					throw new IFormException("查询条件勾选的item的ID不能为空");
-				}
-				if (searchItem.getSearch() == null) {
-					throw new IFormException("控件【" + searchItem.getName() + "】未定义搜索属性");
-				}
-				ItemModelEntity itemModelEntity = new ItemModelEntity();
-				itemModelEntity.setId(searchItem.getId());
-				ListSearchItem searchItemEntity =  new ListSearchItem();
-				BeanUtils.copyProperties(searchItem, searchItemEntity, "listModel", "itemModel", "search", "id", "name", "parseArea");
-				if (searchItem.getParseArea()!=null && searchItem.getParseArea().size()>0) {
-					searchItemEntity.setParseArea(String.join(",", searchItem.getParseArea()));
-				}
-				searchItemEntity.setListModel(listModelEntity);
-				searchItemEntity.setItemModel(itemModelEntity);
-
-				ItemSearchInfo searchInfo = new ItemSearchInfo();
-				BeanUtils.copyProperties(searchItem.getSearch(), searchInfo, new String[]{"defaultValue", "defaultValueName"});
-				Object defalueValue = searchItem.getSearch().getDefaultValue();
-				if(defalueValue != null && defalueValue instanceof List){
-					searchInfo.setDefaultValue(String.join(",", (List)searchItem.getSearch().getDefaultValue()));
-				} else if(defalueValue != null) {
-					searchInfo.setDefaultValue(StringUtils.isEmpty(defalueValue) ? null : String.valueOf(defalueValue));
-				}
-				searchItemEntity.setOrderNo(i);
-				searchItemEntity.setSearch(searchInfo);
-				searchItems.add(searchItemEntity);
-				searchItemsSortIds.add(searchItem.getId());
-			}
-			listModelEntity.setSearchItems(searchItems);
-		}
-		listModelEntity.setSearchItemsSort(String.join(",", searchItemsSortIds));
-
-		if (listModel.getFunctions() != null) {
-			List<ListFunction> functions = new ArrayList<>();
-			int i = 0;
-			for (FunctionModel function : listModel.getFunctions()) {
-				if (function==null || StringUtils.isEmpty(function.getLabel()) || StringUtils.isEmpty(function.getAction())) {
-					throw new IFormException("功能按钮存在功能名或者功能编码为空");
-				}
-				ListFunction listFunction = new ListFunction() ;
-				BeanUtils.copyProperties(function, listFunction, new String[]{"listModel", "parseArea"});
-				if (function.getParseArea()!=null && function.getParseArea().size()>0) {
-					listFunction.setParseArea(String.join(",", function.getParseArea()));
-				}
-				listFunction.setListModel(listModelEntity);
-				listFunction.setOrderNo(++i);
-				functions.add(listFunction);
-			}
-			listModelEntity.setFunctions(functions);
-		}
-
-		if (listModel.getQuickSearchItems() !=null) {
-			// 检测快速筛选的个数
-			Long count = listModel.getQuickSearchItems().stream().filter(item->item.getDefaultActive()!=null && item.getDefaultActive()==true).count();
-			if (count>1) {
-				throw new IFormException("快速筛选的默认勾选个数不能超过1个");
-			}
-		    List<QuickSearchEntity> quickSearches = new ArrayList<>();
-            int i = 0;
-		    for (QuickSearchItem searchItem : listModel.getQuickSearchItems()) {
-		    	if (searchItem==null || StringUtils.isEmpty(searchItem.getName())) {
-					throw new IFormException("快速筛选有导航名为空");
-				}
-				ItemModel itemModel = searchItem.getItemModel();
-                QuickSearchEntity quickSearchEntity = new QuickSearchEntity();
-		    	if (itemModel!=null && !StringUtils.isEmpty(itemModel.getId())) {
-					ItemModelEntity itemModelEntity = new ItemModelEntity();
-					itemModelEntity.setId(itemModel.getId());
-					quickSearchEntity.setItemModel(itemModelEntity);
-				}
-                BeanUtils.copyProperties(searchItem, quickSearchEntity, new String[]{"itemModel", "searchValues"});
-				quickSearchEntity.setSearchValues(String.join(",", searchItem.getSearchValues()));
-                quickSearchEntity.setOrderNo(++i);
-                quickSearchEntity.setListModel(listModelEntity);
-				quickSearchEntity.setDefaultActive(searchItem.getDefaultActive());
-                quickSearches.add(quickSearchEntity);
-            }
-            listModelEntity.setQuickSearchItems(quickSearches);
-		}
-		return listModelEntity;
-	}
-
-	private void verfyListName(ListModel listModel) {
-		if(StringUtils.isEmpty(listModel.getName()) || StringUtils.isEmpty(listModel.getApplicationId())){
-			throw new IFormException("名称或关联应用为空");
-		}
-		List<ListModelEntity> list = listModelService.query().filterEqual("name", listModel.getName())
-													 .filterEqual("applicationId", listModel.getApplicationId())
-													 .filterNotNull("masterForm")
-													 .list();
-		if(list == null || list.size() < 1){
-			return;
-		}
-		if(list.size() > 0 && !StringUtils.hasText(listModel.getId())){
-			throw new IFormException("名称重复了");
-		}
-
-		List<String> idList = list.parallelStream().map(item->item.getId()).collect(Collectors.toList());
-		if(StringUtils.hasText(listModel.getId()) && !idList.contains(listModel.getId())){
-			throw new IFormException("列表名重复了");
-		}
-	}
-
+	/**
 	private Page<ListModel> toDTO(Page<ListModelEntity> entities) throws InstantiationException, IllegalAccessException {
 		Page<ListModel> listModels = Page.get(entities.getPage(), entities.getPagesize());
 		listModels.data(entities.getTotalCount(), toDTO(entities.getResults()));
@@ -549,6 +364,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		}
 		return listModels;
 	}
+	 */
 
 	private List<Map> toAppListTemplate(String appListTemplate) {
 		if (StringUtils.hasText(appListTemplate)) {
@@ -582,21 +398,6 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			FormModel masterForm = new FormModel();
 			BeanUtils.copyProperties(formModelEntity, masterForm, new String[] {"items","dataModels","permissions","submitChecks","functions", "triggeres"});
 			listModel.setMasterForm(masterForm);
-
-			if(formModelEntity.getDataModels() != null && formModelEntity.getDataModels().size() > 0){
-				List<DataModel> dataModelList = new ArrayList<>();
-				List<DataModelEntity> dataModelEntities = new ArrayList<>();
-				for (DataModelEntity dataModelEntity : formModelEntity.getDataModels()) {
-					dataModelEntities.add(dataModelEntity);
-					if(dataModelEntity.getSlaverModels() != null && dataModelEntity.getSlaverModels().size() > 0) {
-						dataModelEntities.addAll(dataModelEntity.getSlaverModels());
-					}
-				}
-				for (DataModelEntity dataModelEntity : dataModelEntities) {
-					dataModelList.add(formModelService.getDataModel(dataModelEntity));
-				}
-				listModel.setDataModels(dataModelList);
-			}
 		}
 
 		Set<String> masterFormItemIds = formModelService.findAllItems(listModelEntity.getMasterForm()).stream().map(item->item.getId()).collect(Collectors.toSet());
@@ -883,14 +684,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			return null;
 		}
 
-		Set<ItemModelEntity> itemModelEntities = new HashSet<>();
-		for(String itemId : idResultList) {
-			ItemModelEntity itemModelEntity = itemModelService.find(itemId);
-			if (itemModelEntity!=null) {
-				itemModelEntities.add(itemModelService.find(itemId));
-			}
-		}
-
+		List<ItemModelEntity> itemModelEntities = itemModelService.query().filterIn("id", idResultList).list();
 		List<ItemModel> list = new ArrayList<>();
 		for(ItemModelEntity itemModelEntity : itemModelEntities){
 			ItemModel itemModel = new ItemModel();

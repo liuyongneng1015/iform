@@ -93,6 +93,9 @@ public class ListModel extends NameEntity {
 
 	private String searchItemsSort;
 
+	@ApiModelProperty(value="uuid", position = 19)
+	private String uuid;
+
 	@ApiModelProperty(value="门户列表的icon图标", position = 19)
 	private String icon;
 
@@ -255,6 +258,14 @@ public class ListModel extends NameEntity {
 
 	public void setSearchItemsSort(String searchItemsSort) {
 		this.searchItemsSort = searchItemsSort;
+	}
+
+	public String getUuid() {
+		return uuid;
+	}
+
+	public void setUuid(String uuid) {
+		this.uuid = uuid;
 	}
 
 	public String getIcon() {

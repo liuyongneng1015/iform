@@ -46,4 +46,14 @@ public class PortalModelServiceImpl extends DefaultJPAService<PortalModelEntity>
             save(another);
         }
     }
+
+    @Override
+    public PortalModelEntity save(PortalModelEntity entity) {
+        if (entity.isNew()) {
+
+        } else {
+
+        }
+        return entity;
+    }
 }
