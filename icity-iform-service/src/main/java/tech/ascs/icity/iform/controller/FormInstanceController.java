@@ -1,11 +1,9 @@
 package tech.ascs.icity.iform.controller;
 
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import com.alibaba.fastjson.JSON;
@@ -19,7 +17,6 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,7 +34,6 @@ import tech.ascs.icity.iform.utils.*;
 import tech.ascs.icity.model.IdEntity;
 import tech.ascs.icity.model.Page;
 
-import javax.imageio.ImageIO;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 
@@ -68,8 +64,6 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 
 	@Autowired
 	private UserService userService;
-	@Autowired
-	private RedisTemplate<String,Object> redisTemplate;
 	@Autowired
 	private DictionaryDataService dictionaryService;
 	@Autowired
@@ -1007,15 +1001,6 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		}
 	}
 
-	public Map<String,ItemModelEntity> formItemsMap(FormModelEntity formModelEntity) {
-		Map<String, ItemModelEntity> formItemsMap = new HashMap<>();
-		List<ItemModelEntity> formAllItemsList = getFormAllItems(formModelEntity);
-		for (ItemModelEntity item:formAllItemsList) {
-			formItemsMap.put(item.getId(), item);
-		}
-		return formItemsMap;
-	}
-
 	/**
 	 * 获取表单的所有item控件
 	 * @param formModelEntity
@@ -1024,30 +1009,23 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	public List<ItemModelEntity> getFormAllItems(FormModelEntity formModelEntity) {
 		List<ItemModelEntity> items = new ArrayList<>();
 		if (formModelEntity!=null && formModelEntity.getItems()!=null) {
-			for (ItemModelEntity item:formModelEntity.getItems()) {
-				if (item!=null) {
-					items.add(item);
-					items.addAll(getItemsInItem(item));
-				}
-			}
+			return getItems(formModelEntity.getItems());
 		}
 		return items;
 	}
 
-	public List<ItemModelEntity> getItemsInItem(ItemModelEntity itemModelEntity) {
-		List<ItemModelEntity> list = new ArrayList<>();
+	public List<ItemModelEntity> getItems(List<ItemModelEntity> list) {
+		List<ItemModelEntity> returnList = new ArrayList<>();
 		try {
-			for (Field field:itemModelEntity.getClass().getDeclaredFields()) {   //遍历属性
-				if (field.getName().equals("items")) {
-					field.setAccessible(true);
-					Object itemValues = field.get(itemModelEntity);
-					if (itemValues!=null && itemValues instanceof List) {
-						List<ItemModelEntity> items = (List<ItemModelEntity>)itemValues;
-						for (ItemModelEntity subItem:items) {
-							if (subItem!=null) {
-								list.add(subItem);
-								list.addAll(getItemsInItem(subItem));
-							}
+			list = list!=null? list:new ArrayList<>();
+			for (ItemModelEntity entity:list) {
+				returnList.add(entity);
+				for (Field field:entity.getClass().getDeclaredFields()) {   //遍历属性
+					if (field.getName().equals("items")) {
+						field.setAccessible(true);
+						Object itemValues = field.get(entity);
+						if (itemValues!=null && itemValues instanceof List && ((List<ItemModelEntity>)itemValues).size()>0) {
+							returnList.addAll((List<ItemModelEntity>)itemValues);
 						}
 					}
 				}
@@ -1055,6 +1033,6 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		} catch (Exception e) {
 			throw new ICityException(e.getLocalizedMessage(), e);
 		}
-		return list;
+		return returnList;
 	}
 }

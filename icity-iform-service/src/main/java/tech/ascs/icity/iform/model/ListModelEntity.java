@@ -99,6 +99,12 @@ public class ListModelEntity extends BaseEntity implements Serializable {
 	@Enumerated(EnumType.STRING)
 	private Location columnLocation;
 
+	// 展示操作栏
+	private Boolean showActionBar = true;
+
+	// 展示序号
+	private Boolean showSequenceNumber = true;
+
 	public String getDescription() {
 		return description;
 	}
@@ -281,5 +287,21 @@ public class ListModelEntity extends BaseEntity implements Serializable {
 
 	public void setColumnLocation(Location columnLocation) {
 		this.columnLocation = columnLocation;
+	}
+
+	public Boolean getShowActionBar() {
+		return showActionBar;
+	}
+
+	public void setShowActionBar(Boolean showActionBar) {
+		this.showActionBar = showActionBar;
+	}
+
+	public Boolean getShowSequenceNumber() {
+		return showSequenceNumber;
+	}
+
+	public void setShowSequenceNumber(Boolean showSequenceNumber) {
+		this.showSequenceNumber = showSequenceNumber;
 	}
 }

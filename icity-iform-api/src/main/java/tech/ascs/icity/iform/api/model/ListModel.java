@@ -108,6 +108,14 @@ public class ListModel extends NameEntity {
 	@ApiModelProperty(value="栏目位置", position = 21)
 	private Location columnLocation;
 
+	// 显示操作栏
+	@ApiModelProperty(value="显示操作栏", position = 22)
+	private Boolean showActionBar = true;
+
+	// 显示序号
+	@ApiModelProperty(value="显示序号", position = 23)
+	private Boolean showSequenceNumber = true;
+
 	public String getUniqueCode() {
 		return uniqueCode;
 	}
@@ -298,6 +306,22 @@ public class ListModel extends NameEntity {
 
 	public void setColumnLocation(Location columnLocation) {
 		this.columnLocation = columnLocation;
+	}
+
+	public Boolean getShowActionBar() {
+		return showActionBar;
+	}
+
+	public void setShowActionBar(Boolean showActionBar) {
+		this.showActionBar = showActionBar;
+	}
+
+	public Boolean getShowSequenceNumber() {
+		return showSequenceNumber;
+	}
+
+	public void setShowSequenceNumber(Boolean showSequenceNumber) {
+		this.showSequenceNumber = showSequenceNumber;
 	}
 
 	@Override
