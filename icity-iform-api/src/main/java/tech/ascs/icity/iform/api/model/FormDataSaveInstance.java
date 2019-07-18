@@ -61,12 +61,15 @@ public class FormDataSaveInstance extends IdEntity {
 	protected Object functions;
 
 	/** 当前环节表单配置 */
-	@ApiModelProperty(value = "当前环节表单配置", position = 14)
+	@ApiModelProperty(value = "当前环节表单配置", position = 15)
 	protected Object permissions;
 
 	/** 当前用户是否当前流程环节处理人 */
-	@ApiModelProperty(value = "当前用户是否当前流程环节处理人", position = 13)
+	@ApiModelProperty(value = "当前用户是否当前流程环节处理人", position = 16)
 	private Boolean myTask;
+
+	@ApiModelProperty(value = "当前环节实例", position = 17)
+	private Object currentTaskInstance;
 
 	public String getFormId() {
 		return formId;
@@ -214,6 +217,14 @@ public class FormDataSaveInstance extends IdEntity {
 
 	public void setMyTask(Boolean myTask) {
 		this.myTask = myTask;
+	}
+
+	public Object getCurrentTaskInstance() {
+		return currentTaskInstance;
+	}
+
+	public void setCurrentTaskInstance(Object currentTaskInstance) {
+		this.currentTaskInstance = currentTaskInstance;
 	}
 
 	@ApiModelProperty(value = "表单实例ID", position = 0)

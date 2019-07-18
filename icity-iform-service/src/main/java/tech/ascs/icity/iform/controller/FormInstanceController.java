@@ -441,7 +441,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		}
 	}
 
-	public static void main(String[] args) {
+	public static void mainss(String[] args) {
 		try {
 			XSSFWorkbook wb = new XSSFWorkbook();
 			XSSFSheet sheet = wb.createSheet("测试表单-test");

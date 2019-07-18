@@ -24,6 +24,7 @@ import tech.ascs.icity.admin.client.GroupService;
 import tech.ascs.icity.admin.client.UserService;
 import tech.ascs.icity.iflow.api.model.ProcessInstance;
 import tech.ascs.icity.iflow.api.model.TaskInstance;
+import tech.ascs.icity.iflow.api.model.WorkingTask;
 import tech.ascs.icity.iflow.client.ProcessInstanceService;
 import tech.ascs.icity.iflow.client.ProcessService;
 import tech.ascs.icity.iflow.client.TaskService;
@@ -615,11 +616,12 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}
 		}
 		for (String key : flowData.keySet()) {
-			ItemModelEntity itemModel = columnNameAndItemModelMap.get(key);
 			Object value = flowData.get(key);
 			if(value == null){
+				returnMap.put(key, null);
 				continue;
 			}
+			ItemModelEntity itemModel = columnNameAndItemModelMap.get(key);
 			if (itemModel == null) {
 				returnMap.put(key, getValueStr(value));
 				continue;
@@ -704,7 +706,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	private String getValueStr(Object value){
 		try {
-			Object object = null;
+			Object object = value;
 			if(value instanceof Map){
 				Map<String, Object> map = new HashMap<>();
 				for(String keyStr : ((Map<String, Object>)value).keySet()){
@@ -1520,7 +1522,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 		if (itemModel.getType() == ItemType.DatePicker || itemModel.getSystemItemType() == SystemItemType.CreateDate) {
 			try {
-				value = itemInstance.getValue() == null ? null : new Date(Long.parseLong(String.valueOf(itemInstance.getValue())));
+				value = itemInstance.getValue() == null || !StringUtils.hasText(String.valueOf(itemInstance.getValue())) ? null : new Date(Long.parseLong(String.valueOf(itemInstance.getValue())));
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -1534,9 +1536,12 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
             }
 		} else if (itemModel.getType() == ItemType.InputNumber && ((NumberItemModelEntity)itemModel).getDecimalDigits() != null
 				&& ((NumberItemModelEntity)itemModel).getDecimalDigits() > 0 && itemInstance.getValue() != null) {
-			BigDecimal bigDecimal = new BigDecimal(String.valueOf(itemInstance.getValue()));
-			value = bigDecimal.divide(new BigDecimal(1.0), ((NumberItemModelEntity)itemModel).getDecimalDigits(), BigDecimal.ROUND_DOWN).doubleValue();
-			System.out.println(value);
+			if(itemInstance.getValue() != null && StringUtils.hasText(String.valueOf(itemInstance.getValue())) ) {
+				BigDecimal bigDecimal = new BigDecimal(String.valueOf(itemInstance.getValue()));
+				value = bigDecimal.divide(new BigDecimal(1.0), ((NumberItemModelEntity) itemModel).getDecimalDigits(), BigDecimal.ROUND_DOWN).doubleValue();
+			}else{
+				value = null;
+			}
 		} else if (itemModel.getType() == ItemType.Media || itemModel.getType() == ItemType.Attachment) {
             Object o = itemInstance.getValue();
 			Map<String, FileUploadEntity> fileUploadEntityMap = new HashMap<>();
@@ -3966,6 +3971,12 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				throw new IFormException("没有查询到【" + dataModel.getTableName() + "】表，id【"+id+"】的数据");
 			}
 			formInstance = wrapFormDataEntity(false, formModel, null, map, id,true);
+			if(StringUtils.hasText(formInstance.getProcessInstanceId())) {
+				ProcessInstance processInstance = processInstanceService.get(formInstance.getProcessInstanceId());
+				if(processInstance != null) {
+					setFlowFormInstance(formModel, processInstance, formInstance);
+				}
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			if(e instanceof ICityException){
@@ -4083,6 +4094,23 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 		instance.setMyTask(processInstance.isMyTask());
 		instance.setFunctions(processInstance.getCurrentTaskInstance() == null ? null : processInstance.getCurrentTaskInstance().getOperations());
+		WorkingTask taskInstance =  new WorkingTask();
+		if(processInstance.getCurrentTaskInstance() instanceof WorkingTask) {
+			taskInstance.setSignable(((WorkingTask) processInstance.getCurrentTaskInstance()).isSignable());
+			taskInstance.setRejectable(((WorkingTask) processInstance.getCurrentTaskInstance()).isRejectable());
+			taskInstance.setComplatable(((WorkingTask) processInstance.getCurrentTaskInstance()).isComplatable());
+			taskInstance.setReturnable(((WorkingTask) processInstance.getCurrentTaskInstance()).isReturnable());
+			taskInstance.setJumpable(((WorkingTask) processInstance.getCurrentTaskInstance()).isJumpable());
+		}else{
+			System.out.println("zzz------");
+			taskInstance.setSignable(false);
+			taskInstance.setRejectable(false);
+			taskInstance.setComplatable(false);
+			taskInstance.setReturnable(false);
+			taskInstance.setJumpable(false);
+		}
+		instance.setCurrentTaskInstance(taskInstance);
+
 		//流程表单控件权限
 		List<Map<String, Object>> flowFormDefinition = processInstance.getCurrentTaskInstance() == null ? null : (List<Map<String, Object>>)(processInstance.getCurrentTaskInstance().getFormDefinition());
 		Map<String, Map<String, Object>> flowPermissionsMap = new HashMap<>();
