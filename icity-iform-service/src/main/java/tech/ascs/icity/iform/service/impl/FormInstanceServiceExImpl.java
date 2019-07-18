@@ -582,7 +582,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		flowData.putAll(data);
 
 		//启动流程带入表单数据
-		flowData.put("formId", formInstance.getFormId());
+		flowData.put("formId", formModel.getId());
 		flowData.put("id", newId);
 
 		//跳过第一个流程环节
