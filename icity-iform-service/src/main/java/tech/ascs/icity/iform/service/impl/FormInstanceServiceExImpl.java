@@ -1024,7 +1024,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		if(paramCondition != null && paramCondition.contains(ParamCondition.FormCurrentData.getValue())) {
 			flowData.putAll(data);
 		}
-		flowData.put("formId", formInstance.getFormId());
+		flowData.put("formId", formModel.getId());
 		flowData.put("id", formInstance.getId());
 		//上一个流程环节数据
 		TaskInstance taskInstance = null;

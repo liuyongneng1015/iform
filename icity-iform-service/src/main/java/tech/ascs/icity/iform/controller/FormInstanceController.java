@@ -606,7 +606,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		if (formDataSaveInstance!=null) {
 		    Map map = toColumnNameValueDTO(formDataSaveInstance);
             // 添加一个formId，如果在键值对的详情页面要编辑数据时，前端可以通过formId获取表单详情
-            map.put("formId", formDataSaveInstance.getFormId());
+            map.put("formId", formId);
 			return map;
 		} else {
 			return null;
