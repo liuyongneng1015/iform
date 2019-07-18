@@ -18,6 +18,10 @@ public class FileUploadEntity extends BaseEntity implements Serializable {
 	@Column(name = "file_key", length = 256)
 	private String fileKey;
 
+	@Column(name = "file_size")
+	private Integer fileSize;
+
+
 	//图片地址
 	@Column(name = "file_url", length = 512)
 	private String url;
@@ -48,6 +52,14 @@ public class FileUploadEntity extends BaseEntity implements Serializable {
 
 	public void setFileKey(String fileKey) {
 		this.fileKey = fileKey;
+	}
+
+	public Integer getFileSize() {
+		return fileSize;
+	}
+
+	public void setFileSize(Integer fileSize) {
+		this.fileSize = fileSize;
 	}
 
 	public String getUrl() {

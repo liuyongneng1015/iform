@@ -141,6 +141,7 @@ public class UploadServiceImpl extends DefaultJPAService<FileUploadEntity> imple
 			minioClient.putObject(minioConfig.getBucket(), filePath, stream1, file.getContentType());
 			FileUploadEntity fileUploadModelEntity = new FileUploadEntity();
 			fileUploadModelEntity.setFileKey(filePath);
+			fileUploadModelEntity.setFileSize(file.getBytes().length);
 			fileUploadModelEntity.setUrl(getFileUrl(filePath));
 			fileUploadModelEntity.setName(filename);
 			fileUploadModelEntity.setSourceType(sourceType);

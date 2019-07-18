@@ -11,6 +11,9 @@ public class FileUploadModel extends NameEntity {
 	@ApiModelProperty(value = "文件上传的key", position = 3)
 	private String fileKey;
 
+	@ApiModelProperty(value = "文件大小", position = 3)
+	private Integer fileSize;
+
 	@ApiModelProperty(value = "文件上传的地址", position = 4)
 	private String url;
 
@@ -41,6 +44,14 @@ public class FileUploadModel extends NameEntity {
 
 	public void setFileKey(String fileKey) {
 		this.fileKey = fileKey;
+	}
+
+	public Integer getFileSize() {
+		return fileSize;
+	}
+
+	public void setFileSize(Integer fileSize) {
+		this.fileSize = fileSize;
 	}
 
 	public String getUrl() {

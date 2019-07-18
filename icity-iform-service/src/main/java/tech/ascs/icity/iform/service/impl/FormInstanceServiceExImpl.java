@@ -607,7 +607,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	private Map<String, Object> toProcesDictionaryData(Map<String, Object> flowData, FormModelEntity formModel) {
 		Map<String, Object> returnMap = new HashMap(flowData);
 		Map<String, ItemModelEntity> columnNameAndItemModelMap = new HashMap<>();
-		List<ItemModelEntity> list = formModel.getItems();
+		List<ItemModelEntity> list = formModelService.findAllItems(formModel);
 		for (ItemModelEntity itemModel : list) {
 			ColumnModelEntity columnModel = itemModel.getColumnModel();
 			if (columnModel != null) {

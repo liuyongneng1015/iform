@@ -1,7 +1,7 @@
 package tech.ascs.icity.iform.controller;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.awt.image.BufferedImage;
+import java.io.*;
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.*;
@@ -11,6 +11,9 @@ import java.util.stream.Collectors;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONPath;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFClientAnchor;
+import org.apache.poi.xssf.usermodel.XSSFDrawing;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
@@ -34,6 +37,7 @@ import tech.ascs.icity.iform.utils.*;
 import tech.ascs.icity.model.IdEntity;
 import tech.ascs.icity.model.Page;
 
+import javax.imageio.ImageIO;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 
@@ -210,9 +214,12 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		Map<String, Object> data = queryProcessInstance(formModelEntity, queryParameters,  page,  pagesize);
 		// 总条数
 		Integer totalCount = (Integer)data.get("totalCount");
+		// 表单实例ID在流程数据中的排序存储在 formInstanceIdOrder 这个字段
+		Set<String> formInstanceIdOrder = ((Map<String, ProcessInstance>) data.get("data")).keySet();
 		Map<String, ProcessInstance> instanceIdAndProcessMap = (Map<String, ProcessInstance>)data.get("data");
 		String[] formInstanceIds = instanceIdAndProcessMap.keySet().parallelStream().toArray(String[]::new);
 		if (formInstanceIds!=null && formInstanceIds.length>0) {
+			System.out.println("流程返回的所有实例ID===>>>"+Arrays.asList(formInstanceIds));
 			Optional<ItemModelEntity> idItemOption = formModelEntity.getItems().stream().filter(item->SystemItemType.ID == item.getSystemItemType()).findFirst();
 			queryParameters = new HashMap<>();
 			if (idItemOption.isPresent()) {
@@ -222,9 +229,9 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			for (FormDataSaveInstance instance:list) {
 				formInstanceService.setFlowFormInstance(formModelEntity, instanceIdAndProcessMap.get(instance.getId()), instance);
 			}
-			// 列表查出来的数据可能是无序的，按照流程返回的顺序排，封装流程返回的数据data用了LinkedHashMap，直接用LinkedHashMap的Key排序
+			// 列表查出来的数据可能是无序的，按照流程返回的顺序排，流程引擎中实例ID的排序存储在 formInstanceIdOrder 这个字段
 			List<FormDataSaveInstance> newList = new ArrayList<>();
-			for (String id:data.keySet()) {
+			for (String id:formInstanceIdOrder) {
 				Optional<FormDataSaveInstance> optional = list.stream().filter(item->id.equals(item.getId())).findFirst();
 				if (optional.isPresent()) {
 					newList.add(optional.get());
@@ -375,10 +382,19 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 					   @PathVariable(name="listId") String listId,
 					   @RequestParam Map<String, Object> parameters) {
 		ListModelEntity listModel = listModelService.find(listId);
-		if (listModel==null || listModel.getMasterForm()==null || StringUtils.isEmpty(listModel.getDisplayItemsSort())) {
-			return;
+		if (listModel == null) {
+			throw new IFormException(404, "列表模型【" + listId + "】不存在");
 		}
-		List<String> ids = Arrays.asList(listModel.getDisplayItemsSort().split(","));
+		FormModelEntity formModelEntity = listModel.getMasterForm();
+		Map<String, Object> queryParameters = assemblyQueryParameters(parameters);
+		List<FormDataSaveInstance> data = null;
+		// 如果流程表单作为普通列表查询，要查事件状态和各个环节的处理人时，一定要查工作流
+		if (formModelHasProcess(formModelEntity)) {
+			data = queryIflowList(queryParameters, 1, Integer.MAX_VALUE, formModelEntity, listModel).getResults();
+		}else {
+			data = formInstanceService.pageListInstance(listModel, 1, Integer.MAX_VALUE, queryParameters).getResults();
+		}
+		List<String> ids = new ArrayList<>(Arrays.asList(listModel.getDisplayItemsSort().split(",")));
 		List<ItemModelEntity> items = listModel.getDisplayItems();
 		List<ItemModelEntity> sortList = new ArrayList<>();
 		for (String id:ids) {
@@ -391,8 +407,9 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			return;
 		}
 		ids = sortList.stream().map(ItemModelEntity::getId).collect(Collectors.toList());
-		List<FormDataSaveInstance> data = page(listId, 1, 10000, parameters).getResults();
-
+		if(data == null){
+			data = new ArrayList<>();
+		}
 		try {
 			XSSFWorkbook wb = new XSSFWorkbook();
 			XSSFSheet sheet = wb.createSheet(listModel.getName());
@@ -401,21 +418,60 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			filename = new String(filename.getBytes("utf-8"), "ISO8859-1");
 			ExportUtils.outputHeaders(sortList.stream().map(ItemModelEntity::getName).toArray(String[]::new), sheet);
 			response.setHeader("Content-Disposition", "attachment;filename="+filename);
-			List<List<Object>> listData = new ArrayList<>();
+			List<List<ItemInstance>> listData = new ArrayList<>();
 			for (FormDataSaveInstance dataInstance:data) {
 				List<ItemInstance> itemInstances = dataInstance.getItems();
-				List<Object> lineList = new ArrayList<>();
+				List<ItemInstance> lineList = new ArrayList<>();
 				for (String id:ids) {
 					Optional<ItemInstance> optional = itemInstances.stream().filter(item->id.equals(item.getId())).findFirst();
-					lineList.add(optional.isPresent()==true? optional.get().getDisplayValue():null);
+					ItemInstance itemInstance = optional.isPresent()? optional.get() : null;
+					if(itemInstance != null) {
+						lineList.add(itemInstance);
+					}
 				}
 				listData.add(lineList);
 			}
-			ExportUtils.outputColumn(listData, sheet, 1);
+			ExportUtils.outputFormdata(listData, sheet, 1);
 			ServletOutputStream out = response.getOutputStream();
 			wb.write(out);
 			out.flush();
 			out.close();
+		} catch (Exception e){
+			e.printStackTrace();
+		}
+	}
+
+	public static void main(String[] args) {
+		try {
+			XSSFWorkbook wb = new XSSFWorkbook();
+			XSSFSheet sheet = wb.createSheet("测试表单-test");
+			Row row = sheet.createRow(1);
+			row.setHeight((short)3000);
+			sheet.setColumnWidth(1,15000);
+			XSSFDrawing xssfDrawing = sheet.createDrawingPatriarch();
+			//图片一导出到单元格B2中
+			int size = 2;
+			String url = "http://pic37.nipic.com/20140113/8800276_184927469000_2.png";
+//			for (int k = 0; k < size; k++) {
+//
+//				XSSFClientAnchor anchor = new XSSFClientAnchor(300, 300, 300, 300,
+//						(short) 1, 1, (short) 2, 2);
+//			// 插入图片
+//			xssfDrawing.createPicture(anchor, wb.addPicture(ExportUtils.getOutputStream(url)
+//					.toByteArray(), XSSFWorkbook.PICTURE_TYPE_JPEG));
+//		}
+			//图片一导出到单元格B2中
+			XSSFClientAnchor anchor = new XSSFClientAnchor(0, 0, 0, 0, (short) 1, 1, (short) 2, 2);
+			XSSFClientAnchor anchor2 = new XSSFClientAnchor(0, 0, 0, 0, (short) 1, 1, (short) 2, 2);
+
+			xssfDrawing.createPicture(anchor, wb.addPicture(ExportUtils.getOutputStream(url)
+					.toByteArray(), XSSFWorkbook.PICTURE_TYPE_JPEG));
+			xssfDrawing.createPicture(anchor2, wb.addPicture(ExportUtils.getOutputStream(url)
+					.toByteArray(), XSSFWorkbook.PICTURE_TYPE_JPEG));
+
+			FileOutputStream fileOut  = new FileOutputStream("C:\\Users\\Administrator\\Desktop\\doker\\123.xlsx");
+			// 写入excel文件
+			wb.write(fileOut);
 		} catch (Exception e){
 			e.printStackTrace();
 		}
