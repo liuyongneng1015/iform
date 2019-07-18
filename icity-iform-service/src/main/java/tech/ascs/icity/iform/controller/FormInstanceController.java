@@ -242,7 +242,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	}
 
 	private Map<String, Object> queryProcessInstance(FormModelEntity formModelEntity, Map<String, Object> queryParameters, int page, int pagesize){
-		List<ItemModelEntity> items = formModelEntity.getItems();
+		List<ItemModelEntity> items = formModelService.findAllItems(formModelEntity);//formModelEntity.getItems();
 		//事件状态
 		int eventStatus = -1;
 		Optional<ItemModelEntity> eventOptional = items.stream().filter(item-> (item.getSystemItemType() == SystemItemType.ProcessStatus)).findFirst();
