@@ -97,7 +97,7 @@ public class ExportUtils {
 						for(int k = 0 ; k < size ; k ++) {
 							String url = urlList.get(k);
 							XSSFClientAnchor anchor = new XSSFClientAnchor(0, 0, 0, 0,
-									(short) j, i, (short) j + 1, i + 1);
+									(short) j, i+1, (short) j + 1, i + 2);
 							// 插入图片
 							xssfDrawing.createPicture(anchor, xssfSheet.getWorkbook().addPicture(getOutputStream(url).toByteArray(), XSSFWorkbook.PICTURE_TYPE_JPEG));
 						}
