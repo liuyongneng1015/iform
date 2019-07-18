@@ -1,0 +1,106 @@
+server:
+  port: 8085
+
+spring.application.name: iform_local
+
+info:
+  app:
+    name: ${spring.application.name}
+    # info.app.version 这个变量在 tech.ascs.icity.iform.SwaggerConfiguration 文件中有注入，用来修改swagger文档显示的版本号
+    version: V0.7.0.0
+    time: 2018年09月18日 13:55:11
+  describe: 表单引擎
+  home: /
+  author: administrator
+
+eureka:
+  instance:
+    prefer-ip-address: true
+    ip-address: 192.168.1.208
+  client:
+    serviceUrl:
+      defaultZone: http://192.168.100.37:8761/eureka/
+
+spring.datasource:
+  url: jdbc:postgresql://192.168.100.37:5432/icity
+  username: root
+  password: icityDB2018!@#
+  driver-class-name: org.postgresql.Driver
+
+spring.jpa:
+  hibernate.ddl-auto: update
+  properties.hibernate.dialect: org.hibernate.dialect.PostgreSQLDialect
+  properties.hibernate.temp.use_jdbc_metadata_defaults: false
+
+#请求处理的超时时间
+ribbon.ReadTimeout: 120000
+#请求连接的超时时间
+ribbon.ConnectTimeout: 120000
+
+icity:
+  iform:
+    qrcode:
+      base-url:  https://192.168.100.37:8089
+      name: 航天智慧cityworks
+
+spring.redis:
+  database: 0
+  host: 192.168.100.37
+  port: 6379
+  password:
+  timeout: 5000ms
+
+spring.rabbitmq:
+  host: 192.168.100.37
+  port: 5672
+  username: guest
+  password: guest
+
+spring.cloud.stream.bindings.input.destination: iflow
+
+logging.level:
+  org.hibernate.SQL: WARN
+  org.hibernate.type.descriptor.sql.BasicBinder: WARN
+  org.springframework.cloud.stream: WARN
+
+cas:
+  enabled: false
+  prefixUrl: http://localhost:9000
+  loginUrl: ${cas.prefixUrl}/login
+  callbackUrl: http://localhost:${server.port}/callback
+  logoutRedirect: http://localhost:${server.port}/swagger-ui.html
+
+oauth2:
+  enabled: true
+  server: http://192.168.100.37:8090
+  baseUrl: ${oauth2.server}/gateway/reception-center
+  clientId: a1c7b4a4ade84e888009dcdad83909a1
+  clientSecret: 8d28a7aef4af477a8da685a3afaa75d8
+  accessTokenUri: ${oauth2.baseUrl}/oauth/token
+  userAuthorizationUri: ${oauth2.baseUrl}/oauth/authorize
+  profileUrl: ${oauth2.baseUrl}/member/who
+  logoutUrl: ${oauth2.baseUrl}/member/logout
+  logoutRedirect: ${oauth2.server}/auth_static/logout.html?redirect_uri=http://${eureka.instance.ip-address}:${server.port}/test&client_id=${oauth2.clientId}
+  callbackUrl: http://${eureka.instance.ip-address}:${server.port}/callback
+
+jwt:
+  salt: ascs.tech
+
+shiro:
+  pathDefinitions:
+  - /** = anon
+
+minio:
+  bucket: iform
+  access:
+    key:  icity
+  secret:
+    key: icity.ascs.tech
+  host: http://192.168.100.37:9000
+  url: http://192.168.100.37:9000
+  logoUrl: http://192.168.100.37:9000
+  backUrl: http://192.168.100.37:9000
+
+multipart:
+  maxFileSize: 10240Mb
+  maxRequestSize: 10240Mb
