@@ -705,8 +705,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	}
 
 	private String getValueStr(Object value){
+		if(value == null){
+			return null;
+		}
 		try {
-			Object object = value;
+			Object object = null;
 			if(value instanceof Map){
 				Map<String, Object> map = new HashMap<>();
 				for(String keyStr : ((Map<String, Object>)value).keySet()){
@@ -731,6 +734,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					mapList.add(mapdata);
 				}
 				object = mapList;
+			}else{
+				return String.valueOf(value);
 			}
 			return objectMapper.writeValueAsString(object);
 		} catch (JsonProcessingException e) {
@@ -4103,7 +4108,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			taskInstance.setJumpable(((WorkingTask) processInstance.getCurrentTaskInstance()).isJumpable());
 		}else{
 			System.out.println("zzz------");
-			taskInstance.setSignable(false);
+			taskInstance.setSignable(true);
 			taskInstance.setRejectable(false);
 			taskInstance.setComplatable(false);
 			taskInstance.setReturnable(false);
