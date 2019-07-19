@@ -54,8 +54,8 @@ public class SearchItem extends ItemModel implements Comparable<SearchItem> {
 	@ApiModelProperty(value = "查询定义，用于列表中的查询条件", position = 9)
 	private Search search;
 	/** 联动数据解绑 */
-	@ApiModelProperty(value = "联动数据解绑", position = 10)
-	private Boolean linkageDataUnbind;
+	@ApiModelProperty(value = "联动数据解绑，false表示不解绑，true表示解绑", position = 10)
+	private Boolean linkageDataUnbind = false;
 	@ApiModelProperty("搜索框排序号")//排序号
 	private Integer orderNo = 0;
 

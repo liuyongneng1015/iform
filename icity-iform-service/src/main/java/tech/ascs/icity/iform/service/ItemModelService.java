@@ -4,10 +4,7 @@ import tech.ascs.icity.iflow.api.model.Activity;
 import tech.ascs.icity.iform.api.model.DisplayTimingType;
 import tech.ascs.icity.iform.api.model.FormModel;
 import tech.ascs.icity.iform.api.model.ItemModel;
-import tech.ascs.icity.iform.model.FormModelEntity;
-import tech.ascs.icity.iform.model.ItemModelEntity;
-import tech.ascs.icity.iform.model.ItemPermissionInfo;
-import tech.ascs.icity.iform.model.ReferenceItemModelEntity;
+import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.jpa.service.JPAService;
 
 import java.util.List;
@@ -37,4 +34,14 @@ public interface ItemModelService extends JPAService<ItemModelEntity> {
     //更新控件实体
     void setItemModelEntity(FormModel formModel, ItemModel itemModel, FormModelEntity entity, List<ItemModelEntity> items,
                             List<ItemModelEntity> itemModelEntityList, Map<String, List<ItemModelEntity>> formMap);
+
+    /**
+     * 返回
+     * {
+     *     "item": itemModelEntity,
+     *     "level": int
+     * }
+     */
+    // 联动数据解绑查询时，要找到最原始节点的item控件，以及它们之间相隔了多少层来获取对应层数的数据
+    Map<String, Object> findLinkageOriginItemModelEntity(String id);
 }
