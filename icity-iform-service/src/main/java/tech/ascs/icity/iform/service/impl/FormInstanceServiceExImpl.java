@@ -859,6 +859,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	private void saveFormData(DataModelEntity dataModel, FormDataSaveInstance formInstance, UserInfo user, FormModelEntity formModelEntity, FormModelEntity formModel, String instanceId){
 		Object functionid = formInstance.getFlowData() == null ? null: formInstance.getFlowData().get("functionId");
+		//是否退回
+		boolean isBack = formInstance.getFlowData() != null && "prev".equals(formInstance.getFlowData().get("circalation"));
 	    List<Map<String, Object>> assignmentList = new ArrayList<>();
 		String paramCondition = verifyDataRequired( assignmentList, formInstance, formModelEntity, DisplayTimingType.Update);
 		Session session = null;
@@ -886,7 +888,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 			// 流程操作
 			if (StringUtils.hasText(formInstance.getActivityInstanceId()) && functionid != null) {
-				completedProcess(assignmentList, paramCondition, formInstance, data, formModel, user);
+				completedProcess(assignmentList, paramCondition, formInstance, data, formModel, user, isBack);
 			}
 			session.update(dataModel.getTableName(), data);
 			session.getTransaction().commit();
@@ -1023,11 +1025,32 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	}
 
 	//完成当前任务
-	private void completedProcess(List<Map<String, Object>> assignmentList, String paramCondition, FormDataSaveInstance formInstance, Map<String, Object> data, FormModelEntity formModel, UserInfo user){
+	private void completedProcess(List<Map<String, Object>> assignmentList, String paramCondition, FormDataSaveInstance formInstance, Map<String, Object> data, FormModelEntity formModel, UserInfo user, boolean isBack){
+		String comment = (String)data.get("comment_");
+		if(StringUtils.hasText(comment)){
+			taskService.addComment(formInstance.getActivityInstanceId(), comment);
+		}
+
 		Map<String, Object> flowData = formInstance.getFlowData();
 		if(flowData == null){
 			flowData = new HashMap<>();
 		}
+		flowData.remove("comment_");
+		String functionType = (String)flowData.get("functionType");
+		FlowFunctionType flowFunctionType = FlowFunctionType.getTypeByValue(functionType);
+		if(flowFunctionType == null || FlowFunctionType.InvokeService == flowFunctionType
+				|| FlowFunctionType.JumpURL == flowFunctionType || FlowFunctionType.JumpURL == flowFunctionType){
+			return;
+		}else if(FlowFunctionType.Sign == flowFunctionType){
+			taskService.signTask(formInstance.getActivityInstanceId());
+			return;
+		}else if(isBack) {
+			//退回
+			taskService.returnTask(formInstance.getActivityInstanceId(), null, comment);
+			return;
+		}
+
+		flowData.remove("circalation");
 		if(paramCondition != null && paramCondition.contains(ParamCondition.FormCurrentData.getValue())) {
 			flowData.putAll(data);
 		}
@@ -4099,8 +4122,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 		instance.setMyTask(processInstance.isMyTask());
 		instance.setFunctions(processInstance.getCurrentTaskInstance() == null ? null : processInstance.getCurrentTaskInstance().getOperations());
-		WorkingTask taskInstance =  new WorkingTask();
+		WorkingTask taskInstance =  null;
 		if(processInstance.getCurrentTaskInstance() instanceof WorkingTask) {
+			taskInstance =  new WorkingTask();
 			taskInstance.setSignable(((WorkingTask) processInstance.getCurrentTaskInstance()).isSignable());
 			taskInstance.setRejectable(((WorkingTask) processInstance.getCurrentTaskInstance()).isRejectable());
 			taskInstance.setComplatable(((WorkingTask) processInstance.getCurrentTaskInstance()).isComplatable());
@@ -4108,11 +4132,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			taskInstance.setJumpable(((WorkingTask) processInstance.getCurrentTaskInstance()).isJumpable());
 		}else{
 			System.out.println("zzz------");
-			taskInstance.setSignable(true);
-			taskInstance.setRejectable(false);
-			taskInstance.setComplatable(false);
-			taskInstance.setReturnable(false);
-			taskInstance.setJumpable(false);
 		}
 		instance.setCurrentTaskInstance(taskInstance);
 
