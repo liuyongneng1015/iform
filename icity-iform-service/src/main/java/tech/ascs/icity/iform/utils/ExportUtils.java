@@ -179,11 +179,11 @@ public class ExportUtils {
 			//将图片读到BufferedImage
 			BufferedImage oldBufferedImage = ImageIO.read(inputStream);
 			//定义一个BufferedImage对象，用于保存缩小后的位图
-			BufferedImage bufferedImage = new BufferedImage(200, 300,BufferedImage.TYPE_INT_RGB);
+			BufferedImage bufferedImage = new BufferedImage(300, 200,BufferedImage.TYPE_INT_RGB);
 			Graphics graphics = bufferedImage.getGraphics();;
 
 			//将原始位图缩小后绘制到bufferedImage对象中
-			graphics.drawImage(oldBufferedImage,0,0,200,300,null);
+			graphics.drawImage(oldBufferedImage,0,0,300,200,null);
 			ImageIO.write(bufferedImage, url.substring(url.lastIndexOf(".")+1), byteArrayOut);
 		} catch (IOException e) {
 			e.printStackTrace();
