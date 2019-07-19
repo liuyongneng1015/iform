@@ -1026,16 +1026,30 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	//完成当前任务
 	private void completedProcess(List<Map<String, Object>> assignmentList, String paramCondition, FormDataSaveInstance formInstance, Map<String, Object> data, FormModelEntity formModel, UserInfo user, boolean isBack){
-		if(isBack) {
-			//退回
-			String reson = (String)data.get("comment_");
-			taskService.returnTask(formInstance.getActivityInstanceId(), null, reson);
-			return;
+		String comment = (String)data.get("comment_");
+		if(StringUtils.hasText(comment)){
+			taskService.addComment(formInstance.getActivityInstanceId(), comment);
 		}
+
 		Map<String, Object> flowData = formInstance.getFlowData();
 		if(flowData == null){
 			flowData = new HashMap<>();
 		}
+		flowData.remove("comment_");
+		String functionType = (String)flowData.get("functionType");
+		FlowFunctionType flowFunctionType = FlowFunctionType.getTypeByValue(functionType);
+		if(flowFunctionType == null || FlowFunctionType.InvokeService == flowFunctionType
+				|| FlowFunctionType.JumpURL == flowFunctionType || FlowFunctionType.JumpURL == flowFunctionType){
+			return;
+		}else if(FlowFunctionType.Sign == flowFunctionType){
+			taskService.signTask(formInstance.getActivityInstanceId());
+			return;
+		}else if(isBack) {
+			//退回
+			taskService.returnTask(formInstance.getActivityInstanceId(), null, comment);
+			return;
+		}
+
 		flowData.remove("circalation");
 		if(paramCondition != null && paramCondition.contains(ParamCondition.FormCurrentData.getValue())) {
 			flowData.putAll(data);
