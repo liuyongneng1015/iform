@@ -29,7 +29,7 @@ public class ListSearchItem extends BaseEntity implements Serializable {
 	private String parseArea;
 
 	/** 联动数据解绑 */
-	private Boolean linkageDataUnbind;
+	private Boolean linkageDataUnbind = false;
 	@Column(name="order_no",columnDefinition = "int default 0")//排序号
 	private Integer orderNo = 0;
 

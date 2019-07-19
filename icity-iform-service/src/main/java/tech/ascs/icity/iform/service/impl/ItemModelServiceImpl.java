@@ -978,4 +978,39 @@ public class ItemModelServiceImpl extends DefaultJPAService<ItemModelEntity> imp
 
 		return activityInfo;
 	}
+
+	/**
+	 * 返回
+	 * {
+	 *     "item": itemModelEntity,
+	 *     "level": int
+	 * }
+	 */
+	// 联动数据解绑查询时，要找到最原始节点的item控件，以及它们之间相隔了多少层来获取对应层数的数据
+	@Override
+	public Map<String, Object> findLinkageOriginItemModelEntity(String id) {
+		ItemModelEntity itemModelEntity = find(id);
+		if (itemModelEntity==null || (itemModelEntity instanceof SelectItemModelEntity)==false) {
+			return null;
+		}
+		SelectItemModelEntity selectItemModelEntity = (SelectItemModelEntity)itemModelEntity;
+		Map<String, Object> map = new HashMap<>();
+		map.put("level", 1);
+		map.put("item", selectItemModelEntity);
+		parentLinkageItemModelEntity(selectItemModelEntity, map);
+		return map;
+	}
+
+	private void parentLinkageItemModelEntity(SelectItemModelEntity selectItemModelEntity, Map<String, Object> map) {
+		if (DictionaryValueType.Linkage != selectItemModelEntity.getDictionaryValueType()) {
+			return;
+		}
+		selectItemModelEntity = selectItemModelEntity.getParentItem();
+		if (selectItemModelEntity==null) {
+			return;
+		}
+		map.put("level", (Integer) map.get("level")+1);
+		map.put("item", selectItemModelEntity);
+		parentLinkageItemModelEntity(selectItemModelEntity, map);
+	}
 }
