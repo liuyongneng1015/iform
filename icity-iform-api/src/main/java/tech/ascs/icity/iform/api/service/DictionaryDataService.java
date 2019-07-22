@@ -108,10 +108,15 @@ public interface DictionaryDataService {
 	@ApiOperation("获取数据字典表选项列表")
 	@ApiImplicitParams({
 		@ApiImplicitParam(paramType="path", name = "id", value = "字典表分类ID", required = true, dataType = "String"),
-		@ApiImplicitParam(paramType="path", name = "itemId", value = "字典表选项ID", required = true, dataType = "String")
+		@ApiImplicitParam(paramType="path", name = "itemId", value = "字典表选项ID", required = true, dataType = "String"),
+		@ApiImplicitParam(paramType="query", name = "itemModelId", value = "字典表选项ID", required = false, dataType = "String"),
+		@ApiImplicitParam(paramType="query", name = "linkageDataUnbind", value = "联动数据解绑", required = false, dataType = "Boolean")
 	})
 	@GetMapping("/{id}/{itemId}/items")
-	List<DictionaryDataItemModel> findItems(@PathVariable(name="id",required = true) String id, @PathVariable(name="itemId",required = true) String itemId);
+	List<DictionaryDataItemModel> findItems(@PathVariable(name="id", required = true) String id,
+											@PathVariable(name="itemId", required = true) String itemId,
+											@RequestParam(name="itemModelId", required = false) String itemModelId,
+											@RequestParam(name="linkageDataUnbind", defaultValue = "false") Boolean linkageDataUnbind);
 
 
 	@ApiOperation(value = "通过批量ID获取字典表选项的详情")

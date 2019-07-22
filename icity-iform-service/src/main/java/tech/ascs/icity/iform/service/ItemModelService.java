@@ -39,9 +39,9 @@ public interface ItemModelService extends JPAService<ItemModelEntity> {
      * 返回
      * {
      *     "item": itemModelEntity,
-     *     "level": int
+     *     "level": int  // 该控件在数据的哪一层
      * }
      */
     // 联动数据解绑查询时，要找到最原始节点的item控件，以及它们之间相隔了多少层来获取对应层数的数据
-    Map<String, Object> findLinkageOriginItemModelEntity(String id);
+    Map<String, Object> findLinkageOriginItemModelEntity(String itemModelId);
 }
