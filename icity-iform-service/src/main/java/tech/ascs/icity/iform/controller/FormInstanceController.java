@@ -315,9 +315,12 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 				// 如果是单选框，多选框，下拉框，手动提取对应的中文出来
 				SelectItemModelEntity selectItem = (SelectItemModelEntity) item;
 				if (value instanceof String[]) {
-					String[] valueArr = (String[]) value;
+                    String[] valueArr =(String[])value ;
 					assemblyReferenceArrParams(valueArr, selectItem, iflowQueryParams, columnModel);
-				} else {
+				} else if (value instanceof List) {
+                    String[] valueArr =((List<String>)value).toArray(new String[]{}) ;
+                    assemblyReferenceArrParams(valueArr, selectItem, iflowQueryParams, columnModel);
+                } else {
 					String valueStr = value.toString();
 					assemblyReferenceStringParams(valueStr, selectItem, iflowQueryParams, columnModel);
 				}

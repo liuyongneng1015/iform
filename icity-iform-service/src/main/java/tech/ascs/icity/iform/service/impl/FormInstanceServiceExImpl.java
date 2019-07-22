@@ -3,6 +3,7 @@ package tech.ascs.icity.iform.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.googlecode.genericdao.search.Filter;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.hibernate.Criteria;
@@ -2112,7 +2113,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		return criteria;
 	}
 
-
 	public Criteria generateColumnMapCriteria(Session session, FormModelEntity formModel, Map<String, Object> queryParameters) {
 		DataModelEntity dataModel = formModel.getDataModels().get(0);
 
@@ -2134,6 +2134,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		for (String columnName:queryParameters.keySet()) {
 			Object value = queryParameters.get(columnName);
 			if (value == null || !columnMap.keySet().contains(columnName) || "".equals(value.toString())) {
+				if(value != null && columnName.startsWith("not_equal_") && columnMap.keySet().contains(columnName.substring("not_equal_".length()))){
+					criteria.add(Restrictions.ne(columnName.substring("not_equal_".length()), value));
+				}
 				continue;
 			}
 			if("id".equals(columnName)) {
@@ -2159,7 +2162,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 							criteria.add(Restrictions.lt(columnName, endDate));
 						}
 					}else {
-						criteria.add(Restrictions.eq(columnName, value));
+						if(value instanceof List || value instanceof Object[]){
+							criteria.add(Restrictions.in(columnName, value));
+						}else {
+							criteria.add(Restrictions.eq(columnName, value));
+						}
 					}
                 }
 			}
