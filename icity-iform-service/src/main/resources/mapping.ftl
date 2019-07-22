@@ -15,6 +15,8 @@
 		<#list dataModel.columns as column>
             <#if column.columnName != 'id' &&  (!column.columnReferences?? || (column.columnReferences?size < 1)) >
                 <#if column.columnName = 'master_id' >
+                <#elseif column.columnName = 'PROCESS_INSTANCE'>
+                    <many-to-one name="processInstance" column="PROCESS_INSTANCE" entity-name="ProcessInstance"/>
                 <#else>
                     <property name="${column.columnName!''}" type="${column.dataType?lower_case}">
                         <column name="${column.prefix!''}${column.columnName!''}" <#if column.defaultValue ??> default="${column.defaultValue!'null'}" </#if>  not-null="${(column.notNull!false)?c}" length="<#if !column.length ?? || column.length = 0>255<#else >${column.length?c}</#if>" precision="<#if !column.precision ?? || column.precision = 0>255<#else >${column.precision}</#if>" <#if column.dataType?? && column.dataType.value ?? && (column.dataType.value ="Integer" || column.dataType.value = "Long" || column.dataType.value = "Float" || column.dataType.value = "Double")> scale="${column.scale!0}"</#if>>
@@ -67,6 +69,8 @@
        	<#list referencesData.columns as column>
             <#if column.columnName != 'id' &&  (!column.columnReferences?? || (column.columnReferences?size < 1)) >
                 <#if column.columnName ?? && column.columnName = "master_id">
+                <#elseif column.columnName = 'PROCESS_INSTANCE'>
+                    <many-to-one name="processInstance" column="PROCESS_INSTANCE" entity-name="ProcessInstance"/>
                 <#else >
                     <property name="${column.columnName!''}" type="${column.dataType?lower_case}">
                         <column name="${column.prefix!''}${column.columnName!''}" <#if column.defaultValue ??> default="${column.defaultValue!'null'}" </#if> not-null="${(column.notNull!false)?c}" length="<#if !column.length ?? || column.length = 0>255<#else >${column.length?c}</#if>" precision="<#if !column.precision ?? || column.precision = 0>255<#else >${column.precision}</#if>" <#if column.dataType?? && column.dataType.value ?? && (column.dataType.value ="Integer" || column.dataType.value = "Long" || column.dataType.value = "Float" || column.dataType.value = "Double")> scale="${column.scale!0}"</#if>>
@@ -147,4 +151,91 @@
             </class>
     </#list>
 
+
+    <class entity-name="ProcessInstance" subselect="select proc_inst_id_,business_key_,start_time_,end_time_,current_task_,current_handler_ from act_hi_procinst">
+        <id name="id" type="string">
+            <column name="proc_inst_id_" length="64"/>
+        </id>
+		<property name="formInstance" type="string">
+			<column name="business_key_" not-null="false" length="255"/>
+		</property>
+		<property name="startTime" type="timestamp">
+			<column name="start_time_" not-null="true" sql-type="timestamptz"/>
+		</property>
+		<property name="endTime" type="timestamp">
+			<column name="end_time_" not-null="false" sql-type="timestamptz"/>
+		</property>
+		<property name="currentTask" type="string">
+			<column name="current_task_" not-null="false" length="255"/>
+		</property>
+		<property name="currentHandler" type="string">
+			<column name="current_handler_" not-null="false" length="255"/>
+		</property>
+		<bag name="workingTasks">
+			<key column="proc_inst_id_" />
+			<one-to-many entity-name="WorkingTask"/>
+		</bag>
+		<bag name="doneTasks">
+			<key column="proc_inst_id_" />
+			<one-to-many entity-name="DoneTask"/>
+		</bag>
+    </class>
+
+	<class entity-name="WorkingTask" subselect="select id_,task_def_key_,proc_inst_id_,create_time_,claim_time_,assignee_ from act_ru_task">
+        <id name="id" type="string">
+            <column name="id_" length="64"/>
+        </id>
+		<property name="taskDefKey" type="string">
+			<column name="task_def_key_" not-null="false" length="255"/>
+		</property>
+		<many-to-one name="processInstance" column="proc_inst_id_" entity-name="ProcessInstance"/>
+		<property name="createTime" type="timestamp">
+			<column name="create_time_" not-null="false" sql-type="timestamptz"/>
+		</property>
+		<property name="claimTime" type="timestamp">
+			<column name="claim_time_" not-null="false" sql-type="timestamptz"/>
+		</property>
+		<property name="assignee" type="string">
+			<column name="assignee_" not-null="false" length="255"/>
+		</property>
+		<bag name="candidates">
+			<key column="task_id_" />
+			<one-to-many entity-name="TaskCandidate"/>
+		</bag>
+	</class>
+
+	<class entity-name="DoneTask" subselect="select id_,task_def_key_,proc_inst_id_,start_time_,claim_time_,end_time_,assignee_ from act_hi_taskinst where end_time_ is not null">
+        <id name="id" type="string">
+            <column name="id_" length="64"/>
+        </id>
+		<property name="taskDefKey" type="string">
+			<column name="task_def_key_" not-null="false" length="255"/>
+		</property>
+		<many-to-one name="processInstance" column="proc_inst_id_" entity-name="ProcessInstance"/>
+		<property name="startTime" type="timestamp">
+			<column name="start_time_" not-null="true" sql-type="timestamptz"/>
+		</property>
+		<property name="signTime" type="timestamp">
+			<column name="claim_time_" not-null="false" sql-type="timestamptz"/>
+		</property>
+		<property name="endTime" type="timestamp">
+			<column name="end_time_" not-null="false" sql-type="timestamptz"/>
+		</property>
+		<property name="assignee" type="string">
+			<column name="assignee_" not-null="false" length="255"/>
+		</property>
+	</class>
+
+	<class entity-name="TaskCandidate" subselect="select id_,task_id_,group_id_,user_id_ from act_ru_identitylink where type_='candidate'">
+        <id name="id" type="string">
+            <column name="id_" length="64"/>
+        </id>
+		<many-to-one name="task" column="task_id_" entity-name="WorkingTask"/>
+		<property name="groupId" type="string">
+			<column name="group_id_" not-null="false" length="255"/>
+		</property>
+		<property name="userId" type="string">
+			<column name="user_id_" not-null="false" length="255"/>
+		</property>
+	</class>
 </hibernate-mapping>

@@ -12,6 +12,7 @@ public class IFormPostgreSQLDialect extends PostgreSQL95Dialect {
     	super();
     	registerColumnType(Types.BLOB, "bytea");
     	registerColumnType(Types.BOOLEAN, "bool");
+    	registerColumnType(Types.TIMESTAMP_WITH_TIMEZONE, "timestamptz");
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 package tech.ascs.icity.iform.service;
-;
+
 import tech.ascs.icity.iform.api.model.DictionaryDataItemModel;
 import tech.ascs.icity.iform.api.model.DictionaryDataModel;
 import tech.ascs.icity.iform.api.model.DictionaryModel;

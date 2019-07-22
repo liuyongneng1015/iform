@@ -12,8 +12,10 @@ import org.hibernate.dialect.Dialect;
 import org.hibernate.engine.jdbc.env.spi.JdbcEnvironment;
 import org.hibernate.mapping.Column;
 import org.hibernate.mapping.Constraint;
+import org.hibernate.mapping.OneToMany;
 import org.hibernate.mapping.SimpleValue;
 import org.hibernate.mapping.Table;
+import org.hibernate.mapping.ToOne;
 import org.hibernate.mapping.UniqueKey;
 import org.hibernate.tool.schema.extract.spi.ColumnInformation;
 import org.hibernate.tool.schema.extract.spi.TableInformation;
@@ -168,7 +170,9 @@ public class IFormTable extends Table {
 	}
 
 	protected boolean columnTypeChanged(Dialect dialect, Metadata metadata, Column column, ColumnInformation columnInfo) {
-		if (column.getValue() instanceof SimpleValue && "string".equals(((SimpleValue)column.getValue()).getTypeName())) {
+		if (column.getValue() instanceof ToOne || column.getValue() instanceof OneToMany) {
+			return false;
+		} else if (column.getValue() instanceof SimpleValue && "string".equals(((SimpleValue)column.getValue()).getTypeName())) {
 			return !column.getSqlType(dialect, metadata).startsWith(columnInfo.getTypeName()) || column.getLength() != columnInfo.getColumnSize();
 		} else {
 			return !column.getSqlType(dialect, metadata).equals(columnInfo.getTypeName());

@@ -19,10 +19,14 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import tech.ascs.icity.ICityException;
+import tech.ascs.icity.admin.api.model.Group;
+import tech.ascs.icity.admin.api.model.Role;
 import tech.ascs.icity.admin.api.model.TreeSelectData;
 import tech.ascs.icity.admin.api.model.User;
 import tech.ascs.icity.admin.client.GroupService;
 import tech.ascs.icity.admin.client.UserService;
+import tech.ascs.icity.iflow.api.model.Activity;
+import tech.ascs.icity.iflow.api.model.Process;
 import tech.ascs.icity.iflow.api.model.ProcessInstance;
 import tech.ascs.icity.iflow.api.model.TaskInstance;
 import tech.ascs.icity.iflow.api.model.WorkingTask;
@@ -239,14 +243,31 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		Page<FormDataSaveInstance> result = Page.get(page, pagesize);
 		Session session = getSession(listModel.getMasterForm().getDataModels().get(0));
 		try {
+			boolean hasProcess = hasProcess(listModel.getMasterForm());
+			int processStatus = hasProcess ? getProcessStatusParameter(listModel.getMasterForm(), SystemItemType.ProcessStatus, queryParameters) : -1;
+			int userStatus = hasProcess ? getProcessStatusParameter(listModel.getMasterForm(), SystemItemType.ProcessPrivateStatus, queryParameters) : -1;
+			Process process = hasProcess ? processService.get(listModel.getMasterForm().getProcess().getKey()) : null;
+			String userId = hasProcess ? CurrentUserUtils.getCurrentUser().getId() : null;
+			List<String> groupIds = hasProcess ? getGroupIds(userId) : null;
+
 			Criteria criteria = generateCriteria(session, listModel.getMasterForm(), listModel, queryParameters);
 			addCreatorCriteria(criteria, listModel);
+			if (hasProcess) {
+				addProcessCriteria(criteria, processStatus, userStatus, userId, groupIds);
+			}
 			addSort(listModel, criteria);
 
 			criteria.setFirstResult((page - 1) * pagesize);
 			criteria.setMaxResults(pagesize);
 
-			List data = criteria.list();
+			List<Map<String, Object>> data = criteria.list();
+			if (process != null) {
+				data.forEach(entity -> {
+					entity.put("process", process);
+					entity.put("userId", userId);
+					entity.put("groupIds", groupIds);
+				});
+			}
 			List<FormDataSaveInstance> list = wrapFormDataList(listModel.getMasterForm(), listModel, data);
 
 			criteria.setFirstResult(0);
@@ -524,9 +545,13 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			data.put("create_by", user != null ? user.getId() : null);
 			//流程参数
 			data.put("PROCESS_ID", formInstance.getProcessId());
-			data.put("PROCESS_INSTANCE", formInstance.getProcessInstanceId());
 			data.put("ACTIVITY_ID", formInstance.getActivityId());
 			data.put("ACTIVITY_INSTANCE", formInstance.getActivityInstanceId());
+			if (StringUtils.hasText(formInstance.getProcessInstanceId())) {
+				Map<String, Object> processInstance = new HashMap<>();
+				processInstance.put("id", formInstance.getProcessInstanceId());
+				data.put("processInstance", processInstance);
+			}
 
 			//设置子表数据
 			setSubFormReferenceData(session, user, formInstance, data, DisplayTimingType.Add);
@@ -1856,7 +1881,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	//更新新流程表单数据
 	protected void updateProcessInfo(List<Map<String, Object>> assignmentList, FormModelEntity formModel, Map<String, Object> entity, String processInstanceId) {
-		entity.put("PROCESS_INSTANCE", processInstanceId);
+		Map<String, Object> pi = new HashMap<>();
+		pi.put("id", processInstanceId);
+		entity.put("processInstance", pi);
 		ProcessInstance processInstance = processInstanceService.get(processInstanceId);
 		entity.put("PROCESS_ID", formModel.getProcess().getId());
 		TaskInstance taskInstance = processInstance.getCurrentTaskInstance();
@@ -2679,11 +2706,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	}
 
 	protected List<FormDataSaveInstance> wrapFormDataList(FormModelEntity formModel, ListModelEntity listModel, List<Map<String, Object>> entities) {
-		List<FormDataSaveInstance> FormInstanceList = new ArrayList<FormDataSaveInstance>();
-		for (Map<String, Object> entity : entities) {
-            FormInstanceList.add(wrapFormDataEntity(false, formModel, listModel, entity,String.valueOf(entity.get("id")), true));
-		}
-		return FormInstanceList;
+		return entities.stream().map(entity -> {
+			return wrapFormDataEntity(false, formModel, listModel, entity, String.valueOf(entity.get("id")), true);
+		}).collect(Collectors.toList());
 	}
 
 	protected List<FormInstance> wrapList(ListModelEntity listModel, List<Map<String, Object>> entities) {
@@ -2702,9 +2727,12 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		formInstance.setId(instanceId);
 		if (formModel.getProcess() != null && StringUtils.hasText(formModel.getProcess().getKey())) {
 			formInstance.setProcessId((String) entity.get("PROCESS_ID"));
-			formInstance.setProcessInstanceId((String) entity.get("PROCESS_INSTANCE"));
 			formInstance.setActivityId((String) entity.get("ACTIVITY_ID"));
 			formInstance.setActivityInstanceId((String) entity.get("ACTIVITY_INSTANCE"));
+			Map<String, Object> processInstance = (Map<String, Object>) entity.get("processInstance");
+			if (processInstance != null) {
+				formInstance.setProcessInstanceId((String) processInstance.get("id"));
+			}
 		}
 		return setFormInstanceModel(formInstance, formModel, entity, referenceFlag);
 	}
@@ -2722,9 +2750,13 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		formInstance.setId(instanceId);
 		if (formModel.getProcess() != null) {
 			formInstance.setProcessId((String) entity.get("PROCESS_ID"));
-			formInstance.setProcessInstanceId((String) entity.get("PROCESS_INSTANCE"));
 			formInstance.setActivityId((String) entity.get("ACTIVITY_ID"));
 			formInstance.setActivityInstanceId((String) entity.get("ACTIVITY_INSTANCE"));
+			Map<String, Object> processInstance = (Map<String, Object>) entity.get("processInstance");
+			if (processInstance != null) {
+				formInstance.setProcessInstanceId((String) processInstance.get("id"));
+				setFlowFormInstance(formModelEntity, wrapProcessInstance(entity), formInstance);
+			}
 		}
 		return setFormDataInstanceModel(isQrCodeFlag, formInstance, formModel,  listModel, entity, referenceFlag);
 	}
@@ -4392,4 +4424,173 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 	}
 
+	protected boolean hasProcess(FormModelEntity formModel) {
+		return formModel.getProcess() != null && StringUtils.hasText(formModel.getProcess().getKey());
+	}
+
+	protected ProcessInstance wrapProcessInstance(Map<String, Object> entity) {
+		Process process = (Process) entity.get("process");
+		String userId = (String) entity.get("userId");
+		List<String> groupIds = (List<String>) entity.get("groupIds");
+		entity = (Map<String, Object>) entity.get("processInstance");
+
+		ProcessInstance pi = new ProcessInstance();
+		pi.setFormId(process.getFormId());
+		pi.setFormName(process.getFormName());
+		pi.setFormTitle(process.getFormTitle());
+		pi.setStartTime((Date) entity.get("startTime"));
+		pi.setEndTime((Date) entity.get("endTime"));
+		pi.setCurrentTask((String) entity.get("currentTask"));
+		pi.setCurrentHandler((String) entity.get("currentHandler"));
+
+		pi.setMyTask(false);
+		if (entity.get("endTime") == null) { // 未完结流程
+			List<Map<String, Object>> workingTasks = (List) entity.get("workingTasks");
+			if (workingTasks != null && workingTasks.size() > 0) {
+				Map<String, Object> currentTask = workingTasks.get(0);
+				for (Map<String, Object> workingTask : workingTasks) {
+					if (isMyTask(workingTask, userId, groupIds)) {
+						pi.setMyTask(true);
+						currentTask = workingTask;
+						break;
+					}
+				}
+				pi.setCurrentTaskInstance(wrapTaskInstance(currentTask, pi, process));
+			}
+		}
+		return pi;
+	}
+
+	protected WorkingTask wrapTaskInstance(Map<String, Object> currentTask, ProcessInstance processInstance, Process process) {
+		WorkingTask ti = new WorkingTask();
+		ti.setId((String) currentTask.get("id"));
+		ti.setActivityId((String) currentTask.get("taskDefKey"));
+		ti.setCreateTime((Date) currentTask.get("createTime"));
+		ti.setClaimTime((Date) currentTask.get("claimTime"));
+		ti.setAssignee((String) currentTask.get("assignee"));
+
+		Activity activity = findActivity(process, ti.getActivityId());
+		if (activity != null) {
+			ti.setActivityName(activity.getName());
+			ti.setFormDefinition(activity.getFormDefinition());
+			if (processInstance.isMyTask()) {
+				ti.setOperations(activity.getOperations());
+			}
+		}
+
+		return ti;
+	}
+
+	protected Activity findActivity(Process process, String taskDefKey) {
+		for (Activity activity : process.getActivities()) {
+			if (activity.getId().equals(taskDefKey)) {
+				return activity;
+			}
+		}
+		
+		return null;
+	}
+
+	protected boolean isMyTask(Map<String, Object> workingTask, String userId, List<String> groupIds) {
+		if (userId.equals(workingTask.get("assignee"))) {
+			return true;
+		} else {
+			List<Map<String, Object>> candidates = (List) workingTask.get("candidates");
+			for (Map<String, Object> candidate : candidates) {
+				if (userId.equals(candidate.get("userId")) || groupIds.stream().anyMatch(groupId -> groupId.equals(candidate.get("groupId")))) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	protected void addProcessCriteria(Criteria criteria, int processStatus, int userStatus, String userId, List<String> groupIds) {
+		criteria = criteria.createAlias("processInstance", "pi");
+		if (userStatus == 0) { // 查询用户待办列表
+			criteria.add(Property.forName("pi.id").in(workListCriteria(userId, groupIds)));
+		} else if (userStatus == 1) { // 查询用户经办列表
+			criteria.add(Property.forName("pi.id").in(doneListCriteria(userId, groupIds)));
+		} else { // 查询当前用户所有相关流程实例
+			criteria.add(Restrictions.or(
+					Property.forName("pi.id").in(workListCriteria(userId, groupIds)),
+					Property.forName("pi.id").in(doneListCriteria(userId, groupIds))
+			));
+			if (processStatus == 0) { // 未办结
+				criteria.add(Restrictions.isNull("pi.endTime"));
+			} else if (processStatus == 1) { // 已办结
+				criteria.add(Restrictions.isNotNull("pi.endTime"));
+			}
+		}
+	}
+
+	protected int getProcessStatusParameter(FormModelEntity formModelEntity, SystemItemType type, Map<String, Object> queryParameters) {
+		int status = -1;
+		Optional<ItemModelEntity> optional = formModelService.findAllItems(formModelEntity).stream().filter(item-> (item.getSystemItemType() == type)).findFirst();
+		if (optional.isPresent() && queryParameters.get(optional.get().getId()) != null) {
+			status = Integer.parseInt((String.valueOf(queryParameters.get(optional.get().getId()))));
+			queryParameters.remove(optional.get().getId());
+		}
+		
+		return status;
+	}
+
+	protected void queryWorkList(Criteria criteria, String userId, List<String> groups) {
+		criteria.createAlias("processInstance", "pi")
+				.add(Property.forName("pi.id").in(workListCriteria(userId, groups)));
+	}
+
+	protected void queryDoneList(Criteria criteria, String userId, List<String> groups) {
+		criteria.createAlias("processInstance", "pi")
+				.add(Property.forName("pi.id").in(doneListCriteria(userId, groups)));
+	}
+
+	protected void queryProcessInstanceList(Criteria criteria, String userId, List<String> groups, int processStatus) {
+		criteria.createAlias("processInstance", "pi")
+				.add(Restrictions.or(
+						Property.forName("pi.id").in(workListCriteria(userId, groups)),
+						Property.forName("pi.id").in(doneListCriteria(userId, groups))
+				))
+				.addOrder(Order.desc("pi.id"));
+	}
+
+	protected DetachedCriteria workListCriteria(String userId, List<String> groups) {
+		return DetachedCriteria.forEntityName("WorkingTask", "wt").createCriteria("wt.candidates", "c")
+				.add(Restrictions.or(
+						Restrictions.eq("wt.assignee", userId),
+						Restrictions.and(
+								Restrictions.isNull("wt.assignee"),
+								Restrictions.or(
+										Restrictions.eq("c.userId", userId),
+										Restrictions.in("c.groupId", groups)
+								)
+						)
+				))
+				.setProjection(Projections.distinct(Property.forName("wt.processInstance")));
+	}
+
+	protected DetachedCriteria doneListCriteria(String userId, List<String> groups) {
+		return DetachedCriteria.forEntityName("DoneTask", "dt")
+				.add(Restrictions.eq("dt.assignee", userId))
+				.setProjection(Projections.distinct(Property.forName("dt.processInstance")));
+	}
+
+	protected List<String> getGroupIds(String userId) {
+		List<String> result = new ArrayList<String>();
+
+		// 添加部门/岗位列表
+		List<Group> groups = userService.getGroups(userId);
+		for (Group group : groups) {
+			String type = "2".equals(group.getType()) ? "Position" : "Department";
+			result.add(type.charAt(0) + group.getId());
+		}
+
+		// 添加角色列表
+		List<Role> roles = userService.getRoles(userId, "1");
+		for (Role role : roles) {
+			result.add("R" + role.getId());
+		}
+
+		return result;
+	}
 }
