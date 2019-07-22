@@ -10,8 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import tech.ascs.icity.ICityException;
+import tech.ascs.icity.admin.api.model.Resource;
 import tech.ascs.icity.iform.api.model.SystemCodeModel;
-import tech.ascs.icity.iform.model.AreaCodeEntity;
+import tech.ascs.icity.iform.model.SelectItemModelEntity;
+import tech.ascs.icity.iform.service.ItemModelService;
 import tech.ascs.icity.model.Page;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.DictionaryDataItemModel;
@@ -21,7 +23,9 @@ import tech.ascs.icity.iform.model.DictionaryDataItemEntity;
 import tech.ascs.icity.iform.service.DictionaryDataService;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 
@@ -39,6 +43,8 @@ public class DictionaryDataController implements tech.ascs.icity.iform.api.servi
 
 	@Autowired
 	private DictionaryDataService dictionaryService;
+	@Autowired
+    private ItemModelService itemModelService;
 
 	@Override
 	public SystemCodeModel list() {
@@ -495,11 +501,21 @@ public class DictionaryDataController implements tech.ascs.icity.iform.api.servi
 		return list;
 	}
 
+	/** itemModelId 不为空且 linkageDataUnbind为true时，表示查询联动解绑的数据 */
 	@Override
-	public List<DictionaryDataItemModel> findItems(@PathVariable(name="id",required = true) String id, @PathVariable(name="itemId",required = true) String itemId) {
+	public List<DictionaryDataItemModel> findItems(@PathVariable(name="id", required = true) String id,
+												   @PathVariable(name="itemId", required = true) String itemId,
+												   @RequestParam(name="itemModelId", required = false) String itemModelId,
+												   @RequestParam(name="linkageDataUnbind", defaultValue = "false") Boolean linkageDataUnbind) {
 		DictionaryDataEntity dictionaryEntity = dictionaryService.find(id);
+		if (dictionaryEntity == null) {
+			return new ArrayList<>();
+		}
+		if (StringUtils.isNotEmpty(itemModelId) && true == linkageDataUnbind) {
+			return queryLinkageDataUnbind(itemModelId);
+		}
 		DictionaryDataItemEntity dictionaryItemEntity = dictionaryService.getDictionaryItemById(itemId);
-		if(dictionaryEntity == null || dictionaryItemEntity == null) {
+		if (dictionaryItemEntity == null) {
 			return new ArrayList<>();
 		}
 		List<DictionaryDataItemModel> dictionaryItemModels = new ArrayList<>();
@@ -527,6 +543,57 @@ public class DictionaryDataController implements tech.ascs.icity.iform.api.servi
 		return dictionaryItemModels;
 	}
 
+	/**
+	 * 关联解绑数据,平铺子代的数据
+	 * @param itemModelId
+	 * @return
+	 */
+	private List<DictionaryDataItemModel> queryLinkageDataUnbind(String itemModelId) {
+        Map<String, Object> map = itemModelService.findLinkageOriginItemModelEntity(itemModelId);
+        if (map==null) {
+        	return new ArrayList<>();
+		}
+		SelectItemModelEntity selectItemModel = (SelectItemModelEntity)map.get("item");
+        Integer level = (Integer)map.get("level");
+		String referenceDictionaryItemId = selectItemModel.getReferenceDictionaryItemId();
+		List<DictionaryDataItemModel> treeList = listItem(selectItemModel.getReferenceDictionaryId());
+		return new ArrayList<>();
+	}
+
+	/** 获取默认item的取值 */
+	private Integer getDefaultDictionaryItemIdLevel(List<DictionaryDataItemModel> treeList, String referenceDictionaryItemId) {
+		List<DictionaryDataItemModel> list = treeToList(treeList);
+//		Map<String,DictionaryDataItemModel> map = list.stream().collect(Collectors.toMap(DictionaryDataItemModel::getId, item -> item));
+		Map<String, Integer> mapLevel = treeListLevel(treeList, 1);
+		Integer level = mapLevel.get(referenceDictionaryItemId);
+		return level;
+	}
+
+	public List<DictionaryDataItemModel> treeToList(List<DictionaryDataItemModel> treeList) {
+		List<DictionaryDataItemModel> list = new ArrayList();
+		if (treeList!=null && treeList.size()>0) {
+			for (DictionaryDataItemModel item : treeList) {
+				list.add(item);
+				list.addAll(treeToList(item.getResources()));
+			}
+		}
+		return list;
+	}
+
+	/** 记录每个item的level等级，即排在哪一层 */
+	public Map<String, Integer> treeListLevel(List<DictionaryDataItemModel> treeList, int level) {
+		Map<String, Integer> map = new HashMap<>();
+		if (treeList!=null && treeList.size()>0) {
+			for (DictionaryDataItemModel item:treeList) {
+				map.put(item.getId(), level);
+				if (item.getResources()!=null && item.getResources().size()>0) {
+					map.putAll(treeListLevel(item.getResources(), level+1));
+				}
+			}
+		}
+		return map;
+	}
+
 	@Override
 	public List<DictionaryDataItemModel> batchSimpleInfo(@RequestParam(name = "ids", required = false) String[] ids) {
 		if (ids==null || ids.length==0) {
@@ -541,4 +608,5 @@ public class DictionaryDataController implements tech.ascs.icity.iform.api.servi
 		}
 		return returnList;
 	}
+
 }
