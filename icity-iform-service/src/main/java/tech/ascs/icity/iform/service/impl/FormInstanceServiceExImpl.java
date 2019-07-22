@@ -1027,21 +1027,22 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	//完成当前任务
 	private void completedProcess(List<Map<String, Object>> assignmentList, String paramCondition, FormDataSaveInstance formInstance, Map<String, Object> data, FormModelEntity formModel, UserInfo user, boolean isBack){
 		String comment = (String)data.get("comment_");
-		if(StringUtils.hasText(comment)){
-			taskService.addComment(formInstance.getActivityInstanceId(), comment);
-		}
-
 		Map<String, Object> flowData = formInstance.getFlowData();
 		if(flowData == null){
 			flowData = new HashMap<>();
 		}
-		flowData.remove("comment_");
 		String functionType = (String)flowData.get("functionType");
 		FlowFunctionType flowFunctionType = FlowFunctionType.getTypeByValue(functionType);
 		if(flowFunctionType == null || FlowFunctionType.InvokeService == flowFunctionType
-				|| FlowFunctionType.JumpURL == flowFunctionType || FlowFunctionType.JumpURL == flowFunctionType){
+				|| FlowFunctionType.JumpURL == flowFunctionType || FlowFunctionType.ChangeState == flowFunctionType){
+			if(StringUtils.hasText(comment)){
+				taskService.addComment(formInstance.getActivityInstanceId(), comment);
+			}
 			return;
 		}else if(FlowFunctionType.Sign == flowFunctionType){
+			if(StringUtils.hasText(comment)){
+				taskService.addComment(formInstance.getActivityInstanceId(), comment);
+			}
 			taskService.signTask(formInstance.getActivityInstanceId());
 			return;
 		}else if(isBack) {
