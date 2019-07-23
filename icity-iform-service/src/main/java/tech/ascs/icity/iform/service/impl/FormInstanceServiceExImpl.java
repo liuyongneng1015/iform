@@ -2748,17 +2748,21 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		formInstance.setFormId(formModel.getId());
 		//数据id
 		formInstance.setId(instanceId);
+		Map<String, Object> processInstance = null;
 		if (formModel.getProcess() != null) {
 			formInstance.setProcessId((String) entity.get("PROCESS_ID"));
 			formInstance.setActivityId((String) entity.get("ACTIVITY_ID"));
 			formInstance.setActivityInstanceId((String) entity.get("ACTIVITY_INSTANCE"));
-			Map<String, Object> processInstance = (Map<String, Object>) entity.get("processInstance");
+			processInstance = (Map<String, Object>) entity.get("processInstance");
+		}
+		FormDataSaveInstance formDataSaveInstance = setFormDataInstanceModel(isQrCodeFlag, formInstance, formModel,  listModel, entity, referenceFlag);
+		if (formModel.getProcess() != null){
 			if (processInstance != null) {
 				formInstance.setProcessInstanceId((String) processInstance.get("id"));
 				setFlowFormInstance(formModelEntity, wrapProcessInstance(entity), formInstance);
 			}
 		}
-		return setFormDataInstanceModel(isQrCodeFlag, formInstance, formModel,  listModel, entity, referenceFlag);
+		return formDataSaveInstance;
 	}
 
 	protected FormDataSaveInstance wrapQrCodeFormDataEntity(boolean isQrCodeFlag, ListModelEntity listModel, Map<String, Object> entity, String instanceId, boolean referenceFlag) {
@@ -4032,19 +4036,14 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	@Override
 	public FormDataSaveInstance getFormDataSaveInstance(FormModelEntity formModel, String id) {
 		FormDataSaveInstance formInstance = null;
+		Map<String, Object> map = null;
 		try {
 			DataModelEntity dataModel = formModel.getDataModels().get(0);
-			Map<String, Object> map =  getDataInfo(dataModel, id);
+			map =  getDataInfo(dataModel, id);
 			if(map == null || map.keySet() == null ||  map.keySet().size() < 1){
 				throw new IFormException("没有查询到【" + dataModel.getTableName() + "】表，id【"+id+"】的数据");
 			}
 			formInstance = wrapFormDataEntity(false, formModel, null, map, id,true);
-			if(StringUtils.hasText(formInstance.getProcessInstanceId())) {
-				ProcessInstance processInstance = processInstanceService.get(formInstance.getProcessInstanceId());
-				if(processInstance != null) {
-					setFlowFormInstance(formModel, processInstance, formInstance);
-				}
-			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			if(e instanceof ICityException){
@@ -4054,16 +4053,19 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
         String formName = formModel.getName();
         if(formModel.getProcess() != null && formInstance.getProcessInstanceId() != null){
-            setFormInstanceProcessStatus(formModel, formInstance);
+            setFormInstanceProcessStatus(formModel, map, formInstance);
         }
         formInstance.setFormName(formName);
 		return formInstance;
 	}
 
 	//设置流程状态
-	private void setFormInstanceProcessStatus(FormModelEntity formModelEntity, FormDataSaveInstance formInstance){
-        ProcessInstance processInstance = processInstanceService.get(formInstance.getProcessInstanceId());
-		setFlowFormInstance(formModelEntity, processInstance, formInstance);
+	private void setFormInstanceProcessStatus(FormModelEntity formModelEntity, Map<String, Object> entity, FormDataSaveInstance formInstance){
+		if(entity == null){
+			return;
+		}
+		Map<String, Object> processInstance = (Map<String, Object>) entity.get("processInstance");
+		setFlowFormInstance(formModelEntity, wrapProcessInstance(processInstance), formInstance);
     }
 
 	@Override
@@ -4165,13 +4167,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		WorkingTask taskInstance =  null;
 		if(processInstance.getCurrentTaskInstance() instanceof WorkingTask) {
 			taskInstance =  new WorkingTask();
-			taskInstance.setSignable(((WorkingTask) processInstance.getCurrentTaskInstance()).isSignable());
-			taskInstance.setRejectable(((WorkingTask) processInstance.getCurrentTaskInstance()).isRejectable());
-			taskInstance.setComplatable(((WorkingTask) processInstance.getCurrentTaskInstance()).isComplatable());
-			taskInstance.setReturnable(((WorkingTask) processInstance.getCurrentTaskInstance()).isReturnable());
-			taskInstance.setJumpable(((WorkingTask) processInstance.getCurrentTaskInstance()).isJumpable());
-		}else{
-			System.out.println("zzz------");
+			taskInstance.setSignable(processInstance.getCurrentTaskInstance().isSignable());
+			taskInstance.setRejectable(processInstance.getCurrentTaskInstance().isRejectable());
+			taskInstance.setComplatable(processInstance.getCurrentTaskInstance().isComplatable());
+			taskInstance.setReturnable(processInstance.getCurrentTaskInstance().isReturnable());
+			taskInstance.setJumpable(processInstance.getCurrentTaskInstance().isJumpable());
 		}
 		instance.setCurrentTaskInstance(taskInstance);
 
