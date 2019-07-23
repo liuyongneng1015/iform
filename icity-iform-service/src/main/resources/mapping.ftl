@@ -181,7 +181,7 @@
 		</bag>
     </class>
 
-	<class entity-name="WorkingTask" subselect="select id_,task_def_key_,proc_inst_id_,create_time_,claim_time_,assignee_ from act_ru_task">
+	<class entity-name="WorkingTask" subselect="select id_,task_def_key_,proc_inst_id_,create_time_,claim_time_,assignee_,prev_task_id_,next_task_id_ from act_ru_task">
         <id name="id" type="string">
             <column name="id_" length="64"/>
         </id>
@@ -197,6 +197,12 @@
 		</property>
 		<property name="assignee" type="string">
 			<column name="assignee_" not-null="false" length="255"/>
+		</property>
+		<property name="prevTaskId" type="string">
+			<column name="prev_task_id_" not-null="false" length="255"/>
+		</property>
+		<property name="nextTaskId" type="string">
+			<column name="next_task_id_" not-null="false" length="255"/>
 		</property>
 		<bag name="candidates">
 			<key column="task_id_" />
