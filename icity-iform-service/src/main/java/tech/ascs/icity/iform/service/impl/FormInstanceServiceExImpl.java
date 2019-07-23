@@ -4488,7 +4488,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		ti.setReturnable(previousTaskId != null && previousTaskId.indexOf(",") < 0);
 		ti.setRejectable(ti.isReturnable());
 		ti.setJumpable(previousTaskId != null);
-		ti.setSignable(ti.getClaimTime() != null);
+		ti.setSignable(ti.getClaimTime() == null);
 
 		Activity activity = findActivity(process, ti.getActivityId());
 		if (activity != null) {
