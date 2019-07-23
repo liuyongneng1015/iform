@@ -61,12 +61,12 @@ public interface DataModelService {
 	@ApiImplicitParams({
 			@ApiImplicitParam(paramType = "query", name = "tableName", value = "当前表名称", required = false),
 			@ApiImplicitParam(paramType = "query", name = "modelType", value = "模型类型", required = false),
-			@ApiImplicitParam(paramType = "query", name = "applicationId", value = "应用id", required = true)
+			@ApiImplicitParam(paramType = "query", name = "applicationId", value = "应用id", required = false)
 	})
 	@GetMapping("/list/reference")
 	List<ApplicationModel> listReferenceDataModel(@RequestParam(name = "tableName", required = false) String tableName,
 												  @RequestParam(name = "modelType", required = false) String modelType,
-												  @RequestParam(name = "applicationId", required = true) String applicationId);
+												  @RequestParam(name = "applicationId", required = false) String applicationId);
 
 
 	/**

@@ -151,7 +151,7 @@ public interface ListModelService {
 	@GetMapping("/application")
 	List<ApplicationModel> findListApplicationModel(@RequestParam(name = "formId", required = false) String formId,
 													@RequestParam(name = "functionType", required = false) FunctionType functionType,
-													@RequestParam(name="applicationId", required = true) String applicationId);
+													@RequestParam(name="applicationId", required = false) String applicationId);
 
 	/**
 	 * 查询应用绑定的列表建模和表单建模，如果应用在iform有与列表建模和表单建模绑定，不能删除应用

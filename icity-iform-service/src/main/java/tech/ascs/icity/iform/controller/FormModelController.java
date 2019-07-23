@@ -430,7 +430,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	}
 
 	@Override
-	public List<ApplicationModel> findApplicationFormModel(@RequestParam(name="applicationId", required = true) String applicationId,
+	public List<ApplicationModel> findApplicationFormModel(@RequestParam(name="applicationId", required = false) String applicationId,
 														   @RequestParam(name="columnId", required = false) String columnId,
 														   @RequestParam(name="formModelId", required = false) String formModelId,
 														   @RequestParam(name="type", required = false) String type) {
@@ -457,7 +457,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	}
 
     @Override
-    public List<ApplicationModel> findProcessApplicationFormModel(@RequestParam(name="applicationId", required = true) String applicationId,
+    public List<ApplicationModel> findProcessApplicationFormModel(@RequestParam(name="applicationId", required = false) String applicationId,
                                                                   @RequestParam(name="key", required = false) String key) {
         List<FormModelEntity> formModelEntityList = formModelService.findProcessApplicationFormModel(key);
         return getApplicationModels(formModelEntityList, applicationId, false, key);
