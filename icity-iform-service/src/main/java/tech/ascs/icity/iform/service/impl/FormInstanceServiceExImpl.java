@@ -4307,13 +4307,28 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		Page<FormDataSaveInstance> result = Page.get(page, pagesize);
 		Session session = getSession(formModel.getDataModels().get(0));
 		try {
+			boolean hasProcess = hasProcess(formModel);
+			int processStatus = hasProcess ? getProcessStatusParameter(formModel, SystemItemType.ProcessStatus, parameters) : -1;
+			int userStatus = hasProcess ? getProcessStatusParameter(formModel, SystemItemType.ProcessPrivateStatus, parameters) : -1;
+			Process process = hasProcess ? processService.get(formModel.getProcess().getKey()) : null;
+			String userId = hasProcess ? CurrentUserUtils.getCurrentUser().getId() : null;
+			List<String> groupIds = hasProcess ? getGroupIds(userId) : null;
+
 			Criteria criteria = generateColumnMapCriteria(session, formModel,  parameters);
-			criteria.setFirstResult((page - 1) * pagesize);
-			criteria.setMaxResults(pagesize);
+			if (hasProcess) {
+				addProcessCriteria(criteria, processStatus, userStatus, userId, groupIds);
+			}
 			criteria.setFirstResult((page - 1) * pagesize);
 			criteria.setMaxResults(pagesize);
 
-			List data = criteria.list();
+			List<Map<String, Object>> data = criteria.list();
+			if (process != null) {
+				data.forEach(entity -> {
+					entity.put("process", process);
+					entity.put("userId", userId);
+					entity.put("groupIds", groupIds);
+				});
+			}
 			List<FormDataSaveInstance> list = wrapFormDataList(formModel, null, data);
 
 			criteria.setFirstResult(0);
@@ -4468,6 +4483,12 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		ti.setCreateTime((Date) currentTask.get("createTime"));
 		ti.setClaimTime((Date) currentTask.get("claimTime"));
 		ti.setAssignee((String) currentTask.get("assignee"));
+
+		String previousTaskId = (String) currentTask.get("prevTaskId");
+		ti.setReturnable(previousTaskId != null && previousTaskId.indexOf(",") < 0);
+		ti.setRejectable(ti.isReturnable());
+		ti.setJumpable(previousTaskId != null);
+		ti.setSignable(ti.getClaimTime() != null);
 
 		Activity activity = findActivity(process, ti.getActivityId());
 		if (activity != null) {
