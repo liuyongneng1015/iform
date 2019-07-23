@@ -550,26 +550,32 @@ public class DictionaryDataController implements tech.ascs.icity.iform.api.servi
 	 */
 	private List<DictionaryDataItemModel> queryLinkageDataUnbind(String itemModelId) {
         Map<String, Object> map = itemModelService.findLinkageOriginItemModelEntity(itemModelId);
+		List<DictionaryDataItemModel> list = new ArrayList<>();
         if (map==null) {
-        	return new ArrayList<>();
+        	return list;
 		}
+		Integer level = (Integer)map.get("level");
 		SelectItemModelEntity selectItemModel = (SelectItemModelEntity)map.get("item");
-        Integer level = (Integer)map.get("level");
 		String referenceDictionaryItemId = selectItemModel.getReferenceDictionaryItemId();
 		List<DictionaryDataItemModel> treeList = listItem(selectItemModel.getReferenceDictionaryId());
-		return new ArrayList<>();
+		Map<String, Integer> idLevelMap = treeListLevel(treeList, 1);
+		Integer referenceItemIdLevel = idLevelMap.get(referenceDictionaryItemId);
+		if (referenceItemIdLevel == null) {
+			return new ArrayList<>();
+		}
+		Map<String, DictionaryDataItemModel> itemMap = treeToList(treeList).stream().collect(Collectors.toMap(DictionaryDataItemModel::getId, item->item));
+		level = level + referenceItemIdLevel;
+		for (String key:idLevelMap.keySet()) {
+			if (level == idLevelMap.get(key) && itemMap.get(key)!=null) {
+				DictionaryDataItemModel dictionaryDataItemModel = itemMap.get(key);
+				dictionaryDataItemModel.setResources(new ArrayList<>());
+				list.add(dictionaryDataItemModel);
+			}
+		}
+		return list;
 	}
 
-	/** 获取默认item的取值 */
-	private Integer getDefaultDictionaryItemIdLevel(List<DictionaryDataItemModel> treeList, String referenceDictionaryItemId) {
-		List<DictionaryDataItemModel> list = treeToList(treeList);
-//		Map<String,DictionaryDataItemModel> map = list.stream().collect(Collectors.toMap(DictionaryDataItemModel::getId, item -> item));
-		Map<String, Integer> mapLevel = treeListLevel(treeList, 1);
-		Integer level = mapLevel.get(referenceDictionaryItemId);
-		return level;
-	}
-
-	public List<DictionaryDataItemModel> treeToList(List<DictionaryDataItemModel> treeList) {
+	private List<DictionaryDataItemModel> treeToList(List<DictionaryDataItemModel> treeList) {
 		List<DictionaryDataItemModel> list = new ArrayList();
 		if (treeList!=null && treeList.size()>0) {
 			for (DictionaryDataItemModel item : treeList) {
@@ -581,7 +587,7 @@ public class DictionaryDataController implements tech.ascs.icity.iform.api.servi
 	}
 
 	/** 记录每个item的level等级，即排在哪一层 */
-	public Map<String, Integer> treeListLevel(List<DictionaryDataItemModel> treeList, int level) {
+	private Map<String, Integer> treeListLevel(List<DictionaryDataItemModel> treeList, int level) {
 		Map<String, Integer> map = new HashMap<>();
 		if (treeList!=null && treeList.size()>0) {
 			for (DictionaryDataItemModel item:treeList) {
