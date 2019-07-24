@@ -2094,22 +2094,22 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 			for (int i = 0; i < values.length; i++) {
 				value = null;
-				if (itemModel.getSystemItemType() == SystemItemType.CreateDate || itemModel.getType() == ItemType.DatePicker || itemModel.getType() == ItemType.TimePicker) {
-					equalsFlag = true;
-					if (values[i] != null) {
-                        value = getTimeParams(itemModel.getType(), String.valueOf(values[i]));
-					}
-				} else if (itemModel.getType() == ItemType.InputNumber) {
-					equalsFlag = true;
-					Object number = getNumberParams(itemModel, columnModel, value);
-					if (number!=null) {
-						values[i] = number;
-					}
-				} else if (columnModel.getDataType() == ColumnType.Boolean) {
-					equalsFlag = true;
-					if (!(value instanceof Boolean)) {
-						String strValue = String.valueOf(value);
-						values[i] = "true".equals(strValue);
+				if (values[i] != null) {
+					if (itemModel.getSystemItemType() == SystemItemType.CreateDate || itemModel.getType() == ItemType.DatePicker || itemModel.getType() == ItemType.TimePicker) {
+						equalsFlag = true;
+						value = getTimeParams(itemModel.getType(), String.valueOf(values[i]));
+					} else if (itemModel.getType() == ItemType.InputNumber) {
+						equalsFlag = true;
+						Object number = getNumberParams(itemModel, columnModel, values[i]);
+						if (number != null) {
+							values[i] = number;
+						}
+					} else if (columnModel.getDataType() == ColumnType.Boolean) {
+						equalsFlag = true;
+						if (!(values[i] instanceof Boolean)) {
+							String strValue = String.valueOf(values[i]);
+							values[i] = "true".equals(strValue);
+						}
 					}
 				}
 			}
