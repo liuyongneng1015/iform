@@ -2032,6 +2032,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			// 地图控件搜索
 			if (itemModel instanceof LocationItemModelEntity && value!=null) {
 				locationItemModelSearch(criteria, value.toString(), (LocationItemModelEntity)itemModel);
+				continue;
 			}
 
 			Object[] values = null;
@@ -2081,7 +2082,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				}
 			} else if (itemModel instanceof SelectItemModelEntity &&
 					(((SelectItemModelEntity)itemModel).getMultiple()==null || ((SelectItemModelEntity)itemModel).getMultiple()==false)) {
-				// 宝安河务通数据录入平台时，有些数据录入字典表是单个长度的字符串，查流程，会把ID为11,12,13的查出来
 				propertyName = columnModel.getColumnName();
 				equalsFlag = true;
 			} else if (itemModel.getColumnModel()!=null) {        // 普通控件
