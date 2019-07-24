@@ -998,14 +998,27 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 
 		if(notNullIdMap.size() > 0) {
-			for (String key : notNullIdMap.keySet()) {
-				ItemModelEntity itemModelEntity = notNullIdMap.get(key);
-				if (itemModelEntity!=null) {
+			// 测试提的bug，校验字段非空时，要按照表单建模的控件顺序来校验
+			List<ItemModelEntity> items = new ArrayList<>();
+			for (ItemModelEntity itemModelEntity:notNullIdMap.values()) {
+				items.add(itemModelEntity);
+			}
+			items = items.stream().sorted((o1, o2) -> {
+				if (o1.getOrderNo()!=null && o2.getOrderNo()!=null) {
+					return o1.getOrderNo()-o2.getOrderNo();
+				} else {
+					return o1.getOrderNo() == null ? -1 : 1;
+				}
+			}).collect(Collectors.toList());
+
+			for (ItemModelEntity itemModelEntity:items) {
+				if (notNullIdMap.containsKey(itemModelEntity.getId())) {
 					throw new IFormException(itemModelEntity.getName() +"的值不允许为空");
 				}
 			}
 			throw new IFormException("存在空的字段");
 		}
+
 		Map<String, Object> flowData = formInstance.getFlowData();
 		if(flowData.containsKey("functionId")){
 			flowData.remove("functionId");
