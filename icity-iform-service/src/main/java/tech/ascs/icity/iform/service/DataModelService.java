@@ -47,6 +47,6 @@ public interface DataModelService extends JPAService<DataModelEntity> {
 								   List<DataModelEntity> slaverDataModelEntities);
 
 	//校验数据建模
-	void veryTableName(DataModelEntity oldDataModelEntity);
+	void veryTableName(DataModel dataModel);
 
 }

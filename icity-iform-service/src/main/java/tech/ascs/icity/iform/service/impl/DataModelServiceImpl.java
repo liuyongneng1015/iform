@@ -709,17 +709,24 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 
 	//校验数据建模
 	@Override
-	public void veryTableName(DataModelEntity oldDataModelEntity){
-		if (!Pattern.matches(regEx, oldDataModelEntity.getTableName())) {
+	public void veryTableName(DataModel newDataModel){
+		if (!Pattern.matches(regEx, newDataModel.getTableName())) {
 			throw new IFormException("表名必须以字母开头，只能包含数字，字母，下划线，不能包含中文，横杆等特殊字符");
 		}
-		List<DataModelEntity> list = findByProperty("tableName", oldDataModelEntity.getTableName());
-		if(!org.springframework.util.StringUtils.hasText(oldDataModelEntity.getId()) && list.size() > 0){
+		List<DataModelEntity> list = findByProperty("tableName", newDataModel.getTableName());
+		if(!org.springframework.util.StringUtils.hasText(newDataModel.getId()) && list.size() > 0){
 			throw new IFormException("数据模型表名重复了");
 		}
 		for(DataModelEntity dataModelEntity : list){
-			if(!dataModelEntity.getId().equals(oldDataModelEntity.getId())){
+			if(!dataModelEntity.getId().equals(newDataModel.getId())){
 				throw new IFormException("数据模型表名重复了");
+			}
+		}
+		if(newDataModel.getColumns() != null) {
+			for (ColumnModel columnModel : newDataModel.getColumns()) {
+				if (!Pattern.matches(regEx, columnModel.getColumnName())) {
+					throw new IFormException("字段名必须以字母开头，只能包含数字，字母，下划线，不能包含中文，横杆等特殊字符");
+				}
 			}
 		}
 	}
@@ -727,7 +734,7 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 	//设置数据模型行
 	private void setDataModelEntityColumns(DataModel newDataModel, DataModelEntity oldDataModelEntity, boolean needMasterId){
 
-		veryTableName(oldDataModelEntity);
+		veryTableName(newDataModel);
 
 		List<String> newColumns = newDataModel.getColumns().parallelStream().map(ColumnModel::getColumnName).collect(Collectors.toList());
 
@@ -917,6 +924,8 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 	@Override
 	public void setSlaverDataModel(DataModel dataModel, Map<String, DataModelEntity> oldMasterDataModelMap, DataModelEntity masterDataModelEntity,
 									List<DataModelEntity> slaverDataModelEntities){
+		veryTableName(dataModel);
+
 		//创建关联字段
 		DataModelEntity dataModelEntity = dataModel.isNew() ? new DataModelEntity() :  oldMasterDataModelMap.remove(dataModel.getId());
 		if(dataModelEntity == null && !dataModel.isNew()){
