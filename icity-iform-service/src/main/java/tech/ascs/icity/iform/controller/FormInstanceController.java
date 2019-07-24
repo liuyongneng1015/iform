@@ -24,8 +24,6 @@ import io.swagger.annotations.Api;
 import tech.ascs.icity.ICityException;
 import tech.ascs.icity.admin.api.model.Position;
 import tech.ascs.icity.admin.client.UserService;
-import tech.ascs.icity.iflow.api.model.ProcessInstance;
-import tech.ascs.icity.iflow.client.ProcessInstanceService;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.model.*;
@@ -60,16 +58,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	private UploadService uploadService;
 
 	@Autowired
-	private DataModelService dataModelService;
-
-	@Autowired
 	private UserService userService;
-	@Autowired
-	private DictionaryDataService dictionaryService;
-	@Autowired
-	private ProcessInstanceService processInstanceService;
-	@Autowired
-	private DictionaryModelService dictionaryModelService;
 
 	@Value("${icity.iform.qrcode.base-url}")
 	private String qrcodeBaseUrl;
@@ -174,198 +163,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		if (formModel==null) {
 			return Page.get(page, pagesize);
 		}
-		if (formModelHasProcess(formModel)) {
-			Map<String, Object> data = queryProcessInstance(formModel, parameters, page, pagesize);
-			//总条数
-			Integer totalCount = (Integer)data.get("totalCount");
-			Map<String, ProcessInstance> instanceIdAndProcessMap = (Map<String, ProcessInstance>)data.get("data");
-			if (instanceIdAndProcessMap == null || instanceIdAndProcessMap.keySet().size() < 1) {
-				return Page.get(page, pagesize);
-			}
-			Optional<ItemModelEntity> idItemOption = formModel.getItems().stream().filter(item->SystemItemType.ID == item.getSystemItemType()).findFirst();
-			Map<String, Object> queryParameters = new HashMap<>();
-			if (idItemOption.isPresent()) {
-				queryParameters.put(idItemOption.get().getId(), instanceIdAndProcessMap.keySet());
-			}
-			Page<FormDataSaveInstance> pageInstance = Page.get(page, pagesize);
-			List<FormDataSaveInstance> list = formInstanceService.formInstance(null, formModel, queryParameters);
-			for (FormDataSaveInstance instance:list) {
-				formInstanceService.setFlowFormInstance(formModel, instanceIdAndProcessMap.get(instance.getId()), instance);
-			}
-			pageInstance.data(totalCount, list);
-			return pageInstance;
-		}
 		return formInstanceService.pageByColumnMap(formModel, page, pagesize, parameters);
-	}
-
-	private  Page<FormDataSaveInstance> queryIflowList(Map<String, Object> queryParameters,  int page, int pagesize, FormModelEntity formModelEntity, ListModelEntity listModel) {
-		Map<String, Object> data = queryProcessInstance(formModelEntity, queryParameters,  page,  pagesize);
-		// 总条数
-		Integer totalCount = (Integer)data.get("totalCount");
-		// 表单实例ID在流程数据中的排序存储在 formInstanceIdOrder 这个字段
-		Set<String> formInstanceIdOrder = ((Map<String, ProcessInstance>) data.get("data")).keySet();
-		Map<String, ProcessInstance> instanceIdAndProcessMap = (Map<String, ProcessInstance>)data.get("data");
-		String[] formInstanceIds = instanceIdAndProcessMap.keySet().parallelStream().toArray(String[]::new);
-		if (formInstanceIds!=null && formInstanceIds.length>0) {
-			System.out.println("流程返回的所有实例ID===>>>"+Arrays.asList(formInstanceIds));
-			Optional<ItemModelEntity> idItemOption = formModelEntity.getItems().stream().filter(item->SystemItemType.ID == item.getSystemItemType()).findFirst();
-			queryParameters = new HashMap<>();
-			if (idItemOption.isPresent()) {
-				queryParameters.put(idItemOption.get().getId(), formInstanceIds);
-			}
-			List<FormDataSaveInstance> list = formInstanceService.formInstance(listModel, formModelEntity, queryParameters);
-			for (FormDataSaveInstance instance:list) {
-				formInstanceService.setFlowFormInstance(formModelEntity, instanceIdAndProcessMap.get(instance.getId()), instance);
-			}
-			// 列表查出来的数据可能是无序的，按照流程返回的顺序排，流程引擎中实例ID的排序存储在 formInstanceIdOrder 这个字段
-			List<FormDataSaveInstance> newList = new ArrayList<>();
-			for (String id:formInstanceIdOrder) {
-				Optional<FormDataSaveInstance> optional = list.stream().filter(item->id.equals(item.getId())).findFirst();
-				if (optional.isPresent()) {
-					newList.add(optional.get());
-				}
-			}
-			Page<FormDataSaveInstance> pageInstance = Page.get(page, pagesize);
-			pageInstance.data(totalCount, newList);
-			return pageInstance;
-		} else {
-			return Page.get(page, pagesize);
-		}
-	}
-
-	private Map<String, Object> queryProcessInstance(FormModelEntity formModelEntity, Map<String, Object> queryParameters, int page, int pagesize){
-		List<ItemModelEntity> items = formModelService.findAllItems(formModelEntity);//formModelEntity.getItems();
-		//事件状态
-		int eventStatus = -1;
-		Optional<ItemModelEntity> eventOptional = items.stream().filter(item-> (item.getSystemItemType() == SystemItemType.ProcessStatus)).findFirst();
-
-		if (eventOptional.isPresent() && queryParameters.get(eventOptional.get().getId()) != null) {
-			eventStatus = Integer.parseInt((String.valueOf(queryParameters.get(eventOptional.get().getId()))));
-		}
-
-		//个人状态
-		int privateStatus = -1;
-		Optional<ItemModelEntity> personOptional = items.stream().filter(item-> (item.getSystemItemType() == SystemItemType.ProcessPrivateStatus)).findFirst();
-
-		if (personOptional.isPresent() && queryParameters.get(personOptional.get().getId()) != null) {
-			privateStatus = Integer.parseInt((String.valueOf(queryParameters.get(personOptional.get().getId()))));
-		}
-
-		Map<String, Object> iflowQueryParams = assemblyIflowQueryParams(items, queryParameters);
-		// 查工作流
-		Page<ProcessInstance> pageProcess = null;
-		try {
-			FormProcessInfo process = formModelEntity.getProcess();
-			System.out.println("传给工作流的Key="+process.getKey()+", processStatus="+eventStatus+", userStatus="+privateStatus+", page="+page+", pagesize="+pagesize+", 查询参数============>>>>"+iflowQueryParams);
-			//TODO 还没有传个人状态
-			pageProcess = processInstanceService.page(page, pagesize, process.getKey(), eventStatus, privateStatus, iflowQueryParams);
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new IFormException(e.getLocalizedMessage(), e);
-		}
-		Map<String, Object> data = new HashMap<>();
-		Map<String, ProcessInstance> instanceIdAndProcessMap = new LinkedHashMap<>();
-		for(ProcessInstance processInstance : pageProcess.getResults()) {
-			if(StringUtils.hasText(processInstance.getFormInstanceId())) {
-				instanceIdAndProcessMap.put(processInstance.getFormInstanceId(), processInstance);
-			}
-		}
-		//总条数
-		data.put("totalCount", pageProcess.getTotalCount());
-		data.put("data", instanceIdAndProcessMap);
-
-		return data;
-	}
-
-	private Map<String, Object> assemblyIflowQueryParams(List<ItemModelEntity> items, Map<String, Object> queryParameters) {
-		Map<String, Object> iflowQueryParams = new HashMap<>();
-		Map<String, ItemModelEntity> itemModelEntityMap = new HashMap<>();
-		for (ItemModelEntity item : items) {
-			itemModelEntityMap.put(item.getId(), item);
-		}
-		for(String key : queryParameters.keySet()) {
-			if("page".equals(key) || "pagesize".equals(key)){
-				continue;
-			}
-			if(!itemModelEntityMap.keySet().contains(key)){
-				iflowQueryParams.put(key, queryParameters.get(key));
-				continue;
-			}
-			ItemModelEntity item = itemModelEntityMap.get(key);
-			Object value = queryParameters.get(item.getId());
-			ColumnModelEntity columnModel = item.getColumnModel();
-			if (value == null || columnModel == null) {
-				continue;
-			}
-			if (isCommonItemType(item)) {
-				if (ItemType.Input == item.getType() || ItemType.Editor == item.getType()) {
-					if (StringUtils.hasText(value.toString())) {
-						iflowQueryParams.put(columnModel.getColumnName(), "%" + value.toString() + "%");
-					}
-				} else {
-					iflowQueryParams.put(columnModel.getColumnName(), value);
-				}
-			} else if (item instanceof SelectItemModelEntity) {
-				// 如果是单选框，多选框，下拉框，手动提取对应的中文出来
-				SelectItemModelEntity selectItem = (SelectItemModelEntity) item;
-				if (value instanceof String[]) {
-                    String[] valueArr =(String[])value ;
-					assemblyReferenceArrParams(valueArr, selectItem, iflowQueryParams, columnModel);
-				} else if (value instanceof List) {
-                    String[] valueArr =((List<String>)value).toArray(new String[]{}) ;
-                    assemblyReferenceArrParams(valueArr, selectItem, iflowQueryParams, columnModel);
-                } else {
-					String valueStr = value.toString();
-					assemblyReferenceStringParams(valueStr, selectItem, iflowQueryParams, columnModel);
-				}
-			}
-		}
-		return iflowQueryParams;
-	}
-
-	private void assemblyReferenceArrParams(String[] valueArr, SelectItemModelEntity selectItem, Map<String, Object> iflowQueryParams, ColumnModelEntity columnModel) {
-		StringBuffer queryNames = new StringBuffer();
-		for (String itemValue : valueArr) {
-			if (SelectReferenceType.Table == selectItem.getSelectReferenceType()) {
-				List<ItemSelectOption> options = selectItem.getOptions();
-				for (ItemSelectOption selectOption : options) {
-					if (selectOption.getId().equals(itemValue)) {
-						queryNames.append(selectOption.getLabel() + ",");
-					}
-				}
-			} else if (SelectReferenceType.Dictionary == selectItem.getSelectReferenceType()) {
-				DictionaryDataItemEntity dictionaryItem = dictionaryService.getDictionaryItemById(itemValue);
-				if (dictionaryItem != null) {
-					queryNames.append(dictionaryItem.getCode() + ",");
-				}
-			}
-		}
-		if (queryNames.toString().length() > 0) {
-			iflowQueryParams.put(columnModel.getColumnName(), queryNames.toString());
-		}
-	}
-
-	private void assemblyReferenceStringParams(String valueStr, SelectItemModelEntity selectItem, Map<String, Object> iflowQueryParams, ColumnModelEntity columnModel) {
-		if (SelectReferenceType.Fixed == selectItem.getSelectReferenceType()) {
-			List<ItemSelectOption> options = selectItem.getOptions();
-			for (ItemSelectOption selectOption : options) {
-				if (selectOption.getId().equals(valueStr)) {
-					iflowQueryParams.put(columnModel.getColumnName(), selectOption.getLabel());
-				}
-			}
-		} else if (SelectReferenceType.Dictionary == selectItem.getSelectReferenceType()) {
-			if (SelectDataSourceType.DictionaryData == selectItem.getSelectDataSourceType()) {
-				DictionaryDataItemEntity dictionaryItem = dictionaryService.getDictionaryItemById(valueStr);
-				if (dictionaryItem != null) {
-					iflowQueryParams.put(columnModel.getColumnName(), dictionaryItem.getCode());
-				}
-			} else if (SelectDataSourceType.DictionaryModel == selectItem.getSelectDataSourceType()) {
-				DictionaryModelData dictionaryModelData = dictionaryModelService.getDictionaryModelDataById(selectItem.getReferenceDictionaryId(), valueStr);
-				if (dictionaryModelData != null) {
-					iflowQueryParams.put(columnModel.getColumnName(), dictionaryModelData.getCode());
-				}
-			}
-		}
 	}
 
 	@Override
@@ -376,15 +174,8 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		if (listModel == null) {
 			throw new IFormException(404, "列表模型【" + listId + "】不存在");
 		}
-		FormModelEntity formModelEntity = listModel.getMasterForm();
 		Map<String, Object> queryParameters = assemblyQueryParameters(parameters);
-		List<FormDataSaveInstance> data = null;
-		// 如果流程表单作为普通列表查询，要查事件状态和各个环节的处理人时，一定要查工作流
-		if (formModelHasProcess(formModelEntity)) {
-			data = queryIflowList(queryParameters, 1, Integer.MAX_VALUE, formModelEntity, listModel).getResults();
-		}else {
-			data = formInstanceService.pageListInstance(listModel, 1, Integer.MAX_VALUE, queryParameters).getResults();
-		}
+		List<FormDataSaveInstance> data = formInstanceService.pageListInstance(listModel, 1, Integer.MAX_VALUE, queryParameters).getResults();
 		List<String> ids = new ArrayList<>(Arrays.asList(listModel.getDisplayItemsSort().split(",")));
 		List<ItemModelEntity> items = listModel.getDisplayItems();
 		List<ItemModelEntity> sortList = new ArrayList<>();
@@ -429,53 +220,6 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			out.close();
 		} catch (Exception e){
 			e.printStackTrace();
-		}
-	}
-
-	public static void mainss(String[] args) {
-		try {
-			XSSFWorkbook wb = new XSSFWorkbook();
-			XSSFSheet sheet = wb.createSheet("测试表单-test");
-			Row row = sheet.createRow(1);
-			row.setHeight((short)3000);
-			sheet.setColumnWidth(1,15000);
-			XSSFDrawing xssfDrawing = sheet.createDrawingPatriarch();
-			//图片一导出到单元格B2中
-			int size = 2;
-			String url = "http://pic37.nipic.com/20140113/8800276_184927469000_2.png";
-//			for (int k = 0; k < size; k++) {
-//
-//				XSSFClientAnchor anchor = new XSSFClientAnchor(300, 300, 300, 300,
-//						(short) 1, 1, (short) 2, 2);
-//			// 插入图片
-//			xssfDrawing.createPicture(anchor, wb.addPicture(ExportUtils.getOutputStream(url)
-//					.toByteArray(), XSSFWorkbook.PICTURE_TYPE_JPEG));
-//		}
-			//图片一导出到单元格B2中
-			XSSFClientAnchor anchor = new XSSFClientAnchor(0, 0, 0, 0, (short) 1, 1, (short) 2, 2);
-			XSSFClientAnchor anchor2 = new XSSFClientAnchor(0, 0, 0, 0, (short) 1, 1, (short) 2, 2);
-
-			xssfDrawing.createPicture(anchor, wb.addPicture(ExportUtils.getOutputStream(url)
-					.toByteArray(), XSSFWorkbook.PICTURE_TYPE_JPEG));
-			xssfDrawing.createPicture(anchor2, wb.addPicture(ExportUtils.getOutputStream(url)
-					.toByteArray(), XSSFWorkbook.PICTURE_TYPE_JPEG));
-
-			FileOutputStream fileOut  = new FileOutputStream("C:\\Users\\Administrator\\Desktop\\doker\\123.xlsx");
-			// 写入excel文件
-			wb.write(fileOut);
-		} catch (Exception e){
-			e.printStackTrace();
-		}
-	}
-
-	/**
-	 * 判断该表单是否绑定了工作流
-	 */
-	public boolean formModelHasProcess(FormModelEntity formModelEntity) {
-		if (formModelEntity.getProcess() != null && StringUtils.hasText(formModelEntity.getProcess().getKey())) {
-			return true;
-		} else {
-			return false;
 		}
 	}
 

@@ -2761,17 +2761,21 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		formInstance.setFormId(formModel.getId());
 		//数据id
 		formInstance.setId(instanceId);
+		Map<String, Object> processInstance = null;
 		if (formModel.getProcess() != null) {
 			formInstance.setProcessId((String) entity.get("PROCESS_ID"));
 			formInstance.setActivityId((String) entity.get("ACTIVITY_ID"));
 			formInstance.setActivityInstanceId((String) entity.get("ACTIVITY_INSTANCE"));
-			Map<String, Object> processInstance = (Map<String, Object>) entity.get("processInstance");
+			processInstance = (Map<String, Object>) entity.get("processInstance");
+		}
+		FormDataSaveInstance formDataSaveInstance = setFormDataInstanceModel(isQrCodeFlag, formInstance, formModel,  listModel, entity, referenceFlag);
+		if (formModel.getProcess() != null){
 			if (processInstance != null) {
 				formInstance.setProcessInstanceId((String) processInstance.get("id"));
 				setFlowFormInstance(formModelEntity, wrapProcessInstance(entity), formInstance);
 			}
 		}
-		return setFormDataInstanceModel(isQrCodeFlag, formInstance, formModel,  listModel, entity, referenceFlag);
+		return formDataSaveInstance;
 	}
 
 	protected FormDataSaveInstance wrapQrCodeFormDataEntity(boolean isQrCodeFlag, ListModelEntity listModel, Map<String, Object> entity, String instanceId, boolean referenceFlag) {
@@ -4045,19 +4049,14 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	@Override
 	public FormDataSaveInstance getFormDataSaveInstance(FormModelEntity formModel, String id) {
 		FormDataSaveInstance formInstance = null;
+		Map<String, Object> map = null;
 		try {
 			DataModelEntity dataModel = formModel.getDataModels().get(0);
-			Map<String, Object> map =  getDataInfo(dataModel, id);
+			map =  getDataInfo(dataModel, id);
 			if(map == null || map.keySet() == null ||  map.keySet().size() < 1){
 				throw new IFormException("没有查询到【" + dataModel.getTableName() + "】表，id【"+id+"】的数据");
 			}
 			formInstance = wrapFormDataEntity(false, formModel, null, map, id,true);
-			if(StringUtils.hasText(formInstance.getProcessInstanceId())) {
-				ProcessInstance processInstance = processInstanceService.get(formInstance.getProcessInstanceId());
-				if(processInstance != null) {
-					setFlowFormInstance(formModel, processInstance, formInstance);
-				}
-			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			if(e instanceof ICityException){
@@ -4067,16 +4066,19 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
         String formName = formModel.getName();
         if(formModel.getProcess() != null && formInstance.getProcessInstanceId() != null){
-            setFormInstanceProcessStatus(formModel, formInstance);
+            setFormInstanceProcessStatus(formModel, map, formInstance);
         }
         formInstance.setFormName(formName);
 		return formInstance;
 	}
 
 	//设置流程状态
-	private void setFormInstanceProcessStatus(FormModelEntity formModelEntity, FormDataSaveInstance formInstance){
-        ProcessInstance processInstance = processInstanceService.get(formInstance.getProcessInstanceId());
-		setFlowFormInstance(formModelEntity, processInstance, formInstance);
+	private void setFormInstanceProcessStatus(FormModelEntity formModelEntity, Map<String, Object> entity, FormDataSaveInstance formInstance){
+		if(entity == null){
+			return;
+		}
+		Map<String, Object> processInstance = (Map<String, Object>) entity.get("processInstance");
+		setFlowFormInstance(formModelEntity, wrapProcessInstance(processInstance), formInstance);
     }
 
 	@Override
@@ -4178,13 +4180,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		WorkingTask taskInstance =  null;
 		if(processInstance.getCurrentTaskInstance() instanceof WorkingTask) {
 			taskInstance =  new WorkingTask();
-			taskInstance.setSignable(((WorkingTask) processInstance.getCurrentTaskInstance()).isSignable());
-			taskInstance.setRejectable(((WorkingTask) processInstance.getCurrentTaskInstance()).isRejectable());
-			taskInstance.setComplatable(((WorkingTask) processInstance.getCurrentTaskInstance()).isComplatable());
-			taskInstance.setReturnable(((WorkingTask) processInstance.getCurrentTaskInstance()).isReturnable());
-			taskInstance.setJumpable(((WorkingTask) processInstance.getCurrentTaskInstance()).isJumpable());
-		}else{
-			System.out.println("zzz------");
+			taskInstance.setSignable(processInstance.getCurrentTaskInstance().isSignable());
+			taskInstance.setRejectable(processInstance.getCurrentTaskInstance().isRejectable());
+			taskInstance.setComplatable(processInstance.getCurrentTaskInstance().isComplatable());
+			taskInstance.setReturnable(processInstance.getCurrentTaskInstance().isReturnable());
+			taskInstance.setJumpable(processInstance.getCurrentTaskInstance().isJumpable());
 		}
 		instance.setCurrentTaskInstance(taskInstance);
 
@@ -4320,13 +4320,28 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		Page<FormDataSaveInstance> result = Page.get(page, pagesize);
 		Session session = getSession(formModel.getDataModels().get(0));
 		try {
+			boolean hasProcess = hasProcess(formModel);
+			int processStatus = hasProcess ? getProcessStatusParameter(formModel, SystemItemType.ProcessStatus, parameters) : -1;
+			int userStatus = hasProcess ? getProcessStatusParameter(formModel, SystemItemType.ProcessPrivateStatus, parameters) : -1;
+			Process process = hasProcess ? processService.get(formModel.getProcess().getKey()) : null;
+			String userId = hasProcess ? CurrentUserUtils.getCurrentUser().getId() : null;
+			List<String> groupIds = hasProcess ? getGroupIds(userId) : null;
+
 			Criteria criteria = generateColumnMapCriteria(session, formModel,  parameters);
-			criteria.setFirstResult((page - 1) * pagesize);
-			criteria.setMaxResults(pagesize);
+			if (hasProcess) {
+				addProcessCriteria(criteria, processStatus, userStatus, userId, groupIds);
+			}
 			criteria.setFirstResult((page - 1) * pagesize);
 			criteria.setMaxResults(pagesize);
 
-			List data = criteria.list();
+			List<Map<String, Object>> data = criteria.list();
+			if (process != null) {
+				data.forEach(entity -> {
+					entity.put("process", process);
+					entity.put("userId", userId);
+					entity.put("groupIds", groupIds);
+				});
+			}
 			List<FormDataSaveInstance> list = wrapFormDataList(formModel, null, data);
 
 			criteria.setFirstResult(0);
@@ -4481,6 +4496,12 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		ti.setCreateTime((Date) currentTask.get("createTime"));
 		ti.setClaimTime((Date) currentTask.get("claimTime"));
 		ti.setAssignee((String) currentTask.get("assignee"));
+
+		String previousTaskId = (String) currentTask.get("prevTaskId");
+		ti.setReturnable(previousTaskId != null && previousTaskId.indexOf(",") < 0);
+		ti.setRejectable(ti.isReturnable());
+		ti.setJumpable(previousTaskId != null);
+		ti.setSignable(ti.getClaimTime() == null);
 
 		Activity activity = findActivity(process, ti.getActivityId());
 		if (activity != null) {

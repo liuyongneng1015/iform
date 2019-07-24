@@ -156,11 +156,7 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
             concurrentmap.put(key, System.currentTimeMillis());
             //校验表名
             if(formModel != null && formModel.getDataModels() != null && formModel.getDataModels().size() > 0) {
-                DataModel dataModel = formModel.getDataModels().get(0);
-                DataModelEntity dataModelEntity = new DataModelEntity();
-                dataModelEntity.setId(dataModel.isNew()? null : dataModel.getId());
-                dataModelEntity.setTableName(dataModel.getTableName());
-                dataModelService.veryTableName(dataModelEntity);
+                dataModelService.veryTableName(formModel.getDataModels().get(0));
             }
 			formModelService.verifyFormModelName(formModel);
             oldEntity = formModelService.saveFormModel(formModel);
