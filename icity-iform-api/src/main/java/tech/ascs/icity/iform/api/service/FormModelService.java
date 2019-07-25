@@ -200,13 +200,13 @@ public interface FormModelService {
 	 */
 	@ApiOperation(value = "应用表单模型", position = 3)
 	@ApiImplicitParams({
-			@ApiImplicitParam(paramType = "query", name = "applicationId", value = "应用id", required = true, dataType = "String"),
+			@ApiImplicitParam(paramType = "query", name = "applicationId", value = "应用id", required = false, dataType = "String"),
 			@ApiImplicitParam(paramType = "query", name = "columnId", value = "字段id", required = false, dataType = "String"),
             @ApiImplicitParam(paramType = "query", name = "formModelId", value = "表单模型id", required = false, dataType = "String"),
 			@ApiImplicitParam(paramType = "query", name = "type", value = "表单模型类型", required = false, dataType = "String")
     })
 	@GetMapping(value = "/application")
-	List<ApplicationModel> findApplicationFormModel(@RequestParam(name="applicationId", required = true) String applicationId,
+	List<ApplicationModel> findApplicationFormModel(@RequestParam(name="applicationId", required = false) String applicationId,
 													@RequestParam(name="columnId", required = false) String columnId,
                                                     @RequestParam(name="formModelId", required = false) String formModelId,
 													@RequestParam(name="type", required = false) String type);
@@ -217,11 +217,11 @@ public interface FormModelService {
 	 */
 	@ApiOperation(value = "流程建模表单模型", position = 3)
 	@ApiImplicitParams({
-			@ApiImplicitParam(paramType = "query", name = "applicationId", value = "应用id", required = true, dataType = "String"),
+			@ApiImplicitParam(paramType = "query", name = "applicationId", value = "应用id", required = false, dataType = "String"),
 			@ApiImplicitParam(paramType = "query", name = "key", value = "流程KEY", required = false, dataType = "String")
 	})
 	@GetMapping(value = "/process/form")
-	List<ApplicationModel> findProcessApplicationFormModel(@RequestParam(name="applicationId", required = true) String applicationId,
+	List<ApplicationModel> findProcessApplicationFormModel(@RequestParam(name="applicationId", required = false) String applicationId,
 													       @RequestParam(name="key", required = false) String key);
 
 

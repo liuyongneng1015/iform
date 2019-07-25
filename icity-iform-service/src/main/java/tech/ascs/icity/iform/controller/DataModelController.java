@@ -99,7 +99,7 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 	@Override
 	public List<ApplicationModel> listReferenceDataModel(@RequestParam(name = "tableName", required = false) String tableName,
 													 	 @RequestParam(name = "modelType", required = false) String modelType,
-														 @RequestParam(name = "applicationId", required = true) String applicationId) {
+														 @RequestParam(name = "applicationId", required = false) String applicationId) {
 		try {
 			Query<DataModelEntity, DataModelEntity> query = dataModelService.query();
 			if (StringUtils.hasText(tableName)) {
