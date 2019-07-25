@@ -2257,14 +2257,18 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 		queryValue = "%" + queryValue + "%";
 		List<GeographicalMapEntity> list = mapEntityJPAManager.query().filterEqual("fromSource", locationItemModelEntity.getId()).filterLike("detailAddress", queryValue).list();
-		if (list==null || list.size()==0) {
-			return;
+		if (list!=null && list.size()!=0) {
+			List<String> ids = new ArrayList();
+			for (GeographicalMapEntity entity:list) {
+				ids.add(entity.getId());
+			}
+			criteria.add(Restrictions.in(columnModel.getColumnName(), ids.toArray(new String[]{})));
+		} else {
+			// 直接搜索地图没有满足条件的数据，构造一个不存在的查询条件，让后续查不出数据
+			// criteria.add(Restrictions.in(columnModel.getColumnName(), new ArrayList()));  // Restrictions.in("字段名",空集合); 空集合导致这句代码抛错
+			criteria.add(Restrictions.eq(columnModel.getColumnName(), UUID.randomUUID().toString()));
 		}
-		List<String> ids = new ArrayList();
-		for (GeographicalMapEntity entity:list) {
-			ids.add(entity.getId());
-		}
-		criteria.add(Restrictions.in(columnModel.getColumnName(), ids.toArray(new String[]{})));
+
 	}
 
 	private void fullTextSearchCriteria(Criteria criteria, Object queryValue, ListModelEntity listModelEntity) {
