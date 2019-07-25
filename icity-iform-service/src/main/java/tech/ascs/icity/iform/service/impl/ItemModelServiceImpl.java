@@ -458,7 +458,7 @@ public class ItemModelServiceImpl extends DefaultJPAService<ItemModelEntity> imp
 		if (defaultValue!=null && defaultValue instanceof List) {
 			List<String> defaultValues = (List)defaultValue;
 			if (defaultValues.size()>0) {
-				List<TreeSelectData> result = formInstanceServiceEx.getTreeSelectData(itemModel.getDataSource(), defaultValues.toArray(new String[]{}));
+				List<TreeSelectData> result = formInstanceServiceEx.getTreeSelectData(itemModel.getDataSource(), defaultValues.toArray(new String[]{}), itemModel.getReferenceDictionaryId());
 				if (result != null) {
 					entity.setDefaultValue(String.join(",", result.stream().map(item->item.getId()).collect(Collectors.toList())));
 				}else {
@@ -468,7 +468,7 @@ public class ItemModelServiceImpl extends DefaultJPAService<ItemModelEntity> imp
 				entity.setDefaultValue(null);
 			}
 		}else if (defaultValue!=null && defaultValue instanceof String && !StringUtils.isEmpty(defaultValue)) {
-			List<TreeSelectData> result = formInstanceServiceEx.getTreeSelectData(itemModel.getDataSource(),  new String[] {(String)defaultValue});
+			List<TreeSelectData> result = formInstanceServiceEx.getTreeSelectData(itemModel.getDataSource(),  new String[] {(String)defaultValue}, itemModel.getReferenceDictionaryId());
 			if (result == null || result.size() < 1) {
 				entity.setDefaultValue(null);
 			}else {
@@ -871,7 +871,7 @@ public class ItemModelServiceImpl extends DefaultJPAService<ItemModelEntity> imp
 			}
 		}
 		if (!StringUtils.isEmpty(treeSelectEntity.getDefaultValue())) {
-			List<TreeSelectData> list = formInstanceServiceEx.getTreeSelectData(treeSelectEntity.getDataSource(), treeSelectEntity.getDefaultValue().split(","));
+			List<TreeSelectData> list = formInstanceServiceEx.getTreeSelectData(treeSelectEntity.getDataSource(), treeSelectEntity.getDefaultValue().split(","), treeSelectEntity.getReferenceDictionaryId());
 			if(list != null && list.size() > 0) {
 				List<String> defalueVlaues = list.parallelStream().map(TreeSelectData::getName).collect(Collectors.toList());
 				if(treeSelectEntity.getMultiple() != null && treeSelectEntity.getMultiple()) {
