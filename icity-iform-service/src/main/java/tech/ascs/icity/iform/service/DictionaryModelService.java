@@ -121,5 +121,13 @@ public interface DictionaryModelService extends JPAService<DictionaryModelEntity
 	List<DictionaryModelData> findFirstItems(String dictionaryId, String id);
 
 
+	/**
+	 * 根据ids获取模型数据
+	 *
+	 * @param ids
+	 * @return
+	 */
+	List<DictionaryModelData> getDictionaryModelDataByIds(String dictionaryId, String[] ids);
+
 }
 

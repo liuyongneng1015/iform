@@ -3826,13 +3826,13 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 
 		if(valueStrs != null && valueStrs.length() > 0) {
-			List<TreeSelectData> list = getTreeSelectData(treeSelectItem.getDataSource(), valueStrs.split(","));
+			List<TreeSelectData> list = getTreeSelectData(treeSelectItem.getDataSource(), valueStrs.split(","), treeSelectItem.getReferenceDictionaryId());
 			if(list != null && list.size() > 0) {
 				List<String> values = list.parallelStream().map(TreeSelectData::getName).collect(Collectors.toList());
 				if(treeSelectItem.getMultiple() != null && treeSelectItem.getMultiple()) {
 					itemInstance.setValue(list.stream().map(item->item.getId()).collect(Collectors.toList()));
 					itemInstance.setDisplayValue(values);
-				}else{
+				} else {
 					itemInstance.setValue(list.get(0).getId());
 					itemInstance.setDisplayValue(values.get(0));
 				}
@@ -3842,7 +3842,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	}
 
 	@Override
-	public List<TreeSelectData> getTreeSelectData(TreeSelectDataSource dataSourceType, String[] ids) {
+	public List<TreeSelectData> getTreeSelectData(TreeSelectDataSource dataSourceType, String[] ids, String dictionaryId) {
 		if (ids==null || ids.length==0 || dataSourceType==null) {
 			return new ArrayList<>();
 		}
@@ -3852,7 +3852,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			TreeSelectDataSource.Position==dataSourceType || TreeSelectDataSource.PositionIdentify==dataSourceType) {
 			list = groupService.getTreeSelectDataSourceByIds(dataSourceType.getValue(), ids);
 		// 系统代码
-		} else if (TreeSelectDataSource.DictionaryData==dataSourceType){
+		} else if (TreeSelectDataSource.DictionaryData==dataSourceType) {
 			List<DictionaryDataItemEntity> dictionaryItems = dictionaryDataService.findByItemIds(ids);
 			if (dictionaryItems!=null && dictionaryItems.size()>0) {
 				for (DictionaryDataItemEntity dictionaryItem:dictionaryItems) {
@@ -3862,6 +3862,16 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					treeSelectData.setName(dictionaryItem.getName());
 					list.add(treeSelectData);
 				}
+			}
+		// 字典模型
+		} else if (TreeSelectDataSource.DictionaryModel==dataSourceType) {
+			List<DictionaryModelData> dictionaryModelItems = dictionaryModelService.getDictionaryModelDataByIds(dictionaryId, ids);
+			for (DictionaryModelData item:dictionaryModelItems) {
+				TreeSelectData treeSelectData = new TreeSelectData();
+				treeSelectData.setType(TreeSelectDataSource.DictionaryModel.getValue());
+				treeSelectData.setId(item.getId());
+				treeSelectData.setName(item.getName());
+				list.add(treeSelectData);
 			}
 		}
 		return list;

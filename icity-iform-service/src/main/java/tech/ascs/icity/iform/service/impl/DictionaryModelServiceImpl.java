@@ -472,6 +472,27 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 		return list;
 	}
 
+	@Override
+	public List<DictionaryModelData> getDictionaryModelDataByIds(String dictionaryId, String[] ids) {
+		if (ids==null || ids.length==0 || StringUtils.isEmpty(dictionaryId)) {
+			return new ArrayList<>();
+		}
+		DictionaryModel dictionaryModelModel = getDictionaryById(dictionaryId);
+		if (dictionaryModelModel==null) {
+			return new ArrayList<>();
+		}
+		String queryStr = "select * from "+dictionaryModelModel.getTableName() + " WHERE id IN ('" + String.join("','", ids)+"')";
+		List<Map<String, Object>> mapList = dictionaryManager.getJdbcTemplate().queryForList(queryStr);
+		if (mapList==null && mapList.size()>0) {
+			return new ArrayList<>();
+		}
+		List<DictionaryModelData> list = new ArrayList<>();
+		for (Map<String,Object> item:mapList) {
+			list.add(dictionaryModelData(dictionaryId, (String) item.get("id"), item));
+		}
+		return list;
+	}
+
 	private void findAllParentIds(List<String> idList, String tableName, String id){
 		List<Map<String, Object>> mapList = dictionaryManager.getJdbcTemplate().queryForList("select parent_id from "+tableName+" where id='"+id+"'");
 		if(mapList != null && mapList.size() > 0){
