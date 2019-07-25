@@ -56,16 +56,11 @@ public class PortalModelController implements tech.ascs.icity.iform.api.service.
 
     @Override
     public PortalModel get(@PathVariable(name="id") String id) {
-        if (mapper==null) {
-            System.out.println("0000000000000000000");
-        }
         return null;
     }
 
     @Override
     public IdEntity createPortalModel(@RequestBody PortalModel portalModel) {
-
-
         return null;
     }
 
