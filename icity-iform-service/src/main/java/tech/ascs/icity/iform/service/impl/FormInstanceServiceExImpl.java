@@ -2781,8 +2781,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		FormDataSaveInstance formDataSaveInstance = setFormDataInstanceModel(isQrCodeFlag, formInstance, formModel,  listModel, entity, referenceFlag);
 		if (formModel.getProcess() != null){
 			if (processInstance != null) {
-				formInstance.setProcessInstanceId((String) processInstance.get("id"));
-				setFlowFormInstance(formModelEntity, wrapProcessInstance(entity), formInstance);
+				formDataSaveInstance.setProcessInstanceId((String) processInstance.get("id"));
+				setFlowFormInstance(formModelEntity, wrapProcessInstance(entity), formDataSaveInstance);
 			}
 		}
 		return formDataSaveInstance;
@@ -4097,8 +4097,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		if(entity == null){
 			return;
 		}
-		Map<String, Object> processInstance = (Map<String, Object>) entity.get("processInstance");
-		setFlowFormInstance(formModelEntity, wrapProcessInstance(processInstance), formInstance);
+		setFlowFormInstance(formModelEntity, wrapProcessInstance(entity), formInstance);
     }
 
 	@Override
@@ -4483,9 +4482,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		entity = (Map<String, Object>) entity.get("processInstance");
 
 		ProcessInstance pi = new ProcessInstance();
-		pi.setFormId(process.getFormId());
-		pi.setFormName(process.getFormName());
-		pi.setFormTitle(process.getFormTitle());
+		pi.setFormId(process == null ? null : process.getFormId());
+		pi.setFormName(process == null ? null : process.getFormName());
+		pi.setFormTitle(process == null ? null : process.getFormTitle());
 		pi.setStartTime((Date) entity.get("startTime"));
 		pi.setEndTime((Date) entity.get("endTime"));
 		pi.setCurrentTask((String) entity.get("currentTask"));
@@ -4536,9 +4535,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	}
 
 	protected Activity findActivity(Process process, String taskDefKey) {
-		for (Activity activity : process.getActivities()) {
-			if (activity.getId().equals(taskDefKey)) {
-				return activity;
+		if(process != null) {
+			for (Activity activity : process.getActivities()) {
+				if (activity.getId().equals(taskDefKey)) {
+					return activity;
+				}
 			}
 		}
 		
