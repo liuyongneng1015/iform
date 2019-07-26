@@ -1588,6 +1588,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		if(!StringUtils.hasText(itemInstance.getProcessInstanceId())) {
 			verifyValue(itemModel, itemInstance.getValue(), displayTimingType);
 		}
+		if(itemInstance.getValue() == null || StringUtils.isEmpty(itemInstance.getValue())){
+			itemInstance.setValue(null);
+		}
 		if (itemModel.getType() == ItemType.DatePicker || itemModel.getSystemItemType() == SystemItemType.CreateDate) {
 			try {
 				value = itemInstance.getValue() == null || !StringUtils.hasText(String.valueOf(itemInstance.getValue())) ? null : new Date(Long.parseLong(String.valueOf(itemInstance.getValue())));
@@ -1602,13 +1605,12 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
             }else{
                 value = o == null || StringUtils.isEmpty(o) ? null : String.valueOf(o);
             }
-		} else if (itemModel.getType() == ItemType.InputNumber && ((NumberItemModelEntity)itemModel).getDecimalDigits() != null
-				&& ((NumberItemModelEntity)itemModel).getDecimalDigits() > 0 && itemInstance.getValue() != null) {
-			if(itemInstance.getValue() != null && StringUtils.hasText(String.valueOf(itemInstance.getValue())) ) {
-				BigDecimal bigDecimal = new BigDecimal(String.valueOf(itemInstance.getValue()));
+		} else if (itemModel.getType() == ItemType.InputNumber  && itemInstance.getValue() != null) {
+			BigDecimal bigDecimal = new BigDecimal(String.valueOf(itemInstance.getValue()));
+			if(((NumberItemModelEntity)itemModel).getDecimalDigits() != null  && ((NumberItemModelEntity)itemModel).getDecimalDigits() > 0 ) {
 				value = bigDecimal.divide(new BigDecimal(1.0), ((NumberItemModelEntity) itemModel).getDecimalDigits(), BigDecimal.ROUND_DOWN).doubleValue();
 			}else{
-				value = null;
+				value = bigDecimal.divide(new BigDecimal(1.0), 0, BigDecimal.ROUND_DOWN).doubleValue();;
 			}
 		} else if (itemModel.getType() == ItemType.Media || itemModel.getType() == ItemType.Attachment) {
             Object o = itemInstance.getValue();
@@ -1670,11 +1672,15 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				}
 			}
 		}else {
-			value = itemInstance.getValue() == null || StringUtils.isEmpty(itemInstance.getValue()) ? null : itemInstance.getValue();
+			value = itemInstance.getValue();
         }
 		ColumnModelEntity columnModel = itemModel.getColumnModel();
 		if (Objects.nonNull(columnModel)) {
-			data.put(columnModel.getColumnName(), value);
+			if(columnModel.getDataType() == ColumnType.String || columnModel.getDataType() == ColumnType.Text) {
+				data.put(columnModel.getColumnName(), value == null ? null : String.valueOf(value));
+			}else {
+				data.put(columnModel.getColumnName(), value);
+			}
 		}
 	}
 
