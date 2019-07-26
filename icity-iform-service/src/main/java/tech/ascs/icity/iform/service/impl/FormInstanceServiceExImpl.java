@@ -1083,23 +1083,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 		String functionType = (String)flowData.get("functionType");
 		FlowFunctionType flowFunctionType = FlowFunctionType.getTypeByValue(functionType);
-		if(flowFunctionType == null || FlowFunctionType.InvokeService == flowFunctionType
-				|| FlowFunctionType.JumpURL == flowFunctionType || FlowFunctionType.ChangeState == flowFunctionType){
-			if(StringUtils.hasText(comment)){
-				taskService.addComment(formInstance.getActivityInstanceId(), comment);
-			}
-			return;
-		}else if(FlowFunctionType.Sign == flowFunctionType){
-			if(StringUtils.hasText(comment)){
-				taskService.addComment(formInstance.getActivityInstanceId(), comment);
-			}
-			taskService.signTask(formInstance.getActivityInstanceId());
-			return;
-		}else if(isBack) {
-			//退回
-			taskService.returnTask(formInstance.getActivityInstanceId(), null, comment);
-			return;
-		}
 
 		flowData.remove("circalation");
 		if(paramCondition != null && paramCondition.contains(ParamCondition.FormCurrentData.getValue())) {
@@ -1116,7 +1099,22 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		setColumnValue(assignmentList, flowData, data, user, taskInstance);
 		flowData = toProcesDictionaryData(flowData, formModel);
 		System.out.println("更新时传给工作流的数据=====>>>>>"+OkHttpUtils.mapToJson(flowData));
-		taskService.completeTask(formInstance.getActivityInstanceId(), flowData);
+		if(flowFunctionType == null || FlowFunctionType.InvokeService == flowFunctionType
+				|| FlowFunctionType.JumpURL == flowFunctionType || FlowFunctionType.ChangeState == flowFunctionType){
+			if(StringUtils.hasText(comment)){
+				taskService.addComment(formInstance.getActivityInstanceId(), comment);
+			}
+		}else if(FlowFunctionType.Sign == flowFunctionType){
+			if(StringUtils.hasText(comment)){
+				taskService.addComment(formInstance.getActivityInstanceId(), comment);
+			}
+			taskService.signTask(formInstance.getActivityInstanceId());
+		}else if(isBack) {
+			//退回
+			taskService.returnTask(formInstance.getActivityInstanceId(), null, comment);
+		}else {
+			taskService.completeTask(formInstance.getActivityInstanceId(), flowData);
+		}
 		updateProcessInfo(assignmentList, formModel, data, formInstance.getProcessInstanceId());
 	}
 
