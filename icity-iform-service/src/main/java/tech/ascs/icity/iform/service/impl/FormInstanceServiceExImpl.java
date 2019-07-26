@@ -997,6 +997,13 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}
 		}
 
+		// 去掉关联属性中已填内容的字段
+		for(ReferenceDataInstance referenceDataInstance : formInstance.getReferenceData()) {
+			if (StringUtils.hasText(referenceDataInstance.getId()) && referenceDataInstance.getValue()!=null) {
+				notNullIdMap.remove(referenceDataInstance.getId());
+			}
+		}
+
 		if(notNullIdMap.size() > 0) {
 			// 测试提的bug，校验字段非空时，要按照表单建模的控件顺序来校验
 			List<ItemModelEntity> items = new ArrayList<>();
