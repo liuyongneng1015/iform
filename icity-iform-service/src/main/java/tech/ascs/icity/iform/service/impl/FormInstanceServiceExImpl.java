@@ -2087,7 +2087,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					columnModel = referenceItemModelEntity1.getColumnModel();
 					propertyName = columnModel.getDataModel().getTableName()+"_"+referenceItemModelEntity1.getColumnModel().getColumnName()+"_list";
 				}else if(referenceItemModel.getSelectMode() == SelectMode.Multiple){
-//					columnModel = new ColumnModelEntity();
+					columnModel = new ColumnModelEntity();
 					propertyIsReferenceCollection = true;
 					FormModelEntity toModelEntity = formModelService.find(((ReferenceItemModelEntity) itemModel).getReferenceFormId());
 					if (toModelEntity == null) {
