@@ -480,6 +480,11 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 		BeanUtils.copyProperties(paramerItemModelEntity, saveItemModelEntity, new String[]{"referencesItemModels","parentItem", "searchItems","sortItems","permissions", "referenceList","items","formModel","columnModel","activities","options"});
 
+		// BeanUtils.copyProperties忽略null的属性，树形下拉控件的默认值没传值过来时，应该要把树形下拉控件的默认值置空，但是copyProperties忽略null的属性
+		if (paramerItemModelEntity instanceof TreeSelectItemModelEntity) {
+			TreeSelectItemModelEntity treeSelectItemEntity = (TreeSelectItemModelEntity)paramerItemModelEntity;
+			((TreeSelectItemModelEntity)saveItemModelEntity).setDefaultValue(treeSelectItemEntity.getDefaultValue());
+		}
 
 		//设置列表模型
 		if (paramerItemModelEntity instanceof ReferenceItemModelEntity ) {

@@ -17,6 +17,7 @@ import tech.ascs.icity.iform.utils.TableUtils;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -41,7 +42,7 @@ public class DataTableServiceImpl implements DataTableBuildService {
     public List<DataTable> findNotBuildTable() {
         Set<String> existsTables = dataModelService.findAll()
                 .parallelStream()
-                .map(entity -> entity.getPrefix() + entity.getTableName())
+                .map(entity -> concat(entity.getPrefix(), entity.getTableName()))
                 .collect(Collectors.toSet());
         try {
             return TableUtils.findAllTables()
@@ -93,5 +94,13 @@ public class DataTableServiceImpl implements DataTableBuildService {
 
     private <T> T callThis(T obj) {
         return obj;
+    }
+
+    private String concat(String... args) {
+        StringBuilder builder = new StringBuilder();
+        for (String arg : args){
+            builder.append(Optional.ofNullable(arg).orElse(""));
+        }
+        return builder.toString();
     }
 }
