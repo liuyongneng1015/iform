@@ -396,9 +396,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	@Override
 	public FormDataSaveInstance getQrCodeFormDataSaveInstance(ListModelEntity listModel, String instanceId) {
 		FormDataSaveInstance formInstance = null;
+		Map<String, Object> map = null;
 		try {
 			DataModelEntity dataModel = listModel.getMasterForm().getDataModels().get(0);
-			Map<String, Object> map = getDataInfo(dataModel, instanceId);
+			map = getDataInfo(dataModel, instanceId);
 			if (map == null || map.keySet() == null) {
 				throw new IFormException("没有查询到【" + dataModel.getTableName() + "】表，id【" + instanceId + "】的数据");
 			}
@@ -409,6 +410,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				throw e;
 			}
 			throw new IFormException("没有查询到【" + listModel.getMasterForm().getName() + "】表单，instanceId【" + instanceId + "】的数据");
+		}
+		if(map != null && listModel.getMasterForm() != null && listModel.getMasterForm().getProcess() != null && formInstance.getProcessInstanceId() != null){
+			setFormInstanceProcessStatus(listModel.getMasterForm(), map, formInstance);
 		}
 		return formInstance;
 	}
@@ -2782,7 +2786,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		if (formModel.getProcess() != null){
 			if (processInstance != null) {
 				formDataSaveInstance.setProcessInstanceId((String) processInstance.get("id"));
-				setFlowFormInstance(formModelEntity, wrapProcessInstance(entity), formDataSaveInstance);
+				setFlowFormInstance(formModelEntity, wrapProcessInstance(formModel.getProcess().getKey(), entity), formDataSaveInstance);
 			}
 		}
 		return formDataSaveInstance;
@@ -4084,20 +4088,15 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}
 			throw new IFormException("没有查询到【" + formModel.getName() + "】表单，instanceId【"+id+"】的数据");
 		}
-        String formName = formModel.getName();
-        if(formModel.getProcess() != null && formInstance.getProcessInstanceId() != null){
+        if(map != null && formModel.getProcess() != null && formInstance.getProcessInstanceId() != null){
             setFormInstanceProcessStatus(formModel, map, formInstance);
         }
-        formInstance.setFormName(formName);
 		return formInstance;
 	}
 
 	//设置流程状态
 	private void setFormInstanceProcessStatus(FormModelEntity formModelEntity, Map<String, Object> entity, FormDataSaveInstance formInstance){
-		if(entity == null){
-			return;
-		}
-		setFlowFormInstance(formModelEntity, wrapProcessInstance(entity), formInstance);
+		setFlowFormInstance(formModelEntity, wrapProcessInstance(formModelEntity.getProcess().getKey(), entity), formInstance);
     }
 
 	@Override
@@ -4475,10 +4474,17 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		return formModel.getProcess() != null && StringUtils.hasText(formModel.getProcess().getKey());
 	}
 
-	protected ProcessInstance wrapProcessInstance(Map<String, Object> entity) {
+	protected ProcessInstance wrapProcessInstance(String processKey, Map<String, Object> entity) {
 		Process process = (Process) entity.get("process");
 		String userId = (String) entity.get("userId");
 		List<String> groupIds = (List<String>) entity.get("groupIds");
+
+		if(process == null && processKey != null) {
+			process = processService.get(processKey);
+			userId = CurrentUserUtils.getCurrentUser().getId();
+			groupIds = getGroupIds(userId);
+		}
+
 		entity = (Map<String, Object>) entity.get("processInstance");
 
 		ProcessInstance pi = new ProcessInstance();
