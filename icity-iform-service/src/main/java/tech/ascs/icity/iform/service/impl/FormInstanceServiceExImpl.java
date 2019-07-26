@@ -247,7 +247,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			int processStatus = hasProcess ? getProcessStatusParameter(listModel.getMasterForm(), SystemItemType.ProcessStatus, queryParameters) : -1;
 			int userStatus = hasProcess ? getProcessStatusParameter(listModel.getMasterForm(), SystemItemType.ProcessPrivateStatus, queryParameters) : -1;
 			Process process = hasProcess ? processService.get(listModel.getMasterForm().getProcess().getKey()) : null;
-			String userId = hasProcess ? CurrentUserUtils.getCurrentUser().getId() : null;
+			String userId = hasProcess ? (queryParameters.get("userId") == null ? CurrentUserUtils.getCurrentUser().getId() : (String)queryParameters.get("userId")) : null;
 			List<String> groupIds = hasProcess ? getGroupIds(userId) : null;
 
 			Criteria criteria = generateCriteria(session, listModel.getMasterForm(), listModel, queryParameters);
