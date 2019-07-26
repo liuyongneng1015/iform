@@ -2098,14 +2098,14 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					propertyName = toModelEntity.getDataModels().get(0).getTableName()+"_list";
 				}
 			} else if (itemModel instanceof SelectItemModelEntity &&
-					(((SelectItemModelEntity)itemModel).getMultiple()==null || ((SelectItemModelEntity)itemModel).getMultiple()==false)) {
+					(((SelectItemModelEntity)itemModel).getMultiple() == null || ((SelectItemModelEntity)itemModel).getMultiple() == false)) {
 				propertyName = columnModel.getColumnName();
 				equalsFlag = true;
-			} else if (itemModel.getColumnModel()!=null) {        // 普通控件
+			} else if (itemModel.getColumnModel() != null) {        // 普通控件
 				propertyName = columnModel.getColumnName();
 			}
 
-			if (StringUtils.isEmpty(propertyName) || columnModel == null) {
+			if (StringUtils.isEmpty(propertyName)) {
 				continue;
 			}
 
@@ -2115,13 +2115,13 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					if (itemModel.getSystemItemType() == SystemItemType.CreateDate || itemModel.getType() == ItemType.DatePicker || itemModel.getType() == ItemType.TimePicker) {
 						equalsFlag = true;
 						value = getTimeParams(itemModel.getType(), String.valueOf(values[i]));
-					} else if (itemModel.getType() == ItemType.InputNumber) {
+					} else if (columnModel != null && itemModel.getType() == ItemType.InputNumber) {
 						equalsFlag = true;
 						Object number = getNumberParams(itemModel, columnModel, values[i]);
 						if (number != null) {
 							values[i] = number;
 						}
-					} else if (columnModel.getDataType() == ColumnType.Boolean) {
+					} else if (columnModel != null && columnModel.getDataType() == ColumnType.Boolean) {
 						equalsFlag = true;
 						if (!(values[i] instanceof Boolean)) {
 							String strValue = String.valueOf(values[i]);
