@@ -247,7 +247,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			int processStatus = hasProcess ? getProcessStatusParameter(listModel.getMasterForm(), SystemItemType.ProcessStatus, queryParameters) : -1;
 			int userStatus = hasProcess ? getProcessStatusParameter(listModel.getMasterForm(), SystemItemType.ProcessPrivateStatus, queryParameters) : -1;
 			Process process = hasProcess ? processService.get(listModel.getMasterForm().getProcess().getKey()) : null;
-			String userId = hasProcess ? CurrentUserUtils.getCurrentUser().getId() : null;
+			String userId = hasProcess ? (queryParameters.get("userId") == null ? CurrentUserUtils.getCurrentUser().getId() : (String)queryParameters.get("userId")) : null;
 			List<String> groupIds = hasProcess ? getGroupIds(userId) : null;
 
 			Criteria criteria = generateCriteria(session, listModel.getMasterForm(), listModel, queryParameters);
@@ -396,9 +396,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	@Override
 	public FormDataSaveInstance getQrCodeFormDataSaveInstance(ListModelEntity listModel, String instanceId) {
 		FormDataSaveInstance formInstance = null;
+		Map<String, Object> map = null;
 		try {
 			DataModelEntity dataModel = listModel.getMasterForm().getDataModels().get(0);
-			Map<String, Object> map = getDataInfo(dataModel, instanceId);
+			map = getDataInfo(dataModel, instanceId);
 			if (map == null || map.keySet() == null) {
 				throw new IFormException("没有查询到【" + dataModel.getTableName() + "】表，id【" + instanceId + "】的数据");
 			}
@@ -409,6 +410,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				throw e;
 			}
 			throw new IFormException("没有查询到【" + listModel.getMasterForm().getName() + "】表单，instanceId【" + instanceId + "】的数据");
+		}
+		if(map != null && listModel.getMasterForm() != null && listModel.getMasterForm().getProcess() != null && formInstance.getProcessInstanceId() != null){
+			setFormInstanceProcessStatus(listModel.getMasterForm(), map, formInstance);
 		}
 		return formInstance;
 	}
@@ -1079,23 +1083,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 		String functionType = (String)flowData.get("functionType");
 		FlowFunctionType flowFunctionType = FlowFunctionType.getTypeByValue(functionType);
-		if(flowFunctionType == null || FlowFunctionType.InvokeService == flowFunctionType
-				|| FlowFunctionType.JumpURL == flowFunctionType || FlowFunctionType.ChangeState == flowFunctionType){
-			if(StringUtils.hasText(comment)){
-				taskService.addComment(formInstance.getActivityInstanceId(), comment);
-			}
-			return;
-		}else if(FlowFunctionType.Sign == flowFunctionType){
-			if(StringUtils.hasText(comment)){
-				taskService.addComment(formInstance.getActivityInstanceId(), comment);
-			}
-			taskService.signTask(formInstance.getActivityInstanceId());
-			return;
-		}else if(isBack) {
-			//退回
-			taskService.returnTask(formInstance.getActivityInstanceId(), null, comment);
-			return;
-		}
 
 		flowData.remove("circalation");
 		if(paramCondition != null && paramCondition.contains(ParamCondition.FormCurrentData.getValue())) {
@@ -1112,7 +1099,22 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		setColumnValue(assignmentList, flowData, data, user, taskInstance);
 		flowData = toProcesDictionaryData(flowData, formModel);
 		System.out.println("更新时传给工作流的数据=====>>>>>"+OkHttpUtils.mapToJson(flowData));
-		taskService.completeTask(formInstance.getActivityInstanceId(), flowData);
+		if(flowFunctionType == null || FlowFunctionType.InvokeService == flowFunctionType
+				|| FlowFunctionType.JumpURL == flowFunctionType || FlowFunctionType.ChangeState == flowFunctionType){
+			if(StringUtils.hasText(comment)){
+				taskService.addComment(formInstance.getActivityInstanceId(), comment);
+			}
+		}else if(FlowFunctionType.Sign == flowFunctionType){
+			if(StringUtils.hasText(comment)){
+				taskService.addComment(formInstance.getActivityInstanceId(), comment);
+			}
+			taskService.signTask(formInstance.getActivityInstanceId());
+		}else if(isBack) {
+			//退回
+			taskService.returnTask(formInstance.getActivityInstanceId(), null, comment);
+		}else {
+			taskService.completeTask(formInstance.getActivityInstanceId(), flowData);
+		}
 		updateProcessInfo(assignmentList, formModel, data, formInstance.getProcessInstanceId());
 	}
 
@@ -2094,14 +2096,14 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					propertyName = toModelEntity.getDataModels().get(0).getTableName()+"_list";
 				}
 			} else if (itemModel instanceof SelectItemModelEntity &&
-					(((SelectItemModelEntity)itemModel).getMultiple()==null || ((SelectItemModelEntity)itemModel).getMultiple()==false)) {
+					(((SelectItemModelEntity)itemModel).getMultiple() == null || ((SelectItemModelEntity)itemModel).getMultiple() == false)) {
 				propertyName = columnModel.getColumnName();
 				equalsFlag = true;
-			} else if (itemModel.getColumnModel()!=null) {        // 普通控件
+			} else if (itemModel.getColumnModel() != null) {        // 普通控件
 				propertyName = columnModel.getColumnName();
 			}
 
-			if (StringUtils.isEmpty(propertyName) || columnModel == null) {
+			if (StringUtils.isEmpty(propertyName)) {
 				continue;
 			}
 
@@ -2111,13 +2113,13 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					if (itemModel.getSystemItemType() == SystemItemType.CreateDate || itemModel.getType() == ItemType.DatePicker || itemModel.getType() == ItemType.TimePicker) {
 						equalsFlag = true;
 						value = getTimeParams(itemModel.getType(), String.valueOf(values[i]));
-					} else if (itemModel.getType() == ItemType.InputNumber) {
+					} else if (columnModel != null && itemModel.getType() == ItemType.InputNumber) {
 						equalsFlag = true;
 						Object number = getNumberParams(itemModel, columnModel, values[i]);
 						if (number != null) {
 							values[i] = number;
 						}
-					} else if (columnModel.getDataType() == ColumnType.Boolean) {
+					} else if (columnModel != null && columnModel.getDataType() == ColumnType.Boolean) {
 						equalsFlag = true;
 						if (!(values[i] instanceof Boolean)) {
 							String strValue = String.valueOf(values[i]);
@@ -2789,7 +2791,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		if (formModel.getProcess() != null){
 			if (processInstance != null) {
 				formDataSaveInstance.setProcessInstanceId((String) processInstance.get("id"));
-				setFlowFormInstance(formModelEntity, wrapProcessInstance(entity), formDataSaveInstance);
+				setFlowFormInstance(formModelEntity, wrapProcessInstance(formModel.getProcess().getKey(), entity), formDataSaveInstance);
 			}
 		}
 		return formDataSaveInstance;
@@ -4091,20 +4093,15 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			}
 			throw new IFormException("没有查询到【" + formModel.getName() + "】表单，instanceId【"+id+"】的数据");
 		}
-        String formName = formModel.getName();
-        if(formModel.getProcess() != null && formInstance.getProcessInstanceId() != null){
+        if(map != null && formModel.getProcess() != null && formInstance.getProcessInstanceId() != null){
             setFormInstanceProcessStatus(formModel, map, formInstance);
         }
-        formInstance.setFormName(formName);
 		return formInstance;
 	}
 
 	//设置流程状态
 	private void setFormInstanceProcessStatus(FormModelEntity formModelEntity, Map<String, Object> entity, FormDataSaveInstance formInstance){
-		if(entity == null){
-			return;
-		}
-		setFlowFormInstance(formModelEntity, wrapProcessInstance(entity), formInstance);
+		setFlowFormInstance(formModelEntity, wrapProcessInstance(formModelEntity.getProcess().getKey(), entity), formInstance);
     }
 
 	@Override
@@ -4482,10 +4479,17 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		return formModel.getProcess() != null && StringUtils.hasText(formModel.getProcess().getKey());
 	}
 
-	protected ProcessInstance wrapProcessInstance(Map<String, Object> entity) {
+	protected ProcessInstance wrapProcessInstance(String processKey, Map<String, Object> entity) {
 		Process process = (Process) entity.get("process");
 		String userId = (String) entity.get("userId");
 		List<String> groupIds = (List<String>) entity.get("groupIds");
+
+		if(process == null && processKey != null) {
+			process = processService.get(processKey);
+			userId = CurrentUserUtils.getCurrentUser().getId();
+			groupIds = getGroupIds(userId);
+		}
+
 		entity = (Map<String, Object>) entity.get("processInstance");
 
 		ProcessInstance pi = new ProcessInstance();
