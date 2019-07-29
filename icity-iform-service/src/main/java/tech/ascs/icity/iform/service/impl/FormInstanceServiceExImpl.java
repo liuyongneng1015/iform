@@ -10,6 +10,7 @@ import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.*;
+import org.hibernate.criterion.Order;
 import org.hibernate.internal.CriteriaImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,10 +20,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import tech.ascs.icity.ICityException;
-import tech.ascs.icity.admin.api.model.Group;
-import tech.ascs.icity.admin.api.model.Role;
-import tech.ascs.icity.admin.api.model.TreeSelectData;
-import tech.ascs.icity.admin.api.model.User;
+import tech.ascs.icity.admin.api.model.*;
 import tech.ascs.icity.admin.client.GroupService;
 import tech.ascs.icity.admin.client.UserService;
 import tech.ascs.icity.iflow.api.model.Activity;
@@ -35,6 +33,7 @@ import tech.ascs.icity.iflow.client.ProcessService;
 import tech.ascs.icity.iflow.client.TaskService;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
+import tech.ascs.icity.iform.api.model.FileUploadModel;
 import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.*;
 import tech.ascs.icity.iform.support.IFormSessionFactoryBuilder;
@@ -4066,7 +4065,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		throw new IFormException(404, "表单控件模型不存在");
 	}
 
-	public List<User> getUserInfoByIds(List<String> ids) {
+	public List<UserBase> getUserInfoByIds(List<String> ids) {
 		if (ids!=null && ids.size()>0) {
 			return userService.queryUserInfoByIds(ids);
 		} else {

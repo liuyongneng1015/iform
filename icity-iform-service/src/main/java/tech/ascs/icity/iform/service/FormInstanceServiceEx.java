@@ -5,6 +5,7 @@ import java.util.Map;
 
 import tech.ascs.icity.admin.api.model.TreeSelectData;
 import tech.ascs.icity.admin.api.model.User;
+import tech.ascs.icity.admin.api.model.UserBase;
 import tech.ascs.icity.iflow.api.model.ProcessInstance;
 import tech.ascs.icity.iform.api.model.FormDataSaveInstance;
 import tech.ascs.icity.iform.api.model.FormInstance;
@@ -43,7 +44,7 @@ public interface FormInstanceServiceEx {
 	//赋值itemmodel
 	void updateValue(ItemModelEntity itemModel, ItemInstance itemInstance, Object value);
 
-	List<User> getUserInfoByIds(List<String> ids);
+	List<UserBase> getUserInfoByIds(List<String> ids);
 
     FormDataSaveInstance getFormDataSaveInstance(FormModelEntity formModel, String id);
 
