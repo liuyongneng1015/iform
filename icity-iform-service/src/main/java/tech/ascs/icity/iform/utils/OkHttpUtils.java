@@ -79,17 +79,26 @@ public class OkHttpUtils {
 
 
     public static ResponseResult doGet(String url, Map<String, Object> queries){
-        StringBuffer sb = new StringBuffer(url);
-        sb.append(getParamString(queries));
-
+       String urlStr = getParamString(url, queries);
         //创建一个Request
         final Request request = new Request.Builder()
-                .url(url)
+                .url(urlStr)
                 .build();
         return  execute(request);
     }
 
     public static ResponseResult doPost(String url, Map<String,Object> map){
+        if(url != null && url.contains("?")){
+            String paramster = url.substring(url.lastIndexOf("?")+1);
+            String[] paramsterArray = paramster.split("&");
+            for(String str : paramsterArray){
+                String [] strings = str.split("=");
+                if(strings.length == 2){
+                    map.put(strings[0], strings[1]);
+                }
+            }
+            url = url.substring(0, url.lastIndexOf("?"));
+        }
         RequestBody requestBody = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), mapToJson(map));
         Request request = new Request.Builder()
                 .url(url)
@@ -97,7 +106,6 @@ public class OkHttpUtils {
                 .build();
         return execute(request);
     }
-
 
     public static ResponseResult doPut(String url, Map<String,Object> map){
         RequestBody requestBody = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), mapToJson(map));
@@ -116,10 +124,13 @@ public class OkHttpUtils {
         return execute(request);
     }
 
-    private static String getParamString(Map<String, Object> queries){
-        StringBuffer sb = new StringBuffer("");
+    private static String getParamString(String url, Map<String, Object> queries){
+        StringBuffer sb = new StringBuffer(url);
         if (queries != null && queries.keySet().size() > 0) {
             boolean firstFlag = true;
+            if(url != null && url.contains("?")){
+                firstFlag = false;
+            }
             Iterator iterator = queries.entrySet().iterator();
             while (iterator.hasNext()) {
                 Map.Entry entry = (Map.Entry<String, Object>) iterator.next();
@@ -142,8 +153,7 @@ public class OkHttpUtils {
      */
     public static ResponseResult doHeader(String url, Map<String, Object> queries) {
         String responseBody = "";
-        StringBuffer sb = new StringBuffer(url);
-        sb.append(getParamString(queries));
+        String urlStr = getParamString(url, queries);
        /* Request.Builder builder = new Request.Builder();
         if (queries != null && queries.keySet().size() > 0) {
             Iterator iterator = queries.entrySet().iterator();
@@ -154,7 +164,7 @@ public class OkHttpUtils {
             }
         }*/
         Request request = new Request.Builder()
-                .url(sb.toString())
+                .url(urlStr)
                 .build();
         return execute(request);
     }
