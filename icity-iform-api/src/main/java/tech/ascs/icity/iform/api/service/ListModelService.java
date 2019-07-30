@@ -17,14 +17,14 @@ public interface ListModelService {
 
 	/**
 	 * 获取所有列表模型
-	 * 
+	 *
 	 * @param name （可选）列表名称
 	 * @return
 	 */
 	@ApiOperation(value = "获取所有列表模型，全部返回简要信息", position = 0)
 	@ApiImplicitParams({
-		@ApiImplicitParam(paramType = "query", name = "name", value = "列表名称", required = false),
-		@ApiImplicitParam(paramType = "query", name = "applicationId", value = "应用id", required = false)
+			@ApiImplicitParam(paramType = "query", name = "name", value = "列表名称", required = false),
+			@ApiImplicitParam(paramType = "query", name = "applicationId", value = "应用id", required = false)
 	})
 	@GetMapping
 	List<ListModel> list(@RequestParam(name = "name", defaultValue = "") String name,
@@ -32,7 +32,7 @@ public interface ListModelService {
 
 	/**
 	 * 获取列表模型分页数据
-	 * 
+	 *
 	 * @param name （可选）列表名称
 	 * @param page （可选）页码，默认为1
 	 * @param pagesize （可选）每页记录数，默认为10
@@ -40,27 +40,27 @@ public interface ListModelService {
 	 */
 	@ApiOperation(value = "获取列表模型分页数据，全部返回简要信息", position = 1)
 	@ApiImplicitParams({
-		@ApiImplicitParam(paramType = "query", name = "name", value = "列表名称", required = false),
-		@ApiImplicitParam(paramType = "query", name = "page", value = "页码", required = false, defaultValue = "1"),
-		@ApiImplicitParam(paramType = "query", name = "pagesize", value = "每页记录数", required = false, defaultValue = "10"),
-		@ApiImplicitParam(paramType = "query", name = "applicationId", value = "应用id", required = false)
+			@ApiImplicitParam(paramType = "query", name = "name", value = "列表名称", required = false),
+			@ApiImplicitParam(paramType = "query", name = "page", value = "页码", required = false, defaultValue = "1"),
+			@ApiImplicitParam(paramType = "query", name = "pagesize", value = "每页记录数", required = false, defaultValue = "10"),
+			@ApiImplicitParam(paramType = "query", name = "applicationId", value = "应用id", required = false)
 	})
 	@GetMapping("/page")
 	Page<ListModel> page(@RequestParam(name = "name", defaultValue = "") String name,
-                         @RequestParam(name = "page", defaultValue = "1") int page,
+						 @RequestParam(name = "page", defaultValue = "1") int page,
 						 @RequestParam(name = "pagesize", defaultValue = "10") int pagesize,
-                         @RequestParam(name = "applicationId", required = false) String applicationId);
+						 @RequestParam(name = "applicationId", required = false) String applicationId);
 
 
 	/**
 	 * 根据列表模型ID获取列表模型对象
-	 * 
+	 *
 	 * @param id 列表模型ID（uuid）
 	 * @return
 	 */
 	@ApiOperation(value = "根据列表模型ID获取列表模型对象", position = 2)
 	@ApiImplicitParams({
-		@ApiImplicitParam(paramType = "path", name = "id", value = "列表模型ID", required = true, dataType = "String")
+			@ApiImplicitParam(paramType = "path", name = "id", value = "列表模型ID", required = true, dataType = "String")
 	})
 	@GetMapping("/{id}")
 	ListModel get(@PathVariable(name="id") String id);
@@ -76,7 +76,7 @@ public interface ListModelService {
 			@ApiImplicitParam(paramType = "path", name = "id", value = "列表模型ID", required = true, dataType = "String")
 	})
 	@GetMapping("/app/{id}")
-	ListModel getApp(@PathVariable(name="id") String id);
+	ListModel getAppListModelById(@PathVariable(name="id") String id);
 
 
 	/**
@@ -86,14 +86,14 @@ public interface ListModelService {
 	 */
 	@ApiOperation(value = "根据唯一编码查询列表建模", position = 2)
 	@ApiImplicitParams({
-		@ApiImplicitParam(paramType = "query", name = "id", value = "唯一编码", required = true, dataType = "String")
+			@ApiImplicitParam(paramType = "query", name = "id", value = "唯一编码", required = true, dataType = "String")
 	})
 	@GetMapping("/find")
 	ListModel find(@RequestParam(name = "uniqueCode") String uniqueCode);
 
 	/**
 	 * 新建列表模型
-	 * 
+	 *
 	 * @param listModel 列表模型
 	 */
 	@ApiOperation(value = "新建列表模型", position = 3)
@@ -102,13 +102,13 @@ public interface ListModelService {
 
 	/**
 	 * 更新列表模型
-	 * 
+	 *
 	 * @param id 列表模型ID
 	 * @param listModel 列表模型
 	 */
 	@ApiOperation(value = "更新列表模型", position = 3)
 	@ApiImplicitParams({
-		@ApiImplicitParam(paramType = "path", name = "id", value = "列表模型ID", required = true, dataType = "String")
+			@ApiImplicitParam(paramType = "path", name = "id", value = "列表模型ID", required = true, dataType = "String")
 	})
 	@PutMapping("/{id}")
 	void updateListModel(@PathVariable(name="id") String id, @RequestBody ListModel listModel);
@@ -116,11 +116,11 @@ public interface ListModelService {
 
 	/**
 	 * 删除列表模型
-	 * 
+	 *
 	 * @param id 列表模型ID
 	 */
 	@ApiOperation(value = "删除列表模型", position = 6)
-    @ApiImplicitParam(paramType = "path", name = "id", value = "列表模型ID", required = true, dataType = "String")
+	@ApiImplicitParam(paramType = "path", name = "id", value = "列表模型ID", required = true, dataType = "String")
 	@DeleteMapping("/{id}")
 	void removeListModel(@PathVariable(name="id") String id);
 
@@ -144,9 +144,9 @@ public interface ListModelService {
 	 */
 	@ApiOperation(value = "查询列表应用模型，按应用分类返回", position = 6)
 	@ApiImplicitParams({
-		@ApiImplicitParam(paramType = "query", name = "formId", value = "表单ID", required = false, dataType = "String"),
-		@ApiImplicitParam(paramType = "query", name = "functionType", value = "功能类型", required = false, dataType = "String"),
-		@ApiImplicitParam(paramType = "query", name = "applicationId", value = "应用ID", required = false, dataType = "String")
+			@ApiImplicitParam(paramType = "query", name = "formId", value = "表单ID", required = false, dataType = "String"),
+			@ApiImplicitParam(paramType = "query", name = "functionType", value = "功能类型", required = false, dataType = "String"),
+			@ApiImplicitParam(paramType = "query", name = "applicationId", value = "应用ID", required = false, dataType = "String")
 	})
 	@GetMapping("/application")
 	List<ApplicationModel> findListApplicationModel(@RequestParam(name = "formId", required = false) String formId,
@@ -158,7 +158,7 @@ public interface ListModelService {
 	 */
 	@ApiOperation(value = "查询应用绑定的列表建模和表单建模，如果应用在iform有与列表建模和表单建模绑定，不能删除应用", position = 6)
 	@ApiImplicitParams({
-		@ApiImplicitParam(paramType = "query", name = "applicationId", value = "应用id", required = true, dataType = "String")
+			@ApiImplicitParam(paramType = "query", name = "applicationId", value = "应用id", required = true, dataType = "String")
 	})
 	@GetMapping("/application-reference-list-form")
 	AppListForm findAppReferenceListForm(@RequestParam(name="applicationId", required = true) String applicationId);
