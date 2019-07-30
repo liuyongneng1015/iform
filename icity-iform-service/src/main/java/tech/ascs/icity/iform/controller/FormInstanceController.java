@@ -77,6 +77,16 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	}
 
 	@Override
+	public Integer flowDataStatisticsList(@PathVariable(name="listId") String listId, @RequestParam Map<String, Object> parameters) {
+		ListModelEntity listModel = listModelService.find(listId);
+		if (listModel == null) {
+			throw new IFormException(404, "列表模型【" + listId + "】不存在");
+		}
+		List<Map<String, Object>>  mapList =  formInstanceService.flowFormInstance(listModel, parameters);
+		return mapList == null ? 0 : mapList.size();
+	}
+
+	@Override
 	public List<FormDataSaveInstance> simplifyList(@PathVariable(name="listId") String listId, @RequestParam Map<String, Object> parameters) {
 		ListModelEntity listModel = listModelService.find(listId);
 		if (listModel == null) {

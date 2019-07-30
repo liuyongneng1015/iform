@@ -84,6 +84,9 @@ public class SearchItem extends ItemModel implements Comparable<SearchItem> {
 	}
 
 	public Boolean getLinkageDataUnbind() {
+		if (linkageDataUnbind==null) {
+			linkageDataUnbind = false;
+		}
 		return linkageDataUnbind;
 	}
 
@@ -99,8 +102,8 @@ public class SearchItem extends ItemModel implements Comparable<SearchItem> {
 		this.orderNo = orderNo;
 	}
 
-    @Override
-    public int compareTo(SearchItem target) {
-	    return this.getOrderNo().compareTo(target.getOrderNo());
-    }
+	@Override
+	public int compareTo(SearchItem target) {
+		return this.getOrderNo().compareTo(target.getOrderNo());
+	}
 }
