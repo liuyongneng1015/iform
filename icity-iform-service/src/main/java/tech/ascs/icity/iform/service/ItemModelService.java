@@ -36,9 +36,9 @@ public interface ItemModelService extends JPAService<ItemModelEntity> {
                             List<ItemModelEntity> itemModelEntityList, Map<String, List<ItemModelEntity>> formMap);
 
     /**
-     * 返回
+     * 返回数据
      * {
-     *     "item": itemModelEntity,
+     *     "item": originItem,
      *     "level": int  // 该控件在数据的哪一层
      * }
      */
