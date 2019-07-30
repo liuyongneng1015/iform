@@ -191,6 +191,38 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	}
 
 	@Override
+	public List<Map<String, Object>> flowFormInstance(ListModelEntity listModel,Map<String, Object> queryParameters) {
+		Session session = null;
+		try {
+			FormModelEntity formModel = listModel.getMasterForm();
+			String userId = (String)queryParameters.get("userId");
+			Date beginDate = (Date)queryParameters.get("beginDate");
+			Date endDate = (Date)queryParameters.get("endDate");
+			Map<String, Object> parameters = new HashMap<>();
+			session = getSession(formModel.getDataModels().get(0));
+			boolean hasProcess = hasProcess(formModel);
+			int processStatus = hasProcess ? getProcessStatusParameter(formModel, SystemItemType.ProcessStatus, parameters) : -1;
+			int userStatus = hasProcess ? getProcessStatusParameter(formModel, SystemItemType.ProcessPrivateStatus, parameters) : -1;
+			List<String> groupIds = hasProcess ? getGroupIds(userId) : null;
+
+			Criteria criteria = generateColumnMapCriteria(session, formModel,  parameters);
+			if (hasProcess) {
+				addProcessCriteria(criteria, processStatus, userStatus, userId, groupIds, beginDate, endDate);
+			}
+			return criteria.list();
+		} catch (Exception e) {
+			e.printStackTrace();
+			new ICityException(e.getLocalizedMessage(), e);
+		} finally {
+			if (session != null) {
+				session.close();
+				session = null;
+			}
+		}
+		return null;
+	}
+
+	@Override
 	public List<Map<String, Object>> findFormInstanceByColumnMap(FormModelEntity formModel, Map<String, Object> queryParameters) {
 		Session session = getSession(formModel.getDataModels().get(0));
 		List<Map<String, Object>> list = new ArrayList<>();
@@ -252,7 +284,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			Criteria criteria = generateCriteria(session, listModel.getMasterForm(), listModel, queryParameters);
 			addCreatorCriteria(criteria, listModel);
 			if (hasProcess) {
-				addProcessCriteria(criteria, processStatus, userStatus, userId, groupIds);
+				addProcessCriteria(criteria, processStatus, userStatus, userId, groupIds, null, null);
 			}
 			addSort(listModel, criteria);
 
@@ -4353,7 +4385,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 			Criteria criteria = generateColumnMapCriteria(session, formModel,  parameters);
 			if (hasProcess) {
-				addProcessCriteria(criteria, processStatus, userStatus, userId, groupIds);
+				addProcessCriteria(criteria, processStatus, userStatus, userId, groupIds, null, null);
 			}
 			criteria.setFirstResult((page - 1) * pagesize);
 			criteria.setMaxResults(pagesize);
@@ -4572,16 +4604,16 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		return false;
 	}
 
-	protected void addProcessCriteria(Criteria criteria, int processStatus, int userStatus, String userId, List<String> groupIds) {
+	protected void addProcessCriteria(Criteria criteria, int processStatus, int userStatus, String userId, List<String> groupIds, Date beginDate, Date endDate) {
 		criteria = criteria.createAlias("processInstance", "pi");
 		if (userStatus == 0) { // 查询用户待办列表
-			criteria.add(Property.forName("pi.id").in(workListCriteria(userId, groupIds)));
+			criteria.add(Property.forName("pi.id").in(workListCriteria(userId, groupIds, beginDate, endDate)));
 		} else if (userStatus == 1) { // 查询用户经办列表
-			criteria.add(Property.forName("pi.id").in(doneListCriteria(userId, groupIds)));
+			criteria.add(Property.forName("pi.id").in(doneListCriteria(userId, groupIds, beginDate, endDate)));
 		} else { // 查询当前用户所有相关流程实例
 			criteria.add(Restrictions.or(
-					Property.forName("pi.id").in(workListCriteria(userId, groupIds)),
-					Property.forName("pi.id").in(doneListCriteria(userId, groupIds))
+					Property.forName("pi.id").in(workListCriteria(userId, groupIds, beginDate, endDate)),
+					Property.forName("pi.id").in(doneListCriteria(userId, groupIds, beginDate, endDate))
 			));
 			if (processStatus == 0) { // 未办结
 				criteria.add(Restrictions.isNull("pi.endTime"));
@@ -4602,27 +4634,28 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		return status;
 	}
 
-	protected void queryWorkList(Criteria criteria, String userId, List<String> groups) {
+	protected void queryWorkList(Criteria criteria, String userId, List<String> groups, Date beginDate, Date endDate) {
 		criteria.createAlias("processInstance", "pi")
-				.add(Property.forName("pi.id").in(workListCriteria(userId, groups)));
+				.add(Property.forName("pi.id").in(workListCriteria(userId, groups, beginDate, endDate)));
 	}
 
-	protected void queryDoneList(Criteria criteria, String userId, List<String> groups) {
+	protected void queryDoneList(Criteria criteria, String userId, List<String> groups, Date beginDate, Date endDate) {
 		criteria.createAlias("processInstance", "pi")
-				.add(Property.forName("pi.id").in(doneListCriteria(userId, groups)));
+				.add(Property.forName("pi.id").in(doneListCriteria(userId, groups, beginDate, endDate)));
 	}
 
-	protected void queryProcessInstanceList(Criteria criteria, String userId, List<String> groups, int processStatus) {
+	protected void queryProcessInstanceList(Criteria criteria, String userId, List<String> groups, int processStatus, Date beginDate, Date endDate) {
 		criteria.createAlias("processInstance", "pi")
 				.add(Restrictions.or(
-						Property.forName("pi.id").in(workListCriteria(userId, groups)),
-						Property.forName("pi.id").in(doneListCriteria(userId, groups))
+						Property.forName("pi.id").in(workListCriteria(userId, groups, beginDate, endDate)),
+						Property.forName("pi.id").in(doneListCriteria(userId, groups, beginDate, endDate))
 				))
 				.addOrder(Order.desc("pi.id"));
 	}
 
-	protected DetachedCriteria workListCriteria(String userId, List<String> groups) {
-		return DetachedCriteria.forEntityName("WorkingTask", "wt").createCriteria("wt.candidates", "c")
+	protected DetachedCriteria workListCriteria(String userId, List<String> groups, Date beginDate, Date endDate) {
+
+		DetachedCriteria detachedCriteria = DetachedCriteria.forEntityName("WorkingTask", "wt").createCriteria("wt.candidates", "c")
 				.add(Restrictions.or(
 						Restrictions.eq("wt.assignee", userId),
 						Restrictions.and(
@@ -4634,12 +4667,26 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 						)
 				))
 				.setProjection(Projections.distinct(Property.forName("wt.processInstance")));
+		if(beginDate != null){
+			detachedCriteria.add(Restrictions.ge("createTime", beginDate));
+		}
+		if(endDate != null){
+			detachedCriteria.add(Restrictions.le("createTime", endDate));
+		}
+		return detachedCriteria;
 	}
 
-	protected DetachedCriteria doneListCriteria(String userId, List<String> groups) {
-		return DetachedCriteria.forEntityName("DoneTask", "dt")
+	protected DetachedCriteria doneListCriteria(String userId, List<String> groups, Date beginDate, Date endDate) {
+		DetachedCriteria detachedCriteria = DetachedCriteria.forEntityName("DoneTask", "dt")
 				.add(Restrictions.eq("dt.assignee", userId))
 				.setProjection(Projections.distinct(Property.forName("dt.processInstance")));
+		if(beginDate != null){
+			detachedCriteria.add(Restrictions.ge("endTime", beginDate));
+		}
+		if(endDate != null){
+			detachedCriteria.add(Restrictions.le("endTime", endDate));
+		}
+		return detachedCriteria;
 	}
 
 	protected List<String> getGroupIds(String userId) {

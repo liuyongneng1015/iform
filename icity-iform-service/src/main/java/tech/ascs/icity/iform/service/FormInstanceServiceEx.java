@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Map;
 
 import tech.ascs.icity.admin.api.model.TreeSelectData;
-import tech.ascs.icity.admin.api.model.User;
 import tech.ascs.icity.admin.api.model.UserBase;
 import tech.ascs.icity.iflow.api.model.ProcessInstance;
 import tech.ascs.icity.iform.api.model.FormDataSaveInstance;
@@ -20,6 +19,9 @@ public interface FormInstanceServiceEx {
 	List<FormInstance> listInstance(ListModelEntity listModel, Map<String, Object> queryParameters);
 
 	List<FormDataSaveInstance> formInstance(ListModelEntity listModel, FormModelEntity formModel, Map<String, Object> queryParameters);
+
+	//流程表单
+	List<Map<String, Object>> flowFormInstance(ListModelEntity listModel,Map<String, Object> queryParameters);
 
 	List<Map<String, Object>> findFormInstanceByColumnMap(FormModelEntity formModel, Map<String, Object> queryParameters);
 
