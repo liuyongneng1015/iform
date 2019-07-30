@@ -35,12 +35,12 @@ public class OkHttpUtils {
             responseResult.setCode(response.code());
             responseResult.setMessage(response.message());
             if (response.body() != null) {
-                Map<String, Object> result =  jsonToMap(response.body().string());
+                Map<String, Object> result = jsonToMap(response.body().string());
                 if(result == null){
                     throw new IFormException("业务触发服务异常，请稍后再试");
                 }
                 responseResult.setResult(result);
-                int code = new BigDecimal(String.valueOf(result.get("code"))).intValue();
+                int code = result.get("code") == null ? 404 : new BigDecimal(String.valueOf(result.get("code"))).intValue();
                 if( code != 200){
                     responseResult.setCode(code);
                     responseResult.setMessage((String)result.get("message"));
@@ -49,7 +49,8 @@ public class OkHttpUtils {
         } catch (Exception e) {
             e.printStackTrace();
             responseResult.setCode(403);
-            responseResult.setMessage(e.getMessage().substring(0,e.getMessage().length() > 1024 ? 1024 : e.getMessage().length()));
+            String message = e.getMessage() == null ? "服务异常" : e.getMessage();
+            responseResult.setMessage(message.substring(0,message.length() > 1024 ? 1024 : message.length()));
         }
         return responseResult;
     }
