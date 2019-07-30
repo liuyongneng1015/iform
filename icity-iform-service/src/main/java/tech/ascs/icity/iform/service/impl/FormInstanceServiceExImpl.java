@@ -1605,7 +1605,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			try {
 				value = itemInstance.getValue() == null || !StringUtils.hasText(String.valueOf(itemInstance.getValue())) ? null : new Date(Long.parseLong(String.valueOf(itemInstance.getValue())));
 			} catch (Exception e) {
-				e.printStackTrace();
+				throw new IFormException(itemModel.getName() + "控件值类型不匹配");
 			}
 		} else if (itemModel.getType() == ItemType.Select || itemModel.getType() == ItemType.RadioGroup
 				|| itemModel.getType() == ItemType.CheckboxGroup || itemModel.getType() == ItemType.Treeselect ) {
@@ -1620,7 +1620,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			if(((NumberItemModelEntity)itemModel).getDecimalDigits() != null  && ((NumberItemModelEntity)itemModel).getDecimalDigits() > 0 ) {
 				value = bigDecimal.divide(new BigDecimal(1.0), ((NumberItemModelEntity) itemModel).getDecimalDigits(), BigDecimal.ROUND_DOWN).doubleValue();
 			}else{
-				value = bigDecimal.divide(new BigDecimal(1.0), 0, BigDecimal.ROUND_DOWN).doubleValue();;
+				value = bigDecimal.intValue();;
 			}
 		} else if (itemModel.getType() == ItemType.Media || itemModel.getType() == ItemType.Attachment) {
             Object o = itemInstance.getValue();
