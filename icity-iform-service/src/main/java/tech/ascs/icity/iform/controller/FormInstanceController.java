@@ -77,7 +77,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	}
 
 	@Override
-	public Integer flowDataStatisticsList(@PathVariable(name="listId") String listId, @RequestParam Map<String, Object> parameters) {
+	public Integer dataStatisticsList(@PathVariable(name="listId") String listId, @RequestParam Map<String, Object> parameters) {
 		ListModelEntity listModel = listModelService.find(listId);
 		if (listModel == null) {
 			throw new IFormException(404, "列表模型【" + listId + "】不存在");

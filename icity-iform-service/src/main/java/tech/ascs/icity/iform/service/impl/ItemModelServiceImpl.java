@@ -980,9 +980,9 @@ public class ItemModelServiceImpl extends DefaultJPAService<ItemModelEntity> imp
 	}
 
 	/**
-	 * 返回
+	 * 返回数据
 	 * {
-	 *     "item": itemModelEntity,
+	 *     "item": originItem,
 	 *     "level": int
 	 * }
 	 */
