@@ -131,7 +131,11 @@ public class DictionaryDataServiceImpl extends DefaultJPAService<DictionaryDataE
 
 	@Override
 	public Integer maxDictionaryItemOrderNo() {
-		Map<String, Object> map = dictionaryItemManager.getJdbcTemplate().queryForMap("select max(order_no) as order_no from ifm_dictionary_item ");
+		List<Map<String, Object>> mapDataList = dictionaryItemManager.getJdbcTemplate().queryForList("select max(order_no) as order_no from ifm_dictionary_item ");
+		if (mapDataList == null || mapDataList.size() < 1) {
+			return 0;
+		}
+		Map<String, Object> map = mapDataList.get(0);
 		if (map != null && map.get("order_no") != null) {
 			return Integer.parseInt(String.valueOf(map.get("order_no")));
 		}
@@ -140,7 +144,11 @@ public class DictionaryDataServiceImpl extends DefaultJPAService<DictionaryDataE
 
 	@Override
 	public Integer maxDictionaryOrderNo() {
-		Map<String, Object> map = dictionaryItemManager.getJdbcTemplate().queryForMap("select max(order_no) as order_no from ifm_dictionary ");
+		List<Map<String, Object>> mapDataList = dictionaryItemManager.getJdbcTemplate().queryForList("select max(order_no) as order_no from ifm_dictionary ");
+		if (mapDataList == null || mapDataList.size() < 1) {
+			return 0;
+		}
+		Map<String, Object> map = mapDataList.get(0);
 		if (map != null && map.get("order_no") != null) {
 			return Integer.parseInt(String.valueOf(map.get("order_no")));
 		}
@@ -347,7 +355,11 @@ public class DictionaryDataServiceImpl extends DefaultJPAService<DictionaryDataE
 
 	@Override
 	public Integer findMaxIndexAreaCodeEntity() {
-		Map<String, Object> map = dictionaryItemManager.getJdbcTemplate().queryForMap("select max(order_no) as order_no from ifm_area_code ");
+		List<Map<String, Object>> mapDataList = dictionaryItemManager.getJdbcTemplate().queryForList("select max(order_no) as order_no from ifm_area_code ");
+		if (mapDataList == null || mapDataList.size() < 1) {
+			return 0;
+		}
+		Map<String, Object> map = mapDataList.get(0);
 		if (map != null && map.get("order_no") != null) {
 			return Integer.parseInt(String.valueOf(map.get("order_no")));
 		}

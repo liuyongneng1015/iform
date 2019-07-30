@@ -377,7 +377,11 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 		Map<String, Object> choiceMap = new HashMap<>();
 		Map<String, Object> valueMap = new HashMap<>();
 		for(String key : mapkey.keySet()) {
-			Map<String, Object> item_type = jdbcTemplate.queryForMap(" select i.id, i.type from ifm_data_model d,ifm_column_model c,ifm_item_model i where c.id=i.column_id  and c.data_model_id=d.id and d.table_name ='" + tableName + "' and c.column_name='" + key + "' ");
+			List<Map<String, Object>> mapDataList = jdbcTemplate.queryForList(" select i.id, i.type from ifm_data_model d,ifm_column_model c,ifm_item_model i where c.id=i.column_id  and c.data_model_id=d.id and d.table_name ='" + tableName + "' and c.column_name='" + key + "' ");
+			if (mapDataList == null || mapDataList.size() < 1) {
+				continue;
+			}
+			Map<String, Object> item_type = mapDataList.get(0);
 			if(ItemType.Select.getValue().equals(item_type.get("type"))) {
 				ItemModelEntity itemModelEntity = itemModelEntityJPAManager.find((String)item_type.get("id"));
 				if(((SelectItemModelEntity)itemModelEntity).getSelectReferenceType() == SelectReferenceType.Table){
@@ -404,7 +408,11 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 	}
 
 	private String getSelectValue(String tableName, String key, String value){
-		Map<String, Object> item_type = jdbcTemplate.queryForMap(" select i.id, i.type from ifm_data_model d,ifm_column_model c,ifm_item_model i where c.id=i.column_id  and c.data_model_id=d.id and d.table_name ='" + tableName + "' and c.column_name='" + key + "' ");
+		List<Map<String, Object>> mapDataList = jdbcTemplate.queryForList(" select i.id, i.type from ifm_data_model d,ifm_column_model c,ifm_item_model i where c.id=i.column_id  and c.data_model_id=d.id and d.table_name ='" + tableName + "' and c.column_name='" + key + "' ");
+		if (mapDataList == null || mapDataList.size() < 1) {
+			return  value;
+		}
+		Map<String, Object> item_type = mapDataList.get(0);
 		if(ItemType.Select.getValue().equals(item_type.get("type"))) {
 			ItemModelEntity itemModelEntity = itemModelEntityJPAManager.find((String)item_type.get("id"));
 			if(((SelectItemModelEntity)itemModelEntity).getSelectReferenceType() == SelectReferenceType.Table){
