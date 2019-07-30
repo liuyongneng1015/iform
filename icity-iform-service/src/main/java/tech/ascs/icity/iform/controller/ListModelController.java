@@ -97,7 +97,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 	}
 
 	@Override
-	public ListModel getApp(@PathVariable(name="id") String id) {
+	public ListModel getAppListModelById(@PathVariable(name="id") String id) {
 		ListModel listModel = get(id);
 		if (listModel==null) {
 			return listModel;
@@ -373,7 +373,9 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				if (list!=null && list.size()>0) {
 					return list;
 				}
-			} catch (IOException e) { }
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 		for (Map map:appListTemplateList) {
 			map.put("id", UUID.randomUUID().toString().replaceAll("-",""));
