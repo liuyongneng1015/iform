@@ -3,6 +3,7 @@ package tech.ascs.icity.iform.api.model;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import org.apache.commons.lang3.StringUtils;
+import tech.ascs.icity.iform.api.model.export.ExportFunctionModel;
 import tech.ascs.icity.model.NameEntity;
 
 import java.util.ArrayList;
@@ -55,6 +56,9 @@ public class FunctionModel extends NameEntity implements Comparable<FunctionMode
 
 	@ApiModelProperty(value ="隐藏条件", position = 21)
 	private String hideCondition;
+
+	@ApiModelProperty(value = "导出功能设置", position = 22)
+	private ExportFunctionModel exportFunction;
 
 	public String getLabel() {
 		return label;
@@ -214,6 +218,14 @@ public class FunctionModel extends NameEntity implements Comparable<FunctionMode
 
 	public void setHideCondition(String hideCondition) {
 		this.hideCondition = hideCondition;
+	}
+
+	public ExportFunctionModel getExportFunction() {
+		return exportFunction;
+	}
+
+	public void setExportFunction(ExportFunctionModel exportFunction) {
+		this.exportFunction = exportFunction;
 	}
 
 	@Override
