@@ -4,10 +4,12 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import org.apache.commons.lang3.StringUtils;
 import tech.ascs.icity.iform.api.model.export.ExportFunctionModel;
+import tech.ascs.icity.iform.api.model.export.ImportFunctionModel;
 import tech.ascs.icity.model.NameEntity;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @ApiModel("功能模型")
 public class FunctionModel extends NameEntity implements Comparable<FunctionModel> {
@@ -59,6 +61,12 @@ public class FunctionModel extends NameEntity implements Comparable<FunctionMode
 
 	@ApiModelProperty(value = "导出功能设置", position = 22)
 	private ExportFunctionModel exportFunction;
+
+	@ApiModelProperty(value = "导入功能设置", position = 23)
+	private ImportFunctionModel importFunction;
+
+	@ApiModelProperty(value = "模板控件选择, 控件名称为key, 模板名称为value, 传入表示选择", position = 24)
+	private Map<String, String> templateSelect;
 
 	public String getLabel() {
 		return label;
@@ -226,6 +234,22 @@ public class FunctionModel extends NameEntity implements Comparable<FunctionMode
 
 	public void setExportFunction(ExportFunctionModel exportFunction) {
 		this.exportFunction = exportFunction;
+	}
+
+	public ImportFunctionModel getImportFunction() {
+		return importFunction;
+	}
+
+	public void setImportFunction(ImportFunctionModel importFunction) {
+		this.importFunction = importFunction;
+	}
+
+	public Map<String, String> getTemplateSelect() {
+		return templateSelect;
+	}
+
+	public void setTemplateSelect(Map<String, String> templateSelect) {
+		this.templateSelect = templateSelect;
 	}
 
 	@Override
