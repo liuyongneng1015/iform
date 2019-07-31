@@ -198,7 +198,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			String userId = (String)queryParameters.get("userId");
 			Date beginDate = (Date)queryParameters.get("beginDate");
 			Date endDate = (Date)queryParameters.get("endDate");
-			Map<String, Object> parameters = new HashMap<>();
+			Map<String, Object> parameters = new HashMap<>(queryParameters);
+			parameters.remove("userId");
+			parameters.remove("beginDate");
+			parameters.remove("endDate");
 			session = getSession(formModel.getDataModels().get(0));
 			boolean hasProcess = hasProcess(formModel);
 			int processStatus = hasProcess ? getProcessStatusParameter(formModel, SystemItemType.ProcessStatus, parameters) : -1;
@@ -4668,10 +4671,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				))
 				.setProjection(Projections.distinct(Property.forName("wt.processInstance")));
 		if(beginDate != null){
-			detachedCriteria.add(Restrictions.ge("createTime", beginDate));
+			detachedCriteria.add(Restrictions.ge("wt.createTime", beginDate));
 		}
 		if(endDate != null){
-			detachedCriteria.add(Restrictions.le("createTime", endDate));
+			detachedCriteria.add(Restrictions.le("wt.createTime", endDate));
 		}
 		return detachedCriteria;
 	}
@@ -4681,10 +4684,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				.add(Restrictions.eq("dt.assignee", userId))
 				.setProjection(Projections.distinct(Property.forName("dt.processInstance")));
 		if(beginDate != null){
-			detachedCriteria.add(Restrictions.ge("endTime", beginDate));
+			detachedCriteria.add(Restrictions.ge("dt.endTime", beginDate));
 		}
 		if(endDate != null){
-			detachedCriteria.add(Restrictions.le("endTime", endDate));
+			detachedCriteria.add(Restrictions.le("dt.endTime", endDate));
 		}
 		return detachedCriteria;
 	}
