@@ -2,21 +2,19 @@ package tech.ascs.icity.iform.service.impl;
 
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import tech.ascs.icity.ICityException;
-import tech.ascs.icity.iform.api.model.DefaultFunctionType;
+import tech.ascs.icity.iform.api.model.FileUploadModel;
 import tech.ascs.icity.iform.api.model.FormDataSaveInstance;
 import tech.ascs.icity.iform.api.model.ItemInstance;
 import tech.ascs.icity.iform.api.model.ReferenceDataInstance;
 import tech.ascs.icity.iform.api.model.export.ExportControl;
 import tech.ascs.icity.iform.model.ExportListFunction;
 import tech.ascs.icity.iform.model.ItemModelEntity;
-import tech.ascs.icity.iform.model.ListFunction;
 import tech.ascs.icity.iform.model.ListModelEntity;
 import tech.ascs.icity.iform.service.ExportDataService;
 import tech.ascs.icity.iform.service.FormInstanceServiceEx;
@@ -26,7 +24,9 @@ import tech.ascs.icity.jpa.dao.model.JPAEntity;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
+import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -37,10 +37,6 @@ import java.util.stream.Stream;
  **/
 @Service
 public class ExportDataServiceImpl implements ExportDataService {
-
-    @Autowired
-    private FormInstanceServiceEx formInstanceService;
-
 
     @Override
     public Resource exportData(ListModelEntity listEntity, ExportListFunction exportFunction, List<FormDataSaveInstance> datas, Map<String, Object> queryParams) {
@@ -54,6 +50,14 @@ public class ExportDataServiceImpl implements ExportDataService {
         }
     }
 
+    /**
+     * 导出excel类型的资源
+     * @param entity 列表模型
+     * @param function 导出列表功能设置
+     * @param datas 返回的数据
+     * @param queryParams 请求参数
+     * @return 返回Excel的Resource
+     */
     private Resource exportExcel(ListModelEntity entity, ExportListFunction function, List<FormDataSaveInstance> datas, Map<String, Object> queryParams) {
         ExportControl exportControl = function.getControl();
 
@@ -106,35 +110,21 @@ public class ExportDataServiceImpl implements ExportDataService {
     @SuppressWarnings("unchecked")
     private Object valueConvert(Object value) {
         if (value instanceof List) {
-            return ((List) value).stream().filter(Objects::nonNull).map(Objects::toString).collect(Collectors.joining(","));
+            return ((List) value).stream().filter(Objects::nonNull).map(this::objectToString).collect(Collectors.joining(","));
         }
         return value;
     }
 
+    private String objectToString(Object value) {
+        if (FileUploadModel.class.isAssignableFrom(value.getClass())) {
+            return ((FileUploadModel) value).getUrl();
+        } else {
+            return Objects.toString(value);
+        }
+    }
+
 
     private static class ExportHeaderFactory {
-
-        //TODO 存在问题, 当控件有嵌套的时候, 无法正确获得
-        private static HeaderBuild ALL_HEADER_BUILD = (entity, func, queryParams) -> entity.getMasterForm().getItems().stream().filter(item -> item.getType().hasContext()).sorted(Comparator.comparing(ItemModelEntity::getOrderNo)).map(BaseEntity::getName).collect(Collectors.toList());
-
-        private static HeaderBuild LIST_HEADER_BUILD = (entity, function, queryParams) -> entity.getDisplayItems().stream().sorted(Comparator.comparing(ItemModelEntity::getOrderNo)).map(ItemModelEntity::getName).collect(Collectors.toList());
-
-        private static HeaderBuild BACK_HEADER_BUILD = (entity, function, queryParams) -> {
-            Map<String, String> mapping = entity.getMasterForm().getItems().stream().collect(Collectors.toMap(ItemModelEntity::getId, ItemModelEntity::getName));
-            return Stream.of(function.getCustomExport().split(","))
-                    .map(mapping::get)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
-        };
-
-        private static HeaderBuild FRONT_HEADER_BUILD = (entity, function, queryParams) -> {
-            // TODO 更详细的检查机制
-            Map<String, String> mapping = entity.getMasterForm().getItems().stream().collect(Collectors.toMap(ItemModelEntity::getId, ItemModelEntity::getName));
-            return ((List<String>) queryParams.get("exportColumnIds")).stream()
-                    .map(mapping::get)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
-        };
 
         public static HeaderBuild getInstance(ExportControl control) {
             switch (control) {
@@ -150,6 +140,82 @@ public class ExportDataServiceImpl implements ExportDataService {
                     return ALL_HEADER_BUILD;
             }
         }
+
+        private static HeaderBuild ALL_HEADER_BUILD = (entity, func, queryParams) ->
+                eachItemEntity(entity.getMasterForm().getItems()).stream()
+                        .filter(item -> item.getType().hasContext())
+                        .sorted(Comparator.comparing(ItemModelEntity::getOrderNo))
+                        .map(BaseEntity::getName).collect(Collectors.toList());
+
+        private static HeaderBuild LIST_HEADER_BUILD = (entity, function, queryParams) -> entity.getDisplayItems().stream().sorted(Comparator.comparing(ItemModelEntity::getOrderNo)).map(ItemModelEntity::getName).collect(Collectors.toList());
+
+        private static HeaderBuild BACK_HEADER_BUILD = (entity, function, queryParams) -> {
+            Map<String, String> mapping = eachItemEntity(entity.getMasterForm().getItems()).stream().distinct().collect(Collectors.toMap(ItemModelEntity::getId, ItemModelEntity::getName));
+            return Stream.of(function.getCustomExport().split(","))
+                    .map(mapping::get)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+        };
+
+        private static HeaderBuild FRONT_HEADER_BUILD = (entity, function, queryParams) -> {
+            Map<String, String> mapping = eachItemEntity(entity.getMasterForm().getItems()).stream().distinct().collect(Collectors.toMap(ItemModelEntity::getId, ItemModelEntity::getName));
+            return findFrontItemIds(queryParams).stream()
+                    .map(mapping::get)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+        };
+
+        private static List<ItemModelEntity> eachItemEntity(List<ItemModelEntity> entitys) {
+            List<ItemModelEntity> result = new ArrayList<>();
+            for (ItemModelEntity entity : entitys) {
+                for (Field field : entity.getClass().getDeclaredFields()) {
+                    // 处理 List<ItemModelEntity> 的Field 执行递归
+                    if (Collection.class.isAssignableFrom(field.getType())) {
+                        Type type = field.getGenericType();
+                        if (type instanceof ParameterizedType) {
+                            ParameterizedType parameterizedType = (ParameterizedType) type;
+                            if (ItemModelEntity.class.isAssignableFrom((Class<?>) parameterizedType.getActualTypeArguments()[0])) {
+                                // 递归遍历
+                                List<ItemModelEntity> modelEntities = eachItemEntity(getFieldValue(field, entity, List.class));
+                                if (modelEntities == null || modelEntities.size() == 0) {
+                                    continue;
+                                }
+                                result.addAll(modelEntities);
+                            }
+                        }
+                    }
+                }
+                result.add(entity);
+            }
+
+            return result;
+        }
+
+        private static Collection<String> findFrontItemIds (Map<String, Object> params) {
+            final String key = "exportColumnIds";
+            if (params == null || !params.containsKey(key)){
+                return Collections.emptyList();
+            }
+            Object obj = params.get(key);
+            if (Collection.class.isAssignableFrom(obj.getClass())){
+                return (Collection<String>) obj;
+            }else {
+                return Arrays.asList(Objects.toString(obj).split(","));
+            }
+        }
+
+
+        @SuppressWarnings("unchecked")
+        private static <T> T getFieldValue(Field field, Object obj, Class<T> clzz) {
+            try {
+                field.setAccessible(true);
+                return (T) field.get(obj);
+            } catch (IllegalAccessException e) {
+                throw new ICityException(e);
+            }
+        }
+
+
 
     }
 

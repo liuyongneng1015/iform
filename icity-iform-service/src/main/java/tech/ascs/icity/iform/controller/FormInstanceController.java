@@ -3,6 +3,7 @@ package tech.ascs.icity.iform.controller;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -18,6 +19,8 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -173,9 +176,9 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	}
 
 	@Override
-	public void export(HttpServletResponse response,
-					   @PathVariable(name="listId") String listId,
-					   @RequestParam Map<String, Object> parameters) {
+	public ResponseEntity<Resource> export(HttpServletResponse response,
+										   @PathVariable(name="listId") String listId,
+										   @RequestParam Map<String, Object> parameters) {
 		ListModelEntity listModel = listModelService.find(listId);
 		if (listModel == null) {
 			throw new IFormException(404, "列表模型【" + listId + "】不存在");
@@ -190,18 +193,12 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
         }
         List<FormDataSaveInstance> data = formInstanceService.pageListInstance(listModel, 1, Integer.MAX_VALUE, queryParameters).getResults();
 		Resource resource = exportDataService.exportData(listModel,function, data, parameters);
-		try {
-			response.setContentType("application/vnd.ms-excel");
-			String filename = listModel.getName()+CommonUtils.currentTimeStr("-yyyy年MM月dd日-HHmmss")+".xlsx";
-			filename = new String(filename.getBytes("utf-8"), "ISO8859-1");
-			response.setHeader("Content-Disposition", "attachment;filename="+filename);
-			ServletOutputStream out = response.getOutputStream();
-			FileCopyUtils.copy(resource.getInputStream(), out);
-			out.flush();
-			out.close();
-		} catch (Exception e){
-			e.printStackTrace();
-		}
+		String filename = listModel.getName()+CommonUtils.currentTimeStr("-yyyy年MM月dd日-HHmmss")+".xlsx";
+		filename = new String(filename.getBytes(Charset.forName("utf-8")), Charset.forName("ISO8859-1"));
+		return ResponseEntity.status(200)
+				.header("Content-Disposition", "attachment;filename="+filename)
+				.contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
+				.body(resource);
 	}
 
 	/**

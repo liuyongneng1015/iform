@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.core.io.Resource;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import io.swagger.annotations.ApiImplicitParam;
@@ -122,9 +124,9 @@ public interface FormInstanceService {
 		@ApiImplicitParam(paramType = "query", name = "parameters", value = "查询参数", required = false)
 	})
 	@GetMapping("/{listId}/export")
-	void export(HttpServletResponse response,
-				@PathVariable(name="listId") String listId,
-				@RequestParam Map<String, Object> parameters);
+	ResponseEntity<Resource> export(HttpServletResponse response,
+									@PathVariable(name="listId") String listId,
+									@RequestParam Map<String, Object> parameters);
 
 	/**
 	 * 通过表单ID和条件分页查询表单实例数据
