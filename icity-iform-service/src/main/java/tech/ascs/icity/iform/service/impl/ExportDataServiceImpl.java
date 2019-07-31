@@ -1,9 +1,9 @@
 package tech.ascs.icity.iform.service.impl;
 
+import com.itextpdf.text.DocumentException;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -17,8 +17,8 @@ import tech.ascs.icity.iform.model.ExportListFunction;
 import tech.ascs.icity.iform.model.ItemModelEntity;
 import tech.ascs.icity.iform.model.ListModelEntity;
 import tech.ascs.icity.iform.service.ExportDataService;
-import tech.ascs.icity.iform.service.FormInstanceServiceEx;
 import tech.ascs.icity.iform.utils.ExportUtils;
+import tech.ascs.icity.iform.utils.PdfBuilderUtils;
 import tech.ascs.icity.jpa.dao.model.BaseEntity;
 import tech.ascs.icity.jpa.dao.model.JPAEntity;
 
@@ -39,26 +39,8 @@ import java.util.stream.Stream;
 public class ExportDataServiceImpl implements ExportDataService {
 
     @Override
-    public Resource exportData(ListModelEntity listEntity, ExportListFunction exportFunction, List<FormDataSaveInstance> datas, Map<String, Object> queryParams) {
-        switch (exportFunction.getFormat()) {
-            case Excel:
-                return exportExcel(listEntity, exportFunction, datas, queryParams);
-            case PDF:
-                return null;
-            default:
-                return exportExcel(listEntity, exportFunction, datas, queryParams);
-        }
-    }
+    public Resource exportData(ListModelEntity entity, ExportListFunction function, List<FormDataSaveInstance> datas, Map<String, Object> queryParams) {
 
-    /**
-     * 导出excel类型的资源
-     * @param entity 列表模型
-     * @param function 导出列表功能设置
-     * @param datas 返回的数据
-     * @param queryParams 请求参数
-     * @return 返回Excel的Resource
-     */
-    private Resource exportExcel(ListModelEntity entity, ExportListFunction function, List<FormDataSaveInstance> datas, Map<String, Object> queryParams) {
         ExportControl exportControl = function.getControl();
 
         List<String> header = ExportHeaderFactory.getInstance(exportControl).buildHeader(entity, function, queryParams);
@@ -76,8 +58,38 @@ public class ExportDataServiceImpl implements ExportDataService {
                 .map(data -> header.stream().map(headerName -> data.getOrDefault(headerName, null)).collect(Collectors.toList()))
                 .collect(Collectors.toList());
 
+        switch (function.getFormat()) {
+            case Excel:
+                return exportExcel(entity.getName(), header, exportDatas);
+            case PDF:
+                return exportPdf(entity.getName(), header, exportDatas);
+            default:
+                return exportExcel(entity.getName(), header, exportDatas);
+        }
+    }
+
+    private Resource exportPdf(String title, List<String> header, List<List<Object>> exportDatas) {
+        try {
+            List<List<String>> stringDatas = exportDatas.stream().map(list -> list.stream().map(Objects::toString).collect(Collectors.toList())).collect(Collectors.toList());;
+            PdfBuilderUtils builderUtils = new PdfBuilderUtils();
+            builderUtils.setTitle(title);
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            builderUtils.buildTablePdf(header, stringDatas, outputStream);
+            return new ByteArrayResource(outputStream.toByteArray());
+        } catch (IOException | DocumentException e) {
+            throw new ICityException(e);
+        }
+    }
+
+    /**
+     * 导出excel类型的资源
+     * @return 返回Excel的Resource
+     */
+    private Resource exportExcel(String sheetName, List<String> header, List<List<Object>> exportDatas ) {
+
+
         Workbook wb = new XSSFWorkbook();
-        Sheet sheet = wb.createSheet(entity.getName());
+        Sheet sheet = wb.createSheet(sheetName);
 
         ExportUtils.outputHeaders(header.toArray(new String[0]), sheet);
         ExportUtils.outputColumn(exportDatas, sheet, 1);

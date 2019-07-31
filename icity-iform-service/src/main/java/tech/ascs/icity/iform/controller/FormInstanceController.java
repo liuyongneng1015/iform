@@ -31,6 +31,7 @@ import tech.ascs.icity.admin.api.model.Position;
 import tech.ascs.icity.admin.client.UserService;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
+import tech.ascs.icity.iform.api.model.export.ExportFormat;
 import tech.ascs.icity.iform.api.model.export.ExportType;
 import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.*;
@@ -191,9 +192,10 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
         if (function.getType()  != ExportType.Select) {
             queryParameters.remove("exportSelectIds");
         }
+        String extension = function.getFormat() == ExportFormat.Excel ? ".xlsx" : ".pdf";
         List<FormDataSaveInstance> data = formInstanceService.pageListInstance(listModel, 1, Integer.MAX_VALUE, queryParameters).getResults();
 		Resource resource = exportDataService.exportData(listModel,function, data, parameters);
-		String filename = listModel.getName()+CommonUtils.currentTimeStr("-yyyy年MM月dd日-HHmmss")+".xlsx";
+		String filename = listModel.getName()+CommonUtils.currentTimeStr("-yyyy年MM月dd日-HHmmss")+extension;
 		filename = new String(filename.getBytes(Charset.forName("utf-8")), Charset.forName("ISO8859-1"));
 		return ResponseEntity.status(200)
 				.header("Content-Disposition", "attachment;filename="+filename)
