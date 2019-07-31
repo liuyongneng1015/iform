@@ -518,7 +518,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 
 		// 表单提交校验
-		List<String> checkResult = elProcessorService.checkSubmitProcessor(itemMap, formModelEntity.getSubmitChecks());
+		List<String> checkResult = elProcessorService.checkSubmitProcessor(formInstance, formModelEntity, formModelService::get);
 		if (!checkResult.isEmpty()) {
 			throw new IFormException(403, checkResult.get(0));
 		}
