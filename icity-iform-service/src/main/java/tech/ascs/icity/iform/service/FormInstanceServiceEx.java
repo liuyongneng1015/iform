@@ -20,8 +20,8 @@ public interface FormInstanceServiceEx {
 
 	List<FormDataSaveInstance> formInstance(ListModelEntity listModel, FormModelEntity formModel, Map<String, Object> queryParameters);
 
-	//流程表单
-	List<Map<String, Object>> flowFormInstance(ListModelEntity listModel,Map<String, Object> queryParameters);
+	//表单集合
+	List<Map<String, Object>> formInstanceList(ListModelEntity listModel, Map<String, Object> queryParameters);
 
 	List<Map<String, Object>> findFormInstanceByColumnMap(FormModelEntity formModel, Map<String, Object> queryParameters);
 
