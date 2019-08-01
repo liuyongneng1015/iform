@@ -2,7 +2,6 @@ package tech.ascs.icity.iform.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cglib.beans.BeanCopier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,11 +12,11 @@ import tech.ascs.icity.admin.client.ResourceService;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.api.model.export.ExportFunctionModel;
+import tech.ascs.icity.iform.api.model.export.ImportFunctionModel;
+import tech.ascs.icity.iform.function.ThreeConsumer;
 import tech.ascs.icity.iform.model.*;
-import tech.ascs.icity.iform.service.FormInstanceService;
-import tech.ascs.icity.iform.service.FormModelService;
-import tech.ascs.icity.iform.service.ItemModelService;
-import tech.ascs.icity.iform.service.ListModelService;
+import tech.ascs.icity.iform.service.*;
+import tech.ascs.icity.iform.utils.BeanCopiers;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 import tech.ascs.icity.model.Page;
@@ -27,6 +26,8 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> implements ListModelService {
@@ -48,7 +49,7 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 	private JPAManager<DataModelEntity> dataModelEntityJPAManager;
 
 	@Autowired
-    private ObjectMapper objectMapper;
+	private ObjectMapper objectMapper;
 
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
@@ -64,6 +65,9 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 
 	@Autowired
 	private FormInstanceService formInstanceService;
+
+	@Autowired
+	private ExportDataService exportDataService;
 
 	public ListModelServiceImpl() {
 		super(ListModelEntity.class);
@@ -717,10 +721,10 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
                 }
                 listFunction.setListModel(listModelEntity);
                 listFunction.setOrderNo(++i);
-                assemblyFunction(listFunction, function);
                 functions.add(listFunction);
             }
-            listModelEntity.setFunctions(functions);
+			assemblyFunction(listModelEntity, functions, listModel.getFunctions());
+			listModelEntity.setFunctions(functions);
 		}
 
         if (listModel.getQuickSearchItems() !=null) {
@@ -754,18 +758,69 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
         return listModelEntity;
     }
 
-    private void assemblyFunction(ListFunction listFunction, FunctionModel model) {
+	private void assemblyFunction(ListModelEntity listModelEntity, List<ListFunction> listFunctions, List<FunctionModel> functionModels) {
+		FormModelEntity formModelEntity = formModelService.find(listModelEntity.getMasterForm().getId());
+		Map<String, ItemModelEntity> itemModelEntities = exportDataService.eachHasColumnItemModel(formModelEntity.getItems()).stream().collect(Collectors.toMap(ItemModelEntity::getId, i ->i));
+		Map<String, ListFunction> listFunctionMap = toMap(listFunctions, ListFunction::getAction);
+		Map<String, FunctionModel> functionModelMap = toMap(functionModels, FunctionModel::getAction);
 
-		if ( DefaultFunctionType.Export.getValue().contains(model.getAction()) ) {
-			ExportFunctionModel exportModel = Optional.ofNullable(model.getExportFunction()).orElseThrow(() -> new ICityException("导出功能按钮没有传入相关设置数据"));
-			ExportListFunction exportFunction = new ExportListFunction();
-			exportFunction.setControl(exportModel.getControl());
-			exportFunction.setFormat(exportModel.getFormat());
-			exportFunction.setType(exportModel.getType());
-			exportFunction.setCustomExport(String.join(",", exportModel.getCustomExport()));
-			listFunction.setExportFunction(exportFunction);
-		}
-    }
+		BiConsumer<String, ThreeConsumer<Map<String, ItemModelEntity>, ListFunction, FunctionModel>> assemblyConsumer =
+				( action, assemblyFunction ) -> {
+					if (listFunctionMap.containsKey(action) && functionModelMap.containsKey(action)) {
+						assemblyFunction.accept(itemModelEntities, listFunctionMap.get(action), functionModelMap.get(action));
+					}
+				};
+
+		assemblyConsumer.accept(DefaultFunctionType.Export.getValue(), this::assemblyExportFunction);
+		assemblyConsumer.accept(DefaultFunctionType.TemplateDownload.getValue(), this::assemblyTemplateDownloadFunction);
+		assemblyConsumer.accept(DefaultFunctionType.Import.getValue(), this::assemblyImportFunction);
+
+		listModelEntity.setMasterForm(formModelEntity);
+	}
+
+	private void assemblyExportFunction(Map<String, ItemModelEntity> itemModelEntities, ListFunction listFunction, FunctionModel model) {
+		ExportFunctionModel exportModel = Optional.ofNullable(model.getExportFunction()).orElseThrow(() -> new ICityException("导出功能按钮没有传入相关设置数据"));
+		ExportListFunction exportFunction = new ExportListFunction();
+		exportFunction.setControl(exportModel.getControl());
+		exportFunction.setFormat(exportModel.getFormat());
+		exportFunction.setType(exportModel.getType());
+		exportFunction.setCustomExport(String.join(",", exportModel.getCustomExport()));
+		listFunction.setExportFunction(exportFunction);
+	}
+
+	private void assemblyTemplateDownloadFunction(Map<String, ItemModelEntity> itemModelEntities, ListFunction listFunction, FunctionModel model) {
+		model.getTemplateItemModels()
+				.forEach(tModel -> {
+					ItemModelEntity itemEntity = itemModelEntities.get(tModel.getId());
+					itemEntity.setTemplateName(tModel.getTemplateName());
+					itemEntity.setTemplateSelected(tModel.isSelected());
+				});
+	}
+
+	private void assemblyImportFunction(Map<String, ItemModelEntity> itemModelEntities, ListFunction listFunction, FunctionModel model) {
+		ImportFunctionModel importModel = Optional.ofNullable(model.getImportFunction()).orElseThrow(() -> new ICityException("导入功能按钮为传入相关设置"));
+		ImportBaseFunctionEntity importEntity = Optional.ofNullable(listFunction.getImportFunction()).orElseGet(ImportBaseFunctionEntity::new);
+		BeanCopiers.noConvertCopy(importModel, importEntity);
+//		importEntity.setDateFormatter(importModel.getDateFormatter());
+//		importEntity.setTimeSeparator(importModel.getTimeSeparator());
+//		importEntity.setDateSeparator(importModel.getDateSeparator());
+//		importEntity.setEndRow(importModel.getEndRow());
+//		importEntity.setStartRow(importModel.getStartRow());
+//		importEntity.setFileType(importModel.getFileType());
+//		importEntity.setType(importModel.getType());
+//		importEntity.setHeaderRow(importModel.getHeaderRow());
+		listFunction.setImportFunction(importEntity);
+		model.getImportFunction().getTemplateItemModels()
+				.forEach(iModel -> {
+					ItemModelEntity entity = itemModelEntities.get(iModel.getId());
+					entity.setMatchKey(iModel.isKey());
+					entity.setDataImported(iModel.isImported());
+				});
+	}
+
+	private <K, V> Map<K, V> toMap(List<V> list, Function<V, K> keyMapper) {
+		return list.stream().collect(Collectors.toMap(keyMapper, v -> v));
+	}
 
     @Override
     public ListModel toListModel(ListModelEntity listModelEntity) {
