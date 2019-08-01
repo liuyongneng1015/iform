@@ -28,6 +28,8 @@ public class ListSearchItem extends BaseEntity implements Serializable {
 
 	private String parseArea;
 
+	@Column(length=2048)
+	private String props;
 	/** 联动数据解绑 */
 	private Boolean linkageDataUnbind = false;
 	@Column(name="order_no",columnDefinition = "int default 0")//排序号
@@ -63,6 +65,14 @@ public class ListSearchItem extends BaseEntity implements Serializable {
 
 	public void setParseArea(String parseArea) {
 		this.parseArea = parseArea;
+	}
+
+	public String getProps() {
+		return props;
+	}
+
+	public void setProps(String props) {
+		this.props = props;
 	}
 
 	public Boolean getLinkageDataUnbind() {
