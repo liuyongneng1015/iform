@@ -89,13 +89,13 @@ public class ItemModelEntity extends  BaseEntity{
 	@Column(name = "template_name") //模板控件名称
 	private String templateName;
 
-	@Column(name = "match_key") //匹配主键
+	@Column(name = "match_key", columnDefinition = "boolean default false") //匹配主键
 	private boolean matchKey = false;
 
-	@Column(name = "template_selected") //模板选中, 导出模板字段
+	@Column(name = "template_selected" , columnDefinition = "boolean default false") //模板选中, 导出模板字段
 	private boolean templateSelected = false;
 
-	@Column(name = "data_imported") //是否导入该列数据
+	@Column(name = "data_imported", columnDefinition = "boolean default false") //是否导入该列数据
 	private boolean dataImported = false;
 
 

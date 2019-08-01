@@ -68,6 +68,15 @@ public class ExportDataServiceImpl implements ExportDataService {
         }
     }
 
+    @Override
+    public List<ItemModelEntity> eachHasColumnItemModel(List<ItemModelEntity> entitys) {
+        return ItemModelHandlerUtils.eachItemEntity(entitys)
+                .stream()
+                .filter(item -> Objects.nonNull(item.getColumnModel()))
+                .sorted(Comparator.comparing(ItemModelEntity::getOrderNo))
+                .collect(Collectors.toList());
+    }
+
     private Resource exportPdf(String title, List<String> header, List<List<Object>> exportDatas) {
         try {
             List<List<String>> stringDatas = exportDatas.stream().map(list -> list.stream().map(Objects::toString).collect(Collectors.toList())).collect(Collectors.toList());;
@@ -86,8 +95,6 @@ public class ExportDataServiceImpl implements ExportDataService {
      * @return 返回Excel的Resource
      */
     private Resource exportExcel(String sheetName, List<String> header, List<List<Object>> exportDatas ) {
-
-
         Workbook wb = new XSSFWorkbook();
         Sheet sheet = wb.createSheet(sheetName);
 
@@ -103,12 +110,6 @@ public class ExportDataServiceImpl implements ExportDataService {
         }
 
         return new ByteArrayResource(os.toByteArray());
-    }
-
-    private interface HeaderBuild {
-
-        List<String> buildHeader(ListModelEntity entity, ExportListFunction function, Map<String, Object> queryParams);
-
     }
 
     private Object findValue(ItemInstance instance) {
@@ -135,49 +136,22 @@ public class ExportDataServiceImpl implements ExportDataService {
         }
     }
 
+    /**
+     * ItemModelEntity 的处理工具类
+     * <ul>
+     *     <li>
+     *         遍历出所有的ItemModelEntity
+     *     </li>
+     * </ul>
+     */
+    private static class ItemModelHandlerUtils {
 
-    private static class ExportHeaderFactory {
-
-        public static HeaderBuild getInstance(ExportControl control) {
-            switch (control) {
-                case All:
-                    return ALL_HEADER_BUILD;
-                case List:
-                    return LIST_HEADER_BUILD;
-                case BackCustom:
-                    return BACK_HEADER_BUILD;
-                case FrontCustom:
-                    return FRONT_HEADER_BUILD;
-                default:
-                    return ALL_HEADER_BUILD;
-            }
-        }
-
-        private static HeaderBuild ALL_HEADER_BUILD = (entity, func, queryParams) ->
-                eachItemEntity(entity.getMasterForm().getItems()).stream()
-                        .filter(item -> item.getType().hasContext())
-                        .sorted(Comparator.comparing(ItemModelEntity::getOrderNo))
-                        .map(BaseEntity::getName).collect(Collectors.toList());
-
-        private static HeaderBuild LIST_HEADER_BUILD = (entity, function, queryParams) -> entity.getDisplayItems().stream().sorted(Comparator.comparing(ItemModelEntity::getOrderNo)).map(ItemModelEntity::getName).collect(Collectors.toList());
-
-        private static HeaderBuild BACK_HEADER_BUILD = (entity, function, queryParams) -> {
-            Map<String, String> mapping = eachItemEntity(entity.getMasterForm().getItems()).stream().distinct().collect(Collectors.toMap(ItemModelEntity::getId, ItemModelEntity::getName));
-            return Stream.of(function.getCustomExport().split(","))
-                    .map(mapping::get)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
-        };
-
-        private static HeaderBuild FRONT_HEADER_BUILD = (entity, function, queryParams) -> {
-            Map<String, String> mapping = eachItemEntity(entity.getMasterForm().getItems()).stream().distinct().collect(Collectors.toMap(ItemModelEntity::getId, ItemModelEntity::getName));
-            return findFrontItemIds(queryParams).stream()
-                    .map(mapping::get)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
-        };
-
-        private static List<ItemModelEntity> eachItemEntity(List<ItemModelEntity> entitys) {
+        /**
+         * 遍历出所有ItemModelEntity
+         * @param entitys 需要遍历的ItemModelEntity
+         * @return 返回遍历后的结果, 但是不会包含分支节点, 只会有叶子节点
+         */
+        public static List<ItemModelEntity> eachItemEntity(List<ItemModelEntity> entitys) {
             List<ItemModelEntity> result = new ArrayList<>();
             for (ItemModelEntity entity : entitys) {
                 for (Field field : entity.getClass().getDeclaredFields()) {
@@ -203,6 +177,65 @@ public class ExportDataServiceImpl implements ExportDataService {
             return result;
         }
 
+        @SuppressWarnings("unchecked")
+        private static <T> T getFieldValue(Field field, Object obj, Class<T> clzz) {
+            try {
+                field.setAccessible(true);
+                return (T) field.get(obj);
+            } catch (IllegalAccessException e) {
+                throw new ICityException(e);
+            }
+        }
+
+    }
+
+    private interface HeaderBuild {
+
+        List<String> buildHeader(ListModelEntity entity, ExportListFunction function, Map<String, Object> queryParams);
+
+    }
+
+    private static class ExportHeaderFactory {
+
+        public static HeaderBuild getInstance(ExportControl control) {
+            switch (control) {
+                case All:
+                    return ALL_HEADER_BUILD;
+                case List:
+                    return LIST_HEADER_BUILD;
+                case BackCustom:
+                    return BACK_HEADER_BUILD;
+                case FrontCustom:
+                    return FRONT_HEADER_BUILD;
+                default:
+                    return ALL_HEADER_BUILD;
+            }
+        }
+
+        private static HeaderBuild ALL_HEADER_BUILD = (entity, func, queryParams) ->
+                ItemModelHandlerUtils.eachItemEntity(entity.getMasterForm().getItems()).stream()
+                        .filter(item -> item.getType().hasContext())
+                        .sorted(Comparator.comparing(ItemModelEntity::getOrderNo))
+                        .map(BaseEntity::getName).collect(Collectors.toList());
+
+        private static HeaderBuild LIST_HEADER_BUILD = (entity, function, queryParams) -> entity.getDisplayItems().stream().sorted(Comparator.comparing(ItemModelEntity::getOrderNo)).map(ItemModelEntity::getName).collect(Collectors.toList());
+
+        private static HeaderBuild BACK_HEADER_BUILD = (entity, function, queryParams) -> {
+            Map<String, String> mapping = ItemModelHandlerUtils.eachItemEntity(entity.getMasterForm().getItems()).stream().distinct().collect(Collectors.toMap(ItemModelEntity::getId, ItemModelEntity::getName));
+            return Stream.of(function.getCustomExport().split(","))
+                    .map(mapping::get)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+        };
+
+        private static HeaderBuild FRONT_HEADER_BUILD = (entity, function, queryParams) -> {
+            Map<String, String> mapping = ItemModelHandlerUtils.eachItemEntity(entity.getMasterForm().getItems()).stream().distinct().collect(Collectors.toMap(ItemModelEntity::getId, ItemModelEntity::getName));
+            return findFrontItemIds(queryParams).stream()
+                    .map(mapping::get)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+        };
+
         private static Collection<String> findFrontItemIds (Map<String, Object> params) {
             final String key = "exportColumnIds";
             if (params == null || !params.containsKey(key)){
@@ -213,17 +246,6 @@ public class ExportDataServiceImpl implements ExportDataService {
                 return (Collection<String>) obj;
             }else {
                 return Arrays.asList(Objects.toString(obj).split(","));
-            }
-        }
-
-
-        @SuppressWarnings("unchecked")
-        private static <T> T getFieldValue(Field field, Object obj, Class<T> clzz) {
-            try {
-                field.setAccessible(true);
-                return (T) field.get(obj);
-            } catch (IllegalAccessException e) {
-                throw new ICityException(e);
             }
         }
 
