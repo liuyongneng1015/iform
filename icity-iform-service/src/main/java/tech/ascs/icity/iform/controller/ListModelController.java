@@ -583,7 +583,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 
 					if (itemModelEntity instanceof SelectItemModelEntity) {
 						// 是否是联动解绑
-						if (searchItemEntity.getLinkageDataUnbind()) {
+						if (searchItemEntity.getLinkageDataUnbind()!=null && searchItemEntity.getLinkageDataUnbind()) {
 							searchItem.setDictionaryValueType(DictionaryValueType.Fixed);
 						}
 						SelectItemModelEntity selectItemModelEntity = (SelectItemModelEntity)itemModelEntity;
