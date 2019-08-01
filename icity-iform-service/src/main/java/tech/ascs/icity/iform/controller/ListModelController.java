@@ -535,11 +535,6 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 					}
 					SearchItem searchItem = new SearchItem();
 					BeanUtils.copyProperties(searchItemEntity, searchItem, "listModel", "itemModel", "search", "parseArea");
-					// 更新时间和创建时间控件的type字段要改成 日期控件 ItemType.DatePicker
-					if (itemModelEntity.getSystemItemType() == SystemItemType.CreateDate) {
-						searchItem.setType(ItemType.DatePicker);
-						searchItem.setProps(searchItemEntity.getProps());
-					}
 					if (StringUtils.hasText(searchItemEntity.getParseArea())) {
 						searchItem.setParseArea(Arrays.asList(searchItemEntity.getParseArea().split(",")));
 					}
@@ -559,6 +554,11 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 						}
 					}
 					itemModelService.copyItemModelEntityToItemModel(itemModelEntity, searchItem);
+					// 更新时间和创建时间控件的type字段要改成 日期控件 ItemType.DatePicker
+					if (itemModelEntity.getSystemItemType() == SystemItemType.CreateDate) {
+						searchItem.setType(ItemType.DatePicker);
+						searchItem.setProps(searchItemEntity.getProps());
+					}
 					List<ItemSelectOption> options = itemModelEntity.getOptions();
 					// 自定义的下拉框，在列表建模的渲染页面，要返回options属性
 					if (options!=null && options.size()>0) {
