@@ -121,7 +121,9 @@ public interface FormInstanceService {
 	@ApiOperation(value = "导出表单实例数据", position = 1)
 	@ApiImplicitParams({
 		@ApiImplicitParam(paramType = "path", name = "listId", value = "列表模型ID", required = true, dataType = "String"),
-		@ApiImplicitParam(paramType = "query", name = "parameters", value = "查询参数", required = false)
+		@ApiImplicitParam(paramType = "query", name = "parameters", value = "查询参数", required = false),
+			@ApiImplicitParam(paramType = "query", name="exportColumnIds", value = "需要导出的控件id, 多个逗号分隔, 当导出为前端定义时候可用", required = false),
+			@ApiImplicitParam(paramType = "query", name = "exportSelectIds", value = "需要导出的数据的id,多个逗号分隔,当导出模式为选择导出时候可用", required = false)
 	})
 	@GetMapping("/{listId}/export")
 	ResponseEntity<Resource> export(HttpServletResponse response,

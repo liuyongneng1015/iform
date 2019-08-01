@@ -5,6 +5,7 @@ import io.swagger.annotations.ApiModelProperty;
 import org.apache.commons.lang3.StringUtils;
 import tech.ascs.icity.iform.api.model.export.ExportFunctionModel;
 import tech.ascs.icity.iform.api.model.export.ImportFunctionModel;
+import tech.ascs.icity.iform.api.model.export.TemplateItemModel;
 import tech.ascs.icity.model.NameEntity;
 
 import java.util.ArrayList;
@@ -59,14 +60,14 @@ public class FunctionModel extends NameEntity implements Comparable<FunctionMode
 	@ApiModelProperty(value ="隐藏条件", position = 21)
 	private String hideCondition;
 
-	@ApiModelProperty(value = "导出功能设置", position = 22)
+	@ApiModelProperty(value = "导出功能设置, 当功能按钮为导出的时候必须要有", position = 22)
 	private ExportFunctionModel exportFunction;
 
-	@ApiModelProperty(value = "导入功能设置", position = 23)
+	@ApiModelProperty(value = "导入功能设置, 当功能为导入的时候必须要有", position = 23)
 	private ImportFunctionModel importFunction;
 
-	@ApiModelProperty(value = "模板控件选择, 控件名称为key, 模板名称为value, 传入表示选择", position = 24)
-	private Map<String, String> templateSelect;
+	@ApiModelProperty(value = "模板功能按钮设置, 当功能为模板下载的时候必须要有", position = 24)
+	private List<TemplateItemModel> templateItemModels;
 
 	public String getLabel() {
 		return label;
@@ -244,12 +245,12 @@ public class FunctionModel extends NameEntity implements Comparable<FunctionMode
 		this.importFunction = importFunction;
 	}
 
-	public Map<String, String> getTemplateSelect() {
-		return templateSelect;
+	public List<TemplateItemModel> getTemplateItemModels() {
+		return templateItemModels;
 	}
 
-	public void setTemplateSelect(Map<String, String> templateSelect) {
-		this.templateSelect = templateSelect;
+	public void setTemplateItemModels(List<TemplateItemModel> templateItemModels) {
+		this.templateItemModels = templateItemModels;
 	}
 
 	@Override
