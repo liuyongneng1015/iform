@@ -722,7 +722,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 
 	private void assemblyDefaultImportBaseFunction(ListFunction listFunction) {
 		ImportBaseFunctionEntity entity = new ImportBaseFunctionEntity();
-		entity.setDateFormatter("-");
+		entity.setDateSeparator("-");
 		entity.setTimeSeparator(":");
 		entity.setDateFormatter("yyyy/MM/dd HH:mm:ss");
 		entity.setFileType(ImportFileType.Excel);

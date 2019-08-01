@@ -801,14 +801,6 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 		ImportFunctionModel importModel = Optional.ofNullable(model.getImportFunction()).orElseThrow(() -> new ICityException("导入功能按钮为传入相关设置"));
 		ImportBaseFunctionEntity importEntity = Optional.ofNullable(listFunction.getImportFunction()).orElseGet(ImportBaseFunctionEntity::new);
 		BeanCopiers.noConvertCopy(importModel, importEntity);
-//		importEntity.setDateFormatter(importModel.getDateFormatter());
-//		importEntity.setTimeSeparator(importModel.getTimeSeparator());
-//		importEntity.setDateSeparator(importModel.getDateSeparator());
-//		importEntity.setEndRow(importModel.getEndRow());
-//		importEntity.setStartRow(importModel.getStartRow());
-//		importEntity.setFileType(importModel.getFileType());
-//		importEntity.setType(importModel.getType());
-//		importEntity.setHeaderRow(importModel.getHeaderRow());
 		listFunction.setImportFunction(importEntity);
 		model.getImportFunction().getTemplateItemModels()
 				.forEach(iModel -> {
