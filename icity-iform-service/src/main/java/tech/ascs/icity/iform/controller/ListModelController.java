@@ -555,7 +555,8 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 					}
 					itemModelService.copyItemModelEntityToItemModel(itemModelEntity, searchItem);
 					// 更新时间和创建时间控件的type字段要改成 日期控件 ItemType.DatePicker
-					if (itemModelEntity.getSystemItemType() == SystemItemType.CreateDate) {
+					if (itemModelEntity.getSystemItemType() == SystemItemType.CreateDate ||
+						itemModelEntity.getSystemItemType() == SystemItemType.DatePicker) {
 						searchItem.setType(ItemType.DatePicker);
 						searchItem.setProps(searchItemEntity.getProps());
 					}
