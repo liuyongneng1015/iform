@@ -87,4 +87,12 @@ public enum ItemType {
 		this.value = value;
 	}
 
+	public boolean hasContext() {
+		if (this == Label || this == SubForm || this == RowItem || this == Row || this == Tabs || this == TabPane || this == QuickMenu || this == List || this == Report || this == Notice || this == News){
+			return false;
+		}else {
+			return true;
+		}
+	}
+
 }

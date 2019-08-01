@@ -1,23 +1,18 @@
 package tech.ascs.icity.iform.service.impl;
 
-import java.io.IOException;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.*;
-import java.util.stream.Collectors;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cglib.beans.BeanCopier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.transaction.annotation.Transactional;
-
 import org.springframework.util.StringUtils;
 import tech.ascs.icity.ICityException;
 import tech.ascs.icity.admin.api.model.ListFormIds;
 import tech.ascs.icity.admin.client.ResourceService;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
+import tech.ascs.icity.iform.api.model.export.ExportFunctionModel;
 import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.FormInstanceService;
 import tech.ascs.icity.iform.service.FormModelService;
@@ -27,6 +22,12 @@ import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 import tech.ascs.icity.model.Page;
 import tech.ascs.icity.utils.BeanUtils;
+
+import java.io.IOException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> implements ListModelService {
 
@@ -443,7 +444,7 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 		}
 		return super.save(entity);
 	}
-	
+
 	protected void validate(ListModelEntity entity) {
 		// TODO 校验绑定数据模型、字段模型、流程及环节各相关ID存在
 	}
@@ -688,7 +689,14 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
                 BeanUtils.copyProperties(searchItem.getSearch(), searchInfo, new String[]{"defaultValue", "defaultValueName"});
                 Object defalueValue = searchItem.getSearch().getDefaultValue();
                 if(defalueValue != null && defalueValue instanceof List){
-                    searchInfo.setDefaultValue(String.join(",", (List)searchItem.getSearch().getDefaultValue()));
+					List list = (List)searchItem.getSearch().getDefaultValue();
+					List newList = new ArrayList();
+					for (Object item:list) {
+						if (!StringUtils.isEmpty(item)) {
+							newList.add(item+"");
+						}
+					}
+					searchInfo.setDefaultValue(String.join(",", newList));
                 } else if(defalueValue != null) {
                     searchInfo.setDefaultValue(StringUtils.isEmpty(defalueValue) ? null : String.valueOf(defalueValue));
                 }
@@ -709,16 +717,18 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
                     throw new IFormException("功能按钮存在功能名或者功能编码为空");
                 }
                 ListFunction listFunction = new ListFunction() ;
-                BeanUtils.copyProperties(function, listFunction, new String[]{"listModel", "parseArea"});
+                BeanUtils.copyProperties(function, listFunction, new String[]{"listModel", "parseArea", "exportFunction"});
+
                 if (function.getParseArea()!=null && function.getParseArea().size()>0) {
                     listFunction.setParseArea(String.join(",", function.getParseArea()));
                 }
                 listFunction.setListModel(listModelEntity);
                 listFunction.setOrderNo(++i);
+                assemblyFunction(listFunction, function);
                 functions.add(listFunction);
             }
             listModelEntity.setFunctions(functions);
-        }
+		}
 
         if (listModel.getQuickSearchItems() !=null) {
             // 检测快速筛选的个数
@@ -749,6 +759,19 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
             listModelEntity.setQuickSearchItems(quickSearches);
         }
         return listModelEntity;
+    }
+
+    private void assemblyFunction(ListFunction listFunction, FunctionModel model) {
+
+		if ( DefaultFunctionType.Export.getValue().contains(model.getAction()) ) {
+			ExportFunctionModel exportModel = Optional.ofNullable(model.getExportFunction()).orElseThrow(() -> new ICityException("导出功能按钮没有传入相关设置数据"));
+			ExportListFunction exportFunction = new ExportListFunction();
+			exportFunction.setControl(exportModel.getControl());
+			exportFunction.setFormat(exportModel.getFormat());
+			exportFunction.setType(exportModel.getType());
+			exportFunction.setCustomExport(String.join(",", exportModel.getCustomExport()));
+			listFunction.setExportFunction(exportFunction);
+		}
     }
 
     @Override

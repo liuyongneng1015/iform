@@ -294,6 +294,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 			Criteria criteria = generateCriteria(session, listModel.getMasterForm(), listModel, queryParameters);
 			addCreatorCriteria(criteria, listModel);
+			assemblyExportSelectIds(criteria, queryParameters);
 			if (hasProcess) {
 				addProcessCriteria(criteria, processStatus, userStatus, userId, groupIds, null, null);
 			}
@@ -2285,6 +2286,16 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			criteria.addOrder(Order.desc("id"));
 		}
 		return criteria;
+	}
+
+	/**
+	 * 导入为Select的时候会传入id, 这时候, 通过id in来查询
+	 * @param queryParameters 参数集合
+	 */
+	private void assemblyExportSelectIds(Criteria criteria, Map<String, Object> queryParameters) {
+		if (queryParameters.containsKey("exportSelectIds")) {
+			criteria.add(Restrictions.in("id", queryParameters.get("exportSelectIds")));
+		}
 	}
 
 	private Object getNumberParams(ItemModelEntity itemModel, ColumnModelEntity columnModel, Object value) {

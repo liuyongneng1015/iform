@@ -3,10 +3,14 @@ package tech.ascs.icity.iform.api.model;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import org.apache.commons.lang3.StringUtils;
+import tech.ascs.icity.iform.api.model.export.ExportFunctionModel;
+import tech.ascs.icity.iform.api.model.export.ImportFunctionModel;
+import tech.ascs.icity.iform.api.model.export.TemplateItemModel;
 import tech.ascs.icity.model.NameEntity;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @ApiModel("功能模型")
 public class FunctionModel extends NameEntity implements Comparable<FunctionModel> {
@@ -55,6 +59,15 @@ public class FunctionModel extends NameEntity implements Comparable<FunctionMode
 
 	@ApiModelProperty(value ="隐藏条件", position = 21)
 	private String hideCondition;
+
+	@ApiModelProperty(value = "导出功能设置, 当功能按钮为导出的时候必须要有", position = 22)
+	private ExportFunctionModel exportFunction;
+
+	@ApiModelProperty(value = "导入功能设置, 当功能为导入的时候必须要有", position = 23)
+	private ImportFunctionModel importFunction;
+
+	@ApiModelProperty(value = "模板功能按钮设置, 当功能为模板下载的时候必须要有", position = 24)
+	private List<TemplateItemModel> templateItemModels;
 
 	public String getLabel() {
 		return label;
@@ -214,6 +227,30 @@ public class FunctionModel extends NameEntity implements Comparable<FunctionMode
 
 	public void setHideCondition(String hideCondition) {
 		this.hideCondition = hideCondition;
+	}
+
+	public ExportFunctionModel getExportFunction() {
+		return exportFunction;
+	}
+
+	public void setExportFunction(ExportFunctionModel exportFunction) {
+		this.exportFunction = exportFunction;
+	}
+
+	public ImportFunctionModel getImportFunction() {
+		return importFunction;
+	}
+
+	public void setImportFunction(ImportFunctionModel importFunction) {
+		this.importFunction = importFunction;
+	}
+
+	public List<TemplateItemModel> getTemplateItemModels() {
+		return templateItemModels;
+	}
+
+	public void setTemplateItemModels(List<TemplateItemModel> templateItemModels) {
+		this.templateItemModels = templateItemModels;
 	}
 
 	@Override

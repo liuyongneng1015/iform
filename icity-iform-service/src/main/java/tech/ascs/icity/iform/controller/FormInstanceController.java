@@ -3,6 +3,7 @@ package tech.ascs.icity.iform.controller;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -14,6 +15,10 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,6 +28,8 @@ import tech.ascs.icity.admin.api.model.Position;
 import tech.ascs.icity.admin.client.UserService;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
+import tech.ascs.icity.iform.api.model.export.ExportFormat;
+import tech.ascs.icity.iform.api.model.export.ExportType;
 import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.*;
 import tech.ascs.icity.iform.utils.*;
@@ -56,6 +63,9 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 
 	@Autowired
 	private UserService userService;
+
+	@Autowired
+	private ExportDataService exportDataService;
 
 	@Value("${icity.iform.qrcode.base-url}")
 	private String qrcodeBaseUrl;
@@ -174,60 +184,30 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	}
 
 	@Override
-	public void export(HttpServletResponse response,
-					   @PathVariable(name="listId") String listId,
-					   @RequestParam Map<String, Object> parameters) {
+	public ResponseEntity<Resource> export(HttpServletResponse response,
+										   @PathVariable(name="listId") String listId,
+										   @RequestParam Map<String, Object> parameters) {
 		ListModelEntity listModel = listModelService.find(listId);
 		if (listModel == null) {
 			throw new IFormException(404, "列表模型【" + listId + "】不存在");
 		}
 		Map<String, Object> queryParameters = assemblyQueryParameters(parameters);
-		List<FormDataSaveInstance> data = formInstanceService.pageListInstance(listModel, 1, Integer.MAX_VALUE, queryParameters).getResults();
-		List<String> ids = new ArrayList<>(Arrays.asList(listModel.getDisplayItemsSort().split(",")));
-		List<ItemModelEntity> items = listModel.getDisplayItems();
-		List<ItemModelEntity> sortList = new ArrayList<>();
-		for (String id:ids) {
-			Optional<ItemModelEntity> optional = items.stream().filter(item->id.equals(item.getId())).findFirst();
-			if (optional.isPresent()) {
-				sortList.add(optional.get());
-			}
-		}
-		if (sortList==null || sortList.size()==0) {
-			return;
-		}
-		ids = sortList.stream().map(ItemModelEntity::getId).collect(Collectors.toList());
-		if(data == null){
-			data = new ArrayList<>();
-		}
-		try {
-			XSSFWorkbook wb = new XSSFWorkbook();
-			XSSFSheet sheet = wb.createSheet(listModel.getName());
-			response.setContentType("application/vnd.ms-excel");
-			String filename = listModel.getName()+CommonUtils.currentTimeStr("-yyyy年MM月dd日-HHmmss")+".xlsx";
-			filename = new String(filename.getBytes("utf-8"), "ISO8859-1");
-			ExportUtils.outputHeaders(sortList.stream().map(ItemModelEntity::getName).toArray(String[]::new), sheet);
-			response.setHeader("Content-Disposition", "attachment;filename="+filename);
-			List<List<ItemInstance>> listData = new ArrayList<>();
-			for (FormDataSaveInstance dataInstance:data) {
-				List<ItemInstance> itemInstances = dataInstance.getItems();
-				List<ItemInstance> lineList = new ArrayList<>();
-				for (String id:ids) {
-					Optional<ItemInstance> optional = itemInstances.stream().filter(item->id.equals(item.getId())).findFirst();
-					ItemInstance itemInstance = optional.isPresent()? optional.get() : null;
-					if(itemInstance != null) {
-						lineList.add(itemInstance);
-					}
-				}
-				listData.add(lineList);
-			}
-			ExportUtils.outputFormdata(listData, sheet, 1);
-			ServletOutputStream out = response.getOutputStream();
-			wb.write(out);
-			out.flush();
-			out.close();
-		} catch (Exception e){
-			e.printStackTrace();
-		}
+        ExportListFunction function = listModel.getFunctions().stream().filter(func -> DefaultFunctionType.Export.getValue().equals(func.getAction()))
+                .findAny()
+                .map(ListFunction::getExportFunction)
+                .orElseThrow(() -> new ICityException("未获取到对应的导出功能设置"));
+        if (function.getType()  != ExportType.Select) {
+            queryParameters.remove("exportSelectIds");
+        }
+        String extension = function.getFormat() == ExportFormat.Excel ? ".xlsx" : ".pdf";
+        List<FormDataSaveInstance> data = formInstanceService.pageListInstance(listModel, 1, Integer.MAX_VALUE, queryParameters).getResults();
+		Resource resource = exportDataService.exportData(listModel,function, data, parameters);
+		String filename = listModel.getName()+CommonUtils.currentTimeStr("-yyyy年MM月dd日-HHmmss")+extension;
+		filename = new String(filename.getBytes(Charset.forName("utf-8")), Charset.forName("ISO8859-1"));
+		return ResponseEntity.status(200)
+				.header("Content-Disposition", "attachment;filename="+filename)
+				.contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
+				.body(resource);
 	}
 
 	/**
