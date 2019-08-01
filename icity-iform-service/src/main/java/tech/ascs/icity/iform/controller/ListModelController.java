@@ -582,7 +582,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 					}
 
 					if (itemModelEntity instanceof SelectItemModelEntity) {
-						// 是否是联动解绑
+						// 是否是联动解绑，是的话，把 DictionaryValueType 属性取值 改成  Fixed
 						if (searchItemEntity.getLinkageDataUnbind()!=null && searchItemEntity.getLinkageDataUnbind()) {
 							searchItem.setDictionaryValueType(DictionaryValueType.Fixed);
 						}
@@ -657,7 +657,18 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				ItemType itemType = searchItem.getType();
 				// ItemType.InputNumber和ItemType.DatePicker返回的是数字，不是字符串数组格式
 				if (searchItem.getSystemItemType() == SystemItemType.CreateDate ||
-						(ItemType.InputNumber == itemType && (searchItem.getDecimalDigits() == null || searchItem.getDecimalDigits() == 0))) {
+						searchItem.getSystemItemType() == SystemItemType.DatePicker) {
+					String[] arr = defaultValue.split(",");
+					List list = new ArrayList();
+					for (String item:arr) {
+						try {
+							list.add(Long.valueOf(item));
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+					search.setDefaultValue(list);
+				} else if (ItemType.InputNumber == itemType && (searchItem.getDecimalDigits() == null || searchItem.getDecimalDigits() == 0)) {
 					try {
 						search.setDefaultValue(Long.valueOf(defaultValue));
 					} catch (Exception e) {
