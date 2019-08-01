@@ -191,17 +191,25 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	}
 
 	@Override
-	public List<Map<String, Object>> flowFormInstance(ListModelEntity listModel,Map<String, Object> queryParameters) {
+	public List<Map<String, Object>> formInstanceList(ListModelEntity listModel, Map<String, Object> queryParameters) {
 		Session session = null;
 		try {
 			FormModelEntity formModel = listModel.getMasterForm();
-			String userId = (String)queryParameters.get("userId");
-			Date beginDate = (Date)queryParameters.get("beginDate");
-			Date endDate = (Date)queryParameters.get("endDate");
 			Map<String, Object> parameters = new HashMap<>(queryParameters);
+			//是否查询表单数据
+			boolean queryFormData = "true".equals(queryParameters.get("queryFormData"));
+			String userId = queryParameters.get("userId") == null ? CurrentUserUtils.getCurrentUserId() : (String)queryParameters.get("userId") ;
+			Date beginDate = null;
+			Date endDate = null;
+			if (!queryFormData) {
+				beginDate = (Date) queryParameters.get("beginDate");
+				endDate = (Date)queryParameters.get("endDate");
+			}
 			parameters.remove("userId");
 			parameters.remove("beginDate");
 			parameters.remove("endDate");
+			parameters.remove("queryFlowData");
+
 			session = getSession(formModel.getDataModels().get(0));
 			boolean hasProcess = hasProcess(formModel);
 			int processStatus = hasProcess ? getProcessStatusParameter(formModel, SystemItemType.ProcessStatus, parameters) : -1;
@@ -286,6 +294,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 			Criteria criteria = generateCriteria(session, listModel.getMasterForm(), listModel, queryParameters);
 			addCreatorCriteria(criteria, listModel);
+			assemblyExportSelectIds(criteria, queryParameters);
 			if (hasProcess) {
 				addProcessCriteria(criteria, processStatus, userStatus, userId, groupIds, null, null);
 			}
@@ -510,7 +519,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 
 		// 表单提交校验
-		List<String> checkResult = elProcessorService.checkSubmitProcessor(itemMap, formModelEntity.getSubmitChecks());
+		List<String> checkResult = elProcessorService.checkSubmitProcessor(formInstance, formModelEntity, formModelService::get);
 		if (!checkResult.isEmpty()) {
 			throw new IFormException(403, checkResult.get(0));
 		}
@@ -2277,6 +2286,16 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			criteria.addOrder(Order.desc("id"));
 		}
 		return criteria;
+	}
+
+	/**
+	 * 导入为Select的时候会传入id, 这时候, 通过id in来查询
+	 * @param queryParameters 参数集合
+	 */
+	private void assemblyExportSelectIds(Criteria criteria, Map<String, Object> queryParameters) {
+		if (queryParameters.containsKey("exportSelectIds")) {
+			criteria.add(Restrictions.in("id", queryParameters.get("exportSelectIds")));
+		}
 	}
 
 	private Object getNumberParams(ItemModelEntity itemModel, ColumnModelEntity columnModel, Object value) {

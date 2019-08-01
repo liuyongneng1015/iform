@@ -81,6 +81,10 @@ public class ListFunction extends JPAEntity implements Serializable {
 	// 隐藏条件
 	private String hideCondition;
 
+	@OneToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+	@JoinColumn(name = "export_id")
+	private ExportListFunction exportFunction;
+
 	public ListFunction() {
 
 	}
@@ -259,5 +263,13 @@ public class ListFunction extends JPAEntity implements Serializable {
 
 	public void setHideCondition(String hideCondition) {
 		this.hideCondition = hideCondition;
+	}
+
+	public ExportListFunction getExportFunction() {
+		return exportFunction;
+	}
+
+	public void setExportFunction(ExportListFunction exportFunction) {
+		this.exportFunction = exportFunction;
 	}
 }

@@ -2,6 +2,7 @@ package tech.ascs.icity.iform.controller;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,6 +24,10 @@ import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.api.model.ListModel.SortItem;
 import tech.ascs.icity.iform.api.model.SearchItem.Search;
+import tech.ascs.icity.iform.api.model.export.ExportControl;
+import tech.ascs.icity.iform.api.model.export.ExportFormat;
+import tech.ascs.icity.iform.api.model.export.ExportFunctionModel;
+import tech.ascs.icity.iform.api.model.export.ExportType;
 import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.FormInstanceServiceEx;
 import tech.ascs.icity.iform.service.FormModelService;
@@ -132,11 +137,13 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 	}
 
 	// 新增列表的时候，自动创建新增、批量删除，为系统自带功能
-	private DefaultFunctionType[] functionDefaultActions = {DefaultFunctionType.Add, DefaultFunctionType.BatchDelete};
-	private String[] parseAreas = { ParseArea.PC.value()+","+ParseArea.APP.value(), null };
-	private String[] functionDefaultIcons = new String[]{null, "icon-xuanzhong"};
-	private String[] functionDefaultMethods = new String[]{"POST", "DELETE"};
-	private Boolean[] functionVisibles = {true, true};
+	private DefaultFunctionType[] functionDefaultActions = {DefaultFunctionType.Add, DefaultFunctionType.BatchDelete, DefaultFunctionType.Export};
+	private String[] parseAreas = { ParseArea.PC.value()+","+ParseArea.APP.value(), null , ParseArea.PC.value()};
+	private String[] functionDefaultIcons = new String[]{null, "icon-xuanzhong", null};
+	private String[] functionDefaultMethods = new String[]{"POST", "DELETE", "GET"};
+	private Boolean[] functionVisibles = {true, true, false};
+	private List<Consumer<ListFunction>> functionOtherControl = Arrays.asList(null, null, this::assemblyDefaultExportListFunction);
+
 
 	@Override
 	public IdEntity createListModel(@RequestBody ListModel ListModel) {
@@ -173,6 +180,9 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
                 function.setSystemBtn(true);
 				function.setOrderNo(i+1);
 				function.setListModel(entity);
+                if (functionOtherControl.get(i) != null) {
+                    functionOtherControl.get(i).accept(function);
+                }
 				functions.add(function);
 			}
 			entity.setFunctions(functions);
@@ -457,10 +467,11 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 			List<FunctionModel> functions = new ArrayList();
 			for(ListFunction listFunction : listModelEntity.getFunctions()) {
 				FunctionModel function = new FunctionModel();
-				BeanUtils.copyProperties(listFunction, function, new String[]{"listModel", "formModel", "parseArea"});
+				BeanUtils.copyProperties(listFunction, function, new String[]{"listModel", "formModel", "parseArea", "exportFunction"});
 				if (StringUtils.hasText(listFunction.getParseArea())) {
 					function.setParseArea(Arrays.asList(listFunction.getParseArea().split(",")));
 				}
+				assemblyFunctionModel(listFunction, function);
 				functions.add(function);
 			}
 			Collections.sort(functions);
@@ -572,7 +583,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 
 					if (itemModelEntity instanceof SelectItemModelEntity) {
 						// 是否是联动解绑
-						if (searchItemEntity.getLinkageDataUnbind()) {
+						if (searchItemEntity.getLinkageDataUnbind()!=null && searchItemEntity.getLinkageDataUnbind()) {
 							searchItem.setDictionaryValueType(DictionaryValueType.Fixed);
 						}
 						SelectItemModelEntity selectItemModelEntity = (SelectItemModelEntity)itemModelEntity;
@@ -704,4 +715,24 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		}
 		return list;
 	}
+
+	private void assemblyDefaultExportListFunction(ListFunction listFunction) {
+		ExportListFunction function = new ExportListFunction();
+		function.setFormat(ExportFormat.Excel);
+		function.setControl(ExportControl.All);
+		function.setType(ExportType.All);
+		listFunction.setExportFunction(function);
+	}
+
+	private void assemblyFunctionModel(ListFunction function, FunctionModel functionModel) {
+	    if (DefaultFunctionType.Export.getValue().equals(function.getAction()) && function.getExportFunction() != null) {
+	        ExportListFunction functionEntiry = function.getExportFunction();
+            ExportFunctionModel exportModel = new ExportFunctionModel();
+            exportModel.setControl(functionEntiry.getControl());
+            exportModel.setFormat(functionEntiry.getFormat());
+            exportModel.setType(functionEntiry.getType());
+            exportModel.setCustomExport(Optional.ofNullable(functionEntiry.getCustomExport()).filter(StringUtils::hasText).map(str -> str.split(",")).map(Arrays::asList).orElseGet(Collections::emptyList));
+            functionModel.setExportFunction(exportModel);
+        }
+    }
 }

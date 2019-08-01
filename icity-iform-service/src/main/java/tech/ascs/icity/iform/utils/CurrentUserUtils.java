@@ -12,6 +12,7 @@ import tech.ascs.icity.iform.config.Constants;
 import tech.ascs.icity.rbac.feign.model.UserInfo;
 import tech.ascs.icity.rbac.util.Application;
 
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @Component
@@ -33,7 +34,7 @@ public class CurrentUserUtils implements ApplicationContextAware {
     }
 
     public static UserInfo getCurrentUser() {
-        String token = Application.getRequest().getHeader("token");
+        String token = Optional.ofNullable(Application.getRequest().getHeader("token")).orElseGet(() -> Application.getRequest().getParameter("access_token"));
         if (StringUtils.isEmpty(token)) {
             throw new ICityException(401, 401, "未登录");
         }

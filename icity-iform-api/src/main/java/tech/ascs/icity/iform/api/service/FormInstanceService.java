@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.core.io.Resource;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import io.swagger.annotations.ApiImplicitParam;
@@ -37,18 +39,18 @@ public interface FormInstanceService {
 	List<FormDataSaveInstance> list(@PathVariable(name="listId") String listId, @RequestParam Map<String, Object> parameters);
 
     /**
-     * 列表数据统计
+     * 表单数据统计
      *
      * @param listId 列表模型ID
      * @return
      */
-    @ApiOperation(value = "列表数据统计", notes = "附加查询条件（可选）：列表建模中的查询条件，以key=value的形式拼接到url，其中key为字段模型ID", position = 0)
+    @ApiOperation(value = "表单数据统计", notes = "附加查询条件（可选）：列表建模中的查询条件，以key=value的形式拼接到url，其中key为字段模型ID", position = 0)
     @GetMapping("/data_statistics/{listId}")
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "path", name = "listId", value = "列表模型ID", required = true, dataType = "String"),
             @ApiImplicitParam(paramType = "query", name = "parameters", value = "查询参数", required = false)
     })
-    Integer dataStatisticsList(@PathVariable(name="listId") String listId, @RequestParam Map<String, Object> parameters);
+    Integer formDataStatistics(@PathVariable(name="listId") String listId, @RequestParam Map<String, Object> parameters);
 
 	/**
 	 * 获取简化的表单实例列表
@@ -133,12 +135,14 @@ public interface FormInstanceService {
 	@ApiOperation(value = "导出表单实例数据", position = 1)
 	@ApiImplicitParams({
 		@ApiImplicitParam(paramType = "path", name = "listId", value = "列表模型ID", required = true, dataType = "String"),
-		@ApiImplicitParam(paramType = "query", name = "parameters", value = "查询参数", required = false)
+		@ApiImplicitParam(paramType = "query", name = "parameters", value = "查询参数", required = false),
+			@ApiImplicitParam(paramType = "query", name="exportColumnIds", value = "需要导出的控件id, 多个逗号分隔, 当导出为前端定义时候可用", required = false),
+			@ApiImplicitParam(paramType = "query", name = "exportSelectIds", value = "需要导出的数据的id,多个逗号分隔,当导出模式为选择导出时候可用", required = false)
 	})
 	@GetMapping("/{listId}/export")
-	void export(HttpServletResponse response,
-				@PathVariable(name="listId") String listId,
-				@RequestParam Map<String, Object> parameters);
+	ResponseEntity<Resource> export(HttpServletResponse response,
+									@PathVariable(name="listId") String listId,
+									@RequestParam Map<String, Object> parameters);
 
 	/**
 	 * 通过表单ID和条件分页查询表单实例数据
