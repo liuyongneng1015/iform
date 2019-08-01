@@ -56,6 +56,8 @@ public class SearchItem extends ItemModel implements Comparable<SearchItem> {
 	/** 联动数据解绑 */
 	@ApiModelProperty(value = "联动数据解绑，false表示不解绑，true表示解绑", position = 10)
 	private Boolean linkageDataUnbind = false;
+	@ApiModelProperty("props")
+	private String props;
 	@ApiModelProperty("搜索框排序号")//排序号
 	private Integer orderNo = 0;
 
@@ -92,6 +94,16 @@ public class SearchItem extends ItemModel implements Comparable<SearchItem> {
 
 	public void setLinkageDataUnbind(Boolean linkageDataUnbind) {
 		this.linkageDataUnbind = linkageDataUnbind;
+	}
+
+	@Override
+	public String getProps() {
+		return props;
+	}
+
+	@Override
+	public void setProps(String props) {
+		this.props = props;
 	}
 
 	public Integer getOrderNo() {
