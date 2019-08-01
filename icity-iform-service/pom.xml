@@ -175,7 +175,29 @@
 			<artifactId>juel-spi</artifactId>
 			<version>2.2.7</version>
 		</dependency>
+
+        <!-- itext pdf 生成 -->
+        <!-- https://mvnrepository.com/artifact/com.itextpdf/itextpdf -->
+        <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>itextpdf</artifactId>
+            <version>5.5.13.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>itext-asian</artifactId>
+            <version>5.2.0</version>
+        </dependency>
+
 	</dependencies>
+
+	<repositories>
+		<repository>
+			<id>ascs-maven</id>
+			<name>ascs-maven</name>
+			<url>https://maven.ascs.tech</url>
+		</repository>
+	</repositories>
 
 	<build>
 		<plugins>
