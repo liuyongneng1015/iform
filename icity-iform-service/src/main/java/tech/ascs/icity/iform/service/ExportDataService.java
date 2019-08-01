@@ -18,4 +18,6 @@ public interface ExportDataService {
     Resource exportData(ListModelEntity listEntity, ExportListFunction exportFunction, List<FormDataSaveInstance> datas, Map<String, Object> queryParams);
 
     List<ItemModelEntity> eachHasColumnItemModel(List<ItemModelEntity> entity);
+
+    Resource exportTemplate(ListModelEntity listModel);
 }

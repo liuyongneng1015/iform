@@ -77,6 +77,16 @@ public class ExportDataServiceImpl implements ExportDataService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public Resource exportTemplate(ListModelEntity listModel) {
+        List<ItemModelEntity> modelEntities = eachHasColumnItemModel(listModel.getMasterForm().getItems());
+        List<String> header = modelEntities.stream()
+                .sorted(Comparator.comparing(ItemModelEntity::getOrderNo))
+                .filter(ItemModelEntity::isTemplateSelected)
+                .map(ItemModelEntity::getTemplateName).collect(Collectors.toList());
+        return exportExcel(listModel.getName(), header, Collections.emptyList());
+    }
+
     private Resource exportPdf(String title, List<String> header, List<List<Object>> exportDatas) {
         try {
             List<List<String>> stringDatas = exportDatas.stream().map(list -> list.stream().map(Objects::toString).collect(Collectors.toList())).collect(Collectors.toList());;
