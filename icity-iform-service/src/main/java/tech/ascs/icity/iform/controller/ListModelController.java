@@ -535,6 +535,10 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 					}
 					SearchItem searchItem = new SearchItem();
 					BeanUtils.copyProperties(searchItemEntity, searchItem, "listModel", "itemModel", "search", "parseArea");
+					// 更新时间和创建时间控件的type字段要改成 日期控件 ItemType.DatePicker
+					if (itemModelEntity.getSystemItemType() == SystemItemType.CreateDate) {
+						searchItem.setType(ItemType.DatePicker);
+					}
 					if (StringUtils.hasText(searchItemEntity.getParseArea())) {
 						searchItem.setParseArea(Arrays.asList(searchItemEntity.getParseArea().split(",")));
 					}
@@ -659,15 +663,23 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				if (searchItem.getSystemItemType() == SystemItemType.CreateDate ||
 						searchItem.getSystemItemType() == SystemItemType.DatePicker) {
 					String[] arr = defaultValue.split(",");
-					List list = new ArrayList();
-					for (String item:arr) {
+					if (arr.length==1) {
 						try {
-							list.add(Long.valueOf(item));
+							search.setDefaultValue(Long.valueOf(arr[0]));
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
+					} else {
+						List list = new ArrayList();
+						for (String item:arr) {
+							try {
+								list.add(Long.valueOf(item));
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+						}
+						search.setDefaultValue(list);
 					}
-					search.setDefaultValue(list);
 				} else if (ItemType.InputNumber == itemType && (searchItem.getDecimalDigits() == null || searchItem.getDecimalDigits() == 0)) {
 					try {
 						search.setDefaultValue(Long.valueOf(defaultValue));
