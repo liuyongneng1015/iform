@@ -689,7 +689,14 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
                 BeanUtils.copyProperties(searchItem.getSearch(), searchInfo, new String[]{"defaultValue", "defaultValueName"});
                 Object defalueValue = searchItem.getSearch().getDefaultValue();
                 if(defalueValue != null && defalueValue instanceof List){
-                    searchInfo.setDefaultValue(String.join(",", (List)searchItem.getSearch().getDefaultValue()));
+					List list = (List)searchItem.getSearch().getDefaultValue();
+					List newList = new ArrayList();
+					for (Object item:list) {
+						if (!StringUtils.isEmpty(item)) {
+							newList.add(item+"");
+						}
+					}
+					searchInfo.setDefaultValue(String.join(",", newList));
                 } else if(defalueValue != null) {
                     searchInfo.setDefaultValue(StringUtils.isEmpty(defalueValue) ? null : String.valueOf(defalueValue));
                 }
