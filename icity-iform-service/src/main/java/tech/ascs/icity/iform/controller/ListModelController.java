@@ -725,6 +725,8 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		entity.setDateFormatter("-");
 		entity.setTimeSeparator(":");
 		entity.setDateFormatter("yyyy/MM/dd HH:mm:ss");
+		entity.setFileType(ImportFileType.Excel);
+		entity.setType(ImportType.SaveOrUpdate);
 		listFunction.setImportFunction(entity);
 	}
 
