@@ -1,5 +1,6 @@
 package tech.ascs.icity.iform.service.impl;
 
+import com.google.common.collect.Sets;
 import com.itextpdf.text.DocumentException;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -8,10 +9,7 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import tech.ascs.icity.ICityException;
-import tech.ascs.icity.iform.api.model.FileUploadModel;
-import tech.ascs.icity.iform.api.model.FormDataSaveInstance;
-import tech.ascs.icity.iform.api.model.ItemInstance;
-import tech.ascs.icity.iform.api.model.ReferenceDataInstance;
+import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.api.model.export.ExportControl;
 import tech.ascs.icity.iform.model.ExportListFunction;
 import tech.ascs.icity.iform.model.ItemModelEntity;
@@ -49,7 +47,7 @@ public class ExportDataServiceImpl implements ExportDataService {
         List<List<Object>> exportDatas = datas.stream()
                 .map(instance -> {
                     // 变换为 控件名称 -> 值的map
-                    Map<String, Object> nameToValueMapping = instance.getItems().stream().collect(Collectors.toMap(ItemInstance::getItemName, this::findValue));
+                    Map<String, Object> nameToValueMapping = instance.getItems().stream().filter(item -> item.getType().hasContext()).collect(Collectors.toMap(ItemInstance::getItemName, this::findValue));
                     Map<String, Object> refMapping = instance.getReferenceData().stream().collect(Collectors.toMap(ref -> refIdToNameMapping.get(ref.getId()), this::findValue));
                     Map<String, Object> result = new HashMap<>(nameToValueMapping);
                     result.putAll(refMapping);
@@ -70,7 +68,7 @@ public class ExportDataServiceImpl implements ExportDataService {
 
     @Override
     public List<ItemModelEntity> eachHasColumnItemModel(List<ItemModelEntity> entitys) {
-        return ItemModelHandlerUtils.eachItemEntity(entitys)
+        return ItemModelHandlerUtils.eachItemEntity(entitys, Sets.newHashSet(ItemType.SubForm))
                 .stream()
                 .filter(item -> Objects.nonNull(item.getColumnModel()))
                 .sorted(Comparator.comparing(ItemModelEntity::getOrderNo))
@@ -156,14 +154,13 @@ public class ExportDataServiceImpl implements ExportDataService {
      */
     private static class ItemModelHandlerUtils {
 
-        /**
-         * 遍历出所有ItemModelEntity
-         * @param entitys 需要遍历的ItemModelEntity
-         * @return 返回遍历后的结果, 但是不会包含分支节点, 只会有叶子节点
-         */
-        public static List<ItemModelEntity> eachItemEntity(List<ItemModelEntity> entitys) {
+        public static List<ItemModelEntity> eachItemEntity(List<ItemModelEntity> entitys, Set<ItemType> ignoreTypes) {
             List<ItemModelEntity> result = new ArrayList<>();
             for (ItemModelEntity entity : entitys) {
+                // 如果包含不遍历的控件类型, 则跳过
+                if (!ignoreTypes.isEmpty() && ignoreTypes.contains(entity.getType())) {
+                    continue;
+                }
                 for (Field field : entity.getClass().getDeclaredFields()) {
                     // 处理 List<ItemModelEntity> 的Field 执行递归
                     if (Collection.class.isAssignableFrom(field.getType())) {
@@ -172,7 +169,7 @@ public class ExportDataServiceImpl implements ExportDataService {
                             ParameterizedType parameterizedType = (ParameterizedType) type;
                             if (ItemModelEntity.class.isAssignableFrom((Class<?>) parameterizedType.getActualTypeArguments()[0])) {
                                 // 递归遍历
-                                List<ItemModelEntity> modelEntities = eachItemEntity(getFieldValue(field, entity, List.class));
+                                List<ItemModelEntity> modelEntities = eachItemEntity(getFieldValue(field, entity, List.class), ignoreTypes);
                                 if (modelEntities == null || modelEntities.size() == 0) {
                                     continue;
                                 }
@@ -183,8 +180,20 @@ public class ExportDataServiceImpl implements ExportDataService {
                 }
                 result.add(entity);
             }
-
             return result;
+        }
+
+        /**
+         * 遍历出所有ItemModelEntity
+         * @param entitys 需要遍历的ItemModelEntity
+         * @return 返回遍历后的结果, 但是不会包含分支节点, 只会有叶子节点
+         */
+        public static List<ItemModelEntity> eachItemEntity(List<ItemModelEntity> entitys) {
+            return eachItemEntity(entitys, Collections.emptySet());
+        }
+
+        public static List<ItemModelEntity> eachItemEntity(List<ItemModelEntity> entitys, ItemType... types) {
+            return eachItemEntity(entitys, Sets.newHashSet(types));
         }
 
         @SuppressWarnings("unchecked")
@@ -223,7 +232,7 @@ public class ExportDataServiceImpl implements ExportDataService {
         }
 
         private static HeaderBuild ALL_HEADER_BUILD = (entity, func, queryParams) ->
-                ItemModelHandlerUtils.eachItemEntity(entity.getMasterForm().getItems()).stream()
+                ItemModelHandlerUtils.eachItemEntity(entity.getMasterForm().getItems(), ItemType.SubForm).stream()
                         .filter(item -> item.getType().hasContext())
                         .sorted(Comparator.comparing(ItemModelEntity::getOrderNo))
                         .map(BaseEntity::getName).collect(Collectors.toList());
@@ -231,7 +240,7 @@ public class ExportDataServiceImpl implements ExportDataService {
         private static HeaderBuild LIST_HEADER_BUILD = (entity, function, queryParams) -> entity.getDisplayItems().stream().sorted(Comparator.comparing(ItemModelEntity::getOrderNo)).map(ItemModelEntity::getName).collect(Collectors.toList());
 
         private static HeaderBuild BACK_HEADER_BUILD = (entity, function, queryParams) -> {
-            Map<String, String> mapping = ItemModelHandlerUtils.eachItemEntity(entity.getMasterForm().getItems()).stream().distinct().collect(Collectors.toMap(ItemModelEntity::getId, ItemModelEntity::getName));
+            Map<String, String> mapping = ItemModelHandlerUtils.eachItemEntity(entity.getMasterForm().getItems(), ItemType.SubForm).stream().distinct().collect(Collectors.toMap(ItemModelEntity::getId, ItemModelEntity::getName));
             return Stream.of(function.getCustomExport().split(","))
                     .map(mapping::get)
                     .filter(Objects::nonNull)
@@ -239,7 +248,7 @@ public class ExportDataServiceImpl implements ExportDataService {
         };
 
         private static HeaderBuild FRONT_HEADER_BUILD = (entity, function, queryParams) -> {
-            Map<String, String> mapping = ItemModelHandlerUtils.eachItemEntity(entity.getMasterForm().getItems()).stream().distinct().collect(Collectors.toMap(ItemModelEntity::getId, ItemModelEntity::getName));
+            Map<String, String> mapping = ItemModelHandlerUtils.eachItemEntity(entity.getMasterForm().getItems(), ItemType.SubForm).stream().distinct().collect(Collectors.toMap(ItemModelEntity::getId, ItemModelEntity::getName));
             return findFrontItemIds(queryParams).stream()
                     .map(mapping::get)
                     .filter(Objects::nonNull)

@@ -30,6 +30,7 @@ import tech.ascs.icity.iform.api.model.export.*;
 import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.*;
 import tech.ascs.icity.iform.utils.BeanCopiers;
+import tech.ascs.icity.iform.utils.ExportListFunctionUtils;
 import tech.ascs.icity.iform.utils.ResourcesUtils;
 import tech.ascs.icity.model.IdEntity;
 import tech.ascs.icity.model.NameEntity;
@@ -142,7 +143,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 	private String[] functionDefaultIcons = new String[]{null, "icon-xuanzhong", null, null, null};
 	private String[] functionDefaultMethods = new String[]{"POST", "DELETE", "GET", "GET", "POST"};
 	private Boolean[] functionVisibles = {true, true, true, true, true};
-	private List<Consumer<ListFunction>> functionOtherControl = Arrays.asList(null, null, this::assemblyDefaultExportListFunction, null, this::assemblyDefaultImportBaseFunction);
+	private List<Consumer<ListFunction>> functionOtherControl = Arrays.asList(null, null, ExportListFunctionUtils::assemblyDefaultExportListFunction, null, ExportListFunctionUtils::assemblyDefaultImportBaseFunction);
 
 
 	@Transactional(rollbackFor = Exception.class)
@@ -712,24 +713,6 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		return list;
 	}
 
-	private void assemblyDefaultExportListFunction(ListFunction listFunction) {
-		ExportListFunction function = new ExportListFunction();
-		function.setFormat(ExportFormat.Excel);
-		function.setControl(ExportControl.All);
-		function.setType(ExportType.All);
-		listFunction.setExportFunction(function);
-	}
-
-	private void assemblyDefaultImportBaseFunction(ListFunction listFunction) {
-		ImportBaseFunctionEntity entity = new ImportBaseFunctionEntity();
-		entity.setDateSeparator("-");
-		entity.setTimeSeparator(":");
-		entity.setDateFormatter("yyyy/MM/dd HH:mm:ss");
-		entity.setFileType(ImportFileType.Excel);
-		entity.setType(ImportType.SaveOrUpdate);
-		listFunction.setImportFunction(entity);
-	}
-
 	private void assemblyItemModelEntityImportFunction(ListModelEntity entity) {
 		FormModelEntity dataModelEntity = formModelService.find(entity.getMasterForm().getId());
 		List<ItemModelEntity> entities = exportDataService.eachHasColumnItemModel(dataModelEntity.getItems());
@@ -743,8 +726,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
                 .findAny()
                 .ifPresent(item -> item.setMatchKey(true));
 
-		formModelService.save(dataModelEntity);
-
+		entity.setMasterForm(dataModelEntity);
 	}
 
 

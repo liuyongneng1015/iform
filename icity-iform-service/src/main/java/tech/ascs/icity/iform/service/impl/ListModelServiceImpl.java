@@ -17,6 +17,7 @@ import tech.ascs.icity.iform.function.ThreeConsumer;
 import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.*;
 import tech.ascs.icity.iform.utils.BeanCopiers;
+import tech.ascs.icity.iform.utils.ExportListFunctionUtils;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 import tech.ascs.icity.model.Page;
@@ -768,14 +769,40 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 				( action, assemblyFunction ) -> {
 					if (listFunctionMap.containsKey(action) && functionModelMap.containsKey(action)) {
 						assemblyFunction.accept(itemModelEntities, listFunctionMap.get(action), functionModelMap.get(action));
+					}else if (!listFunctionMap.containsKey(action)) {
+						// 当目前功能按钮中不包含对应action的功能
+						ListFunction listFunction = ExportListFunctionUtils.generateListFunction(ExportListFunctionUtils.FunctionsType.valueOfName(action));
+						if (functionModelMap.containsKey(action)) {
+							// 如果前端有传
+							assemblyFunction.accept(itemModelEntities, listFunction, functionModelMap.get(action));
+						}
+						listFunctions.add(listFunction);
 					}
 				};
+
+		// 如果不包含这两个功能, 则需要初始化功能数据
+		if (!listFunctionMap.containsKey(DefaultFunctionType.TemplateDownload.getValue()) && !listFunctionMap.containsKey(DefaultFunctionType.Import.getValue())) {
+			assemblyItemModelEntityImportFunction(itemModelEntities.values());
+		}
 
 		assemblyConsumer.accept(DefaultFunctionType.Export.getValue(), this::assemblyExportFunction);
 		assemblyConsumer.accept(DefaultFunctionType.TemplateDownload.getValue(), this::assemblyTemplateDownloadFunction);
 		assemblyConsumer.accept(DefaultFunctionType.Import.getValue(), this::assemblyImportFunction);
 
 		listModelEntity.setMasterForm(formModelEntity);
+
+	}
+
+	private void assemblyItemModelEntityImportFunction(Collection<ItemModelEntity> entities) {
+		entities.forEach(item -> {
+			item.setTemplateSelected(false);
+			item.setTemplateName(item.getName());
+			item.setDataImported(false);
+			item.setMatchKey(false);
+		});
+		entities.stream().filter(item -> "id".equals(item.getName()))
+				.findAny()
+				.ifPresent(item -> item.setMatchKey(true));
 	}
 
 	private void assemblyExportFunction(Map<String, ItemModelEntity> itemModelEntities, ListFunction listFunction, FunctionModel model) {
