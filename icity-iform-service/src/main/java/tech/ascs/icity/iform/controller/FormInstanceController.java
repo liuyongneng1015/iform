@@ -23,6 +23,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import io.swagger.annotations.Api;
+import org.springframework.web.multipart.MultipartFile;
 import tech.ascs.icity.ICityException;
 import tech.ascs.icity.admin.api.model.Position;
 import tech.ascs.icity.admin.client.UserService;
@@ -214,6 +215,11 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		Resource resource = exportDataService.exportTemplate(listModel);
 		String filename = listModel.getName()+"-模板文件.xlsx";
 		return buildResourceResponseEntity(filename, resource);
+	}
+
+	@Override
+	public void dataImport(@PathVariable(name="listId") String listId,@RequestParam("file") MultipartFile file) {
+		return ;
 	}
 
 	/**
