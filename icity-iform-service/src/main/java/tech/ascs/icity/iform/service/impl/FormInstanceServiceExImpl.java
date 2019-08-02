@@ -591,9 +591,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			data.put("create_at", new Date());
 			data.put("create_by", user != null ? user.getId() : null);
 			//流程参数
-			data.put("PROCESS_ID", formInstance.getProcessId());
-			data.put("ACTIVITY_ID", formInstance.getActivityId());
-			data.put("ACTIVITY_INSTANCE", formInstance.getActivityInstanceId());
+			data.put("process_id", formInstance.getProcessId());
+			data.put("activity_id", formInstance.getActivityId());
+			data.put("activity_instance", formInstance.getActivityInstanceId());
 			if (StringUtils.hasText(formInstance.getProcessInstanceId())) {
 				Map<String, Object> processInstance = new HashMap<>();
 				//Map<String, Object> subFormMap =(Map<String, Object>) session.load(newDataList1.getTableName(), String.valueOf(map.get("id")));
@@ -1958,14 +1958,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		pi.put("id", processInstanceId);
 		entity.put("processInstance", pi);
 		ProcessInstance processInstance = processInstanceService.get(processInstanceId);
-		entity.put("PROCESS_ID", formModel.getProcess().getId());
+		entity.put("process_id", formModel.getProcess().getId());
 		TaskInstance taskInstance = processInstance.getCurrentTaskInstance();
-		entity.put("ACTIVITY_ID", taskInstance == null ? null : taskInstance.getActivityId());
-		entity.put("ACTIVITY_INSTANCE", taskInstance == null ? null : taskInstance.getId());
-
-		if(assignmentList == null || assignmentList.size() < 1){
-			return;
-		}
+		entity.put("activity_id", taskInstance == null ? null : taskInstance.getActivityId());
+		entity.put("activity_instance", taskInstance == null ? null : taskInstance.getId());
 	}
 
 	//更新字段值
@@ -2813,9 +2809,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		//数据id
 		formInstance.setId(instanceId);
 		if (formModel.getProcess() != null && StringUtils.hasText(formModel.getProcess().getKey())) {
-			formInstance.setProcessId((String) entity.get("PROCESS_ID"));
-			formInstance.setActivityId((String) entity.get("ACTIVITY_ID"));
-			formInstance.setActivityInstanceId((String) entity.get("ACTIVITY_INSTANCE"));
+			formInstance.setProcessId((String) entity.get("process_id"));
+			formInstance.setActivityId((String) entity.get("activity_id"));
+			formInstance.setActivityInstanceId((String) entity.get("activity_instance"));
 			Map<String, Object> processInstance = (Map<String, Object>) entity.get("processInstance");
 			if (processInstance != null) {
 				formInstance.setProcessInstanceId((String) processInstance.get("id"));
@@ -2837,9 +2833,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		formInstance.setId(instanceId);
 		Map<String, Object> processInstance = null;
 		if (formModel.getProcess() != null) {
-			formInstance.setProcessId((String) entity.get("PROCESS_ID"));
-			formInstance.setActivityId((String) entity.get("ACTIVITY_ID"));
-			formInstance.setActivityInstanceId((String) entity.get("ACTIVITY_INSTANCE"));
+			formInstance.setProcessId((String) entity.get("process_id"));
+			formInstance.setActivityId((String) entity.get("activity_id"));
+			formInstance.setActivityInstanceId((String) entity.get("activity_instance"));
 			processInstance = (Map<String, Object>) entity.get("processInstance");
 		}
 		FormDataSaveInstance formDataSaveInstance = setFormDataInstanceModel(isQrCodeFlag, formInstance, formModel,  listModel, entity, referenceFlag);

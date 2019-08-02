@@ -21,6 +21,7 @@ import org.hibernate.tool.schema.extract.spi.ColumnInformation;
 import org.hibernate.tool.schema.extract.spi.TableInformation;
 import org.jboss.logging.Logger;
 
+import org.springframework.util.StringUtils;
 import tech.ascs.icity.iform.support.IFormPostgreSQLDialect;
 
 public class IFormTable extends Table {
@@ -139,6 +140,16 @@ public class IFormTable extends Table {
 					results.add(alter.toString());
 				}
 
+				try {
+					String table = columnInfo.getContainingTableInformation().getName().getTableName().getText();
+					String comment = column.getComment() == null ? "" : column.getComment();
+					String columnName = column.getName();
+					results.add(" comment on column "+table+"."+columnName+" is '"+comment+"'");
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+
+
 //				if (defaultValueChanged(column, columnInfo)) {
 					StringBuilder alter = new StringBuilder(dialect.getAlterTableString(tableName))
 							.append(" alter column ").append(column.getQuotedName(dialect));
@@ -166,7 +177,7 @@ public class IFormTable extends Table {
 	protected boolean shouldAlterColumn(Dialect dialect, Metadata metadata, Column column, ColumnInformation columnInfo) {
 		return columnTypeChanged(dialect, metadata, column, columnInfo)
 				|| nullableChanged(column, columnInfo)
-				|| defaultValueChanged(column, columnInfo);
+				|| defaultValueChanged(column, columnInfo) || columnInfo != null;
 	}
 
 	protected boolean columnTypeChanged(Dialect dialect, Metadata metadata, Column column, ColumnInformation columnInfo) {
