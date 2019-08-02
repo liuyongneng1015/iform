@@ -87,6 +87,7 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 		dataModelEntityJPAManager = getJPAManagerFactory().getJPAManager(DataModelEntity.class);
 	}
 
+	@Transactional(rollbackFor = Exception.class)
 	@Override
 	public ListModelEntity save(ListModelEntity entity) {
 		validate(entity);

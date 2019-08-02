@@ -145,8 +145,6 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 	private Boolean[] functionVisibles = {true, true, true, true, true};
 	private List<Consumer<ListFunction>> functionOtherControl = Arrays.asList(null, null, ExportListFunctionUtils::assemblyDefaultExportListFunction, null, ExportListFunctionUtils::assemblyDefaultImportBaseFunction);
 
-
-	@Transactional(rollbackFor = Exception.class)
 	@Override
 	public IdEntity createListModel(@RequestBody ListModel ListModel) {
 		if (StringUtils.hasText(ListModel.getId())) {
@@ -362,22 +360,6 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		applicationFormModel.setListModels(map.get(application.getId()));
 		return applicationFormModel;
 	}
-
-	/**
-	private Page<ListModel> toDTO(Page<ListModelEntity> entities) throws InstantiationException, IllegalAccessException {
-		Page<ListModel> listModels = Page.get(entities.getPage(), entities.getPagesize());
-		listModels.data(entities.getTotalCount(), toDTO(entities.getResults()));
-		return listModels;
-	}
-
-	private List<ListModel> toDTO(List<ListModelEntity> entities) throws InstantiationException, IllegalAccessException {
-		List<ListModel> listModels = new ArrayList<ListModel>();
-		for (ListModelEntity entity : entities) {
-			listModels.add(toDTO(entity));
-		}
-		return listModels;
-	}
-	 */
 
 	private List<Map> toAppListTemplate(String appListTemplate) {
 		if (StringUtils.hasText(appListTemplate)) {
