@@ -98,6 +98,9 @@ public class ItemModelEntity extends  BaseEntity{
 	@Column(name = "data_imported", columnDefinition = "boolean default false") //是否导入该列数据
 	private boolean dataImported = false;
 
+	@Column(name = "example_data")
+	private String exampleData;
+
 
 	public FormModelEntity getFormModel() {
 		return formModel;
@@ -289,5 +292,13 @@ public class ItemModelEntity extends  BaseEntity{
 
 	public void setDataImported(boolean dataImported) {
 		this.dataImported = dataImported;
+	}
+
+	public String getExampleData() {
+		return exampleData;
+	}
+
+	public void setExampleData(String exampleData) {
+		this.exampleData = exampleData;
 	}
 }
