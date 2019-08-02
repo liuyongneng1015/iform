@@ -140,9 +140,20 @@ public interface FormInstanceService {
 			@ApiImplicitParam(paramType = "query", name = "exportSelectIds", value = "需要导出的数据的id,多个逗号分隔,当导出模式为选择导出时候可用", required = false)
 	})
 	@GetMapping("/{listId}/export")
-	ResponseEntity<Resource> export(HttpServletResponse response,
-									@PathVariable(name="listId") String listId,
+	ResponseEntity<Resource> export(@PathVariable(name="listId") String listId,
 									@RequestParam Map<String, Object> parameters);
+
+	/**
+	 * 导出模板文件
+	 * @param listId
+	 * @return
+	 */
+	@ApiOperation(value = "导出模板文件")
+	@ApiImplicitParams({
+			@ApiImplicitParam(paramType = "path", name = "listId", value = "列表模型ID", required = true, dataType = "String")
+	})
+	@GetMapping("/{listId}/template/export")
+	ResponseEntity<Resource> templateDownload(@PathVariable(name = "listId") String listId);
 
 	/**
 	 * 通过表单ID和条件分页查询表单实例数据

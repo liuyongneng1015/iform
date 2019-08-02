@@ -8,6 +8,8 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cglib.beans.BeanCopier;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,15 +26,11 @@ import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.api.model.ListModel.SortItem;
 import tech.ascs.icity.iform.api.model.SearchItem.Search;
-import tech.ascs.icity.iform.api.model.export.ExportControl;
-import tech.ascs.icity.iform.api.model.export.ExportFormat;
-import tech.ascs.icity.iform.api.model.export.ExportFunctionModel;
-import tech.ascs.icity.iform.api.model.export.ExportType;
+import tech.ascs.icity.iform.api.model.export.*;
 import tech.ascs.icity.iform.model.*;
-import tech.ascs.icity.iform.service.FormInstanceServiceEx;
-import tech.ascs.icity.iform.service.FormModelService;
-import tech.ascs.icity.iform.service.ItemModelService;
-import tech.ascs.icity.iform.service.ListModelService;
+import tech.ascs.icity.iform.service.*;
+import tech.ascs.icity.iform.utils.BeanCopiers;
+import tech.ascs.icity.iform.utils.ExportListFunctionUtils;
 import tech.ascs.icity.iform.utils.ResourcesUtils;
 import tech.ascs.icity.model.IdEntity;
 import tech.ascs.icity.model.NameEntity;
@@ -59,6 +57,9 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 
 	@Autowired
 	private FormInstanceServiceEx formInstanceServiceEx;
+
+	@Autowired
+	private ExportDataService exportDataService;
 
 	@Autowired
 	GroupService groupService;
@@ -137,14 +138,15 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 	}
 
 	// 新增列表的时候，自动创建新增、批量删除，为系统自带功能
-	private DefaultFunctionType[] functionDefaultActions = {DefaultFunctionType.Add, DefaultFunctionType.BatchDelete, DefaultFunctionType.Export};
-	private String[] parseAreas = { ParseArea.PC.value()+","+ParseArea.APP.value(), null , ParseArea.PC.value()};
-	private String[] functionDefaultIcons = new String[]{null, "icon-xuanzhong", null};
-	private String[] functionDefaultMethods = new String[]{"POST", "DELETE", "GET"};
-	private Boolean[] functionVisibles = {true, true, false};
-	private List<Consumer<ListFunction>> functionOtherControl = Arrays.asList(null, null, this::assemblyDefaultExportListFunction);
+	private DefaultFunctionType[] functionDefaultActions = {DefaultFunctionType.Add, DefaultFunctionType.BatchDelete, DefaultFunctionType.Export, DefaultFunctionType.TemplateDownload, DefaultFunctionType.Import};
+	private String[] parseAreas = { ParseArea.PC.value()+","+ParseArea.APP.value(), null , ParseArea.PC.value(), ParseArea.PC.value(), ParseArea.PC.value()};
+	private String[] functionDefaultIcons = new String[]{null, "icon-xuanzhong", null, null, null};
+	private String[] functionDefaultMethods = new String[]{"POST", "DELETE", "GET", "GET", "POST"};
+	private Boolean[] functionVisibles = {true, true, true, true, true};
+	private List<Consumer<ListFunction>> functionOtherControl = Arrays.asList(null, null, ExportListFunctionUtils::assemblyDefaultExportListFunction, null, ExportListFunctionUtils::assemblyDefaultImportBaseFunction);
 
 
+	@Transactional(rollbackFor = Exception.class)
 	@Override
 	public IdEntity createListModel(@RequestBody ListModel ListModel) {
 		if (StringUtils.hasText(ListModel.getId())) {
@@ -186,6 +188,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				functions.add(function);
 			}
 			entity.setFunctions(functions);
+            assemblyItemModelEntityImportFunction(entity);
 			entity = listModelService.save(entity);
 			return new IdEntity(entity.getId());
 		} catch (Exception e) {
@@ -471,7 +474,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				if (StringUtils.hasText(listFunction.getParseArea())) {
 					function.setParseArea(Arrays.asList(listFunction.getParseArea().split(",")));
 				}
-				assemblyFunctionModel(listFunction, function);
+				assemblyFunctionModel(listModelEntity, listFunction, function);
 				functions.add(function);
 			}
 			Collections.sort(functions);
@@ -741,15 +744,24 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		return list;
 	}
 
-	private void assemblyDefaultExportListFunction(ListFunction listFunction) {
-		ExportListFunction function = new ExportListFunction();
-		function.setFormat(ExportFormat.Excel);
-		function.setControl(ExportControl.All);
-		function.setType(ExportType.All);
-		listFunction.setExportFunction(function);
+	private void assemblyItemModelEntityImportFunction(ListModelEntity entity) {
+		FormModelEntity dataModelEntity = formModelService.find(entity.getMasterForm().getId());
+		List<ItemModelEntity> entities = exportDataService.eachHasColumnItemModel(dataModelEntity.getItems());
+        entities.forEach(item -> {
+            item.setTemplateName(item.getName());
+            item.setTemplateSelected(false);
+            item.setMatchKey(false);
+            item.setDataImported(false);
+        });
+		entities.stream().filter(item -> "id".equals(item.getName()))
+                .findAny()
+                .ifPresent(item -> item.setMatchKey(true));
+
+		entity.setMasterForm(dataModelEntity);
 	}
 
-	private void assemblyFunctionModel(ListFunction function, FunctionModel functionModel) {
+
+	private void assemblyFunctionModel(ListModelEntity listModelEntity, ListFunction function, FunctionModel functionModel) {
 	    if (DefaultFunctionType.Export.getValue().equals(function.getAction()) && function.getExportFunction() != null) {
 	        ExportListFunction functionEntiry = function.getExportFunction();
             ExportFunctionModel exportModel = new ExportFunctionModel();
@@ -758,6 +770,34 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
             exportModel.setType(functionEntiry.getType());
             exportModel.setCustomExport(Optional.ofNullable(functionEntiry.getCustomExport()).filter(StringUtils::hasText).map(str -> str.split(",")).map(Arrays::asList).orElseGet(Collections::emptyList));
             functionModel.setExportFunction(exportModel);
-        }
+        }else if (DefaultFunctionType.TemplateDownload.getValue().equals(function.getAction())) {
+			List<ItemModelEntity> items = exportDataService.eachHasColumnItemModel(listModelEntity.getMasterForm().getItems());
+			List<TemplateItemModel> models = items.stream()
+					.map(item -> {
+						TemplateItemModel model = new TemplateItemModel();
+						model.setId(item.getId());
+						model.setItemName(item.getName());
+						model.setSelected(item.isTemplateSelected());
+						model.setTemplateName(item.getTemplateName());
+						return model;
+					}).collect(Collectors.toList());
+			functionModel.setTemplateItemModels(models);
+		} else if (DefaultFunctionType.Import.getValue().equals(function.getAction())) {
+			List<ItemModelEntity> items = exportDataService.eachHasColumnItemModel(listModelEntity.getMasterForm().getItems());
+			ImportFunctionModel model = new ImportFunctionModel();
+			BeanCopiers.noConvertCopy(function.getImportFunction(), model);
+			List<ImportTemplateItemModel> itemModels = items.stream()
+					.map(item -> {
+						ImportTemplateItemModel  importModel = new ImportTemplateItemModel();
+						importModel.setId(item.getId());
+						importModel.setImported(item.isDataImported());
+						importModel.setItemName(item.getName());
+						importModel.setTemplateName(item.getTemplateName());
+						importModel.setKey(item.isMatchKey());
+						return importModel;
+					}).collect(Collectors.toList());
+			model.setTemplateItemModels(itemModels);
+			functionModel.setImportFunction(model);
+		}
     }
 }

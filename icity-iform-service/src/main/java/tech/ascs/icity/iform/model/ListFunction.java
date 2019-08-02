@@ -85,6 +85,10 @@ public class ListFunction extends JPAEntity implements Serializable {
 	@JoinColumn(name = "export_id")
 	private ExportListFunction exportFunction;
 
+	@OneToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+	@JoinColumn(name = "import_id")
+	private ImportBaseFunctionEntity importFunction;
+
 	public ListFunction() {
 
 	}
@@ -271,5 +275,13 @@ public class ListFunction extends JPAEntity implements Serializable {
 
 	public void setExportFunction(ExportListFunction exportFunction) {
 		this.exportFunction = exportFunction;
+	}
+
+	public ImportBaseFunctionEntity getImportFunction() {
+		return importFunction;
+	}
+
+	public void setImportFunction(ImportBaseFunctionEntity importFunction) {
+		this.importFunction = importFunction;
 	}
 }
