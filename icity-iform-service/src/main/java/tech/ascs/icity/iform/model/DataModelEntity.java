@@ -56,14 +56,21 @@ public class DataModelEntity extends BaseEntity implements Serializable {
 	private List<DataModelEntity> referencesDataModel = new ArrayList<DataModelEntity>();
 
 	public String getPrefix() {
+		if(prefix != null){
+			prefix = prefix.toLowerCase();
+		}
 		return prefix;
 	}
+
 
 	public void setPrefix(String prefix) {
 		this.prefix = prefix;
 	}
 
 	public String getTableName() {
+		if(tableName != null){
+			tableName = tableName.toLowerCase();
+		}
 		return tableName;
 	}
 
