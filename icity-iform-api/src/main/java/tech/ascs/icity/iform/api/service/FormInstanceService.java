@@ -1,16 +1,12 @@
 package tech.ascs.icity.iform.api.service;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.core.io.Resource;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import org.springframework.core.io.Resource;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import tech.ascs.icity.iform.api.model.DataInstance;
 import tech.ascs.icity.iform.api.model.FileUploadModel;
 import tech.ascs.icity.iform.api.model.FormDataSaveInstance;
@@ -18,7 +14,9 @@ import tech.ascs.icity.iform.api.model.FormInstance;
 import tech.ascs.icity.model.IdEntity;
 import tech.ascs.icity.model.Page;
 
-import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/form-instances")
@@ -141,6 +139,13 @@ public interface FormInstanceService {
 	@GetMapping("/{listId}/template/export")
 	ResponseEntity<Resource> templateDownload(@PathVariable(name = "listId") String listId);
 
+
+	@ApiOperation(value = "导入数据")
+	@ApiImplicitParams({
+			@ApiImplicitParam(paramType = "path", name = "listId", value = "列表模型ID", required = true, dataType = "String")
+	})
+	@PostMapping("/{listId}/import")
+	void dataImport(@PathVariable(name = "listId") String listId, @RequestParam("file")MultipartFile file);
 	/**
 	 * 通过表单ID和条件分页查询表单实例数据
 	 *
