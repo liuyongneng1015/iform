@@ -79,7 +79,10 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		if (listModel == null) {
 			throw new IFormException(404, "列表模型【" + listId + "】不存在");
 		}
-
+		String userId = (String)parameters.get("userId");
+		if(!StringUtils.hasText(userId)){
+			parameters.put("userId",CurrentUserUtils.getCurrentUserId());
+		}
 		Page<FormDataSaveInstance> page = formInstanceService.pageListInstance(listModel,1,Integer.MAX_VALUE, parameters);
 		return page.getResults();
 	}
@@ -105,7 +108,10 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		if (listModel == null) {
 			throw new IFormException(404, "列表模型【" + listId + "】不存在");
 		}
-
+		String userId = (String)parameters.get("userId");
+		if(!StringUtils.hasText(userId)){
+			parameters.put("userId",CurrentUserUtils.getCurrentUserId());
+		}
 		Page<FormDataSaveInstance> page = formInstanceService.pageListInstance(listModel,1,Integer.MAX_VALUE, parameters);
 		List<FormDataSaveInstance> list = new ArrayList<>();
 		for(FormDataSaveInstance instance : page.getResults()){
@@ -175,6 +181,10 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		if (listModel == null) {
 			throw new IFormException(404, "列表模型【" + listId + "】不存在");
 		}
+		String userId = (String)parameters.get("userId");
+		if(!StringUtils.hasText(userId)){
+			parameters.put("userId",CurrentUserUtils.getCurrentUserId());
+		}
 		Map<String, Object> queryParameters = assemblyQueryParameters(parameters);
 		return formInstanceService.pageListInstance(listModel, page, pagesize, queryParameters);
 	}
@@ -185,6 +195,10 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		FormModelEntity formModel = formModelService.find(formId);
 		if (formModel==null) {
 			return Page.get(page, pagesize);
+		}
+		String userId = (String)parameters.get("userId");
+		if(!StringUtils.hasText(userId)){
+			parameters.put("userId", CurrentUserUtils.getCurrentUserId());
 		}
 		return formInstanceService.pageByColumnMap(formModel, page, pagesize, parameters);
 	}
@@ -204,6 +218,10 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
         if (function.getType()  != ExportType.Select) {
             queryParameters.remove("exportSelectIds");
         }
+		String userId = (String)parameters.get("userId");
+		if(!StringUtils.hasText(userId)){
+			parameters.put("userId",CurrentUserUtils.getCurrentUserId());
+		}
         String extension = function.getFormat() == ExportFormat.Excel ? ".xlsx" : ".pdf";
         List<FormDataSaveInstance> data = formInstanceService.pageListInstance(listModel, 1, Integer.MAX_VALUE, queryParameters).getResults();
 		Resource resource = exportDataService.exportData(listModel,function, data, parameters);

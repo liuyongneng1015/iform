@@ -198,7 +198,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			Map<String, Object> parameters = new HashMap<>(queryParameters);
 			//是否查询表单数据
 			boolean queryFormData = "true".equals(queryParameters.get("queryFormData"));
-			String userId = queryParameters.get("userId") == null ? CurrentUserUtils.getCurrentUserId() : (String)queryParameters.get("userId") ;
+			boolean hasProcess = hasProcess(formModel);
+
+			String userId =  hasProcess ? (String)queryParameters.get("userId") : null;
 			Date beginDate = null;
 			Date endDate = null;
 			if (!queryFormData) {
@@ -211,7 +213,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			parameters.remove("queryFlowData");
 			boolean isDealEvent = queryParameters.get("isDealEvent") == null ? false : (Boolean)queryParameters.get("isDealEvent") ;
 			session = getSession(formModel.getDataModels().get(0));
-			boolean hasProcess = hasProcess(formModel);
 			int processStatus = hasProcess ? getProcessStatusParameter(formModel, SystemItemType.ProcessStatus, parameters) : -1;
 			int userStatus = hasProcess ? getProcessStatusParameter(formModel, SystemItemType.ProcessPrivateStatus, parameters) : -1;
 			List<String> groupIds = hasProcess ? getGroupIds(userId) : null;
@@ -4400,7 +4401,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			int processStatus = hasProcess ? getProcessStatusParameter(formModel, SystemItemType.ProcessStatus, parameters) : -1;
 			int userStatus = hasProcess ? getProcessStatusParameter(formModel, SystemItemType.ProcessPrivateStatus, parameters) : -1;
 			Process process = hasProcess ? processService.get(formModel.getProcess().getKey()) : null;
-			String userId = hasProcess ? CurrentUserUtils.getCurrentUser().getId() : null;
+			String userId = hasProcess ? (String)parameters.get("userId") : null;
 			List<String> groupIds = hasProcess ? getGroupIds(userId) : null;
 			boolean isDealEvent = parameters.get("isDealEvent") == null ? false : (Boolean)parameters.get("isDealEvent") ;
 
@@ -4696,6 +4697,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		if(endDate != null){
 			detachedCriteria.add(Restrictions.le("wt.createTime", endDate));
 		}
+
 		return detachedCriteria;
 	}
 
@@ -4712,7 +4714,12 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			detachedCriteria.add(Restrictions.le("dt.endTime", endDate));
 		}
 		if(isDealEvent){
-
+			List<Map<String, Object>> list = jdbcTemplate.queryForList("select id_ as id from act_hi_taskinst where proc_def_id_ in (select proc_def_id_ from act_hi_taskinst  GROUP  BY proc_def_id_  HAVING count(proc_def_id_) > 1)");
+			List<String> listString = new ArrayList<>();
+			for(Map<String, Object> idmap : list){
+				listString.add((String)idmap.get("id"));
+			}
+			detachedCriteria.add(Restrictions.in("dt.id", listString));
 		}
 		return detachedCriteria;
 	}
