@@ -26,6 +26,8 @@ public class BeanCopiers {
 
 
     public static void noConvertCopy(Object source, Object target) {
-        create(source.getClass(), target.getClass(), false).copy(source, target, null);
+        if (source!=null && target!=null) {
+            create(source.getClass(), target.getClass(), false).copy(source, target, null);
+        }
     }
 }
