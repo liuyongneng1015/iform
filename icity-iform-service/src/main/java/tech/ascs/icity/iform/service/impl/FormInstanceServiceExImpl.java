@@ -198,20 +198,29 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			Map<String, Object> parameters = new HashMap<>(queryParameters);
 			//是否查询表单数据
 			boolean queryFormData = "true".equals(queryParameters.get("queryFormData"));
+			//是否为办理事件
+			boolean isDealEvent = "true".equals(queryParameters.get("isDealEvent")) ;
+			//是否为流程表单
 			boolean hasProcess = hasProcess(formModel);
-
+			//流程表单时才需要用户id
 			String userId =  hasProcess ? (String)queryParameters.get("userId") : null;
 			Date beginDate = null;
 			Date endDate = null;
 			if (!queryFormData) {
-				beginDate = (Date) queryParameters.get("beginDate");
-				endDate = (Date)queryParameters.get("endDate");
+				if(queryParameters.get("beginDate") != null) {
+					beginDate = new Date(Long.parseLong(String.valueOf(queryParameters.get("beginDate"))));
+				}
+				if(queryParameters.get("endDate") != null) {
+					endDate = new Date(Long.parseLong(String.valueOf(queryParameters.get("endDate"))));
+				}
 			}
+
 			parameters.remove("userId");
 			parameters.remove("beginDate");
 			parameters.remove("endDate");
 			parameters.remove("queryFlowData");
-			boolean isDealEvent = queryParameters.get("isDealEvent") == null ? false : (Boolean)queryParameters.get("isDealEvent") ;
+			parameters.remove("isDealEvent");
+
 			session = getSession(formModel.getDataModels().get(0));
 			int processStatus = hasProcess ? getProcessStatusParameter(formModel, SystemItemType.ProcessStatus, parameters) : -1;
 			int userStatus = hasProcess ? getProcessStatusParameter(formModel, SystemItemType.ProcessPrivateStatus, parameters) : -1;
@@ -286,20 +295,41 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		Page<FormDataSaveInstance> result = Page.get(page, pagesize);
 		Session session = getSession(listModel.getMasterForm().getDataModels().get(0));
 		try {
+
+			//是否查询表单数据
+			boolean queryFormData = "true".equals(queryParameters.get("queryFormData"));
+			//是否为办理事件
+			boolean isDealEvent = "true".equals(queryParameters.get("isDealEvent")) ;
+			//是否为流程表单
 			boolean hasProcess = hasProcess(listModel.getMasterForm());
+			//流程表单时才需要用户id
+			String userId =  hasProcess ? (String)queryParameters.get("userId") : null;
+			Date beginDate = null;
+			Date endDate = null;
+			if (!queryFormData) {
+				if(queryParameters.get("beginDate") != null) {
+					beginDate = new Date(Long.parseLong(String.valueOf(queryParameters.get("beginDate"))));
+				}
+				if(queryParameters.get("endDate") != null) {
+					endDate = new Date(Long.parseLong(String.valueOf(queryParameters.get("endDate"))));
+				}
+			}
+			queryParameters.remove("userId");
+			queryParameters.remove("beginDate");
+			queryParameters.remove("endDate");
+			queryParameters.remove("queryFlowData");
+			queryParameters.remove("isDealEvent");
 			int processStatus = hasProcess ? getProcessStatusParameter(listModel.getMasterForm(), SystemItemType.ProcessStatus, queryParameters) : -1;
 			int userStatus = hasProcess ? getProcessStatusParameter(listModel.getMasterForm(), SystemItemType.ProcessPrivateStatus, queryParameters) : -1;
 			Process process = hasProcess ? processService.get(listModel.getMasterForm().getProcess().getKey()) : null;
-			String userId = hasProcess ? (String)queryParameters.get("userId") : null;
 			List<String> groupIds = hasProcess ? getGroupIds(userId) : null;
 
 			Criteria criteria = generateCriteria(session, listModel.getMasterForm(), listModel, queryParameters);
 			addCreatorCriteria(criteria, listModel);
 			assemblyExportSelectIds(criteria, queryParameters);
-			boolean isDealEvent = queryParameters.get("isDealEvent") == null ? false : (Boolean)queryParameters.get("isDealEvent") ;
 
 			if (hasProcess) {
-				addProcessCriteria(criteria, processStatus, userStatus, userId, groupIds, null, null, isDealEvent);
+				addProcessCriteria(criteria, processStatus, userStatus, userId, groupIds, beginDate, endDate, isDealEvent);
 			}
 			addSort(listModel, criteria);
 
@@ -4393,21 +4423,41 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 
 	@Override
-	public Page<FormDataSaveInstance> pageByColumnMap(FormModelEntity formModel, int page, int pagesize, Map<String, Object> parameters) {
+	public Page<FormDataSaveInstance> pageByColumnMap(FormModelEntity formModel, int page, int pagesize, Map<String, Object> queryParameters) {
 		Page<FormDataSaveInstance> result = Page.get(page, pagesize);
 		Session session = getSession(formModel.getDataModels().get(0));
 		try {
+			//是否查询表单数据
+			boolean queryFormData = "true".equals(queryParameters.get("queryFormData"));
+			//是否为办理事件
+			boolean isDealEvent = "true".equals(queryParameters.get("isDealEvent")) ;
+			//是否为流程表单
 			boolean hasProcess = hasProcess(formModel);
-			int processStatus = hasProcess ? getProcessStatusParameter(formModel, SystemItemType.ProcessStatus, parameters) : -1;
-			int userStatus = hasProcess ? getProcessStatusParameter(formModel, SystemItemType.ProcessPrivateStatus, parameters) : -1;
+			//流程表单时才需要用户id
+			String userId =  hasProcess ? (String)queryParameters.get("userId") : null;
+			Date beginDate = null;
+			Date endDate = null;
+			if (!queryFormData) {
+				if(queryParameters.get("beginDate") != null) {
+					beginDate = new Date(Long.parseLong(String.valueOf(queryParameters.get("beginDate"))));
+				}
+				if(queryParameters.get("endDate") != null) {
+					endDate = new Date(Long.parseLong(String.valueOf(queryParameters.get("endDate"))));
+				}
+			}
+			queryParameters.remove("userId");
+			queryParameters.remove("beginDate");
+			queryParameters.remove("endDate");
+			queryParameters.remove("queryFlowData");
+			queryParameters.remove("isDealEvent");
+			int processStatus = hasProcess ? getProcessStatusParameter(formModel, SystemItemType.ProcessStatus, queryParameters) : -1;
+			int userStatus = hasProcess ? getProcessStatusParameter(formModel, SystemItemType.ProcessPrivateStatus, queryParameters) : -1;
 			Process process = hasProcess ? processService.get(formModel.getProcess().getKey()) : null;
-			String userId = hasProcess ? (String)parameters.get("userId") : null;
 			List<String> groupIds = hasProcess ? getGroupIds(userId) : null;
-			boolean isDealEvent = parameters.get("isDealEvent") == null ? false : (Boolean)parameters.get("isDealEvent") ;
 
-			Criteria criteria = generateColumnMapCriteria(session, formModel,  parameters);
+			Criteria criteria = generateColumnMapCriteria(session, formModel,  queryParameters);
 			if (hasProcess) {
-				addProcessCriteria(criteria, processStatus, userStatus, userId, groupIds, null, null, isDealEvent);
+				addProcessCriteria(criteria, processStatus, userStatus, userId, groupIds, beginDate, endDate, isDealEvent);
 			}
 			criteria.setFirstResult((page - 1) * pagesize);
 			criteria.setMaxResults(pagesize);

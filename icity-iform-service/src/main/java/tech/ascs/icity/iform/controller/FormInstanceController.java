@@ -94,8 +94,8 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			throw new IFormException(404, "列表模型【" + listId + "】不存在");
 		}
 		//是否查询自己的数据
-		Boolean ownerFlag = (Boolean)parameters.get("ownerFlag");
-		if(ownerFlag != null && ownerFlag){
+		boolean ownerFlag = "true".equals(parameters.get("ownerFlag"));
+		if(ownerFlag){
 			parameters.put("userId", CurrentUserUtils.getCurrentUserId());
 		}
 		List<Map<String, Object>>  mapList =  formInstanceService.formInstanceList(listModel, parameters);
