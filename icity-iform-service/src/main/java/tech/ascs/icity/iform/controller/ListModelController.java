@@ -3,6 +3,7 @@ package tech.ascs.icity.iform.controller;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -755,7 +756,8 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		} else if (DefaultFunctionType.Import.getValue().equals(function.getAction())) {
 			List<ItemModelEntity> items = exportDataService.eachHasColumnItemModel(listModelEntity.getMasterForm().getItems());
 			ImportFunctionModel model = new ImportFunctionModel();
-			BeanCopiers.noConvertCopy(function.getImportFunction(), model);
+			Optional.ofNullable(functionModel.getImportFunction())
+					.ifPresent(func -> BeanCopiers.noConvertCopy(func, model));
 			List<ImportTemplateItemModel> itemModels = items.stream()
 					.map(item -> {
 						ImportTemplateItemModel  importModel = new ImportTemplateItemModel();

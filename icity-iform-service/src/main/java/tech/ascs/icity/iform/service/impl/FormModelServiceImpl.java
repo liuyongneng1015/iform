@@ -1758,6 +1758,8 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		for (ItemModel itemModel : formModel.getItems()) {
 			itemModelService.setItemModelEntity(formModel, itemModel, entity, items,	itemModelEntityList,  formMap);
 		}
+		// 同步数据库中以后的模板参数
+		syncExportItemParams(entity, itemModelEntityList);
 		formMap.put(masterDataModel.getTableName(), itemModelEntityList);
 
 		Map<String, DataModel> newDataModelMap = new HashMap<>();
@@ -2484,6 +2486,28 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			itemSelectOptionManager.delete(itemSelectOption);
 			i--;
 		}*/
+	}
+
+	private void syncExportItemParams(FormModelEntity formModelEntity, List<ItemModelEntity> entities) {
+		Map<String, ItemModelEntity> idMapping = itemModelService.findByProperty("formModel", formModelEntity)
+				.stream()
+				.collect(Collectors.toMap(ItemModelEntity::getId, i -> i));
+		entities.stream().filter(item -> org.springframework.util.StringUtils.hasText(item.getId())).forEach(item -> {
+			ItemModelEntity itemEntity = idMapping.get(item.getId());
+			if (itemEntity != null) {
+				item.setTemplateName(itemEntity.getName());
+				item.setExampleData(itemEntity.getExampleData());
+				item.setTemplateSelected(itemEntity.isTemplateSelected());
+				item.setDataImported(itemEntity.isDataImported());
+				item.setMatchKey(itemEntity.isMatchKey());
+			}else {
+				item.setTemplateName(item.getName());
+			}
+
+		});
+		entities.stream().filter(item -> org.springframework.util.StringUtils.isEmpty(item.getId())).forEach(item -> {
+			item.setTemplateName(item.getName());
+		});
 	}
 
 

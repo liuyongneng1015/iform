@@ -212,7 +212,14 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 
 	@Override
 	public void dataImport(@PathVariable(name="listId") String listId,@RequestParam("file") MultipartFile file) {
-		return ;
+		ListModelEntity listModelEntity = listModelService.find(listId);
+		try {
+			exportDataService.importData(listModelEntity, file);
+		} catch (ICityException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new ICityException(e);
+		}
 	}
 
 	/**
