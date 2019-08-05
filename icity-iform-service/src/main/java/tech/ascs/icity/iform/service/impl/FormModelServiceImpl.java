@@ -2194,7 +2194,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 	private void setItemPermissions(ItemPermissionModel itemPermissionModel, Map<String, ItemModelEntity> uuidItemModelEntityMap){
 		List<ItemPermissionInfo> itemPermissionInfos = new ArrayList<>();
 		ItemModelEntity entity = uuidItemModelEntityMap.get(itemPermissionModel.getUuid());
-		if(entity == null || entity.getSystemItemType() == SystemItemType.ID ){
+		if(entity == null || (entity != null && entity.getSystemItemType() == SystemItemType.ID && entity.getType() == ItemType.Input)){
 			return;
 		}
 		if(itemPermissionModel.getAddPermissions() != null){

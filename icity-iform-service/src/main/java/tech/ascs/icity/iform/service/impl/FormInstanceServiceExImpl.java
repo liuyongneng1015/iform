@@ -3,7 +3,6 @@ package tech.ascs.icity.iform.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.googlecode.genericdao.search.Filter;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.hibernate.Criteria;
@@ -44,7 +43,6 @@ import tech.ascs.icity.iform.utils.OkHttpUtils;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 import tech.ascs.icity.model.IdEntity;
-import tech.ascs.icity.model.NameEntity;
 import tech.ascs.icity.model.Page;
 import tech.ascs.icity.rbac.feign.model.UserInfo;
 
@@ -135,7 +133,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	public FormInstanceServiceExImpl() {
 		super(FormModelEntity.class);
-		InnerItemUtils.setReferenceDataHandler(this::createDataModelInstance);
+		InnerItemUtils.setReferenceDataHandler(this::createInnerReferenceDataInstance);
 	}
 
 	@Override
@@ -3325,8 +3323,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			if(fromItem.getSystemItemType() == SystemItemType.Creator){
 				//关联人员
 				if(entity.get(key) != null) {
-					listMap = new HashMap<>();
-					((HashMap) listMap).put("id", entity.get(key));
+					DataModelEntity dataModel = toModelEntity.getDataModels().get(0);
+					listMap = getDataInfo(dataModel, (String)entity.get(key));
 				}
 			}else {
 				listMap = (Map<String, Object>) entity.get(key);
@@ -3347,7 +3345,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		if(fromItem.getReferenceType() == ReferenceType.ManyToOne || fromItem.getReferenceType() == ReferenceType.OneToOne ){
 			if(flag) {
 				if(listMap  != null && ((Map<String, Object>)listMap).get("id") != null && StringUtils.hasText(String.valueOf(((Map<String, Object>)listMap).get("id")))) {
-					ReferenceDataInstance referenceDataInstance = createDataModelInstance(isQrCodeFlag, fromItem, toModelEntity, String.valueOf(((Map<String, Object>) listMap).get("id")), stringList, false);
+					ReferenceDataInstance referenceDataInstance = createReferenceDataInstance((Map<String, Object>) listMap, isQrCodeFlag, fromItem, toModelEntity, String.valueOf(((Map<String, Object>) listMap).get("id")), stringList, false);
 					dataModelInstance.setValue(referenceDataInstance.getValue());
 					List<Object> displayList = new ArrayList<>();
 					displayList.add(referenceDataInstance.getDisplayValue());
@@ -3360,7 +3358,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				if(listMap != null && ((List<Map<String, Object>>) listMap).size() > 0) {
 					for (Map<String, Object> map : (List<Map<String, Object>>) listMap) {
 						if (map.get("id") != null && StringUtils.hasText(String.valueOf(map.get("id")))) {
-							ReferenceDataInstance referenceDataInstance = createDataModelInstance(isQrCodeFlag, fromItem, toModelEntity, String.valueOf(map.get("id")), stringList, false);
+							ReferenceDataInstance referenceDataInstance = createReferenceDataInstance(map, isQrCodeFlag, fromItem, toModelEntity, String.valueOf(map.get("id")), stringList, false);
 							if (referenceDataInstance != null && referenceDataInstance.getValue() != null) {
 								valueList.add(String.valueOf(referenceDataInstance.getValue()));
 								displayValueList.add(String.valueOf(referenceDataInstance.getDisplayValue()));
@@ -3373,32 +3371,20 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				}
 			}
 		}else if(fromItem.getReferenceType() == ReferenceType.ManyToMany || fromItem.getReferenceType() == ReferenceType.OneToMany ){
-			List<String> values = new ArrayList<>();
 			List<Object> idValues = new ArrayList<>();
-
+			List<String> displayValueList = new ArrayList<>();
 			for(Map<String, Object> map  : (List<Map<String, Object>>)listMap) {
 				idValues.add(map.get("id"));
 				if(stringList != null) {
 					FormInstance getFormInstance = getFormInstance(toModelEntity, String.valueOf(map.get("id")));
-					List<String> arrayList = new ArrayList<>();
-					Map<String, String> stringMap = new HashMap<>();
-					for (ItemInstance itemInstance : getFormInstance.getItems()) {
-						String value = getValue(stringList, itemInstance);
-						if (StringUtils.hasText(value)) {
-							stringMap.put(itemInstance.getId(), value);
-						}
+					ReferenceDataInstance referenceDataInstance = createReferenceDataInstance(map, isQrCodeFlag, fromItem, toModelEntity, String.valueOf(map.get("id")), stringList, false);
+					if (referenceDataInstance != null && referenceDataInstance.getValue() != null) {
+						displayValueList.add(String.valueOf(referenceDataInstance.getDisplayValue()));
 					}
-
-					for (String string : stringList) {
-						if (stringMap.get(string) != null && StringUtils.hasText(stringMap.get(string))) {
-							arrayList.add(stringMap.get(string));
-						}
-					}
-					values.add(String.join(",", arrayList));
 				}
 			}
 			dataModelInstance.setValue(idValues);
-			dataModelInstance.setDisplayValue(values);
+			dataModelInstance.setDisplayValue(displayValueList);
 			referenceDataModelList.add(dataModelInstance);
 		}
 	}
@@ -3432,15 +3418,19 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		return map;
 	}
 
-	private ReferenceDataInstance createDataModelInstance(ReferenceItemModelEntity fromItem, FormModelEntity toModelEntity, String id, List<String> itemIds) {
-		return createDataModelInstance(false, fromItem, toModelEntity, id, itemIds, false);
+	private ReferenceDataInstance createInnerReferenceDataInstance(ReferenceItemModelEntity fromItem, FormModelEntity toModelEntity, String id, List<String> itemIds) {
+		return createReferenceDataInstance(null, false, fromItem, toModelEntity, id, itemIds, false);
 	}
 
-	private ReferenceDataInstance createDataModelInstance(boolean isQrCodeFlag, ReferenceItemModelEntity fromItem, FormModelEntity toModelEntity, String id, List<String> stringList, boolean referenceFlag){
+	//创建关联数据
+	private ReferenceDataInstance createReferenceDataInstance(Map<String, Object> dataMap, boolean isQrCodeFlag, ReferenceItemModelEntity fromItem, FormModelEntity toModelEntity, String id, List<String> stringList, boolean referenceFlag){
 		ReferenceDataInstance dataModelInstance = new ReferenceDataInstance();
 		dataModelInstance.setValue(id);
-		DataModelEntity dataModel = toModelEntity.getDataModels().get(0);
-		Map<String, Object> map = getDataInfo(dataModel, id);
+		Map<String, Object> map = dataMap;
+		if(map == null){
+			DataModelEntity dataModel = toModelEntity.getDataModels().get(0);
+			map = getDataInfo(dataModel, id);
+		}
 		FormDataSaveInstance formDataSaveInstance = wrapFormDataEntity(isQrCodeFlag, null, fromItem.getReferenceList(), map, id, referenceFlag);
 
 		List<String> valueList = new ArrayList<>();
@@ -3697,11 +3687,13 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 						itemInstance.setType(item.getType());
 						itemInstance.setSystemItemType(item.getSystemItemType());
 						if(item instanceof ReferenceItemModelEntity) {
+							Map<String, Object> newMap = map;
+							if(newMap == null) {
+								newMap = (Map<String, Object>) subFormSession.load(subFormDataModel.getTableName(), String.valueOf(map.get("id")));
+							}
 							if(item.getType() == ItemType.ReferenceLabel){
 								itemInstance.setValue(((ReferenceItemModelEntity) item).getReferenceItemId());
 							}else if(map.get("id") != null && map.get("id") != "" && columnModelEntity != null) {
-								Map<String, Object> newMap = (Map<String, Object>) subFormSession.load(subFormDataModel.getTableName(), String.valueOf(map.get("id")));
-
 								FormModelEntity toModelEntity = formModelService.find(((ReferenceItemModelEntity) item).getReferenceFormId());
 								if (toModelEntity == null) {
 									continue;
@@ -3880,7 +3872,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				FormModelEntity toModelEntity = referenceItemModel.getReferenceList() == null ?  null : referenceItemModel.getReferenceList().getMasterForm();
 				List<String> stringList = Arrays.asList(referenceItemModel.getReferenceList().getDisplayItemsSort().split(","));
 				if (toModelEntity!=null) {
-					ReferenceDataInstance referenceDataInstance = createDataModelInstance(false, referenceItemModel, toModelEntity, String.valueOf(((Map<String, Object>) value).get("id")), stringList, false);
+					ReferenceDataInstance referenceDataInstance = createReferenceDataInstance((Map<String, Object>) value,false, referenceItemModel, toModelEntity, String.valueOf(((Map<String, Object>) value).get("id")), stringList, false);
 					itemInstance.setValue(referenceDataInstance.getValue());
 					List<Object> displayList = new ArrayList<>();
 					displayList.add(referenceDataInstance.getDisplayValue());
