@@ -54,7 +54,7 @@ public class ListModelEntity extends BaseEntity implements Serializable {
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "listModel", fetch=FetchType.LAZY)
 	private List<QuickSearchEntity> quickSearchItems = new ArrayList<QuickSearchEntity>();
 
-	@ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
+	@ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH}, fetch = FetchType.EAGER)
 	@JoinTable(
 		name = "ifm_list_display_item",
 		joinColumns = @JoinColumn(name="list_id"),

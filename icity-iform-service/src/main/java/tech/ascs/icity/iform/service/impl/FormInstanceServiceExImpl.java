@@ -1420,7 +1420,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		Map<String, Boolean> toReferenceKeyMap = new HashMap<>();
 		String toReferenceKey = null;
 		boolean toFlag = false;
-		//方向
+		//关联表反向
 		if(referenceItemModelEntity.getSelectMode() == SelectMode.Inverse) {
 			ReferenceItemModelEntity referenceItemModelEntity1 = (ReferenceItemModelEntity)itemModelManager.find(referenceItemModelEntity.getReferenceItemId());
 			toReferenceKeyMap = getReferenceMap(referenceItemModelEntity1, masterFormModelEntity);
@@ -3431,7 +3431,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			DataModelEntity dataModel = toModelEntity.getDataModels().get(0);
 			map = getDataInfo(dataModel, id);
 		}
-		FormDataSaveInstance formDataSaveInstance = wrapFormDataEntity(isQrCodeFlag, null, fromItem.getReferenceList(), map, id, referenceFlag);
+		FormDataSaveInstance formDataSaveInstance = wrapFormDataEntity(isQrCodeFlag, toModelEntity, fromItem.getReferenceList(), map, id, referenceFlag);
 
 		List<String> valueList = new ArrayList<>();
 		Map<String, ItemInstance> valueMap = new HashMap<>();
@@ -3629,7 +3629,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			return;
         }
 		DataModelEntity subFormDataModel = itemModelEntity.getColumnModel().getDataModel();
-		Session subFormSession = getSession(subFormDataModel);
+		Session subFormSession = null;
 		try {
 			String key =((SubFormItemModelEntity) itemModel).getTableName()+"_list";
 			List<Map<String, Object>> listMap = (List<Map<String, Object>>)entity.get(key);
@@ -3687,39 +3687,38 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 						itemInstance.setType(item.getType());
 						itemInstance.setSystemItemType(item.getSystemItemType());
 						if(item instanceof ReferenceItemModelEntity) {
+							//表单控件
+							ReferenceItemModelEntity referenceItemModelEntity = (ReferenceItemModelEntity)item;
 							Map<String, Object> newMap = map;
 							if(newMap == null) {
-								newMap = (Map<String, Object>) subFormSession.load(subFormDataModel.getTableName(), String.valueOf(map.get("id")));
+                                subFormSession = getSession(subFormDataModel);
+                                newMap = (Map<String, Object>) subFormSession.load(subFormDataModel.getTableName(), String.valueOf(map.get("id")));
 							}
 							if(item.getType() == ItemType.ReferenceLabel){
-								itemInstance.setValue(((ReferenceItemModelEntity) item).getReferenceItemId());
-							}else if(map.get("id") != null && map.get("id") != "" && columnModelEntity != null) {
-								FormModelEntity toModelEntity = formModelService.find(((ReferenceItemModelEntity) item).getReferenceFormId());
+								itemInstance.setValue(referenceItemModelEntity.getReferenceItemId());
+								ItemModelEntity itemModelEntity1 = itemModelManager.find(referenceItemModelEntity.getReferenceItemId());
+								FormModelEntity toModelEntity = formModelService.find(referenceItemModelEntity.getParentItem().getReferenceFormId());
 								if (toModelEntity == null) {
 									continue;
 								}
-								Map<String, Boolean> keyMap = getReferenceMap((ReferenceItemModelEntity) item, toModelEntity);
-								if (keyMap == null) {
-									continue;
-								}
-								String referenceKey =  new ArrayList<>(keyMap.keySet()).get(0);
-								Boolean flag = keyMap.get(referenceKey);
-
-								List<Object> idList = new ArrayList<>();
-								if(newMap.get(referenceKey) != null) {
-									if (flag) {
-										Map<String, Object> referenceMap = (Map<String, Object>) newMap.get(referenceKey);
-										idList.add(referenceMap.get("id"));
-									} else {
-										for (Map<String, Object> referenceMap : (List<Map<String, Object>>) newMap.get(referenceKey)) {
-											idList.add(referenceMap.get("id"));
-										}
+								Map<String, Boolean> keyMap = getReferenceMap(referenceItemModelEntity.getParentItem(), toModelEntity);
+								Map<String, Object> mapData = (Map<String, Object>)map.get(new ArrayList<>(keyMap.keySet()).get(0));
+								if(itemModelEntity1 != null ){
+									if(itemModelEntity1.getColumnModel() != null) {
+										itemInstance.setDisplayValue(mapData.get(itemModelEntity1.getColumnModel().getColumnName()));
 									}
 								}
-								if (keyMap.get(referenceKey) && idList.size() > 0) {
-									itemInstance.setValue(idList.get(0));
-								} else {
-									itemInstance.setValue(idList);
+							}else if(map.get("id") != null && map.get("id") != "" && columnModelEntity != null) {
+								FormModelEntity toModelEntity = formModelService.find(referenceItemModelEntity.getReferenceFormId());
+								if (toModelEntity == null) {
+									continue;
+								}
+								Map<String, Boolean> keyMap = getReferenceMap(referenceItemModelEntity, toModelEntity);
+								List<String> stringList  = new ArrayList<>(Arrays.asList(toModelEntity.getItemModelIds().split(",")));
+								ReferenceDataInstance referenceDataInstance = createReferenceDataInstance((Map<String, Object>)map.get(new ArrayList<>(keyMap.keySet()).get(0)), false, referenceItemModelEntity, toModelEntity, String.valueOf(map.get("id")), stringList, false);
+								if (referenceDataInstance != null && referenceDataInstance.getValue() != null) {
+									itemInstance.setValue(String.valueOf(referenceDataInstance.getValue()));
+									itemInstance.setDisplayValue(String.valueOf(referenceDataInstance.getDisplayValue()));
 								}
 							}
 						}else{
