@@ -7,10 +7,7 @@ import tech.ascs.icity.admin.api.model.TreeSelectData;
 import tech.ascs.icity.admin.api.model.User;
 import tech.ascs.icity.admin.api.model.UserBase;
 import tech.ascs.icity.iflow.api.model.ProcessInstance;
-import tech.ascs.icity.iform.api.model.FormDataSaveInstance;
-import tech.ascs.icity.iform.api.model.FormInstance;
-import tech.ascs.icity.iform.api.model.ItemInstance;
-import tech.ascs.icity.iform.api.model.TreeSelectDataSource;
+import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.model.IdEntity;
 import tech.ascs.icity.model.Page;
@@ -71,5 +68,15 @@ public interface FormInstanceServiceEx {
 
 	//删除表单数据
     void deleteFormData(FormModelEntity formModelEntity);
+
+	/**
+	 * 删除校验, 删除某行数据的时候校验当前数据是否被引用
+	 */
+    void deleteVerify(ColumnReferenceEntity columnReferenceEntity, Map<String, Object> entity, List<ReferenceItemModelEntity> itemModelEntities);
+
+	/**
+	 * 执行业务触发器
+	 */
+	void sendWebService(FormModelEntity formModelEntity, BusinessTriggerType triggerType, Map<String, Object> data, String id);
 
 }

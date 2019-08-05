@@ -7,6 +7,7 @@ import tech.ascs.icity.iform.model.ListModelEntity;
 import tech.ascs.icity.jpa.service.JPAService;
 import tech.ascs.icity.model.Page;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface ListModelService extends JPAService<ListModelEntity> {
@@ -63,4 +64,10 @@ public interface ListModelService extends JPAService<ListModelEntity> {
 
     //通过表名集合查询列表模型
     ListModel getFirstListModelByTableName(String tableName);
+
+    // 通过表名集合查询列表id
+    List<String> findListIdByTableNameId(Collection<String> tableNames);
+
+    // 通过表名查询列表id
+    List<String> findListIdByTableName(String tableName);
 }

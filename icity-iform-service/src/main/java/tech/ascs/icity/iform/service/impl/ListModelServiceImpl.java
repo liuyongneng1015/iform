@@ -273,11 +273,22 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
         }
     }
 
+    @Override
+    public List<String> findListIdByTableNameId(Collection<String> tableNames) {
+		return jdbcTemplate.query("select l.id from ifm_list_model l,ifm_form_data_bind fd,ifm_data_model d where fd.form_model=l.master_form and fd.data_model=d.id and d.table_name = ?1 ", new Object[]{tableNames},
+				(rs, rowNum) -> rs.getString("id"));
+	}
+
+	@Override
+    public List<String> findListIdByTableName(String tableName) {
+		return jdbcTemplate.query("select l.id from ifm_list_model l,ifm_form_data_bind fd,ifm_data_model d where fd.form_model=l.master_form and fd.data_model=d.id and d.table_name ='"+tableName+"'",
+				(rs, rowNum) -> rs.getString("id"));
+	}
+
 	@Override
 	public List<ListModel> findListModelsByTableName(String tableName) {
 		try {
-			List<String> idlist = jdbcTemplate.query("select l.id from ifm_list_model l,ifm_form_data_bind fd,ifm_data_model d where fd.form_model=l.master_form and fd.data_model=d.id and d.table_name ='"+tableName+"'",
-					(rs, rowNum) -> rs.getString("id"));
+			List<String> idlist = findListIdByTableName(tableName);
 			List<ListModelEntity> listModelEntities = query().filterIn("id",idlist).list();
 			List<ListModel> list = new ArrayList<>();
 			for(ListModelEntity listModelEntity : listModelEntities){

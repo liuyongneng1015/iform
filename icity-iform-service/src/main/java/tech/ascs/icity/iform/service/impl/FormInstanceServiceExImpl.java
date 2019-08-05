@@ -776,7 +776,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		return null;
 	}
 
-	private void sendWebService(FormModelEntity formModelEntity, BusinessTriggerType triggerType,  Map<String, Object> data, String id){
+	public void sendWebService(FormModelEntity formModelEntity, BusinessTriggerType triggerType,  Map<String, Object> data, String id){
 		BusinessTriggerEntity triggerEntity = getBusinessTrigger(formModelEntity, triggerType);
 		if (triggerEntity!=null) {
             if (triggerEntity.getParamCondition() == ParamCondition.FormCurrentData) {
@@ -1821,7 +1821,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 	}
 
-	private void deleteVerify(ColumnReferenceEntity columnReferenceEntity, Map<String, Object> entity, List<ReferenceItemModelEntity> itemModelEntities){
+	public void deleteVerify(ColumnReferenceEntity columnReferenceEntity, Map<String, Object> entity, List<ReferenceItemModelEntity> itemModelEntities){
 		if(columnReferenceEntity.getReferenceType() == ReferenceType.ManyToMany || !columnReferenceEntity.getFromColumn().getColumnName().equals("id") ){
 			return;
 		}
