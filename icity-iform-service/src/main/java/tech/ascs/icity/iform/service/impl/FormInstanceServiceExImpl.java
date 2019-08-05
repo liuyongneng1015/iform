@@ -3376,7 +3376,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			for(Map<String, Object> map  : (List<Map<String, Object>>)listMap) {
 				idValues.add(map.get("id"));
 				if(stringList != null) {
-					FormInstance getFormInstance = getFormInstance(toModelEntity, String.valueOf(map.get("id")));
 					ReferenceDataInstance referenceDataInstance = createReferenceDataInstance(map, isQrCodeFlag, fromItem, toModelEntity, String.valueOf(map.get("id")), stringList, false);
 					if (referenceDataInstance != null && referenceDataInstance.getValue() != null) {
 						displayValueList.add(String.valueOf(referenceDataInstance.getDisplayValue()));
