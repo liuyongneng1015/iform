@@ -4033,9 +4033,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					DictionaryDataItemEntity dictionaryItemEntity = map.get(str);
 					if(dictionaryItemEntity != null) {
 						SelectItemModelValue selectItemModelValue = new SelectItemModelValue();
+						selectItemModelValue.setId(dictionaryItemEntity.getId());
 						selectItemModelValue.setCode(dictionaryItemEntity.getCode());
 						selectItemModelValue.setIcon(dictionaryItemEntity.getIcon());
-						selectItemModelValue.setDescription(dictionaryItemEntity.getName());
+						selectItemModelValue.setName(dictionaryItemEntity.getName());
+						selectItemModelValue.setDescription(dictionaryItemEntity.getDescription());
 						displayObjectList.add(selectItemModelValue);
 						displayValuelist.add(dictionaryItemEntity.getName());
 					}

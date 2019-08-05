@@ -679,7 +679,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 				Object nameObj = JSONPath.eval(jsonArray, "$[" + i + "].navigations[" + j + "].name.displayObject[0].description");
 				Object iconObj = JSONPath.eval(jsonArray, "$[" + i + "].navigations[" + j + "].name.displayObject[0].icon");
 				Object screenKeyObj = JSONPath.eval(jsonArray, "$[" + i + "].navigations[" + j + "].name.displayObject[0].code");
-				Object screenTypeObj = JSONPath.eval(jsonArray, "$[" + i + "].navigations[" + j + "].screenType.displayObject[0].code");
+				Object screenTypeObj = JSONPath.eval(jsonArray, "$[" + i + "].navigations[" + j + "].screentype.displayObject[0].code");
 				Boolean initialPage = convertInitialPage(JSONPath.eval(jsonArray, "$[" + i + "].navigations[" + j + "].initialPage.displayObject[0].code"));
 				navigations.add(new Navigations(idObj, nameObj, iconObj, screenKeyObj, screenTypeObj, initialPage));
 			}
@@ -690,9 +690,9 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 				Object nameObj = JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].name.displayObject[0].description");
 				Object iconObj = JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].name.displayObject[0].icon");
 				Object screenKeyObj = JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].name.displayObject[0].code");
-				Object screenTypeObj = JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].screenType.displayObject[0].code");
-				Object categoryCodeObj = JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].businessCategories.displayObject[0].code");
-				Object categoryNameObj = JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].businessCategories.displayObject[0].description");
+				Object screenTypeObj = JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].screentype.displayObject[0].code");
+				Object categoryCodeObj = JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].businesscategories.displayObject[0].code");
+				Object categoryNameObj = JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].businesscategories.displayObject[0].description");
 				dashboard.add(new Dashboard(idObj, nameObj, iconObj, screenKeyObj, screenTypeObj, categoryCodeObj, categoryNameObj));
 			}
 
