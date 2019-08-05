@@ -4775,6 +4775,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	}
 
 	protected List<String> getGroupIds(String userId) {
+		if(!StringUtils.hasText(userId)){
+			return null;
+		}
 		List<String> result = new ArrayList<String>();
 
 		// 添加部门/岗位列表

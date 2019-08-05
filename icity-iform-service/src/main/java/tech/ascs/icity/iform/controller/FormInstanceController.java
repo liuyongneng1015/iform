@@ -93,12 +93,14 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		if (listModel == null) {
 			throw new IFormException(404, "列表模型【" + listId + "】不存在");
 		}
+		Map<String, Object> newParameters = new HashMap<>(parameters);
 		//是否查询自己的数据
-		boolean ownerFlag = "true".equals(parameters.get("ownerFlag"));
+		boolean ownerFlag = "true".equals(newParameters.get("ownerFlag"));
 		if(ownerFlag){
-			parameters.put("userId", CurrentUserUtils.getCurrentUserId());
+			newParameters.put("userId", CurrentUserUtils.getCurrentUserId());
 		}
-		List<Map<String, Object>>  mapList =  formInstanceService.formInstanceList(listModel, parameters);
+		newParameters.remove("ownerFlag");
+		List<Map<String, Object>>  mapList =  formInstanceService.formInstanceList(listModel, newParameters);
 		return mapList == null ? 0 : mapList.size();
 	}
 
