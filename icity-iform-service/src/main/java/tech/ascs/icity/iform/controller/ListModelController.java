@@ -764,7 +764,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 						return model;
 					}).collect(Collectors.toList());
 			functionModel.setTemplateItemModels(models);
-		} else if (DefaultFunctionType.Import.getValue().equals(function.getAction())) {
+		} else if (DefaultFunctionType.Import.getValue().equals(function.getAction()) && function.getImportFunction()!=null) {
 			List<ItemModelEntity> items = exportDataService.eachHasColumnItemModel(listModelEntity.getMasterForm().getItems());
 			ImportFunctionModel model = new ImportFunctionModel();
 			BeanCopiers.noConvertCopy(function.getImportFunction(), model);

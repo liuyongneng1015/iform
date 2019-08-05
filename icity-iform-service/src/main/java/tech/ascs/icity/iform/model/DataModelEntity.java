@@ -50,7 +50,7 @@ public class DataModelEntity extends BaseEntity implements Serializable {
     private List<IndexModelEntity> indexes = new ArrayList<IndexModelEntity>();
 
 	@Column(name="synchronized_")
-	private Boolean synchronized_ = false;
+	private Boolean synchronize = false;
 
 	@Transient//关联数据模型不存数据库
 	private List<DataModelEntity> referencesDataModel = new ArrayList<DataModelEntity>();
@@ -134,15 +134,15 @@ public class DataModelEntity extends BaseEntity implements Serializable {
 		this.indexes = indexes;
 	}
 
-	public Boolean getSynchronized() {
-		if(synchronized_ == null){
+	public Boolean getSynchronize() {
+		if(synchronize == null){
 			return false;
 		}
-		return synchronized_;
+		return synchronize;
 	}
 
-	public void setSynchronized(Boolean synchronized_) {
-		this.synchronized_ = synchronized_;
+	public void setSynchronize(Boolean synchronize) {
+		this.synchronize = synchronize;
 	}
 
 	public List<DataModelEntity> getReferencesDataModel() {

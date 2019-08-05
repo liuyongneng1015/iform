@@ -371,9 +371,9 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 	public void sync(DataModelEntity dataModel) {
 		try {
 			sessionFactoryBuilder.getSessionFactory(dataModel, true);
-			dataModel.setSynchronized(true);
+			dataModel.setSynchronize(true);
 			for(DataModelEntity slaverDataModelEntity : dataModel.getSlaverModels()){
-				slaverDataModelEntity.setSynchronized(true);
+				slaverDataModelEntity.setSynchronize(true);
 			}
 			save(dataModel);
 			updateDataModelIndex(dataModel);
@@ -590,7 +590,7 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 				dataModel.setName(rs.getString("name"));
 				dataModel.setTableName(rs.getString("table_name"));
 				dataModel.setDescription(rs.getString("description"));
-				dataModel.setSynchronized(rs.getBoolean("synchronized_"));
+				dataModel.setSynchronize(rs.getBoolean("synchronized_"));
 				dataModel.setApplicationId(rs.getString("application_id"));
 				String modelType = rs.getString("model_type");
 				if (org.springframework.util.StringUtils.hasText(modelType)) {
@@ -691,7 +691,7 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		if(masterDataModelEntity.getModelType() == DataModelType.Single && formModel.getDataModels().size() > 1) {
 			masterDataModelEntity.setModelType(DataModelType.Master);
 		}
-		masterDataModelEntity.setSynchronized(false);
+		masterDataModelEntity.setSynchronize(false);
 
 		List<DataModelEntity> slaverDataModelEntities = new ArrayList<>();
 		for(int i = 1; i < formModel.getDataModels().size(); i++) {//第一个是主表
@@ -936,7 +936,7 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		}
 
 		BeanUtils.copyProperties(dataModel, dataModelEntity, new String[]{"masterModel","slaverModels","columns","indexes"});
-		dataModelEntity.setSynchronized(false);
+		dataModelEntity.setSynchronize(false);
 		if(masterDataModelEntity != null){
 			dataModelEntity.setModelType(DataModelType.Slaver);
 			dataModelEntity.setMasterModel(masterDataModelEntity);
@@ -1044,11 +1044,11 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		}
 		if (entity.getModelType() == DataModelType.Slaver) {
 			entity = save(entity);
-			entity.getMasterModel().setSynchronized(false);
+			entity.getMasterModel().setSynchronize(false);
 			save(entity.getMasterModel());
 			return entity;
 		} else {
-			entity.setSynchronized(false);
+			entity.setSynchronize(false);
 			return save(entity);
 		}
 	}
