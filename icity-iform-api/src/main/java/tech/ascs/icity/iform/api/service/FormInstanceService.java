@@ -1,16 +1,12 @@
 package tech.ascs.icity.iform.api.service;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.core.io.Resource;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import org.springframework.core.io.Resource;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import tech.ascs.icity.iform.api.model.DataInstance;
 import tech.ascs.icity.iform.api.model.FileUploadModel;
 import tech.ascs.icity.iform.api.model.FormDataSaveInstance;
@@ -18,7 +14,9 @@ import tech.ascs.icity.iform.api.model.FormInstance;
 import tech.ascs.icity.model.IdEntity;
 import tech.ascs.icity.model.Page;
 
-import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/form-instances")
@@ -140,10 +138,28 @@ public interface FormInstanceService {
 			@ApiImplicitParam(paramType = "query", name = "exportSelectIds", value = "需要导出的数据的id,多个逗号分隔,当导出模式为选择导出时候可用", required = false)
 	})
 	@GetMapping("/{listId}/export")
-	ResponseEntity<Resource> export(HttpServletResponse response,
-									@PathVariable(name="listId") String listId,
+	ResponseEntity<Resource> export(@PathVariable(name="listId") String listId,
 									@RequestParam Map<String, Object> parameters);
 
+	/**
+	 * 导出模板文件
+	 * @param listId
+	 * @return
+	 */
+	@ApiOperation(value = "导出模板文件")
+	@ApiImplicitParams({
+			@ApiImplicitParam(paramType = "path", name = "listId", value = "列表模型ID", required = true, dataType = "String")
+	})
+	@GetMapping("/{listId}/template/export")
+	ResponseEntity<Resource> templateDownload(@PathVariable(name = "listId") String listId);
+
+
+	@ApiOperation(value = "导入数据")
+	@ApiImplicitParams({
+			@ApiImplicitParam(paramType = "path", name = "listId", value = "列表模型ID", required = true, dataType = "String")
+	})
+	@PostMapping("/{listId}/import")
+	void dataImport(@PathVariable(name = "listId") String listId, @RequestParam("file")MultipartFile file);
 	/**
 	 * 通过表单ID和条件分页查询表单实例数据
 	 *

@@ -6,6 +6,7 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import org.apache.commons.lang3.StringUtils;
@@ -39,7 +40,8 @@ public class DataModel extends NameEntity {
     private List<IndexModel> indexes = new ArrayList<IndexModel>();
 
     @ApiModelProperty(value = "是否已同步", position = 8)
-    private boolean synchronized_= false;
+	@JsonProperty("synchronized")
+    private Boolean synchronize = false;
 
 	@ApiModelProperty(value = "应用id", position = 9)
 	private String applicationId;
@@ -114,13 +116,12 @@ public class DataModel extends NameEntity {
 		this.indexes = indexes;
 	}
 
-    @ApiModelProperty(value = "是否已同步", position = 8)
-	public boolean isSynchronized() {
-		return synchronized_;
+	public Boolean getSynchronize() {
+		return synchronize;
 	}
 
-	public void setSynchronized(boolean synchronized_) {
-		this.synchronized_ = synchronized_;
+	public void setSynchronize(Boolean synchronize) {
+		this.synchronize = synchronize;
 	}
 
 	public String getApplicationId() {

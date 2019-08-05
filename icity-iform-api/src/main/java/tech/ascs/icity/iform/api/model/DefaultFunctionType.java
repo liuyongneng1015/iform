@@ -28,7 +28,9 @@ public enum DefaultFunctionType {
 
 	Download("download", "下载"),
 
-	BatchDelete("batchDelete", "批量删除");
+	BatchDelete("batchDelete", "批量删除"),
+
+	TemplateDownload("templateDownload","模板下载");
 
 	private String value;
 	private String desc;

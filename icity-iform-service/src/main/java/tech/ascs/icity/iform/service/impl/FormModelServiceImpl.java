@@ -1111,11 +1111,14 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
             DataModelEntity dataModelEntity = new DataModelEntity();
             if (!dataModel.isNew()) {
                 dataModelEntity = dataModelService.get(dataModel.getId());
-            }
+            }else{
+            	dataModelEntity.setDescription(formModel.getName());
+			}
             BeanUtils.copyProperties(dataModel, dataModelEntity, new String[]{"masterModel", "slaverModels", "columns", "indexes", "referencesDataModel"});
             if (dataModel.isNew()) {
                 dataModelEntity.setId(null);
             }
+
             columnModelService.saveColumnModelEntity(dataModelEntity, "id");
 			columnModelService.saveColumnModelEntity(dataModelEntity, "create_at");
 			columnModelService.saveColumnModelEntity(dataModelEntity, "update_at");
@@ -1402,10 +1405,10 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 		DataModelEntity dataModelEntity = oldFormModelEntity.getDataModels().get(0);
 		//流程有关字段
-		columnModelService.saveColumnModelEntity(dataModelEntity, "PROCESS_ID");
-		columnModelService.saveColumnModelEntity(dataModelEntity, "PROCESS_INSTANCE");
-		columnModelService.saveColumnModelEntity(dataModelEntity, "ACTIVITY_ID");
-		columnModelService.saveColumnModelEntity(dataModelEntity, "ACTIVITY_INSTANCE");
+		columnModelService.saveColumnModelEntity(dataModelEntity, "process_id");
+		columnModelService.saveColumnModelEntity(dataModelEntity, "process_instance");
+		columnModelService.saveColumnModelEntity(dataModelEntity, "activity_id");
+		columnModelService.saveColumnModelEntity(dataModelEntity, "activity_instance");
 
 		formModelManager.save(oldFormModelEntity);
 		//同步流程字段
@@ -1531,10 +1534,10 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 		DataModelEntity dataModelEntity = formModelEntity.getDataModels().get(0);
 		//流程有关的字段
-		columnModelService.saveColumnModelEntity(dataModelEntity, "PROCESS_ID");
-		columnModelService.saveColumnModelEntity(dataModelEntity, "PROCESS_INSTANCE");
-		columnModelService.saveColumnModelEntity(dataModelEntity, "ACTIVITY_ID");
-		columnModelService.saveColumnModelEntity(dataModelEntity, "ACTIVITY_INSTANCE");
+		columnModelService.saveColumnModelEntity(dataModelEntity, "process_id");
+		columnModelService.saveColumnModelEntity(dataModelEntity, "process_instance");
+		columnModelService.saveColumnModelEntity(dataModelEntity, "activity_id");
+		columnModelService.saveColumnModelEntity(dataModelEntity, "activity_instance");
 
 		//旧的流程
 		FormProcessInfo oldProcessInfo = formModelEntity.getProcess();
@@ -2499,10 +2502,13 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		if (dataModelUpdateNeeded) {
 			updateDataModel(entity.getDataModels().get(0));
 		}
+
+		//字段id与对应的字段
 		if(entity.getDataModels() != null && entity.getDataModels().size() > 0 && entity.getDataModels().get(0).getSlaverModels() != null){
+			List<SubFormItemModelEntity> subFormItemModelEntities = findSubFormItems(entity);
 			for(DataModelEntity dataModelEntity : entity.getDataModels().get(0).getSlaverModels()){
-				for(ItemModelEntity itemModelEntity : entity.getItems()) {
-					setItemColumnModel( itemModelEntity, dataModelEntity);
+				for(SubFormItemModelEntity itemModelEntity : subFormItemModelEntities) {
+					setSlaverItemColumnModel(itemModelEntity, dataModelEntity);
 				}
 			}
 		}
@@ -2517,29 +2523,47 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 				}
 			}
 		}
+		List<ItemModelEntity> list = findAllItems(entity);
+
+		for(ItemModelEntity itemModelEntity : list){
+			ColumnModelEntity columnModelEntity = itemModelEntity.getColumnModel();
+			if(columnModelEntity != null && StringUtils.isBlank(columnModelEntity.getName())){
+				columnModelEntity.setDescription(itemModelEntity.getName());
+				columnModelEntity.setName(itemModelEntity.getName());
+			}
+			itemModelEntity.setColumnModel(columnModelEntity);
+		}
+
 		FormModelEntity formModelEntity = super.save(entity);
 		return formModelEntity;
 	}
 
-	private void setItemColumnModel(ItemModelEntity itemModelEntity, DataModelEntity dataModelEntity){
-		if(itemModelEntity instanceof SubFormItemModelEntity && ((SubFormItemModelEntity) itemModelEntity).getTableName().equals(dataModelEntity.getTableName())) {
+	private List<SubFormItemModelEntity> findSubFormItems(FormModelEntity formModelEntity){
+		List<SubFormItemModelEntity> list = new ArrayList<>();
+		for(ItemModelEntity itemModelEntity : formModelEntity.getItems()) {
+			if (itemModelEntity instanceof SubFormItemModelEntity){
+				list.add((SubFormItemModelEntity)itemModelEntity);
+			} else if (itemModelEntity instanceof TabsItemModelEntity) {
+				for (TabPaneItemModelEntity tabPaneItemModelEntity : ((TabsItemModelEntity) itemModelEntity).getItems()) {
+					for (ItemModelEntity itemModelEntity1 : tabPaneItemModelEntity.getItems()) {
+						if (itemModelEntity1 instanceof SubFormItemModelEntity) {
+							list.add((SubFormItemModelEntity)itemModelEntity);
+						}
+					}
+				}
+			}
+		}
+		return list;
+	}
+
+
+	//子表
+	private void setSlaverItemColumnModel(SubFormItemModelEntity itemModelEntity, DataModelEntity dataModelEntity){
+		if(itemModelEntity.getTableName() != null && itemModelEntity.getTableName().equals(dataModelEntity.getTableName())) {
 			for (ColumnModelEntity columnModelEntity : dataModelEntity.getColumns()) {
 				if (columnModelEntity.getColumnName().equals("id")) {
 					itemModelEntity.setColumnModel(columnModelEntity);
 					break;
-				}
-			}
-		}else if(itemModelEntity instanceof TabsItemModelEntity){
-			for(TabPaneItemModelEntity tabPaneItemModelEntity : ((TabsItemModelEntity)itemModelEntity).getItems()){
-				for(ItemModelEntity itemModelEntity1 : tabPaneItemModelEntity.getItems()) {
-					if (itemModelEntity1 instanceof SubFormItemModelEntity && ((SubFormItemModelEntity) itemModelEntity1).getTableName().equals(dataModelEntity.getTableName())) {
-						for (ColumnModelEntity columnModelEntity : dataModelEntity.getColumns()) {
-							if (columnModelEntity.getColumnName().equals("id")) {
-								itemModelEntity1.setColumnModel(columnModelEntity);
-								break;
-							}
-						}
-					}
 				}
 			}
 		}
@@ -2605,17 +2629,18 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 	protected boolean dataModelUpdateNeeded(FormModelEntity entity) {
 		if (entity.getProcess() != null && entity.getProcess().getKey() != null) {
-			return columnModelManager.query().filterEqual("dataModel.tableName", entity.getDataModels().get(0).getTableName()).filterEqual("columnName", "PROCESS_ID").count() == 0;
+			return columnModelManager.query().filterEqual("dataModel.tableName", entity.getDataModels().get(0).getTableName()).filterEqual("columnName", "process_id").count() == 0;
 		}
 		return false;
 	}
 
 	protected void updateDataModel(DataModelEntity dataModel) {
 		dataModel = dataModelManager.get(dataModel.getId());
-		createColumnModel(dataModel, "PROCESS_ID", "流程ID", 64);
-		createColumnModel(dataModel, "PROCESS_INSTANCE", "流程实例ID", 64);
-		createColumnModel(dataModel, "ACTIVITY_ID", "环节ID", 255);
-		createColumnModel(dataModel, "ACTIVITY_INSTANCE", "环节实例ID", 255);
+
+		createColumnModel(dataModel, "process_id", "流程ID", 64);
+		createColumnModel(dataModel, "process_instance", "流程实例ID", 64);
+		createColumnModel(dataModel, "activity_id", "环节ID", 255);
+		createColumnModel(dataModel, "activity_instance", "环节实例ID", 255);
 		dataModel = dataModelManager.save(dataModel);
 		try {
 //			tableUtilService.createTable(dataModel);

@@ -38,12 +38,12 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 		public FormInstance mapRow(ResultSet rs, int rowNum) throws SQLException {
 			FormInstance formInstance = new FormInstance();
 			formInstance.setFormId(formModel.getId());
-			formInstance.setId(rs.getString("ID"));
+			formInstance.setId(rs.getString("id"));
 			if (formModel.getProcess() != null && StringUtils.hasText(formModel.getProcess().getId())) {
-				formInstance.setProcessId(rs.getString("PROCESS_ID"));
-				formInstance.setProcessInstanceId(rs.getString("PROCESS_INSTANCE"));
-				formInstance.setActivityId(rs.getString("ACTIVITY_ID"));
-				formInstance.setActivityInstanceId(rs.getString("ACTIVITY_INSTANCE"));
+				formInstance.setProcessId(rs.getString("process_id"));
+				formInstance.setProcessInstanceId(rs.getString("process_instance"));
+				formInstance.setActivityId(rs.getString("activity_id"));
+				formInstance.setActivityInstanceId(rs.getString("activity_instance"));
 			}
 
 			List<ItemInstance> items = new ArrayList<ItemInstance>();
@@ -448,7 +448,7 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 		String tableName = dataModelEntity.getTableName();
 		String prefix = dataModelEntity.getPrefix() == null ? "" : dataModelEntity.getPrefix();
 		StringBuilder updateSql = new StringBuilder("UPDATE "+prefix).append(tableName)
-				.append(" SET PROCESS_ID=?,PROCESS_INSTANCE=?,ACTIVITY_ID=?,ACTIVITY_INSTANCE=? WHERE id=?");
+				.append(" SET process_id=?,process_instance=?,activity_id=?,activity_instance=? WHERE id=?");
 		doUpdate(updateSql.toString(), formModel.getProcess().getId(), processInstanceId, processInstance.getCurrentTaskInstance().getActivityId(), processInstance.getCurrentTaskInstance().getId(), formInstanceId);
 	}
 

@@ -23,6 +23,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import io.swagger.annotations.Api;
+import org.springframework.web.multipart.MultipartFile;
 import tech.ascs.icity.ICityException;
 import tech.ascs.icity.admin.api.model.Position;
 import tech.ascs.icity.admin.client.UserService;
@@ -88,6 +89,11 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		ListModelEntity listModel = listModelService.find(listId);
 		if (listModel == null) {
 			throw new IFormException(404, "列表模型【" + listId + "】不存在");
+		}
+		//是否查询自己的数据
+		Boolean ownerFlag = (Boolean)parameters.get("ownerFlag");
+		if(ownerFlag != null && ownerFlag){
+			parameters.put("userId", CurrentUserUtils.getCurrentUserId());
 		}
 		List<Map<String, Object>>  mapList =  formInstanceService.formInstanceList(listModel, parameters);
 		return mapList == null ? 0 : mapList.size();
@@ -184,8 +190,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 	}
 
 	@Override
-	public ResponseEntity<Resource> export(HttpServletResponse response,
-										   @PathVariable(name="listId") String listId,
+	public ResponseEntity<Resource> export(@PathVariable(name="listId") String listId,
 										   @RequestParam Map<String, Object> parameters) {
 		ListModelEntity listModel = listModelService.find(listId);
 		if (listModel == null) {
@@ -203,11 +208,23 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
         List<FormDataSaveInstance> data = formInstanceService.pageListInstance(listModel, 1, Integer.MAX_VALUE, queryParameters).getResults();
 		Resource resource = exportDataService.exportData(listModel,function, data, parameters);
 		String filename = listModel.getName()+CommonUtils.currentTimeStr("-yyyy年MM月dd日-HHmmss")+extension;
-		filename = new String(filename.getBytes(Charset.forName("utf-8")), Charset.forName("ISO8859-1"));
-		return ResponseEntity.status(200)
-				.header("Content-Disposition", "attachment;filename="+filename)
-				.contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
-				.body(resource);
+		return buildResourceResponseEntity(filename, resource);
+	}
+
+	@Override
+	public ResponseEntity<Resource> templateDownload(@PathVariable(name="listId") String listId) {
+		ListModelEntity listModel = listModelService.find(listId);
+		if (listModel == null) {
+			throw new IFormException(404, "列表模型【" + listId + "】不存在");
+		}
+		Resource resource = exportDataService.exportTemplate(listModel);
+		String filename = listModel.getName()+"-模板文件.xlsx";
+		return buildResourceResponseEntity(filename, resource);
+	}
+
+	@Override
+	public void dataImport(@PathVariable(name="listId") String listId,@RequestParam("file") MultipartFile file) {
+		return ;
 	}
 
 	/**
@@ -762,5 +779,13 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			throw new ICityException(e.getLocalizedMessage(), e);
 		}
 		return returnList;
+	}
+
+	private ResponseEntity<Resource> buildResourceResponseEntity(String filename, Resource resource) {
+		String tempName = new String(filename.getBytes(Charset.forName("utf-8")), Charset.forName("ISO8859-1"));
+		return ResponseEntity.status(200)
+				.header("Content-Disposition", "attachment;filename="+tempName)
+				.contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
+				.body(resource);
 	}
 }

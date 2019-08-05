@@ -34,7 +34,7 @@ public class TableMetaBean {
         dataModelEntity.setTableName(this.getTableName());
         dataModelEntity.setDescription(this.getRemarks());
         dataModelEntity.setModelType(DataModelType.Single);
-        dataModelEntity.setSynchronized(true);
+        dataModelEntity.setSynchronize(true);
         return dataModelEntity;
     }
 

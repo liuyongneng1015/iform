@@ -2,7 +2,6 @@ package tech.ascs.icity.iform.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cglib.beans.BeanCopier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,11 +12,12 @@ import tech.ascs.icity.admin.client.ResourceService;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.api.model.export.ExportFunctionModel;
+import tech.ascs.icity.iform.api.model.export.ImportFunctionModel;
+import tech.ascs.icity.iform.function.ThreeConsumer;
 import tech.ascs.icity.iform.model.*;
-import tech.ascs.icity.iform.service.FormInstanceService;
-import tech.ascs.icity.iform.service.FormModelService;
-import tech.ascs.icity.iform.service.ItemModelService;
-import tech.ascs.icity.iform.service.ListModelService;
+import tech.ascs.icity.iform.service.*;
+import tech.ascs.icity.iform.utils.BeanCopiers;
+import tech.ascs.icity.iform.utils.ExportListFunctionUtils;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 import tech.ascs.icity.model.Page;
@@ -27,6 +27,8 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> implements ListModelService {
@@ -48,7 +50,7 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 	private JPAManager<DataModelEntity> dataModelEntityJPAManager;
 
 	@Autowired
-    private ObjectMapper objectMapper;
+	private ObjectMapper objectMapper;
 
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
@@ -64,6 +66,9 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 
 	@Autowired
 	private FormInstanceService formInstanceService;
+
+	@Autowired
+	private ExportDataService exportDataService;
 
 	public ListModelServiceImpl() {
 		super(ListModelEntity.class);
@@ -82,11 +87,11 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 		dataModelEntityJPAManager = getJPAManagerFactory().getJPAManager(DataModelEntity.class);
 	}
 
+	@Transactional(rollbackFor = Exception.class)
 	@Override
 	public ListModelEntity save(ListModelEntity entity) {
 		validate(entity);
 		if (!entity.isNew()) { // 先删除所有搜索字段及列表功能然后重建
-			//ListModelEntity实体的字段 id,name,description,multiSelect,masterForm,applicationId,slaverForms,sortItems,functions,searchItems,displayItems,quickSearchItems
 			ListModelEntity old = get(entity.getId()) ;
 			BeanUtils.copyProperties(entity, old, new String[] {"masterForm", "slaverForms", "sortItems", "searchItems", "functions", "displayItems", "quickSearchItems"});
 
@@ -167,7 +172,9 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 						ItemModelEntity searchItemModelEntity = itemModelService.find(searchItem.getItemModel().getId());
 						if (searchItem.getParseArea()!=null && searchItem.getParseArea().contains("FuzzyQuery")) {
 							ItemType itemType = searchItemModelEntity.getType();
-							if (ItemType.InputNumber== itemType || ItemType.DatePicker==itemType || ItemType.TimePicker==itemType) {
+							if (ItemType.InputNumber== itemType ||
+								SystemItemType.DatePicker==searchItemModelEntity.getSystemItemType() ||
+								SystemItemType.CreateDate==searchItemModelEntity.getSystemItemType()) {
 								throw new ICityException("数字控件和时间控件不能加到全文索引");
 							}
 						}
@@ -209,7 +216,13 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 				}
 				old.setQuickSearchItems(quickSearches);
 			}
-			ListModelEntity returnEntity = doUpdate(old, oldSortMap.keySet(), oldSearchItemMap.keySet(), oldFunctionMap.keySet(), oldQuickSearchMap.keySet());
+
+			List<ListSortItem> needDeleteSortItems = needDeleteSortItems(old, oldSortMap);
+			List<ListSearchItem> needDeleteSearchItems = needDeleteSearchItems(old, oldSearchItemMap);
+			List<ListFunction> needDeleteFunctionItems = needDeleteFunctionItems(old, oldFunctionMap);
+			List<QuickSearchEntity> needDeleteQuickSearchItems = needDeleteQuickSearchItems(old, oldQuickSearchMap);
+
+			ListModelEntity returnEntity = doUpdate(old, needDeleteSortItems, needDeleteSearchItems, needDeleteFunctionItems, needDeleteQuickSearchItems);
 			// 给admin服务提交按钮权限
 			submitListBtnPermission(returnEntity);
 			return returnEntity;
@@ -218,6 +231,50 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 			ListModelEntity returnEntity = super.save(entity);
 			return returnEntity;
 		}
+	}
+
+	public List<ListSortItem> needDeleteSortItems(ListModelEntity entity, Map<String, ListSortItem> oldSortMap) {
+		List<ListSortItem> list = new ArrayList<>();
+		Set<String> set = entity.getSortItems().stream().map(item->item.getId()).distinct().collect(Collectors.toSet());
+		for (String key:oldSortMap.keySet()) {
+			if (set.contains(key)==false) {
+				list.add(oldSortMap.get(key));
+			}
+		}
+		return list;
+	}
+
+	public List<ListSearchItem> needDeleteSearchItems(ListModelEntity entity, Map<String, ListSearchItem> oldSearchMap) {
+		List<ListSearchItem> list = new ArrayList<>();
+		Set<String> set = entity.getSearchItems().stream().map(item->item.getId()).distinct().collect(Collectors.toSet());
+		for (String key:oldSearchMap.keySet()) {
+			if (set.contains(key)==false) {
+				list.add(oldSearchMap.get(key));
+			}
+		}
+		return list;
+	}
+
+	public List<ListFunction> needDeleteFunctionItems(ListModelEntity entity, Map<String, ListFunction> oldFunctionMap) {
+		List<ListFunction> list = new ArrayList<>();
+		Set<String> set = entity.getFunctions().stream().map(item->item.getId()).distinct().collect(Collectors.toSet());
+		for (String key:oldFunctionMap.keySet()) {
+			if (set.contains(key)==false) {
+				list.add(oldFunctionMap.get(key));
+			}
+		}
+		return list;
+	}
+
+	public List<QuickSearchEntity> needDeleteQuickSearchItems(ListModelEntity entity, Map<String, QuickSearchEntity> oldQuickSearchMap) {
+		List<QuickSearchEntity> list = new ArrayList<>();
+		Set<String> set = entity.getQuickSearchItems().stream().map(item->item.getId()).distinct().collect(Collectors.toSet());
+		for (String key:oldQuickSearchMap.keySet()) {
+			if (set.contains(key)==false) {
+				list.add(oldQuickSearchMap.get(key));
+			}
+		}
+		return list;
 	}
 
 	//设置列表功能
@@ -428,19 +485,19 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 	}
 
 	@Transactional(readOnly = false)
-	protected ListModelEntity doUpdate(ListModelEntity entity, Set<String> deletedSortItemIds, Set<String> searchItemIds, Set<String> deletedFunctionIds,
-									   Set<String> deleteQuickSearchItemIds) {
-		if (deletedSortItemIds.size() > 0) {
-			sortItemManager.deleteById(deletedSortItemIds.toArray(new String[] {}));
+	protected ListModelEntity doUpdate(ListModelEntity entity, List<ListSortItem> deletedSortItems, List<ListSearchItem> deletedSearchItems,
+									   List<ListFunction> deletedFunctions, List<QuickSearchEntity> deleteQuickSearchItems) {
+		if (deletedSortItems.size() > 0) {
+			sortItemManager.delete(deletedSortItems.toArray(new ListSortItem[]{}));
 		}
-		if (searchItemIds.size() > 0) {
-			searchItemManager.deleteById(searchItemIds.toArray(new String[] {}));
+		if (deletedSearchItems.size() > 0) {
+			searchItemManager.delete(deletedSearchItems.toArray(new ListSearchItem[] {}));
 		}
-		if (deletedFunctionIds.size() > 0) {
-			listFunctionManager.deleteById(deletedFunctionIds.toArray(new String[] {}));
+		if (deletedFunctions.size() > 0) {
+			listFunctionManager.delete(deletedFunctions.toArray(new ListFunction[] {}));
 		}
-		if (deleteQuickSearchItemIds.size() > 0) {
-			quickSearchEntityManager.deleteById(deleteQuickSearchItemIds.toArray(new String[]{}));
+		if (deleteQuickSearchItems.size() > 0) {
+			quickSearchEntityManager.delete(deleteQuickSearchItems.toArray(new QuickSearchEntity[]{}));
 		}
 		return super.save(entity);
 	}
@@ -724,10 +781,10 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
                 }
                 listFunction.setListModel(listModelEntity);
                 listFunction.setOrderNo(++i);
-                assemblyFunction(listFunction, function);
                 functions.add(listFunction);
             }
-            listModelEntity.setFunctions(functions);
+			assemblyFunction(listModelEntity, functions, listModel.getFunctions());
+			listModelEntity.setFunctions(functions);
 		}
 
         if (listModel.getQuickSearchItems() !=null) {
@@ -761,18 +818,87 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
         return listModelEntity;
     }
 
-    private void assemblyFunction(ListFunction listFunction, FunctionModel model) {
+	private void assemblyFunction(ListModelEntity listModelEntity, List<ListFunction> listFunctions, List<FunctionModel> functionModels) {
+		FormModelEntity formModelEntity = formModelService.find(listModelEntity.getMasterForm().getId());
+		Map<String, ItemModelEntity> itemModelEntities = exportDataService.eachHasColumnItemModel(formModelEntity.getItems()).stream().distinct().collect(Collectors.toMap(ItemModelEntity::getId, i ->i));
+		Map<String, ListFunction> listFunctionMap = toMap(listFunctions, ListFunction::getAction);
+		Map<String, FunctionModel> functionModelMap = toMap(functionModels, FunctionModel::getAction);
 
-		if ( DefaultFunctionType.Export.getValue().contains(model.getAction()) ) {
-			ExportFunctionModel exportModel = Optional.ofNullable(model.getExportFunction()).orElseThrow(() -> new ICityException("导出功能按钮没有传入相关设置数据"));
-			ExportListFunction exportFunction = new ExportListFunction();
-			exportFunction.setControl(exportModel.getControl());
-			exportFunction.setFormat(exportModel.getFormat());
-			exportFunction.setType(exportModel.getType());
-			exportFunction.setCustomExport(String.join(",", exportModel.getCustomExport()));
-			listFunction.setExportFunction(exportFunction);
+		BiConsumer<String, ThreeConsumer<Map<String, ItemModelEntity>, ListFunction, FunctionModel>> assemblyConsumer =
+				( action, assemblyFunction ) -> {
+					if (listFunctionMap.containsKey(action) && functionModelMap.containsKey(action)) {
+						assemblyFunction.accept(itemModelEntities, listFunctionMap.get(action), functionModelMap.get(action));
+					}else if (!listFunctionMap.containsKey(action)) {
+						// 当目前功能按钮中不包含对应action的功能
+						ListFunction listFunction = ExportListFunctionUtils.generateListFunction(ExportListFunctionUtils.FunctionsType.valueOfName(action));
+						if (functionModelMap.containsKey(action)) {
+							// 如果前端有传
+							assemblyFunction.accept(itemModelEntities, listFunction, functionModelMap.get(action));
+						}
+						listFunctions.add(listFunction);
+					}
+				};
+
+		// 如果不包含这两个功能, 则需要初始化功能数据
+		if (!listFunctionMap.containsKey(DefaultFunctionType.TemplateDownload.getValue()) && !listFunctionMap.containsKey(DefaultFunctionType.Import.getValue())) {
+			assemblyItemModelEntityImportFunction(itemModelEntities.values());
 		}
-    }
+
+		assemblyConsumer.accept(DefaultFunctionType.Export.getValue(), this::assemblyExportFunction);
+		assemblyConsumer.accept(DefaultFunctionType.TemplateDownload.getValue(), this::assemblyTemplateDownloadFunction);
+		assemblyConsumer.accept(DefaultFunctionType.Import.getValue(), this::assemblyImportFunction);
+
+		listModelEntity.setMasterForm(formModelEntity);
+
+	}
+
+	private void assemblyItemModelEntityImportFunction(Collection<ItemModelEntity> entities) {
+		entities.forEach(item -> {
+			item.setTemplateSelected(false);
+			item.setTemplateName(item.getName());
+			item.setDataImported(false);
+			item.setMatchKey(false);
+		});
+		entities.stream().filter(item -> "id".equals(item.getName()))
+				.findAny()
+				.ifPresent(item -> item.setMatchKey(true));
+	}
+
+	private void assemblyExportFunction(Map<String, ItemModelEntity> itemModelEntities, ListFunction listFunction, FunctionModel model) {
+		ExportFunctionModel exportModel = Optional.ofNullable(model.getExportFunction()).orElseThrow(() -> new ICityException("导出功能按钮没有传入相关设置数据"));
+		ExportListFunction exportFunction = new ExportListFunction();
+		exportFunction.setControl(exportModel.getControl());
+		exportFunction.setFormat(exportModel.getFormat());
+		exportFunction.setType(exportModel.getType());
+		exportFunction.setCustomExport(String.join(",", exportModel.getCustomExport()));
+		listFunction.setExportFunction(exportFunction);
+	}
+
+	private void assemblyTemplateDownloadFunction(Map<String, ItemModelEntity> itemModelEntities, ListFunction listFunction, FunctionModel model) {
+		model.getTemplateItemModels()
+				.forEach(tModel -> {
+					ItemModelEntity itemEntity = itemModelEntities.get(tModel.getId());
+					itemEntity.setTemplateName(tModel.getTemplateName());
+					itemEntity.setTemplateSelected(tModel.isSelected());
+				});
+	}
+
+	private void assemblyImportFunction(Map<String, ItemModelEntity> itemModelEntities, ListFunction listFunction, FunctionModel model) {
+		ImportFunctionModel importModel = Optional.ofNullable(model.getImportFunction()).orElseThrow(() -> new ICityException("导入功能按钮为传入相关设置"));
+		ImportBaseFunctionEntity importEntity = Optional.ofNullable(listFunction.getImportFunction()).orElseGet(ImportBaseFunctionEntity::new);
+		BeanCopiers.noConvertCopy(importModel, importEntity);
+		listFunction.setImportFunction(importEntity);
+		model.getImportFunction().getTemplateItemModels()
+				.forEach(iModel -> {
+					ItemModelEntity entity = itemModelEntities.get(iModel.getId());
+					entity.setMatchKey(iModel.isKey());
+					entity.setDataImported(iModel.isImported());
+				});
+	}
+
+	private <K, V> Map<K, V> toMap(List<V> list, Function<V, K> keyMapper) {
+		return list.stream().collect(Collectors.toMap(keyMapper, v -> v));
+	}
 
     @Override
     public ListModel toListModel(ListModelEntity listModelEntity) {
