@@ -761,6 +761,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 						model.setItemName(item.getName());
 						model.setSelected(item.isTemplateSelected());
 						model.setTemplateName(item.getTemplateName());
+						model.setExampleData(item.getExampleData());
 						return model;
 					}).collect(Collectors.toList());
 			functionModel.setTemplateItemModels(models);

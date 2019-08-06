@@ -9,11 +9,14 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.*;
 import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.xssf.usermodel.XSSFClientAnchor;
 import org.apache.poi.xssf.usermodel.XSSFDrawing;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -156,9 +159,9 @@ public class ExportUtils {
 		return map;
 	}
 
-	public static void outputColumn(List<List<Object>> list, Sheet sheet, int rowIndex) {
-		for (int i = 0; i < list.size(); i++) {// 循环插入多少行
-			Row row = sheet.createRow(rowIndex + i);
+	public static void outputColumn(List<List<Object>> list, Sheet sheet, int startIndex, BiConsumer<CellStyle, Font> cellConsumer){
+		for (int i = 0; i < list.size(); i++) {
+			Row row = sheet.createRow(startIndex + i);
 			List<Object> dataList = list.get(i);
 			for (int j = 0; j < dataList.size(); j++) {
 				Object obj = dataList.get(j);
@@ -166,8 +169,19 @@ public class ExportUtils {
 					continue;
 				}
 				createCell(row, j, obj);
+				if (cellConsumer != null) {
+					Cell cell = row.getCell(j);
+					cellConsumer.andThen( (style, font) -> {
+						style.setFont(font);
+						cell.setCellStyle(style);
+					}).accept(sheet.getWorkbook().createCellStyle(), sheet.getWorkbook().createFont());
+				}
 			}
 		}
+	}
+
+	public static void outputColumn(List<List<Object>> list, Sheet sheet, int rowIndex) {
+		outputColumn(list, sheet, rowIndex, null);
 	}
 
 	public static ByteArrayOutputStream getOutputStream(String url){

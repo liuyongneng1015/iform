@@ -60,6 +60,9 @@ public class FunctionModel extends NameEntity implements Comparable<FunctionMode
 	@ApiModelProperty(value ="隐藏条件", position = 21)
 	private String hideCondition;
 
+	@ApiModelProperty(value ="微服务调用", position = 21)
+	private Boolean invokeMicroService = false;
+
 	@ApiModelProperty(value = "导出功能设置, 当功能按钮为导出的时候必须要有", position = 22)
 	private ExportFunctionModel exportFunction;
 
@@ -227,6 +230,14 @@ public class FunctionModel extends NameEntity implements Comparable<FunctionMode
 
 	public void setHideCondition(String hideCondition) {
 		this.hideCondition = hideCondition;
+	}
+
+	public Boolean getInvokeMicroService() {
+		return invokeMicroService;
+	}
+
+	public void setInvokeMicroService(Boolean invokeMicroService) {
+		this.invokeMicroService = invokeMicroService;
 	}
 
 	public ExportFunctionModel getExportFunction() {
