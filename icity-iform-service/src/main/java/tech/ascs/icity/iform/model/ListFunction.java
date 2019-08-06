@@ -81,6 +81,9 @@ public class ListFunction extends JPAEntity implements Serializable {
 	// 隐藏条件
 	private String hideCondition;
 
+	// 调用微服务
+	private Boolean invokeMicroService = false;
+
 	@OneToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
 	@JoinColumn(name = "export_id")
 	private ExportListFunction exportFunction;
@@ -267,6 +270,14 @@ public class ListFunction extends JPAEntity implements Serializable {
 
 	public void setHideCondition(String hideCondition) {
 		this.hideCondition = hideCondition;
+	}
+
+	public Boolean getInvokeMicroService() {
+		return invokeMicroService;
+	}
+
+	public void setInvokeMicroService(Boolean invokeMicroService) {
+		this.invokeMicroService = invokeMicroService;
 	}
 
 	public ExportListFunction getExportFunction() {
