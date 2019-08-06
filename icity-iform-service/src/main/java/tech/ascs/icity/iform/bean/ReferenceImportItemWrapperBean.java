@@ -10,7 +10,7 @@ import java.util.List;
  * @author renjie
  * @since 0.7.3
  **/
-public class ImportItemWrapperBean {
+public class ReferenceImportItemWrapperBean {
 
     private String columnName;
 
@@ -24,7 +24,7 @@ public class ImportItemWrapperBean {
 
     private ListModelEntity listModelEntity;
 
-    public ImportItemWrapperBean(ItemModelEntity itemModelEntity) {
+    public ReferenceImportItemWrapperBean(ItemModelEntity itemModelEntity) {
         this.itemModelEntity = itemModelEntity;
         if (itemModelEntity instanceof ReferenceItemModelEntity) {
             ReferenceItemModelEntity referenceItemModelEntity = (ReferenceItemModelEntity) itemModelEntity;

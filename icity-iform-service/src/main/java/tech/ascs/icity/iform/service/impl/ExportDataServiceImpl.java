@@ -20,10 +20,14 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import tech.ascs.icity.ICityException;
+import tech.ascs.icity.admin.api.model.TreeSelectData;
+import tech.ascs.icity.admin.api.service.GroupService;
 import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.api.model.export.ExportControl;
 import tech.ascs.icity.iform.api.model.export.ImportType;
-import tech.ascs.icity.iform.bean.ImportItemWrapperBean;
+import tech.ascs.icity.iform.api.service.DictionaryModelDataService;
+import tech.ascs.icity.iform.bean.ReferenceImportItemWrapperBean;
+import tech.ascs.icity.iform.bean.SelectImportItemWrapperBean;
 import tech.ascs.icity.iform.function.ExcelRowMapper;
 import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.*;
@@ -35,9 +39,6 @@ import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -69,6 +70,15 @@ public class ExportDataServiceImpl extends DefaultJPAService<ListModelEntity> im
 
     @Autowired
     private ListModelService listModelService;
+
+    @Autowired
+    private tech.ascs.icity.iform.api.service.DictionaryDataService dictionaryDataService;
+
+    @Autowired
+    private DictionaryModelDataService dictionaryModelDataService;
+
+    @Autowired
+    private GroupService groupService;
 
     private final String SPLIT_CHAR = ";";
 
@@ -245,18 +255,148 @@ public class ExportDataServiceImpl extends DefaultJPAService<ListModelEntity> im
         Map<String, Map<String, Object>> importMappingData = toMapping(keyEntitys, importData);
         Map<String, Map<String, Object>> currentMappingData = toMapping(keyEntitys, currentData);
 
-        //TODO 下拉框等数据转换
         return ImportDataComputer.getInstance(functionEntity.getType())
                 .andThen(datas -> handleRefItemsCol(importItems, datas, currentMappingData, session))
+                .andThen(datas -> parseSelectItemsCol(importItems, datas, session))
                 .apply(importMappingData, currentMappingData);
     }
 
+    private List<Map<String, Object>> parseSelectItemsCol(List<ItemModelEntity> items, List<Map<String, Object>> datas, Session session) {
+        Map<String, SelectImportItemWrapperBean> wrapperBeanMap = items.stream()
+                .filter(item -> item instanceof SelectItemModelEntity || item instanceof TreeSelectItemModelEntity)
+                .map(SelectImportItemWrapperBean::new)
+                .collect(Collectors.toMap(SelectImportItemWrapperBean::getColumnName, t -> t));
+
+        Map<String, Map<String, String>> colToDataMap = wrapperBeanMap.entrySet().stream()
+                .map(entry -> {
+                    SelectImportItemWrapperBean bean = entry.getValue();
+                    Map<String, Map<String, String>> result = new HashMap<>();
+                    if (bean.isTree()) {
+                        result.put(entry.getKey(), parseTreeSelectItemModelData(bean));
+                    } else {
+                        result.put(entry.getKey(), parseSelectItemModelData(bean));
+                    }
+                    return result;
+                }).reduce(Reducers::reduceMap)
+                .orElseThrow(() -> new ICityException("获取当前的关联的值失败"));
+
+        datas.forEach(data -> colToDataMap.forEach((col, dictData) -> {
+                    Object displayValue = data.get(col);
+                    if (displayValue instanceof String) {
+                        SelectImportItemWrapperBean bean = wrapperBeanMap.get(col);
+                        List<String> values;
+                        if (bean.isMultiple()) {
+                            values = Arrays.asList(Objects.toString(displayValue).split(";"));
+                        } else {
+                            values = Collections.singletonList(Objects.toString(displayValue));
+                        }
+                        StringJoiner joiner = new StringJoiner(",");
+                        for (String value : values) {
+                            if (!dictData.containsKey(value)) {
+                                throw new ICityException("对应的关联数据中找不到值[" + value + "]");
+                            }
+                            joiner.add(dictData.get(value));
+                        }
+                        data.put(col, joiner.toString());
+                    }
+                }
+        ));
+
+        return datas;
+    }
+
+    private Map<String, String> parseTreeSelectItemModelData(SelectImportItemWrapperBean bean) {
+        TreeSelectItemModelEntity treeSelectItemModelEntity = (TreeSelectItemModelEntity) bean.getItemModelEntity();
+        String dataRange = treeSelectItemModelEntity.getDataRange();
+        String referenceDictionaryId = treeSelectItemModelEntity.getReferenceDictionaryId();
+        TreeSelectDataSource dataSource = treeSelectItemModelEntity.getDataSource();
+        switch (dataSource) {
+            case Role:
+            case Position:
+            case Department:
+            case Personnel:
+            case PositionIdentify:
+            case DictionaryData:
+                List<TreeSelectData> treeData = groupService.getTreeSelectDataSource(dataSource.getValue(), dataRange, treeSelectItemModelEntity.getDataDepth(), treeSelectItemModelEntity.getReferenceDictionaryId());
+                return eachTreeData(treeData);
+            case DictionaryModel:
+                List<DictionaryModelData> modelItems = dictionaryModelDataService.findFirstItems(referenceDictionaryId, dataRange);
+                return eachDictionaryModelData(modelItems);
+            default:
+                return Collections.emptyMap();
+        }
+    }
+
+    /**
+     * label -- id的map
+     */
+    private Map<String, String> parseSelectItemModelData(SelectImportItemWrapperBean bean) {
+        SelectItemModelEntity selectItemModelEntity = (SelectItemModelEntity) bean.getItemModelEntity();
+        if (selectItemModelEntity.getSelectDataSourceType() == SelectDataSourceType.Option) {
+            //固定值
+            return selectItemModelEntity.getOptions().stream().map(option -> {
+                Map<String, String> result = new HashMap<>();
+                result.put(option.getLabel(), option.getId());
+                return result;
+            }).reduce(Reducers::reduceMap).orElseThrow(() -> new ICityException("计算出错"));
+        } else if (selectItemModelEntity.getSelectDataSourceType() == SelectDataSourceType.DictionaryData) {
+            //系统代码
+            String referenceDictionaryId = selectItemModelEntity.getReferenceDictionaryId();
+            String referenceDictionaryItemId = selectItemModelEntity.getReferenceDictionaryItemId();
+            List<DictionaryDataItemModel> modelItems = dictionaryDataService.findItems(referenceDictionaryId, referenceDictionaryItemId, null, false);
+            return eachDictionaryData(modelItems);
+        } else if (selectItemModelEntity.getSelectDataSourceType() == SelectDataSourceType.DictionaryModel) {
+            //字典建模
+            String referenceDictionaryId = selectItemModelEntity.getReferenceDictionaryId();
+            String referenceDictionaryItemId = selectItemModelEntity.getReferenceDictionaryItemId();
+            List<DictionaryModelData> modelItems = dictionaryModelDataService.findFirstItems(referenceDictionaryId, referenceDictionaryItemId);
+            return eachDictionaryModelData(modelItems);
+        }
+        return Collections.emptyMap();
+    }
+
+    private Map<String, String> eachDictionaryData(List<DictionaryDataItemModel> models) {
+        Map<String, String> result = new HashMap<>();
+        for (DictionaryDataItemModel model : models) {
+            result.put(model.getName(), model.getId());
+            if (model.getResources() != null && model.getResources().size() > 0) {
+                result.putAll(eachDictionaryData(model.getResources()));
+            }
+        }
+        return result;
+    }
+
+    private Map<String, String> eachDictionaryModelData(List<DictionaryModelData> models) {
+        Map<String, String> result = new HashMap<>();
+        for (DictionaryModelData model : models) {
+            result.put(model.getName(), model.getId());
+            if (model.getResources() != null && model.getResources().size() > 0) {
+                result.putAll(eachDictionaryModelData(model.getResources()));
+            }
+        }
+        return result;
+    }
+
+    private Map<String, String> eachTreeData(List<TreeSelectData> datas) {
+        Map<String, String> result = new HashMap<>();
+        for (TreeSelectData data : datas) {
+            result.put(data.getName(), data.getId());
+            if (data.getChildren() != null && data.getChildren().size() > 0) {
+                result.putAll(eachTreeData(data.getChildren()));
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 处理 关联控件, 将关联控件转换为对应的jpa map
+     */
     private List<Map<String, Object>> handleRefItemsCol(List<ItemModelEntity> importItems, List<Map<String, Object>> datas, Map<String, Map<String, Object>> dbMappingData, Session session) {
         List<ItemModelEntity> keyEntitys = importItems.stream().filter(ItemModelEntity::isMatchKey).collect(Collectors.toList());
 
-        Map<String, ImportItemWrapperBean> wrapperMapping = importItems.stream()
+        Map<String, ReferenceImportItemWrapperBean> wrapperMapping = importItems.stream()
                 .filter(this::hasRefDataItem)
-                .map(ImportItemWrapperBean::new)
+                .map(ReferenceImportItemWrapperBean::new)
                 .collect(HashMap::new, (m, b) -> m.put(b.getColumnName(), b), HashMap::putAll);
 
         // 字段名和对应的映射数据的map
@@ -281,7 +421,7 @@ public class ExportDataServiceImpl extends DefaultJPAService<ListModelEntity> im
                         targetDatas.add(targetData);
                     }
                     data.put(colName, targetDatas);
-                }else {
+                } else {
                     Map targetData = toJpaData(session, bean, colNameToDataMapping.get(colName), Objects.toString(displayValue));
                     if (wrapperMapping.get(colName).getReferenceType() == ReferenceType.OneToOne
                             && diffWithDatabaseMapping.stream().anyMatch(curData -> targetData.equals(curData.get(colName)))
@@ -314,7 +454,7 @@ public class ExportDataServiceImpl extends DefaultJPAService<ListModelEntity> im
     /**
      * 根据把表格数据转换为对应的Jpa Map
      */
-    private Map toJpaData(Session session, ImportItemWrapperBean bean, List<HashMap> datas, String cellData){
+    private Map toJpaData(Session session, ReferenceImportItemWrapperBean bean, List<HashMap> datas, String cellData) {
         BiFunction<Object, Object, RuntimeException> throwableBiFunction = (value, tableName) -> new ICityException("[" + value + "]无法在对应关联表[" + tableName + "]中找到目标数据标识");
         FormDataSaveInstance instance = findInstance(datas, cellData).orElseThrow(() -> throwableBiFunction.apply(cellData, bean.getDataModel().getTableName()));
         return (Map) session.load(bean.getDataModel().getTableName(), instance.getId());
@@ -324,7 +464,7 @@ public class ExportDataServiceImpl extends DefaultJPAService<ListModelEntity> im
         return datas.stream().collect(Collectors.toMap(m -> computeKey(keyEntitys, m), m -> m));
     }
 
-    private Map<String, List<HashMap>> wrapperBeanToFormData(String key, ImportItemWrapperBean bean) {
+    private Map<String, List<HashMap>> wrapperBeanToFormData(String key, ReferenceImportItemWrapperBean bean) {
         Stream<ListModelEntity> listStream;
         if (bean.getListModelEntity() != null) {
             listStream = Stream.of(bean.getListModelEntity());
