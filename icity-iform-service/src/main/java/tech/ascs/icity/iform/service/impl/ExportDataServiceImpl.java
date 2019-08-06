@@ -35,7 +35,6 @@ import tech.ascs.icity.iform.support.IFormSessionFactoryBuilder;
 import tech.ascs.icity.iform.utils.*;
 import tech.ascs.icity.jpa.dao.model.BaseEntity;
 import tech.ascs.icity.jpa.dao.model.JPAEntity;
-import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -51,7 +50,7 @@ import java.util.stream.Stream;
  * @since 0.7.3
  **/
 @Service
-public class ExportDataServiceImpl extends DefaultJPAService<ListModelEntity> implements ExportDataService {
+public class ExportDataServiceImpl implements ExportDataService {
 
     @Autowired
     private ItemModelService itemModelService;
@@ -95,11 +94,6 @@ public class ExportDataServiceImpl extends DefaultJPAService<ListModelEntity> im
         }
         return map;
     });
-
-    public ExportDataServiceImpl() {
-        super(ListModelEntity.class);
-    }
-
 
     @Override
     public Resource exportData(ListModelEntity entity, ExportListFunction function, List<FormDataSaveInstance> datas, Map<String, Object> queryParams) {
@@ -469,7 +463,7 @@ public class ExportDataServiceImpl extends DefaultJPAService<ListModelEntity> im
         if (bean.getListModelEntity() != null) {
             listStream = Stream.of(bean.getListModelEntity());
         } else {
-            listStream = listModelService.findListIdByTableName(bean.getDataModel().getTableName()).stream().map(this::find);
+            listStream = listModelService.findListIdByTableName(bean.getDataModel().getTableName()).stream().map(listModelService::find);
         }
         // 调用 listModelService.findListIdByTableName 的方法, 获取List<FormDataSaveInstance>, 然后转换成 List<Map<String, FormDataSaveInstance>>, map的key为label值
         List<HashMap> dataMapping = listStream
