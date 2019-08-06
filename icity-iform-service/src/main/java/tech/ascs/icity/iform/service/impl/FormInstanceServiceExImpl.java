@@ -4047,6 +4047,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			for (ItemSelectOption option : selectItemModelEntity.getOptions()) {
 				if (list.contains(option.getId())) {
 					SelectItemModelValue selectItemModelValue = new SelectItemModelValue();
+					selectItemModelValue.setName(option.getLabel());
 					selectItemModelValue.setCode(option.getValue());
 					selectItemModelValue.setDescription(option.getLabel());
 					displayObjectList.add(selectItemModelValue);
