@@ -16,7 +16,7 @@
             <#if column.columnName != 'id' &&  (!column.columnReferences?? || (column.columnReferences?size < 1)) >
                 <#if column.columnName = 'master_id' >
                 <#elseif column.columnName = 'process_instance'>
-                    <many-to-one name="processInstance" column="process_instance" entity-name="ProcessInstance" lazy="false" fetch="select"/>
+                    <many-to-one name="processInstance" column="process_instance" entity-name="ProcessInstance" lazy="false" fetch="select" not-found="ignore"/>
                 <#else>
                     <property name="${column.columnName!''}" type="${column.dataType?lower_case}">
                         <column name="${column.prefix!''}${column.columnName!''}" <#if column.defaultValue ??> default="${column.defaultValue!'null'}" </#if>  not-null="${(column.notNull!false)?c}" length="<#if !column.length ?? || column.length = 0>255<#else >${column.length?c}</#if>" precision="<#if !column.precision ?? || column.precision = 0>255<#else >${column.precision}</#if>" <#if column.dataType?? && column.dataType.value ?? && (column.dataType.value ="Integer" || column.dataType.value = "Long" || column.dataType.value = "Float" || column.dataType.value = "Double")> scale="${column.scale!0}"</#if>>
@@ -70,7 +70,7 @@
             <#if column.columnName != 'id' &&  (!column.columnReferences?? || (column.columnReferences?size < 1)) >
                 <#if column.columnName ?? && column.columnName = "master_id">
                 <#elseif column.columnName = 'process_instance'>
-                    <many-to-one name="processInstance" column="process_instance" entity-name="ProcessInstance"  lazy="false" fetch="select"/>
+                    <many-to-one name="processInstance" column="process_instance" entity-name="ProcessInstance"  lazy="false" fetch="select" not-found="ignore"/>
                 <#else >
                     <property name="${column.columnName!''}" type="${column.dataType?lower_case}">
                         <column name="${column.prefix!''}${column.columnName!''}" <#if column.defaultValue ??> default="${column.defaultValue!'null'}" </#if> not-null="${(column.notNull!false)?c}" length="<#if !column.length ?? || column.length = 0>255<#else >${column.length?c}</#if>" precision="<#if !column.precision ?? || column.precision = 0>255<#else >${column.precision}</#if>" <#if column.dataType?? && column.dataType.value ?? && (column.dataType.value ="Integer" || column.dataType.value = "Long" || column.dataType.value = "Float" || column.dataType.value = "Double")> scale="${column.scale!0}"</#if>>
@@ -188,7 +188,7 @@
         <property name="taskDefKey" type="string">
             <column name="task_def_key_" not-null="false" length="255"/>
         </property>
-        <many-to-one name="processInstance" column="proc_inst_id_" entity-name="ProcessInstance" lazy="false" fetch="select" />
+        <many-to-one name="processInstance" column="proc_inst_id_" entity-name="ProcessInstance" lazy="false" fetch="select" not-found="ignore"/>
         <property name="createTime" type="timestamp">
             <column name="create_time_" not-null="false" sql-type="timestamptz"/>
         </property>
@@ -217,7 +217,7 @@
         <property name="taskDefKey" type="string">
             <column name="task_def_key_" not-null="false" length="255"/>
         </property>
-        <many-to-one name="processInstance" column="proc_inst_id_" entity-name="ProcessInstance" lazy="false" fetch="select"/>
+        <many-to-one name="processInstance" column="proc_inst_id_" entity-name="ProcessInstance" lazy="false" fetch="select" not-found="ignore"/>
         <property name="startTime" type="timestamp">
             <column name="start_time_" not-null="true" sql-type="timestamptz"/>
         </property>
