@@ -755,13 +755,23 @@ public class ItemModelServiceImpl extends DefaultJPAService<ItemModelEntity> imp
 		if(StringUtils.hasText(defaultValue) && (entity.getType() == ItemType.CheckboxGroup
 				||entity.getType() == ItemType.RadioGroup ||entity.getType() == ItemType.Select)) {
 			List<String> list = Arrays.asList(defaultValue.split(","));
-			itemModel.setDefaultValue(list);
-			itemModel.setDefaultValueName(formInstanceServiceEx.setSelectItemDisplayValue(null, (SelectItemModelEntity) entity, list));
+			List<String> resultList = formInstanceServiceEx.setSelectItemDisplayValue(null, (SelectItemModelEntity) entity, list);
+			// 如果字典表的数据被删掉，清空下拉框的默认值
+			if (resultList==null || resultList.size()==0) {
+				itemModel.setDefaultValue(new ArrayList<>());
+				itemModel.setDefaultValueName(new ArrayList<>());
+			} else {
+				itemModel.setDefaultValue(list);
+				itemModel.setDefaultValueName(resultList);
+			}
 		}else if(StringUtils.hasText(defaultValue)){
-			itemModel.setDefaultValue(defaultValue);
 			List<String> list = new ArrayList<>();
 			list.add(defaultValue);
-			itemModel.setDefaultValueName(formInstanceServiceEx.setSelectItemDisplayValue(null, (SelectItemModelEntity) entity, list));
+			List<String> resultList = formInstanceServiceEx.setSelectItemDisplayValue(null, (SelectItemModelEntity) entity, list);
+			if (resultList!=null && resultList.size()>0) {
+				itemModel.setDefaultValue(defaultValue);
+				itemModel.setDefaultValueName(resultList);
+			}
 		}
 		if(entity.getOptions() != null && entity.getOptions().size() > 0){
 			List<String> defaultList = new ArrayList<>();
