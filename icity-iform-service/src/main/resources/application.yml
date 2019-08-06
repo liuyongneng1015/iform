@@ -3,7 +3,7 @@ server:
 
 #spring.profiles.active: ns
 
-spring.application.name: iform_testdsfa
+spring.application.name: iform_test
 
 info:
   app:

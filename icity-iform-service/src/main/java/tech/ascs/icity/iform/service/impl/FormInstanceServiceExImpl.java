@@ -3702,7 +3702,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 								}
 								Map<String, Boolean> keyMap = getReferenceMap(referenceItemModelEntity.getParentItem(), toModelEntity);
 								Map<String, Object> mapData = (Map<String, Object>)map.get(new ArrayList<>(keyMap.keySet()).get(0));
-								if(itemModelEntity1 != null ){
+								if(itemModelEntity1 != null && mapData != null){
 									if(itemModelEntity1.getColumnModel() != null) {
 										itemInstance.setDisplayValue(mapData.get(itemModelEntity1.getColumnModel().getColumnName()));
 									}
@@ -3714,7 +3714,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 								}
 								Map<String, Boolean> keyMap = getReferenceMap(referenceItemModelEntity, toModelEntity);
 								List<String> stringList  = new ArrayList<>(Arrays.asList(toModelEntity.getItemModelIds().split(",")));
-								ReferenceDataInstance referenceDataInstance = createReferenceDataInstance((Map<String, Object>)map.get(new ArrayList<>(keyMap.keySet()).get(0)), false, referenceItemModelEntity, toModelEntity, String.valueOf(map.get("id")), stringList, false);
+								Map<String, Object> dataMap = (Map<String, Object>)map.get(new ArrayList<>(keyMap.keySet()).get(0));
+								ReferenceDataInstance referenceDataInstance = createReferenceDataInstance(dataMap, false, referenceItemModelEntity, toModelEntity, String.valueOf(dataMap.get("id")), stringList, false);
 								if (referenceDataInstance != null && referenceDataInstance.getValue() != null) {
 									itemInstance.setValue(String.valueOf(referenceDataInstance.getValue()));
 									itemInstance.setDisplayValue(String.valueOf(referenceDataInstance.getDisplayValue()));
