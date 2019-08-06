@@ -82,7 +82,7 @@
             <#list column.columnReferences as reference>
                 <#if reference.referenceType.value = "OneToOne">
                     <#if column.columnName != "id">
-                         <many-to-one name="${column.columnName!''}" entity-name="${reference.toColumn.dataModel.tableName!''}" column="${column.columnName!''}" cascade="all" unique="true"  lazy="false" fetch="select"  not-found="ignore"/>
+                         <many-to-one name="${column.columnName!''}" entity-name="${reference.toColumn.dataModel.tableName!''}" column="${column.columnName!''}"  cascade="save-update" unique="true"  lazy="false" fetch="select"  not-found="ignore"/>
                     <#else >
                         <one-to-one name="${reference.toColumn.dataModel.tableName!''}_${reference.toColumn.columnName!''}_list" entity-name="${reference.toColumn.dataModel.tableName!''}" <#if reference.toColumn.columnName != "id">  property-ref="${reference.toColumn.columnName!''}"</#if> constrained="true"  lazy="false" fetch="select"  />
                     </#if>
@@ -129,7 +129,7 @@
                     <#list column.columnReferences as reference>
                         <#if reference.referenceType.value = "OneToOne">
                             <#if column.columnName != "id">
-                                 <many-to-one name="${column.columnName!''}" entity-name="${reference.toColumn.dataModel.tableName!''}" column="${column.columnName!''}" cascade="all" unique="true"  lazy="false" fetch="select"  not-found="ignore"/>
+                                 <many-to-one name="${column.columnName!''}" entity-name="${reference.toColumn.dataModel.tableName!''}" column="${column.columnName!''}"  cascade="save-update" unique="true"  lazy="false" fetch="select"  not-found="ignore"/>
                             <#else >
                                 <one-to-one name="${reference.toColumn.dataModel.tableName!''}_${reference.toColumn.columnName!''}_list" entity-name="${reference.toColumn.dataModel.tableName!''}" <#if reference.toColumn.columnName != "id">  property-ref="${reference.toColumn.columnName!''}"</#if> constrained="true"  lazy="false" fetch="select"  />
                             </#if>
