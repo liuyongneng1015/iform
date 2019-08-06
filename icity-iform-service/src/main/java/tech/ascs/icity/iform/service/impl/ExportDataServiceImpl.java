@@ -23,6 +23,7 @@ import tech.ascs.icity.ICityException;
 import tech.ascs.icity.iform.api.model.*;
 import tech.ascs.icity.iform.api.model.export.ExportControl;
 import tech.ascs.icity.iform.api.model.export.ImportType;
+import tech.ascs.icity.iform.bean.ImportItemWrapperBean;
 import tech.ascs.icity.iform.function.ExcelRowMapper;
 import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.*;
@@ -30,6 +31,7 @@ import tech.ascs.icity.iform.support.IFormSessionFactoryBuilder;
 import tech.ascs.icity.iform.utils.*;
 import tech.ascs.icity.jpa.dao.model.BaseEntity;
 import tech.ascs.icity.jpa.dao.model.JPAEntity;
+import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -38,6 +40,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -47,7 +50,7 @@ import java.util.stream.Stream;
  * @since 0.7.3
  **/
 @Service
-public class ExportDataServiceImpl implements ExportDataService {
+public class ExportDataServiceImpl extends DefaultJPAService<ListModelEntity> implements ExportDataService {
 
     @Autowired
     private ItemModelService itemModelService;
@@ -67,8 +70,7 @@ public class ExportDataServiceImpl implements ExportDataService {
     @Autowired
     private ListModelService listModelService;
 
-    @Autowired
-    private tech.ascs.icity.iform.api.service.FormInstanceService formInstanceService;
+    private final String SPLIT_CHAR = ";";
 
     private ConversionService conversionService = new DefaultConversionService();
 
@@ -84,13 +86,17 @@ public class ExportDataServiceImpl implements ExportDataService {
         return map;
     });
 
+    public ExportDataServiceImpl() {
+        super(ListModelEntity.class);
+    }
+
 
     @Override
     public Resource exportData(ListModelEntity entity, ExportListFunction function, List<FormDataSaveInstance> datas, Map<String, Object> queryParams) {
 
         ExportControl exportControl = function.getControl();
 
-        List<String> header = ExportHeaderFactory.getInstance(exportControl).buildHeader(entity, function, queryParams);
+        List<String> header = ExportUtils.ExportHeaderFactory.getInstance(exportControl).buildHeader(entity, function, queryParams);
         Map<String, String> refIdToNameMapping = entity.getMasterForm().getItems().stream().filter(item -> Objects.nonNull(item.getName())).collect(Collectors.toMap(JPAEntity::getId, BaseEntity::getName));
 
         List<List<Object>> exportDatas = datas.stream()
@@ -119,7 +125,7 @@ public class ExportDataServiceImpl implements ExportDataService {
     public List<ItemModelEntity> eachHasColumnItemModel(List<ItemModelEntity> entitys) {
         return ItemModelHandlerUtils.eachItemEntity(entitys, Sets.newHashSet(ItemType.SubForm))
                 .stream()
-                .filter(item -> Objects.nonNull(item.getColumnModel()))
+                .filter(item -> Objects.nonNull(item.getColumnModel()) || item.getType() == ItemType.ReferenceList)
                 // fix 修复遍历可能会出现重复item的问题, 这个重复指的是 对象地址重复, 即是完全相同的一个item
                 .distinct()
                 .sorted(Comparator.comparing(ItemModelEntity::getOrderNo))
@@ -170,8 +176,11 @@ public class ExportDataServiceImpl implements ExportDataService {
         List<Map<String, Object>> datas = result.getResult().stream().map(data ->
                 result.getHeader().stream().map(header -> {
                     ItemModelEntity matchEntity = nameMapping.get(header);
+                    if (matchEntity == null) {
+                        return null;
+                    }
                     Object tmpD = data.get(header);
-                    ColumnTypeClass targetType = ColumnTypeClass.valueOf(matchEntity.getColumnModel().getDataType());
+                    ColumnTypeClass targetType = ColumnTypeClass.valueOf(Optional.of(matchEntity).map(ItemModelEntity::getColumnModel).map(ColumnModelEntity::getDataType).orElse(ColumnType.String));
                     if (matchEntity.getSystemItemType() == SystemItemType.TimePicker && matchEntity instanceof TimeItemModelEntity && tmpD instanceof Date) {
                         TimeItemModelEntity time = (TimeItemModelEntity) matchEntity;
                         String format = time.getTimeFormat();
@@ -179,9 +188,13 @@ public class ExportDataServiceImpl implements ExportDataService {
                     } else {
                         tmpD = conversionService.convert(tmpD, targetType.getClazz());
                     }
-                    String colName = matchEntity.getColumnModel().getColumnName();
+                    String colName = Optional.ofNullable(matchEntity.getColumnModel()).map(ColumnModelEntity::getColumnName)
+                            .orElseGet(() -> {
+                                ReferenceItemModelEntity refItem = (ReferenceItemModelEntity) matchEntity;
+                                return findReferenceListManyToManyColumnName(refItem);
+                            });
                     return Collections.singletonMap(colName, tmpD);
-                }).reduce(new HashMap<>(), Reducers::reduceMap)
+                }).filter(Objects::nonNull).reduce(new HashMap<>(32), Reducers::reduceMap)
         ).collect(Collectors.toList());
 
         FormModelEntity formModelEntity = listModelEntity.getMasterForm();
@@ -229,8 +242,8 @@ public class ExportDataServiceImpl implements ExportDataService {
         checkKeys(keyEntitys, currentData, () -> new ICityException("当前的key设置会导致数据库中的数据存在重复, 无法导入"));
         checkKeys(keyEntitys, importData, () -> new ICityException("当前的key设置导致导入数据中存在重复, 无法导入"));
 
-        Map<String, Map<String, Object>> importMappingData = importData.stream().collect(Collectors.toMap(m -> computeKey(keyEntitys, m), m -> m));
-        Map<String, Map<String, Object>> currentMappingData = currentData.stream().collect(Collectors.toMap(m -> computeKey(keyEntitys, m), m -> m));
+        Map<String, Map<String, Object>> importMappingData = toMapping(keyEntitys, importData);
+        Map<String, Map<String, Object>> currentMappingData = toMapping(keyEntitys, currentData);
 
         //TODO 下拉框等数据转换
         return ImportDataComputer.getInstance(functionEntity.getType())
@@ -238,53 +251,103 @@ public class ExportDataServiceImpl implements ExportDataService {
                 .apply(importMappingData, currentMappingData);
     }
 
-    private List<Map<String, Object>> handleRefItemsCol(List<ItemModelEntity> importItems, List<Map<String, Object>> datas, Map<String, Map<String, Object>> currentMappingData, Session session) {
-        // 找出所有的关联控件
-        Map<String, ColumnModelEntity> colNameToColEntityMapping = importItems.stream()
-                .map(ItemModelEntity::getColumnModel)
-                .filter(col -> col.getColumnReferences() != null && col.getColumnReferences().size() > 0)
-                .collect(Collectors.toMap(ColumnModelEntity::getColumnName, t -> t));
+    private List<Map<String, Object>> handleRefItemsCol(List<ItemModelEntity> importItems, List<Map<String, Object>> datas, Map<String, Map<String, Object>> dbMappingData, Session session) {
+        List<ItemModelEntity> keyEntitys = importItems.stream().filter(ItemModelEntity::isMatchKey).collect(Collectors.toList());
 
-        Map<String, DataModelEntity> colNameToDataModelMapping = colNameToColEntityMapping.values().stream()
-                .map(ColumnModelEntity::getColumnReferences)
-                .flatMap(Collection::stream)
-                .collect(HashMap::new, (m, col) -> m.put(col.getFromColumn().getColumnName(), col.getToColumn().getDataModel()), HashMap::putAll);
+        Map<String, ImportItemWrapperBean> wrapperMapping = importItems.stream()
+                .filter(this::hasRefDataItem)
+                .map(ImportItemWrapperBean::new)
+                .collect(HashMap::new, (m, b) -> m.put(b.getColumnName(), b), HashMap::putAll);
 
-        Map<String, List<HashMap>> colNameToDataMapping = colNameToDataModelMapping.entrySet()
-                .parallelStream()
-                .map(entry -> {
-                    List<HashMap> dataMapping = listModelService.findListIdByTableName(entry.getValue().getTableName()).stream().map(id -> formInstanceService.list(id, Collections.emptyMap()))
-                            .map(list -> list.stream().collect(HashMap::new, (m, i) -> m.put(i.getLabel(), i), HashMap::putAll))
-                            .collect(Collectors.toList());
-                    Map<String, List<HashMap>> result = new HashMap<>();
-                    result.put(entry.getKey(), dataMapping);
-                    return result;
-                }).reduce(Reducers::reduceMap)
+        // 字段名和对应的映射数据的map
+        Map<String, List<HashMap>> colNameToDataMapping = wrapperMapping.entrySet()
+                .stream()
+                .map(entry -> wrapperBeanToFormData(entry.getKey(), entry.getValue()))
+                .reduce(Reducers::reduceMap)
                 .orElseThrow(() -> new ICityException("计算出错"));
+        // 计算数据 备用
+        Map<String, Map<String, Object>> importMappingData = toMapping(keyEntitys, datas);
+        List<Map<String, Object>> diffWithDatabaseMapping = ImportDataComputer.getInstance(ImportType.SaveOnly).apply(dbMappingData, importMappingData);
 
-        datas.forEach(data -> colNameToDataModelMapping.forEach((colName, dataModel) -> {
+        //数据处理, 把有关联关系的字段, 根据数据标识转换为对应的Jpa entity, 并覆盖关联字段的内容
+        datas.forEach(data -> wrapperMapping.forEach((colName, bean) -> {
             Object displayValue = data.get(colName);
-            if (displayValue != null) {
-                colNameToDataMapping.get(colName).stream().filter(refData -> refData.containsKey(displayValue)).forEach(refData -> {
-                    FormDataSaveInstance instance = (FormDataSaveInstance) refData.get(displayValue);
-                    if (instance != null) {
-                        // TODO 分类处理???OneToOne, ManyToOne, OneToMany, ManyToMany
-                        Map targetData = (Map) session.load(dataModel.getTableName(), instance.getId());
-                        if (colNameToColEntityMapping.get(colName).getColumnReferences().get(0).getReferenceType() == ReferenceType.OneToOne && currentMappingData.values().stream().anyMatch(curData -> targetData.equals(curData.get(colName)))) {
-                            throw new ICityException("[" + displayValue + "]已经被引用");
-                        }
-                        data.put(colName, targetData);
+            if (displayValue instanceof String) {
+                // 当为多对多的时候, 需要对导入数据使用;分割
+                if (bean.getReferenceType() == ReferenceType.ManyToMany) {
+                    List<Object> targetDatas = new ArrayList<>();
+                    for (String value : Objects.toString(displayValue).split(SPLIT_CHAR)) {
+                        Map targetData = toJpaData(session, bean, colNameToDataMapping.get(colName), value);
+                        targetDatas.add(targetData);
                     }
-                });
-                if (displayValue.equals(data.get(colName))) {
-                    throw new ICityException("[" + displayValue + "]无法在对应关联表[" + dataModel.getTableName() + "]中找到目标数据标识");
+                    data.put(colName, targetDatas);
+                }else {
+                    Map targetData = toJpaData(session, bean, colNameToDataMapping.get(colName), Objects.toString(displayValue));
+                    if (wrapperMapping.get(colName).getReferenceType() == ReferenceType.OneToOne
+                            && diffWithDatabaseMapping.stream().anyMatch(curData -> targetData.equals(curData.get(colName)))
+                            && importMappingData.values().stream().anyMatch(curData -> targetData.equals(curData.get(colName)) || displayValue.equals(curData.get(colName)))) {
+                        throw new ICityException("[" + displayValue + "]已经被引用");
+                    }
+                    data.put(colName, targetData);
                 }
             }
         }));
-
         return datas;
     }
 
+    private Optional<FormDataSaveInstance> findInstance(List<HashMap> dataMapping, String value) {
+        return dataMapping.stream()
+                .filter(refData -> refData.containsKey(value))
+                .map(refData -> refData.get(value))
+                .map(obj -> (FormDataSaveInstance) obj)
+                .findAny();
+    }
+
+    private String findReferenceListManyToManyColumnName(ReferenceItemModelEntity referenceItemModelEntity) {
+        return referenceItemModelEntity.getReferenceList().getMasterForm().getDataModels().get(0).getTableName() + "_list";
+    }
+
+    private boolean hasRefDataItem(ItemModelEntity item) {
+        return item.getType() == ItemType.ReferenceList || (item.getColumnModel() != null && item.getColumnModel().getColumnReferences() != null && item.getColumnModel().getColumnReferences().size() > 0);
+    }
+
+    /**
+     * 根据把表格数据转换为对应的Jpa Map
+     */
+    private Map toJpaData(Session session, ImportItemWrapperBean bean, List<HashMap> datas, String cellData){
+        BiFunction<Object, Object, RuntimeException> throwableBiFunction = (value, tableName) -> new ICityException("[" + value + "]无法在对应关联表[" + tableName + "]中找到目标数据标识");
+        FormDataSaveInstance instance = findInstance(datas, cellData).orElseThrow(() -> throwableBiFunction.apply(cellData, bean.getDataModel().getTableName()));
+        return (Map) session.load(bean.getDataModel().getTableName(), instance.getId());
+    }
+
+    private Map<String, Map<String, Object>> toMapping(List<ItemModelEntity> keyEntitys, List<Map<String, Object>> datas) {
+        return datas.stream().collect(Collectors.toMap(m -> computeKey(keyEntitys, m), m -> m));
+    }
+
+    private Map<String, List<HashMap>> wrapperBeanToFormData(String key, ImportItemWrapperBean bean) {
+        Stream<ListModelEntity> listStream;
+        if (bean.getListModelEntity() != null) {
+            listStream = Stream.of(bean.getListModelEntity());
+        } else {
+            listStream = listModelService.findListIdByTableName(bean.getDataModel().getTableName()).stream().map(this::find);
+        }
+        // 调用 listModelService.findListIdByTableName 的方法, 获取List<FormDataSaveInstance>, 然后转换成 List<Map<String, FormDataSaveInstance>>, map的key为label值
+        List<HashMap> dataMapping = listStream
+                .map(listModel -> formInstanceServiceEx.pageListInstance(listModel, 1, Integer.MAX_VALUE, Collections.emptyMap()).getResults())
+                .map(list -> list.stream().collect(HashMap::new, (m, i) -> m.put(i.getLabel(), i), HashMap::putAll))
+                .collect(Collectors.toList());
+        Map<String, List<HashMap>> result = new HashMap<>(16);
+        result.put(key, dataMapping);
+        return result;
+    }
+
+    /**
+     * 检查是否存在重复的key
+     *
+     * @param keys              作为key的控件
+     * @param datas             数据
+     * @param throwableSupplier 当发现重复的时候抛出的异常
+     */
     private void checkKeys(List<ItemModelEntity> keys, List<Map<String, Object>> datas, Supplier<ICityException> throwableSupplier) {
         boolean hasRepeat = datas.stream()
                 .map(data -> computeKey(keys, data))
@@ -297,6 +360,13 @@ public class ExportDataServiceImpl implements ExportDataService {
         }
     }
 
+    /**
+     * 根据key控件和给定数据, 计算出当前数据的key
+     *
+     * @param keys key控件
+     * @param data 当前数据
+     * @return 返回key
+     */
     private String computeKey(List<ItemModelEntity> keys, Map<String, Object> data) {
         StringBuilder builder = new StringBuilder();
         for (ItemModelEntity key : keys) {
@@ -305,6 +375,9 @@ public class ExportDataServiceImpl implements ExportDataService {
         return builder.toString();
     }
 
+    /**
+     * copy from {@link FormInstanceServiceExImpl#getSession(DataModelEntity)}
+     */
     private Session getSession(DataModelEntity dataModel) {
         SessionFactory sessionFactory = null;
         try {
@@ -315,6 +388,14 @@ public class ExportDataServiceImpl implements ExportDataService {
         return sessionFactory == null ? null : sessionFactory.openSession();
     }
 
+    /**
+     * 导出pdf资源
+     *
+     * @param title       标题
+     * @param header      表格头
+     * @param exportDatas 表格数据
+     * @return 返回pdf资源
+     */
     private Resource exportPdf(String title, List<String> header, List<List<Object>> exportDatas) {
         try {
             List<List<String>> stringDatas = exportDatas.stream().map(list -> list.stream().map(Objects::toString).collect(Collectors.toList())).collect(Collectors.toList());
@@ -328,6 +409,15 @@ public class ExportDataServiceImpl implements ExportDataService {
         }
     }
 
+    /**
+     * 导出excel的资源
+     *
+     * @param sheetName   第一页的sheet页的名称
+     * @param header      标题头
+     * @param exportDatas 导出的数据
+     * @param cellStyle   单元格格式 可以为null
+     * @return 返回excel的资源
+     */
     private Resource exportExcel(String sheetName, List<String> header, List<List<Object>> exportDatas, BiConsumer<CellStyle, Font> cellStyle) {
         Workbook wb = new XSSFWorkbook();
         Sheet sheet = wb.createSheet(sheetName);
@@ -379,135 +469,5 @@ public class ExportDataServiceImpl implements ExportDataService {
         }
     }
 
-    /**
-     * ItemModelEntity 的处理工具类
-     * <ul>
-     * <li>
-     * 遍历出所有的ItemModelEntity
-     * </li>
-     * </ul>
-     */
-    private static class ItemModelHandlerUtils {
-
-        public static List<ItemModelEntity> eachItemEntity(List<ItemModelEntity> entitys, Set<ItemType> ignoreTypes) {
-            List<ItemModelEntity> result = new ArrayList<>();
-            for (ItemModelEntity entity : entitys) {
-                // 如果包含不遍历的控件类型, 则跳过
-                if (!ignoreTypes.isEmpty() && ignoreTypes.contains(entity.getType())) {
-                    continue;
-                }
-                for (Field field : entity.getClass().getDeclaredFields()) {
-                    // 处理 List<ItemModelEntity> 的Field 执行递归
-                    if (Collection.class.isAssignableFrom(field.getType())) {
-                        Type type = field.getGenericType();
-                        if (type instanceof ParameterizedType) {
-                            ParameterizedType parameterizedType = (ParameterizedType) type;
-                            if (ItemModelEntity.class.isAssignableFrom((Class<?>) parameterizedType.getActualTypeArguments()[0])) {
-                                // 递归遍历
-                                List<ItemModelEntity> modelEntities = eachItemEntity(getFieldValue(field, entity, List.class), ignoreTypes);
-                                if (modelEntities == null || modelEntities.size() == 0) {
-                                    continue;
-                                }
-                                result.addAll(modelEntities);
-                            }
-                        }
-                    }
-                }
-                result.add(entity);
-            }
-            return result;
-        }
-
-        /**
-         * 遍历出所有ItemModelEntity
-         *
-         * @param entitys 需要遍历的ItemModelEntity
-         * @return 返回遍历后的结果, 但是不会包含分支节点, 只会有叶子节点
-         */
-        public static List<ItemModelEntity> eachItemEntity(List<ItemModelEntity> entitys) {
-            return eachItemEntity(entitys, Collections.emptySet());
-        }
-
-        public static List<ItemModelEntity> eachItemEntity(List<ItemModelEntity> entitys, ItemType... types) {
-            return eachItemEntity(entitys, Sets.newHashSet(types));
-        }
-
-        @SuppressWarnings("unchecked")
-        private static <T> T getFieldValue(Field field, Object obj, Class<T> clzz) {
-            try {
-                field.setAccessible(true);
-                return (T) field.get(obj);
-            } catch (IllegalAccessException e) {
-                throw new ICityException(e);
-            }
-        }
-
-    }
-
-    private interface HeaderBuild {
-
-        List<String> buildHeader(ListModelEntity entity, ExportListFunction function, Map<String, Object> queryParams);
-
-    }
-
-    /**
-     * 用于生成导出表格的标题头工厂
-     */
-    private static class ExportHeaderFactory {
-
-        public static HeaderBuild getInstance(ExportControl control) {
-            switch (control) {
-                case All:
-                    return ALL_HEADER_BUILD;
-                case List:
-                    return LIST_HEADER_BUILD;
-                case BackCustom:
-                    return BACK_HEADER_BUILD;
-                case FrontCustom:
-                    return FRONT_HEADER_BUILD;
-                default:
-                    return ALL_HEADER_BUILD;
-            }
-        }
-
-        private static HeaderBuild ALL_HEADER_BUILD = (entity, func, queryParams) ->
-                ItemModelHandlerUtils.eachItemEntity(entity.getMasterForm().getItems(), ItemType.SubForm).stream()
-                        .filter(item -> item.getType().hasContext())
-                        .sorted(Comparator.comparing(ItemModelEntity::getOrderNo))
-                        .map(BaseEntity::getName).collect(Collectors.toList());
-
-        private static HeaderBuild LIST_HEADER_BUILD = (entity, function, queryParams) -> entity.getDisplayItems().stream().sorted(Comparator.comparing(ItemModelEntity::getOrderNo)).map(ItemModelEntity::getName).collect(Collectors.toList());
-
-        private static HeaderBuild BACK_HEADER_BUILD = (entity, function, queryParams) -> {
-            Map<String, String> mapping = ItemModelHandlerUtils.eachItemEntity(entity.getMasterForm().getItems(), ItemType.SubForm).stream().distinct().collect(Collectors.toMap(ItemModelEntity::getId, ItemModelEntity::getName));
-            return Stream.of(function.getCustomExport().split(","))
-                    .map(mapping::get)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
-        };
-
-        private static HeaderBuild FRONT_HEADER_BUILD = (entity, function, queryParams) -> {
-            Map<String, String> mapping = ItemModelHandlerUtils.eachItemEntity(entity.getMasterForm().getItems(), ItemType.SubForm).stream().distinct().collect(Collectors.toMap(ItemModelEntity::getId, ItemModelEntity::getName));
-            return findFrontItemIds(queryParams).stream()
-                    .map(mapping::get)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
-        };
-
-        private static Collection<String> findFrontItemIds(Map<String, Object> params) {
-            final String key = "exportColumnIds";
-            if (params == null || !params.containsKey(key)) {
-                return Collections.emptyList();
-            }
-            Object obj = params.get(key);
-            if (Collection.class.isAssignableFrom(obj.getClass())) {
-                return (Collection<String>) obj;
-            } else {
-                return Arrays.asList(Objects.toString(obj).split(","));
-            }
-        }
-
-
-    }
 
 }

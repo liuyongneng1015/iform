@@ -20,7 +20,7 @@ public class FormModelEntity extends BaseEntity implements Serializable {
 
 	private String description;
 
-	@ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
+	@ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH}, fetch = FetchType.EAGER)
 	@JoinTable(
 		name = "ifm_form_data_bind",
 		joinColumns = @JoinColumn( name="form_model"),

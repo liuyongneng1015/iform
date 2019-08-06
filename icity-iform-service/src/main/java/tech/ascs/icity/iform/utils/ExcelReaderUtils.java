@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * excel读取工具类
@@ -76,7 +77,7 @@ public final class ExcelReaderUtils {
     }
 
     private static Object getCellValue(Cell cell) {
-        return handleCellType(cell, cell.getCellTypeEnum());
+        return handleCellType(cell, Optional.ofNullable(cell).map(Cell::getCellTypeEnum).orElse(CellType.BLANK));
     }
 
     private static Object handleCellType(Cell cell, CellType cellType) {
