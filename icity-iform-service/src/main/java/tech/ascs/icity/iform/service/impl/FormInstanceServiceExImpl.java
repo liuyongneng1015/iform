@@ -3,7 +3,6 @@ package tech.ascs.icity.iform.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.googlecode.genericdao.search.Filter;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.hibernate.Criteria;
@@ -44,7 +43,6 @@ import tech.ascs.icity.iform.utils.OkHttpUtils;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 import tech.ascs.icity.model.IdEntity;
-import tech.ascs.icity.model.NameEntity;
 import tech.ascs.icity.model.Page;
 import tech.ascs.icity.rbac.feign.model.UserInfo;
 
@@ -135,7 +133,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	public FormInstanceServiceExImpl() {
 		super(FormModelEntity.class);
-		InnerItemUtils.setReferenceDataHandler(this::createDataModelInstance);
+		InnerItemUtils.setReferenceDataHandler(this::createInnerReferenceDataInstance);
 	}
 
 	@Override
@@ -198,20 +196,30 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			Map<String, Object> parameters = new HashMap<>(queryParameters);
 			//是否查询表单数据
 			boolean queryFormData = "true".equals(queryParameters.get("queryFormData"));
-			String userId = queryParameters.get("userId") == null ? CurrentUserUtils.getCurrentUserId() : (String)queryParameters.get("userId") ;
+			//是否为办理事件
+			boolean isDealEvent = "true".equals(queryParameters.get("isDealEvent")) ;
+			//是否为流程表单
+			boolean hasProcess = hasProcess(formModel);
+			//流程表单时才需要用户id
+			String userId =  hasProcess ? (String)queryParameters.get("userId") : null;
 			Date beginDate = null;
 			Date endDate = null;
 			if (!queryFormData) {
-				beginDate = (Date) queryParameters.get("beginDate");
-				endDate = (Date)queryParameters.get("endDate");
+				if(queryParameters.get("beginDate") != null) {
+					beginDate = new Date(Long.parseLong(String.valueOf(queryParameters.get("beginDate"))));
+				}
+				if(queryParameters.get("endDate") != null) {
+					endDate = new Date(Long.parseLong(String.valueOf(queryParameters.get("endDate"))));
+				}
 			}
+
 			parameters.remove("userId");
 			parameters.remove("beginDate");
 			parameters.remove("endDate");
 			parameters.remove("queryFlowData");
-			boolean isDealEvent = queryParameters.get("isDealEvent") == null ? false : (Boolean)queryParameters.get("isDealEvent") ;
+			parameters.remove("isDealEvent");
+
 			session = getSession(formModel.getDataModels().get(0));
-			boolean hasProcess = hasProcess(formModel);
 			int processStatus = hasProcess ? getProcessStatusParameter(formModel, SystemItemType.ProcessStatus, parameters) : -1;
 			int userStatus = hasProcess ? getProcessStatusParameter(formModel, SystemItemType.ProcessPrivateStatus, parameters) : -1;
 			List<String> groupIds = hasProcess ? getGroupIds(userId) : null;
@@ -285,20 +293,41 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		Page<FormDataSaveInstance> result = Page.get(page, pagesize);
 		Session session = getSession(listModel.getMasterForm().getDataModels().get(0));
 		try {
+
+			//是否查询表单数据
+			boolean queryFormData = "true".equals(queryParameters.get("queryFormData"));
+			//是否为办理事件
+			boolean isDealEvent = "true".equals(queryParameters.get("isDealEvent")) ;
+			//是否为流程表单
 			boolean hasProcess = hasProcess(listModel.getMasterForm());
+			//流程表单时才需要用户id
+			String userId =  hasProcess ? (String)queryParameters.get("userId") : null;
+			Date beginDate = null;
+			Date endDate = null;
+			if (!queryFormData) {
+				if(queryParameters.get("beginDate") != null) {
+					beginDate = new Date(Long.parseLong(String.valueOf(queryParameters.get("beginDate"))));
+				}
+				if(queryParameters.get("endDate") != null) {
+					endDate = new Date(Long.parseLong(String.valueOf(queryParameters.get("endDate"))));
+				}
+			}
+			queryParameters.remove("userId");
+			queryParameters.remove("beginDate");
+			queryParameters.remove("endDate");
+			queryParameters.remove("queryFlowData");
+			queryParameters.remove("isDealEvent");
 			int processStatus = hasProcess ? getProcessStatusParameter(listModel.getMasterForm(), SystemItemType.ProcessStatus, queryParameters) : -1;
 			int userStatus = hasProcess ? getProcessStatusParameter(listModel.getMasterForm(), SystemItemType.ProcessPrivateStatus, queryParameters) : -1;
 			Process process = hasProcess ? processService.get(listModel.getMasterForm().getProcess().getKey()) : null;
-			String userId = hasProcess ? (String)queryParameters.get("userId") : null;
 			List<String> groupIds = hasProcess ? getGroupIds(userId) : null;
 
 			Criteria criteria = generateCriteria(session, listModel.getMasterForm(), listModel, queryParameters);
 			addCreatorCriteria(criteria, listModel);
 			assemblyExportSelectIds(criteria, queryParameters);
-			boolean isDealEvent = queryParameters.get("isDealEvent") == null ? false : (Boolean)queryParameters.get("isDealEvent") ;
 
 			if (hasProcess) {
-				addProcessCriteria(criteria, processStatus, userStatus, userId, groupIds, null, null, isDealEvent);
+				addProcessCriteria(criteria, processStatus, userStatus, userId, groupIds, beginDate, endDate, isDealEvent);
 			}
 			addSort(listModel, criteria);
 
@@ -1391,7 +1420,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		Map<String, Boolean> toReferenceKeyMap = new HashMap<>();
 		String toReferenceKey = null;
 		boolean toFlag = false;
-		//方向
+		//关联表反向
 		if(referenceItemModelEntity.getSelectMode() == SelectMode.Inverse) {
 			ReferenceItemModelEntity referenceItemModelEntity1 = (ReferenceItemModelEntity)itemModelManager.find(referenceItemModelEntity.getReferenceItemId());
 			toReferenceKeyMap = getReferenceMap(referenceItemModelEntity1, masterFormModelEntity);
@@ -3294,8 +3323,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			if(fromItem.getSystemItemType() == SystemItemType.Creator){
 				//关联人员
 				if(entity.get(key) != null) {
-					listMap = new HashMap<>();
-					((HashMap) listMap).put("id", entity.get(key));
+					DataModelEntity dataModel = toModelEntity.getDataModels().get(0);
+					listMap = getDataInfo(dataModel, (String)entity.get(key));
 				}
 			}else {
 				listMap = (Map<String, Object>) entity.get(key);
@@ -3316,7 +3345,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		if(fromItem.getReferenceType() == ReferenceType.ManyToOne || fromItem.getReferenceType() == ReferenceType.OneToOne ){
 			if(flag) {
 				if(listMap  != null && ((Map<String, Object>)listMap).get("id") != null && StringUtils.hasText(String.valueOf(((Map<String, Object>)listMap).get("id")))) {
-					ReferenceDataInstance referenceDataInstance = createDataModelInstance(isQrCodeFlag, fromItem, toModelEntity, String.valueOf(((Map<String, Object>) listMap).get("id")), stringList, false);
+					ReferenceDataInstance referenceDataInstance = createReferenceDataInstance((Map<String, Object>) listMap, isQrCodeFlag, fromItem, toModelEntity, String.valueOf(((Map<String, Object>) listMap).get("id")), stringList, false);
 					dataModelInstance.setValue(referenceDataInstance.getValue());
 					List<Object> displayList = new ArrayList<>();
 					displayList.add(referenceDataInstance.getDisplayValue());
@@ -3329,7 +3358,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				if(listMap != null && ((List<Map<String, Object>>) listMap).size() > 0) {
 					for (Map<String, Object> map : (List<Map<String, Object>>) listMap) {
 						if (map.get("id") != null && StringUtils.hasText(String.valueOf(map.get("id")))) {
-							ReferenceDataInstance referenceDataInstance = createDataModelInstance(isQrCodeFlag, fromItem, toModelEntity, String.valueOf(map.get("id")), stringList, false);
+							ReferenceDataInstance referenceDataInstance = createReferenceDataInstance(map, isQrCodeFlag, fromItem, toModelEntity, String.valueOf(map.get("id")), stringList, false);
 							if (referenceDataInstance != null && referenceDataInstance.getValue() != null) {
 								valueList.add(String.valueOf(referenceDataInstance.getValue()));
 								displayValueList.add(String.valueOf(referenceDataInstance.getDisplayValue()));
@@ -3342,32 +3371,19 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				}
 			}
 		}else if(fromItem.getReferenceType() == ReferenceType.ManyToMany || fromItem.getReferenceType() == ReferenceType.OneToMany ){
-			List<String> values = new ArrayList<>();
 			List<Object> idValues = new ArrayList<>();
-
+			List<String> displayValueList = new ArrayList<>();
 			for(Map<String, Object> map  : (List<Map<String, Object>>)listMap) {
 				idValues.add(map.get("id"));
 				if(stringList != null) {
-					FormInstance getFormInstance = getFormInstance(toModelEntity, String.valueOf(map.get("id")));
-					List<String> arrayList = new ArrayList<>();
-					Map<String, String> stringMap = new HashMap<>();
-					for (ItemInstance itemInstance : getFormInstance.getItems()) {
-						String value = getValue(stringList, itemInstance);
-						if (StringUtils.hasText(value)) {
-							stringMap.put(itemInstance.getId(), value);
-						}
+					ReferenceDataInstance referenceDataInstance = createReferenceDataInstance(map, isQrCodeFlag, fromItem, toModelEntity, String.valueOf(map.get("id")), stringList, false);
+					if (referenceDataInstance != null && referenceDataInstance.getValue() != null) {
+						displayValueList.add(String.valueOf(referenceDataInstance.getDisplayValue()));
 					}
-
-					for (String string : stringList) {
-						if (stringMap.get(string) != null && StringUtils.hasText(stringMap.get(string))) {
-							arrayList.add(stringMap.get(string));
-						}
-					}
-					values.add(String.join(",", arrayList));
 				}
 			}
 			dataModelInstance.setValue(idValues);
-			dataModelInstance.setDisplayValue(values);
+			dataModelInstance.setDisplayValue(displayValueList);
 			referenceDataModelList.add(dataModelInstance);
 		}
 	}
@@ -3401,16 +3417,20 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		return map;
 	}
 
-	private ReferenceDataInstance createDataModelInstance(ReferenceItemModelEntity fromItem, FormModelEntity toModelEntity, String id, List<String> itemIds) {
-		return createDataModelInstance(false, fromItem, toModelEntity, id, itemIds, false);
+	private ReferenceDataInstance createInnerReferenceDataInstance(ReferenceItemModelEntity fromItem, FormModelEntity toModelEntity, String id, List<String> itemIds) {
+		return createReferenceDataInstance(null, false, fromItem, toModelEntity, id, itemIds, false);
 	}
 
-	private ReferenceDataInstance createDataModelInstance(boolean isQrCodeFlag, ReferenceItemModelEntity fromItem, FormModelEntity toModelEntity, String id, List<String> stringList, boolean referenceFlag){
+	//创建关联数据
+	private ReferenceDataInstance createReferenceDataInstance(Map<String, Object> dataMap, boolean isQrCodeFlag, ReferenceItemModelEntity fromItem, FormModelEntity toModelEntity, String id, List<String> stringList, boolean referenceFlag){
 		ReferenceDataInstance dataModelInstance = new ReferenceDataInstance();
 		dataModelInstance.setValue(id);
-		DataModelEntity dataModel = toModelEntity.getDataModels().get(0);
-		Map<String, Object> map = getDataInfo(dataModel, id);
-		FormDataSaveInstance formDataSaveInstance = wrapFormDataEntity(isQrCodeFlag, null, fromItem.getReferenceList(), map, id, referenceFlag);
+		Map<String, Object> map = dataMap;
+		if(map == null){
+			DataModelEntity dataModel = toModelEntity.getDataModels().get(0);
+			map = getDataInfo(dataModel, id);
+		}
+		FormDataSaveInstance formDataSaveInstance = wrapFormDataEntity(isQrCodeFlag, toModelEntity, fromItem.getReferenceList(), map, id, referenceFlag);
 
 		List<String> valueList = new ArrayList<>();
 		Map<String, ItemInstance> valueMap = new HashMap<>();
@@ -3608,7 +3628,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			return;
         }
 		DataModelEntity subFormDataModel = itemModelEntity.getColumnModel().getDataModel();
-		Session subFormSession = getSession(subFormDataModel);
+		Session subFormSession = null;
 		try {
 			String key =((SubFormItemModelEntity) itemModel).getTableName()+"_list";
 			List<Map<String, Object>> listMap = (List<Map<String, Object>>)entity.get(key);
@@ -3666,37 +3686,38 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 						itemInstance.setType(item.getType());
 						itemInstance.setSystemItemType(item.getSystemItemType());
 						if(item instanceof ReferenceItemModelEntity) {
+							//表单控件
+							ReferenceItemModelEntity referenceItemModelEntity = (ReferenceItemModelEntity)item;
+							Map<String, Object> newMap = map;
+							if(newMap == null) {
+                                subFormSession = getSession(subFormDataModel);
+                                newMap = (Map<String, Object>) subFormSession.load(subFormDataModel.getTableName(), String.valueOf(map.get("id")));
+							}
 							if(item.getType() == ItemType.ReferenceLabel){
-								itemInstance.setValue(((ReferenceItemModelEntity) item).getReferenceItemId());
-							}else if(map.get("id") != null && map.get("id") != "" && columnModelEntity != null) {
-								Map<String, Object> newMap = (Map<String, Object>) subFormSession.load(subFormDataModel.getTableName(), String.valueOf(map.get("id")));
-
-								FormModelEntity toModelEntity = formModelService.find(((ReferenceItemModelEntity) item).getReferenceFormId());
+								itemInstance.setValue(referenceItemModelEntity.getReferenceItemId());
+								ItemModelEntity itemModelEntity1 = itemModelManager.find(referenceItemModelEntity.getReferenceItemId());
+								FormModelEntity toModelEntity = formModelService.find(referenceItemModelEntity.getParentItem().getReferenceFormId());
 								if (toModelEntity == null) {
 									continue;
 								}
-								Map<String, Boolean> keyMap = getReferenceMap((ReferenceItemModelEntity) item, toModelEntity);
-								if (keyMap == null) {
-									continue;
-								}
-								String referenceKey =  new ArrayList<>(keyMap.keySet()).get(0);
-								Boolean flag = keyMap.get(referenceKey);
-
-								List<Object> idList = new ArrayList<>();
-								if(newMap.get(referenceKey) != null) {
-									if (flag) {
-										Map<String, Object> referenceMap = (Map<String, Object>) newMap.get(referenceKey);
-										idList.add(referenceMap.get("id"));
-									} else {
-										for (Map<String, Object> referenceMap : (List<Map<String, Object>>) newMap.get(referenceKey)) {
-											idList.add(referenceMap.get("id"));
-										}
+								Map<String, Boolean> keyMap = getReferenceMap(referenceItemModelEntity.getParentItem(), toModelEntity);
+								Map<String, Object> mapData = (Map<String, Object>)map.get(new ArrayList<>(keyMap.keySet()).get(0));
+								if(itemModelEntity1 != null ){
+									if(itemModelEntity1.getColumnModel() != null) {
+										itemInstance.setDisplayValue(mapData.get(itemModelEntity1.getColumnModel().getColumnName()));
 									}
 								}
-								if (keyMap.get(referenceKey) && idList.size() > 0) {
-									itemInstance.setValue(idList.get(0));
-								} else {
-									itemInstance.setValue(idList);
+							}else if(map.get("id") != null && map.get("id") != "" && columnModelEntity != null) {
+								FormModelEntity toModelEntity = formModelService.find(referenceItemModelEntity.getReferenceFormId());
+								if (toModelEntity == null) {
+									continue;
+								}
+								Map<String, Boolean> keyMap = getReferenceMap(referenceItemModelEntity, toModelEntity);
+								List<String> stringList  = new ArrayList<>(Arrays.asList(toModelEntity.getItemModelIds().split(",")));
+								ReferenceDataInstance referenceDataInstance = createReferenceDataInstance((Map<String, Object>)map.get(new ArrayList<>(keyMap.keySet()).get(0)), false, referenceItemModelEntity, toModelEntity, String.valueOf(map.get("id")), stringList, false);
+								if (referenceDataInstance != null && referenceDataInstance.getValue() != null) {
+									itemInstance.setValue(String.valueOf(referenceDataInstance.getValue()));
+									itemInstance.setDisplayValue(String.valueOf(referenceDataInstance.getDisplayValue()));
 								}
 							}
 						}else{
@@ -3849,7 +3870,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				FormModelEntity toModelEntity = referenceItemModel.getReferenceList() == null ?  null : referenceItemModel.getReferenceList().getMasterForm();
 				List<String> stringList = Arrays.asList(referenceItemModel.getReferenceList().getDisplayItemsSort().split(","));
 				if (toModelEntity!=null) {
-					ReferenceDataInstance referenceDataInstance = createDataModelInstance(false, referenceItemModel, toModelEntity, String.valueOf(((Map<String, Object>) value).get("id")), stringList, false);
+					ReferenceDataInstance referenceDataInstance = createReferenceDataInstance((Map<String, Object>) value,false, referenceItemModel, toModelEntity, String.valueOf(((Map<String, Object>) value).get("id")), stringList, false);
 					itemInstance.setValue(referenceDataInstance.getValue());
 					List<Object> displayList = new ArrayList<>();
 					displayList.add(referenceDataInstance.getDisplayValue());
@@ -4012,9 +4033,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					DictionaryDataItemEntity dictionaryItemEntity = map.get(str);
 					if(dictionaryItemEntity != null) {
 						SelectItemModelValue selectItemModelValue = new SelectItemModelValue();
+						selectItemModelValue.setId(dictionaryItemEntity.getId());
 						selectItemModelValue.setCode(dictionaryItemEntity.getCode());
 						selectItemModelValue.setIcon(dictionaryItemEntity.getIcon());
-						selectItemModelValue.setDescription(dictionaryItemEntity.getName());
+						selectItemModelValue.setName(dictionaryItemEntity.getName());
+						selectItemModelValue.setDescription(dictionaryItemEntity.getDescription());
 						displayObjectList.add(selectItemModelValue);
 						displayValuelist.add(dictionaryItemEntity.getName());
 					}
@@ -4024,6 +4047,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			for (ItemSelectOption option : selectItemModelEntity.getOptions()) {
 				if (list.contains(option.getId())) {
 					SelectItemModelValue selectItemModelValue = new SelectItemModelValue();
+					selectItemModelValue.setName(option.getLabel());
 					selectItemModelValue.setCode(option.getValue());
 					selectItemModelValue.setDescription(option.getLabel());
 					displayObjectList.add(selectItemModelValue);
@@ -4392,21 +4416,41 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 
 	@Override
-	public Page<FormDataSaveInstance> pageByColumnMap(FormModelEntity formModel, int page, int pagesize, Map<String, Object> parameters) {
+	public Page<FormDataSaveInstance> pageByColumnMap(FormModelEntity formModel, int page, int pagesize, Map<String, Object> queryParameters) {
 		Page<FormDataSaveInstance> result = Page.get(page, pagesize);
 		Session session = getSession(formModel.getDataModels().get(0));
 		try {
+			//是否查询表单数据
+			boolean queryFormData = "true".equals(queryParameters.get("queryFormData"));
+			//是否为办理事件
+			boolean isDealEvent = "true".equals(queryParameters.get("isDealEvent")) ;
+			//是否为流程表单
 			boolean hasProcess = hasProcess(formModel);
-			int processStatus = hasProcess ? getProcessStatusParameter(formModel, SystemItemType.ProcessStatus, parameters) : -1;
-			int userStatus = hasProcess ? getProcessStatusParameter(formModel, SystemItemType.ProcessPrivateStatus, parameters) : -1;
+			//流程表单时才需要用户id
+			String userId =  hasProcess ? (String)queryParameters.get("userId") : null;
+			Date beginDate = null;
+			Date endDate = null;
+			if (!queryFormData) {
+				if(queryParameters.get("beginDate") != null) {
+					beginDate = new Date(Long.parseLong(String.valueOf(queryParameters.get("beginDate"))));
+				}
+				if(queryParameters.get("endDate") != null) {
+					endDate = new Date(Long.parseLong(String.valueOf(queryParameters.get("endDate"))));
+				}
+			}
+			queryParameters.remove("userId");
+			queryParameters.remove("beginDate");
+			queryParameters.remove("endDate");
+			queryParameters.remove("queryFlowData");
+			queryParameters.remove("isDealEvent");
+			int processStatus = hasProcess ? getProcessStatusParameter(formModel, SystemItemType.ProcessStatus, queryParameters) : -1;
+			int userStatus = hasProcess ? getProcessStatusParameter(formModel, SystemItemType.ProcessPrivateStatus, queryParameters) : -1;
 			Process process = hasProcess ? processService.get(formModel.getProcess().getKey()) : null;
-			String userId = hasProcess ? CurrentUserUtils.getCurrentUser().getId() : null;
 			List<String> groupIds = hasProcess ? getGroupIds(userId) : null;
-			boolean isDealEvent = parameters.get("isDealEvent") == null ? false : (Boolean)parameters.get("isDealEvent") ;
 
-			Criteria criteria = generateColumnMapCriteria(session, formModel,  parameters);
+			Criteria criteria = generateColumnMapCriteria(session, formModel,  queryParameters);
 			if (hasProcess) {
-				addProcessCriteria(criteria, processStatus, userStatus, userId, groupIds, null, null, isDealEvent);
+				addProcessCriteria(criteria, processStatus, userStatus, userId, groupIds, beginDate, endDate, isDealEvent);
 			}
 			criteria.setFirstResult((page - 1) * pagesize);
 			criteria.setMaxResults(pagesize);
@@ -4696,6 +4740,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		if(endDate != null){
 			detachedCriteria.add(Restrictions.le("wt.createTime", endDate));
 		}
+
 		return detachedCriteria;
 	}
 
@@ -4712,12 +4757,20 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			detachedCriteria.add(Restrictions.le("dt.endTime", endDate));
 		}
 		if(isDealEvent){
-
+			List<Map<String, Object>> list = jdbcTemplate.queryForList("select id_ as id from act_hi_taskinst where proc_def_id_ in (select proc_def_id_ from act_hi_taskinst  GROUP  BY proc_def_id_  HAVING count(proc_def_id_) > 1)");
+			List<String> listString = new ArrayList<>();
+			for(Map<String, Object> idmap : list){
+				listString.add((String)idmap.get("id"));
+			}
+			detachedCriteria.add(Restrictions.in("dt.id", listString));
 		}
 		return detachedCriteria;
 	}
 
 	protected List<String> getGroupIds(String userId) {
+		if(!StringUtils.hasText(userId)){
+			return null;
+		}
 		List<String> result = new ArrayList<String>();
 
 		// 添加部门/岗位列表
