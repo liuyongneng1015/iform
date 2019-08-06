@@ -1807,6 +1807,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
         }
 		ColumnModelEntity columnModel = itemModel.getColumnModel();
 		if (Objects.nonNull(columnModel)) {
+			if(value != null && columnModel.getDataType() == ColumnType.String && columnModel.getLength() < value.toString().length()){
+				throw new ICityException(itemModel.getName()+"长度不能大于"+columnModel.getLength());
+			}
 			if(columnModel.getDataType() == ColumnType.String || columnModel.getDataType() == ColumnType.Text) {
 				data.put(columnModel.getColumnName(), value == null ? null : String.valueOf(value));
 			}else {
