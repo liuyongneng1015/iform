@@ -75,6 +75,9 @@ public class ColumnModelEntity extends BaseEntity implements Serializable {
 	}
 
 	public String getPrefix() {
+		if(prefix != null){
+			prefix = prefix.toLowerCase();
+		}
 		return prefix;
 	}
 
@@ -83,6 +86,9 @@ public class ColumnModelEntity extends BaseEntity implements Serializable {
 	}
 
 	public String getColumnName() {
+		if(columnName != null){
+			columnName = columnName.toLowerCase();
+		}
 		return columnName;
 	}
 

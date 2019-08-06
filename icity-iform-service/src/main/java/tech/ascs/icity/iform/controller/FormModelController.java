@@ -65,8 +65,11 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 	private ELProcessorService elProcessorService;
 
 	@Override
-	public List<FormModel> list(@RequestParam(name="name", defaultValue="") String name, @RequestParam(name = "type", required = false ) String type,
-								@RequestParam(name = "dataModelId", required = false ) String dataModelId, @RequestParam(name = "applicationId", required = false) String applicationId) {
+	public List<FormModel> list(@RequestParam(name = "name", required = false) String name,
+								@RequestParam(name = "type", required = false) String type,
+								@RequestParam(name = "dataModelId", required = false) String dataModelId,
+								@RequestParam(name = "applicationId", required = false) String applicationId,
+								@RequestParam(name = "forProcessBindingOnly", defaultValue = "false") boolean forProcessBindingOnly) {
 		try {
 			Query<FormModelEntity, FormModelEntity> query = formModelService.query().sort(Sort.desc("id"));
 			if (StringUtils.hasText(name)) {
@@ -86,6 +89,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 				}else{
 					return new ArrayList<>();
 				}
+			}
+			if (forProcessBindingOnly) { // 仅返回可供流程模型绑定的表单模型
+				query.filterNull("process.id").filterEqual("type", FormType.General);
 			}
 
 			List<FormModelEntity> entities = query.list();

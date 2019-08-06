@@ -36,6 +36,20 @@ public interface FormInstanceService {
 	})
 	List<FormDataSaveInstance> list(@PathVariable(name="listId") String listId, @RequestParam Map<String, Object> parameters);
 
+    /**
+     * 表单数据统计
+     *
+     * @param listId 列表模型ID
+     * @return
+     */
+    @ApiOperation(value = "表单数据统计", notes = "附加查询条件（可选）：列表建模中的查询条件，以key=value的形式拼接到url，其中key为字段模型ID", position = 0)
+    @GetMapping("/data_statistics/{listId}")
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "path", name = "listId", value = "列表模型ID", required = true, dataType = "String"),
+            @ApiImplicitParam(paramType = "query", name = "parameters", value = "查询参数", required = false)
+    })
+    Integer formDataStatistics(@PathVariable(name="listId") String listId, @RequestParam Map<String, Object> parameters);
+
 	/**
 	 * 获取简化的表单实例列表
 	 *

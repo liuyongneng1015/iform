@@ -320,7 +320,11 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 	@Override
 	public void updateDictionaryModelDataOrderNo(String dictionaryId, String id, String status) {
 		DictionaryModel dictionaryModelModel = getDictionaryById(dictionaryId);
-		Map<String, Object> map = dictionaryManager.getJdbcTemplate().queryForMap("select * from "+dictionaryModelModel.getTableName()+" where id='"+id+"'");
+		List<Map<String, Object>> mapDataList = dictionaryManager.getJdbcTemplate().queryForList("select * from "+dictionaryModelModel.getTableName()+" where id='"+id+"'");
+		if (mapDataList == null || mapDataList.size() < 1) {
+			return;
+		}
+		Map<String, Object> map = mapDataList.get(0);
 		if (map != null && map.get("parent_id") != null) {
 			String parentId = String.valueOf(map.get("parent_id"));
 			List<Map<String, Object>> mapList = dictionaryManager.getJdbcTemplate().queryForList("select * from "+dictionaryModelModel.getTableName()+" where parent_id='"+parentId + "' order by order_no asc");
@@ -425,10 +429,11 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 	@Override
 	public DictionaryModelData getDictionaryModelDataById(String dictionaryId, String id) {
 		DictionaryModel dictionaryModelModel = getDictionaryById(dictionaryId);
-		Map<String, Object> map = dictionaryManager.getJdbcTemplate().queryForMap("select * from "+dictionaryModelModel.getTableName()+" where id='"+id+"'");
-		if (map == null) {
+		List<Map<String, Object>> mapDataList = dictionaryManager.getJdbcTemplate().queryForList("select * from "+dictionaryModelModel.getTableName()+" where id='"+id+"'");
+		if (mapDataList == null || mapDataList.size() < 1) {
 			return null;
 		}
+		Map<String, Object> map = mapDataList.get(0);
 		List<Map<String, Object>> mapList = dictionaryManager.getJdbcTemplate().queryForList("select * from "+dictionaryModelModel.getTableName()+" where parent_id='"+map.get("parent_id") + "' order by order_no asc");
 		DictionaryModelData dictionaryModelData = dictionaryModelData(dictionaryId, id, map);
 		if(mapList != null && mapList.size() > 0){
@@ -534,7 +539,11 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 	}
 
 	private Integer getMaxOrderNo(String tableName){
-		Map<String, Object> map = dictionaryManager.getJdbcTemplate().queryForMap("select max(order_no) as order_no from "+tableName);
+		List<Map<String, Object>> mapDataList = dictionaryManager.getJdbcTemplate().queryForList("select max(order_no) as order_no from "+tableName);
+		if (mapDataList == null || mapDataList.size() < 1) {
+			return 0;
+		}
+		Map<String, Object> map = mapDataList.get(0);
 		if (map != null && map.get("order_no") != null) {
 			return Integer.parseInt(String.valueOf(map.get("order_no")));
 		}

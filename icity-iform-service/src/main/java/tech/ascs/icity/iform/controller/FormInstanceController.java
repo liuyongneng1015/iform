@@ -10,9 +10,6 @@ import java.util.stream.Collectors;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONPath;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.xssf.usermodel.XSSFClientAnchor;
-import org.apache.poi.xssf.usermodel.XSSFDrawing;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
@@ -82,9 +79,29 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		if (listModel == null) {
 			throw new IFormException(404, "列表模型【" + listId + "】不存在");
 		}
-
+		String userId = (String)parameters.get("userId");
+		if(!StringUtils.hasText(userId)){
+			parameters.put("userId",CurrentUserUtils.getCurrentUserId());
+		}
 		Page<FormDataSaveInstance> page = formInstanceService.pageListInstance(listModel,1,Integer.MAX_VALUE, parameters);
 		return page.getResults();
+	}
+
+	@Override
+	public Integer formDataStatistics(@PathVariable(name="listId") String listId, @RequestParam Map<String, Object> parameters) {
+		ListModelEntity listModel = listModelService.find(listId);
+		if (listModel == null) {
+			throw new IFormException(404, "列表模型【" + listId + "】不存在");
+		}
+		Map<String, Object> newParameters = new HashMap<>(parameters);
+		//是否查询自己的数据
+		boolean ownerFlag = "true".equals(newParameters.get("ownerFlag"));
+		if(ownerFlag){
+			newParameters.put("userId", CurrentUserUtils.getCurrentUserId());
+		}
+		newParameters.remove("ownerFlag");
+		List<Map<String, Object>>  mapList =  formInstanceService.formInstanceList(listModel, newParameters);
+		return mapList == null ? 0 : mapList.size();
 	}
 
 	@Override
@@ -93,7 +110,10 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		if (listModel == null) {
 			throw new IFormException(404, "列表模型【" + listId + "】不存在");
 		}
-
+		String userId = (String)parameters.get("userId");
+		if(!StringUtils.hasText(userId)){
+			parameters.put("userId",CurrentUserUtils.getCurrentUserId());
+		}
 		Page<FormDataSaveInstance> page = formInstanceService.pageListInstance(listModel,1,Integer.MAX_VALUE, parameters);
 		List<FormDataSaveInstance> list = new ArrayList<>();
 		for(FormDataSaveInstance instance : page.getResults()){
@@ -163,6 +183,10 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		if (listModel == null) {
 			throw new IFormException(404, "列表模型【" + listId + "】不存在");
 		}
+		String userId = (String)parameters.get("userId");
+		if(!StringUtils.hasText(userId)){
+			parameters.put("userId",CurrentUserUtils.getCurrentUserId());
+		}
 		Map<String, Object> queryParameters = assemblyQueryParameters(parameters);
 		return formInstanceService.pageListInstance(listModel, page, pagesize, queryParameters);
 	}
@@ -173,6 +197,10 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		FormModelEntity formModel = formModelService.find(formId);
 		if (formModel==null) {
 			return Page.get(page, pagesize);
+		}
+		String userId = (String)parameters.get("userId");
+		if(!StringUtils.hasText(userId)){
+			parameters.put("userId", CurrentUserUtils.getCurrentUserId());
 		}
 		return formInstanceService.pageByColumnMap(formModel, page, pagesize, parameters);
 	}
@@ -192,6 +220,10 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
         if (function.getType()  != ExportType.Select) {
             queryParameters.remove("exportSelectIds");
         }
+		String userId = (String)parameters.get("userId");
+		if(!StringUtils.hasText(userId)){
+			parameters.put("userId",CurrentUserUtils.getCurrentUserId());
+		}
         String extension = function.getFormat() == ExportFormat.Excel ? ".xlsx" : ".pdf";
         List<FormDataSaveInstance> data = formInstanceService.pageListInstance(listModel, 1, Integer.MAX_VALUE, queryParameters).getResults();
 		Resource resource = exportDataService.exportData(listModel,function, data, parameters);
@@ -651,10 +683,10 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			List<Navigations> navigations = new ArrayList();
 			for (int j = 0; j < (Integer) JSONPath.eval(jsonArray, "$[" + i + "].navigations.size()"); j++) {
 				Object idObj = JSONPath.eval(jsonArray, "$[" + i + "].navigations[" + j + "].id.value");
-				Object nameObj = JSONPath.eval(jsonArray, "$[" + i + "].navigations[" + j + "].name.displayObject[0].description");
+				Object nameObj = JSONPath.eval(jsonArray, "$[" + i + "].navigations[" + j + "].name.displayObject[0].name");
 				Object iconObj = JSONPath.eval(jsonArray, "$[" + i + "].navigations[" + j + "].name.displayObject[0].icon");
 				Object screenKeyObj = JSONPath.eval(jsonArray, "$[" + i + "].navigations[" + j + "].name.displayObject[0].code");
-				Object screenTypeObj = JSONPath.eval(jsonArray, "$[" + i + "].navigations[" + j + "].screenType.displayObject[0].code");
+				Object screenTypeObj = JSONPath.eval(jsonArray, "$[" + i + "].navigations[" + j + "].screentype.displayObject[0].code");
 				Boolean initialPage = convertInitialPage(JSONPath.eval(jsonArray, "$[" + i + "].navigations[" + j + "].initialPage.displayObject[0].code"));
 				navigations.add(new Navigations(idObj, nameObj, iconObj, screenKeyObj, screenTypeObj, initialPage));
 			}
@@ -662,12 +694,12 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			List<Dashboard> dashboard = new ArrayList();
 			for (int j = 0; j < (Integer) JSONPath.eval(jsonArray, "$[" + i + "].dashboard.size()"); j++) {
 				Object idObj = JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].id.value");
-				Object nameObj = JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].name.displayObject[0].description");
+				Object nameObj = JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].name.displayObject[0].name");
 				Object iconObj = JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].name.displayObject[0].icon");
 				Object screenKeyObj = JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].name.displayObject[0].code");
-				Object screenTypeObj = JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].screenType.displayObject[0].code");
-				Object categoryCodeObj = JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].businessCategories.displayObject[0].code");
-				Object categoryNameObj = JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].businessCategories.displayObject[0].description");
+				Object screenTypeObj = JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].screentype.displayObject[0].code");
+				Object categoryCodeObj = JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].businesscategories.displayObject[0].code");
+				Object categoryNameObj = JSONPath.eval(jsonArray, "$[" + i + "].dashboard[" + j + "].businesscategories.displayObject[0].description");
 				dashboard.add(new Dashboard(idObj, nameObj, iconObj, screenKeyObj, screenTypeObj, categoryCodeObj, categoryNameObj));
 			}
 

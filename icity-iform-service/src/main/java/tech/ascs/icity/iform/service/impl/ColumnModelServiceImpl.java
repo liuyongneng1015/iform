@@ -147,7 +147,9 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
         //关联关系
         List<ColumnReferenceEntity> columnReferenceEntityList = toColumnEntity.getColumnReferences();
         for (ColumnReferenceEntity referenceEntity : columnReferenceEntityList) {
-            if (referenceEntity.getToColumn().getId().equals(fromColumnEntity.getId()) && referenceType == ReferenceType.getReverseReferenceType(referenceType)) {
+            if ((StringUtils.equals(referenceEntity.getToColumn().getId(), fromColumnEntity.getId()) ||
+                    StringUtils.equals(referenceEntity.getToColumn().getColumnName(), fromColumnEntity.getColumnName())) &&
+                    referenceType == ReferenceType.getReverseReferenceType(referenceType)) {
                 return;
             }
         }

@@ -5,6 +5,7 @@ import tech.ascs.icity.iform.service.FormSubmitCheckService;
 import tech.ascs.icity.jpa.service.JPAManager;
 import tech.ascs.icity.jpa.service.support.DefaultJPAService;
 
+import java.util.List;
 import java.util.Map;
 
 public class FormSubmitCheckServiceImpl extends DefaultJPAService<FormSubmitCheckInfo> implements FormSubmitCheckService {
@@ -24,7 +25,11 @@ public class FormSubmitCheckServiceImpl extends DefaultJPAService<FormSubmitChec
 
 	@Override
 	public Integer getMaxOrderNo() {
-		 Map<String, Object> map =	formSubmitCheckManager.getJdbcTemplate().queryForMap("select max(order_no) as order_no from ifm_form_submit_checks ");
+		 List<Map<String, Object>> mapDataList = formSubmitCheckManager.getJdbcTemplate().queryForList("select max(order_no) as order_no from ifm_form_submit_checks ");
+		 if (mapDataList == null || mapDataList.size() < 1) {
+			 return 0;
+		 }
+		 Map<String, Object> map = mapDataList.get(0);
 		 if(map != null && map.get("order_no") != null){
 			return Integer.parseInt(String.valueOf(map.get("order_no")));
 		 }

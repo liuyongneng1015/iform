@@ -87,11 +87,11 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 		dataModelEntityJPAManager = getJPAManagerFactory().getJPAManager(DataModelEntity.class);
 	}
 
+	@Transactional(rollbackFor = Exception.class)
 	@Override
 	public ListModelEntity save(ListModelEntity entity) {
 		validate(entity);
 		if (!entity.isNew()) { // 先删除所有搜索字段及列表功能然后重建
-			//ListModelEntity实体的字段 id,name,description,multiSelect,masterForm,applicationId,slaverForms,sortItems,functions,searchItems,displayItems,quickSearchItems
 			ListModelEntity old = get(entity.getId()) ;
 			BeanUtils.copyProperties(entity, old, new String[] {"masterForm", "slaverForms", "sortItems", "searchItems", "functions", "displayItems", "quickSearchItems"});
 
@@ -172,7 +172,9 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 						ItemModelEntity searchItemModelEntity = itemModelService.find(searchItem.getItemModel().getId());
 						if (searchItem.getParseArea()!=null && searchItem.getParseArea().contains("FuzzyQuery")) {
 							ItemType itemType = searchItemModelEntity.getType();
-							if (ItemType.InputNumber== itemType || ItemType.DatePicker==itemType || ItemType.TimePicker==itemType) {
+							if (ItemType.InputNumber== itemType ||
+								SystemItemType.DatePicker==searchItemModelEntity.getSystemItemType() ||
+								SystemItemType.CreateDate==searchItemModelEntity.getSystemItemType()) {
 								throw new ICityException("数字控件和时间控件不能加到全文索引");
 							}
 						}
@@ -214,7 +216,13 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 				}
 				old.setQuickSearchItems(quickSearches);
 			}
-			ListModelEntity returnEntity = doUpdate(old, oldSortMap.keySet(), oldSearchItemMap.keySet(), oldFunctionMap.keySet(), oldQuickSearchMap.keySet());
+
+			List<ListSortItem> needDeleteSortItems = needDeleteSortItems(old, oldSortMap);
+			List<ListSearchItem> needDeleteSearchItems = needDeleteSearchItems(old, oldSearchItemMap);
+			List<ListFunction> needDeleteFunctionItems = needDeleteFunctionItems(old, oldFunctionMap);
+			List<QuickSearchEntity> needDeleteQuickSearchItems = needDeleteQuickSearchItems(old, oldQuickSearchMap);
+
+			ListModelEntity returnEntity = doUpdate(old, needDeleteSortItems, needDeleteSearchItems, needDeleteFunctionItems, needDeleteQuickSearchItems);
 			// 给admin服务提交按钮权限
 			submitListBtnPermission(returnEntity);
 			return returnEntity;
@@ -223,6 +231,50 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 			ListModelEntity returnEntity = super.save(entity);
 			return returnEntity;
 		}
+	}
+
+	public List<ListSortItem> needDeleteSortItems(ListModelEntity entity, Map<String, ListSortItem> oldSortMap) {
+		List<ListSortItem> list = new ArrayList<>();
+		Set<String> set = entity.getSortItems().stream().map(item->item.getId()).distinct().collect(Collectors.toSet());
+		for (String key:oldSortMap.keySet()) {
+			if (set.contains(key)==false) {
+				list.add(oldSortMap.get(key));
+			}
+		}
+		return list;
+	}
+
+	public List<ListSearchItem> needDeleteSearchItems(ListModelEntity entity, Map<String, ListSearchItem> oldSearchMap) {
+		List<ListSearchItem> list = new ArrayList<>();
+		Set<String> set = entity.getSearchItems().stream().map(item->item.getId()).distinct().collect(Collectors.toSet());
+		for (String key:oldSearchMap.keySet()) {
+			if (set.contains(key)==false) {
+				list.add(oldSearchMap.get(key));
+			}
+		}
+		return list;
+	}
+
+	public List<ListFunction> needDeleteFunctionItems(ListModelEntity entity, Map<String, ListFunction> oldFunctionMap) {
+		List<ListFunction> list = new ArrayList<>();
+		Set<String> set = entity.getFunctions().stream().map(item->item.getId()).distinct().collect(Collectors.toSet());
+		for (String key:oldFunctionMap.keySet()) {
+			if (set.contains(key)==false) {
+				list.add(oldFunctionMap.get(key));
+			}
+		}
+		return list;
+	}
+
+	public List<QuickSearchEntity> needDeleteQuickSearchItems(ListModelEntity entity, Map<String, QuickSearchEntity> oldQuickSearchMap) {
+		List<QuickSearchEntity> list = new ArrayList<>();
+		Set<String> set = entity.getQuickSearchItems().stream().map(item->item.getId()).distinct().collect(Collectors.toSet());
+		for (String key:oldQuickSearchMap.keySet()) {
+			if (set.contains(key)==false) {
+				list.add(oldQuickSearchMap.get(key));
+			}
+		}
+		return list;
 	}
 
 	//设置列表功能
@@ -444,19 +496,19 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 	}
 
 	@Transactional(readOnly = false)
-	protected ListModelEntity doUpdate(ListModelEntity entity, Set<String> deletedSortItemIds, Set<String> searchItemIds, Set<String> deletedFunctionIds,
-									   Set<String> deleteQuickSearchItemIds) {
-		if (deletedSortItemIds.size() > 0) {
-			sortItemManager.deleteById(deletedSortItemIds.toArray(new String[] {}));
+	protected ListModelEntity doUpdate(ListModelEntity entity, List<ListSortItem> deletedSortItems, List<ListSearchItem> deletedSearchItems,
+									   List<ListFunction> deletedFunctions, List<QuickSearchEntity> deleteQuickSearchItems) {
+		if (deletedSortItems.size() > 0) {
+			sortItemManager.delete(deletedSortItems.toArray(new ListSortItem[]{}));
 		}
-		if (searchItemIds.size() > 0) {
-			searchItemManager.deleteById(searchItemIds.toArray(new String[] {}));
+		if (deletedSearchItems.size() > 0) {
+			searchItemManager.delete(deletedSearchItems.toArray(new ListSearchItem[] {}));
 		}
-		if (deletedFunctionIds.size() > 0) {
-			listFunctionManager.deleteById(deletedFunctionIds.toArray(new String[] {}));
+		if (deletedFunctions.size() > 0) {
+			listFunctionManager.delete(deletedFunctions.toArray(new ListFunction[] {}));
 		}
-		if (deleteQuickSearchItemIds.size() > 0) {
-			quickSearchEntityManager.deleteById(deleteQuickSearchItemIds.toArray(new String[]{}));
+		if (deleteQuickSearchItems.size() > 0) {
+			quickSearchEntityManager.delete(deleteQuickSearchItems.toArray(new QuickSearchEntity[]{}));
 		}
 		return super.save(entity);
 	}
@@ -705,7 +757,14 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
                 BeanUtils.copyProperties(searchItem.getSearch(), searchInfo, new String[]{"defaultValue", "defaultValueName"});
                 Object defalueValue = searchItem.getSearch().getDefaultValue();
                 if(defalueValue != null && defalueValue instanceof List){
-                    searchInfo.setDefaultValue(String.join(",", (List)searchItem.getSearch().getDefaultValue()));
+					List list = (List)searchItem.getSearch().getDefaultValue();
+					List newList = new ArrayList();
+					for (Object item:list) {
+						if (!StringUtils.isEmpty(item)) {
+							newList.add(item+"");
+						}
+					}
+					searchInfo.setDefaultValue(String.join(",", newList));
                 } else if(defalueValue != null) {
                     searchInfo.setDefaultValue(StringUtils.isEmpty(defalueValue) ? null : String.valueOf(defalueValue));
                 }
@@ -772,7 +831,7 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 
 	private void assemblyFunction(ListModelEntity listModelEntity, List<ListFunction> listFunctions, List<FunctionModel> functionModels) {
 		FormModelEntity formModelEntity = formModelService.find(listModelEntity.getMasterForm().getId());
-		Map<String, ItemModelEntity> itemModelEntities = exportDataService.eachHasColumnItemModel(formModelEntity.getItems()).stream().collect(Collectors.toMap(ItemModelEntity::getId, i ->i));
+		Map<String, ItemModelEntity> itemModelEntities = exportDataService.eachHasColumnItemModel(formModelEntity.getItems()).stream().distinct().collect(Collectors.toMap(ItemModelEntity::getId, i ->i));
 		Map<String, ListFunction> listFunctionMap = toMap(listFunctions, ListFunction::getAction);
 		Map<String, FunctionModel> functionModelMap = toMap(functionModels, FunctionModel::getAction);
 

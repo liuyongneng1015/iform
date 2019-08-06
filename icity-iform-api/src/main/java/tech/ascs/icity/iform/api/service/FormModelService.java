@@ -29,11 +29,15 @@ public interface FormModelService {
 		@ApiImplicitParam(paramType = "query", name = "name", value = "表单名称", required = false),
 		@ApiImplicitParam(paramType = "query", name = "type", value = "表单类型", required = false),
 		@ApiImplicitParam(paramType = "query", name = "dataModelId", value = "关联数据模型id", required = false),
-		@ApiImplicitParam(paramType = "query", name = "applicationId", value = "应用id", required = false)
+		@ApiImplicitParam(paramType = "query", name = "applicationId", value = "应用id", required = false),
+		@ApiImplicitParam(paramType = "query", name = "forProcessBindingOnly", value = "仅返回可供流程模型绑定的表单模型（默认为false）", required = false, defaultValue = "false")
 	})
 	@GetMapping
-	List<FormModel> list(@RequestParam(name = "name", required = false ) String name, @RequestParam(name = "type", required = false ) String type,
-						 @RequestParam(name = "dataModelId", required = false ) String dataModelId, @RequestParam(name = "applicationId", required = false) String applicationId);
+	List<FormModel> list(@RequestParam(name = "name", required = false ) String name,
+						@RequestParam(name = "type", required = false ) String type,
+						@RequestParam(name = "dataModelId", required = false ) String dataModelId,
+						@RequestParam(name = "applicationId", required = false) String applicationId,
+						@RequestParam(name = "forProcessBindingOnly", defaultValue = "false") boolean forProcessBindingOnly);
 
 	/**
 	 * 获取表单模型分页数据

@@ -104,7 +104,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 	}
 
 	@Override
-	public ListModel getApp(@PathVariable(name="id") String id) {
+	public ListModel getAppListModelById(@PathVariable(name="id") String id) {
 		ListModel listModel = get(id);
 		if (listModel==null) {
 			return listModel;
@@ -146,8 +146,6 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 	private Boolean[] functionVisibles = {true, true, true, true, true};
 	private List<Consumer<ListFunction>> functionOtherControl = Arrays.asList(null, null, ExportListFunctionUtils::assemblyDefaultExportListFunction, null, ExportListFunctionUtils::assemblyDefaultImportBaseFunction);
 
-
-	@Transactional(rollbackFor = Exception.class)
 	@Override
 	public IdEntity createListModel(@RequestBody ListModel ListModel) {
 		if (StringUtils.hasText(ListModel.getId())) {
@@ -364,22 +362,6 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		return applicationFormModel;
 	}
 
-	/**
-	private Page<ListModel> toDTO(Page<ListModelEntity> entities) throws InstantiationException, IllegalAccessException {
-		Page<ListModel> listModels = Page.get(entities.getPage(), entities.getPagesize());
-		listModels.data(entities.getTotalCount(), toDTO(entities.getResults()));
-		return listModels;
-	}
-
-	private List<ListModel> toDTO(List<ListModelEntity> entities) throws InstantiationException, IllegalAccessException {
-		List<ListModel> listModels = new ArrayList<ListModel>();
-		for (ListModelEntity entity : entities) {
-			listModels.add(toDTO(entity));
-		}
-		return listModels;
-	}
-	 */
-
 	private List<Map> toAppListTemplate(String appListTemplate) {
 		if (StringUtils.hasText(appListTemplate)) {
 			try {
@@ -387,7 +369,9 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				if (list!=null && list.size()>0) {
 					return list;
 				}
-			} catch (IOException e) { }
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 		for (Map map:appListTemplateList) {
 			map.put("id", UUID.randomUUID().toString().replaceAll("-",""));
@@ -556,6 +540,12 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 						}
 					}
 					itemModelService.copyItemModelEntityToItemModel(itemModelEntity, searchItem);
+					// 更新时间和创建时间控件的type字段要改成 日期控件 ItemType.DatePicker
+					if (itemModelEntity.getSystemItemType() == SystemItemType.CreateDate ||
+						itemModelEntity.getSystemItemType() == SystemItemType.DatePicker) {
+						searchItem.setType(ItemType.DatePicker);
+						searchItem.setProps(searchItemEntity.getProps());
+					}
 					List<ItemSelectOption> options = itemModelEntity.getOptions();
 					// 自定义的下拉框，在列表建模的渲染页面，要返回options属性
 					if (options!=null && options.size()>0) {
@@ -584,6 +574,10 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 					}
 
 					if (itemModelEntity instanceof SelectItemModelEntity) {
+						// 是否是联动解绑，是的话，把 DictionaryValueType 属性取值 改成  Fixed
+						if (searchItemEntity.getLinkageDataUnbind()!=null && searchItemEntity.getLinkageDataUnbind()) {
+							searchItem.setDictionaryValueType(DictionaryValueType.Fixed);
+						}
 						SelectItemModelEntity selectItemModelEntity = (SelectItemModelEntity)itemModelEntity;
 						// 联动的下拉选择框，若存在parentItem，返回parentItem信息
 						if(selectItemModelEntity.getParentItem() != null){
@@ -655,7 +649,26 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				ItemType itemType = searchItem.getType();
 				// ItemType.InputNumber和ItemType.DatePicker返回的是数字，不是字符串数组格式
 				if (searchItem.getSystemItemType() == SystemItemType.CreateDate ||
-						(ItemType.InputNumber == itemType && (searchItem.getDecimalDigits() == null || searchItem.getDecimalDigits() == 0))) {
+						searchItem.getSystemItemType() == SystemItemType.DatePicker) {
+					String[] arr = defaultValue.split(",");
+					if (arr.length==1) {
+						try {
+							search.setDefaultValue(Long.valueOf(arr[0]));
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					} else {
+						List list = new ArrayList();
+						for (String item:arr) {
+							try {
+								list.add(Long.valueOf(item));
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+						}
+						search.setDefaultValue(list);
+					}
+				} else if (ItemType.InputNumber == itemType && (searchItem.getDecimalDigits() == null || searchItem.getDecimalDigits() == 0)) {
 					try {
 						search.setDefaultValue(Long.valueOf(defaultValue));
 					} catch (Exception e) {
@@ -753,7 +766,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 						return model;
 					}).collect(Collectors.toList());
 			functionModel.setTemplateItemModels(models);
-		} else if (DefaultFunctionType.Import.getValue().equals(function.getAction())) {
+		} else if (DefaultFunctionType.Import.getValue().equals(function.getAction()) && function.getImportFunction()!=null) {
 			List<ItemModelEntity> items = exportDataService.eachHasColumnItemModel(listModelEntity.getMasterForm().getItems());
 			ImportFunctionModel model = new ImportFunctionModel();
 			Optional.ofNullable(functionModel.getImportFunction())

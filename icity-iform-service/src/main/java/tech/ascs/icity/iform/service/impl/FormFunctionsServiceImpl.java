@@ -38,7 +38,11 @@ public class FormFunctionsServiceImpl extends DefaultJPAService<ListFunction> im
 
 	@Override
 	public Integer getMaxOrderNo() {
-		 Map<String, Object> map =	listFunctionJPAManager.getJdbcTemplate().queryForMap("select max(order_no) as order_no from ifm_list_function ");
+		 List<Map<String, Object>> mapDataList = listFunctionJPAManager.getJdbcTemplate().queryForList("select max(order_no) as order_no from ifm_list_function ");
+		if (mapDataList == null || mapDataList.size() < 1) {
+			return  0;
+		}
+		Map<String, Object> map = mapDataList.get(0);
 		 if(map != null && map.get("order_no") != null){
 			return Integer.parseInt(String.valueOf(map.get("order_no")));
 		 }

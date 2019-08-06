@@ -38,12 +38,12 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 		public FormInstance mapRow(ResultSet rs, int rowNum) throws SQLException {
 			FormInstance formInstance = new FormInstance();
 			formInstance.setFormId(formModel.getId());
-			formInstance.setId(rs.getString("ID"));
+			formInstance.setId(rs.getString("id"));
 			if (formModel.getProcess() != null && StringUtils.hasText(formModel.getProcess().getId())) {
-				formInstance.setProcessId(rs.getString("PROCESS_ID"));
-				formInstance.setProcessInstanceId(rs.getString("PROCESS_INSTANCE"));
-				formInstance.setActivityId(rs.getString("ACTIVITY_ID"));
-				formInstance.setActivityInstanceId(rs.getString("ACTIVITY_INSTANCE"));
+				formInstance.setProcessId(rs.getString("process_id"));
+				formInstance.setProcessInstanceId(rs.getString("process_instance"));
+				formInstance.setActivityId(rs.getString("activity_id"));
+				formInstance.setActivityInstanceId(rs.getString("activity_instance"));
 			}
 
 			List<ItemInstance> items = new ArrayList<ItemInstance>();
@@ -377,7 +377,11 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 		Map<String, Object> choiceMap = new HashMap<>();
 		Map<String, Object> valueMap = new HashMap<>();
 		for(String key : mapkey.keySet()) {
-			Map<String, Object> item_type = jdbcTemplate.queryForMap(" select i.id, i.type from ifm_data_model d,ifm_column_model c,ifm_item_model i where c.id=i.column_id  and c.data_model_id=d.id and d.table_name ='" + tableName + "' and c.column_name='" + key + "' ");
+			List<Map<String, Object>> mapDataList = jdbcTemplate.queryForList(" select i.id, i.type from ifm_data_model d,ifm_column_model c,ifm_item_model i where c.id=i.column_id  and c.data_model_id=d.id and d.table_name ='" + tableName + "' and c.column_name='" + key + "' ");
+			if (mapDataList == null || mapDataList.size() < 1) {
+				continue;
+			}
+			Map<String, Object> item_type = mapDataList.get(0);
 			if(ItemType.Select.getValue().equals(item_type.get("type"))) {
 				ItemModelEntity itemModelEntity = itemModelEntityJPAManager.find((String)item_type.get("id"));
 				if(((SelectItemModelEntity)itemModelEntity).getSelectReferenceType() == SelectReferenceType.Table){
@@ -404,7 +408,11 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 	}
 
 	private String getSelectValue(String tableName, String key, String value){
-		Map<String, Object> item_type = jdbcTemplate.queryForMap(" select i.id, i.type from ifm_data_model d,ifm_column_model c,ifm_item_model i where c.id=i.column_id  and c.data_model_id=d.id and d.table_name ='" + tableName + "' and c.column_name='" + key + "' ");
+		List<Map<String, Object>> mapDataList = jdbcTemplate.queryForList(" select i.id, i.type from ifm_data_model d,ifm_column_model c,ifm_item_model i where c.id=i.column_id  and c.data_model_id=d.id and d.table_name ='" + tableName + "' and c.column_name='" + key + "' ");
+		if (mapDataList == null || mapDataList.size() < 1) {
+			return  value;
+		}
+		Map<String, Object> item_type = mapDataList.get(0);
 		if(ItemType.Select.getValue().equals(item_type.get("type"))) {
 			ItemModelEntity itemModelEntity = itemModelEntityJPAManager.find((String)item_type.get("id"));
 			if(((SelectItemModelEntity)itemModelEntity).getSelectReferenceType() == SelectReferenceType.Table){
@@ -440,7 +448,7 @@ public class FormInstanceServiceImpl extends DefaultJPAService<FormModelEntity> 
 		String tableName = dataModelEntity.getTableName();
 		String prefix = dataModelEntity.getPrefix() == null ? "" : dataModelEntity.getPrefix();
 		StringBuilder updateSql = new StringBuilder("UPDATE "+prefix).append(tableName)
-				.append(" SET PROCESS_ID=?,PROCESS_INSTANCE=?,ACTIVITY_ID=?,ACTIVITY_INSTANCE=? WHERE id=?");
+				.append(" SET process_id=?,process_instance=?,activity_id=?,activity_instance=? WHERE id=?");
 		doUpdate(updateSql.toString(), formModel.getProcess().getId(), processInstanceId, processInstance.getCurrentTaskInstance().getActivityId(), processInstance.getCurrentTaskInstance().getId(), formInstanceId);
 	}
 

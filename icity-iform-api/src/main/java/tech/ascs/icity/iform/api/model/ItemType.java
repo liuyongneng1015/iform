@@ -31,6 +31,7 @@ public enum ItemType {
 	RadioGroup("RadioGroup"),
 	/** 多选 */
 	CheckboxGroup("CheckboxGroup"),
+
 	/** 关联表单列表 */
 	ReferenceList("ReferenceList"),
 	/** 关联属性 */

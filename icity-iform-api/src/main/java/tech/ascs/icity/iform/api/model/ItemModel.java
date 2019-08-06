@@ -2,6 +2,8 @@ package tech.ascs.icity.iform.api.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import org.apache.commons.lang3.StringUtils;
@@ -698,6 +700,9 @@ public class ItemModel extends NameEntity {
 	}
 
 	public String getUuid() {
+	    if(StringUtils.isBlank(uuid)){
+	        uuid = UUID.randomUUID().toString().replaceAll("-","");
+        }
 		return uuid;
 	}
 

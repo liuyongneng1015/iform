@@ -108,3 +108,7 @@ minio:
 multipart:
   maxFileSize: 10240Mb
   maxRequestSize: 10240Mb
+
+
+logging:
+  config: classpath:logback-boot.xml

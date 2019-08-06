@@ -419,7 +419,6 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 	private DataModel toDataModelDTO(DataModelEntity entity)  {
 		DataModel dataModel = new DataModel();
 		BeanUtils.copyProperties(entity, dataModel, new String[] {"masterModel","slaverModels","columns", "indexes","referencesDataModel"});
-		dataModel.setSynchronized(entity.getSynchronized());
 
 		if(entity.getMasterModel() != null){
 			DataModelInfo masterModel = new DataModelInfo();
