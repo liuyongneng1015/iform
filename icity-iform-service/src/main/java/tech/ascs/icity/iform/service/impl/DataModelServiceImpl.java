@@ -85,7 +85,7 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		Map<String, ColumnModelEntity> oldCloumnMap = new HashMap<>();
 		String idColumns = "";
 		for (ColumnModelEntity oldColumn : old.getColumns()) {
-			if(oldColumn.getColumnName().equals("id")){
+			if(StringUtils.isNotEmpty(oldColumn.getColumnName()) && oldColumn.getColumnName().equals("id")){
 				idColumns = oldColumn.getId();
 			}
 			oldCloumnMap.put(oldColumn.getId(), oldColumn);
