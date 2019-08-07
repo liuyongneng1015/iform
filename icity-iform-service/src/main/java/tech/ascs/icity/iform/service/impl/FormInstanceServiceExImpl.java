@@ -1710,6 +1710,10 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	}
 
 	private void setItemInstance(ItemModelEntity itemModel, ItemInstance itemInstance, Map<String, Object> data ,DisplayTimingType displayTimingType){
+		ColumnModelEntity columnModel = itemModel.getColumnModel();
+		if(columnModel == null){
+			return;
+		}
 		Object value = null;
 		//非流程表单校验字段值
 		if(!StringUtils.hasText(itemInstance.getProcessInstanceId())) {
@@ -1805,17 +1809,15 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 				value = itemInstance.getValue();
 			}
         }
-		ColumnModelEntity columnModel = itemModel.getColumnModel();
-		if (Objects.nonNull(columnModel)) {
-			if(value != null && columnModel.getDataType() == ColumnType.String && columnModel.getLength() < value.toString().length()){
-				throw new ICityException(itemModel.getName()+"长度不能大于"+columnModel.getLength());
-			}
-			if(columnModel.getDataType() == ColumnType.String || columnModel.getDataType() == ColumnType.Text) {
-				data.put(columnModel.getColumnName(), value == null ? null : String.valueOf(value));
-			}else {
-				data.put(columnModel.getColumnName(), value);
-			}
+		if(value != null && columnModel.getDataType() == ColumnType.String && columnModel.getLength() != null && columnModel.getLength() > 0  && columnModel.getLength() < value.toString().length()){
+			throw new ICityException(itemModel.getName()+"长度不能大于"+columnModel.getLength());
 		}
+		if(columnModel.getDataType() == ColumnType.String || columnModel.getDataType() == ColumnType.Text) {
+			data.put(columnModel.getColumnName(), value == null ? null : String.valueOf(value));
+		}else {
+			data.put(columnModel.getColumnName(), value);
+		}
+
 	}
 
 	private FileUploadEntity saveFileUploadEntity(Map<String, String> fileUploadModelMap, Map<String, FileUploadEntity> fileUploadEntityMap, ItemModelEntity itemModel){
