@@ -1,5 +1,6 @@
 package tech.ascs.icity.iform.api.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import org.apache.commons.lang3.StringUtils;
@@ -33,7 +34,8 @@ public class AnalysisDataModel extends NameEntity {
     private List<IndexModel> indexes = new ArrayList<IndexModel>();
 
     @ApiModelProperty(value = "是否已同步", position = 8)
-    private boolean synchronized_ = false;
+	@JsonProperty("synchronized")
+    private boolean synchronize = false;
 
 	@ApiModelProperty(value = "应用id", position = 9)
 	private String applicationId;
@@ -101,12 +103,12 @@ public class AnalysisDataModel extends NameEntity {
 	}
 
     @ApiModelProperty(value = "是否已同步", position = 8)
-	public boolean isSynchronized() {
-		return synchronized_;
+	public boolean isSynchronize() {
+		return synchronize;
 	}
 
-	public void setSynchronized(boolean synchronized_) {
-		this.synchronized_ = synchronized_;
+	public void setSynchronize(boolean synchronize) {
+		this.synchronize = synchronize;
 	}
 
 	public String getApplicationId() {
