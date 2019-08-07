@@ -56,7 +56,7 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 				query.filterOr(Filter.like("name", "%" + name + "%"), Filter.like("tableName", "%" + name + "%"));
 			}
 			if (StringUtils.hasText(sync)) {
-				query.filterEqual("synchronized_", "1".equals(sync));
+				query.filterEqual("synchronize", "1".equals(sync));
 			}
 			if (StringUtils.hasText(modelType)) {
 				query.filterIn("modelType",  getDataModelType(modelType));
@@ -80,7 +80,7 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 				query.filterOr(Filter.like("name", "%" + name + "%"), Filter.like("tableName", "%" + name + "%"));
 			}
 			if (StringUtils.hasText(sync)) {
-				query.filterEqual("synchronized_", "1".equals(sync));
+				query.filterEqual("synchronize", "1".equals(sync));
 			}
 			if (StringUtils.hasText(modelType)) {
 				query.filterIn("modelType",  getDataModelType(modelType));
@@ -190,7 +190,7 @@ public class DataModelController implements tech.ascs.icity.iform.api.service.Da
 				query.filterOr(Filter.like("name", "%" + name + "%"), Filter.like("tableName", "%" + name + "%"));
 			}
 			if (StringUtils.hasText(sync)) {
-				query.filterEqual("synchronized_", "1".equals(sync));
+				query.filterEqual("synchronize", "1".equals(sync));
 			}
 			if (StringUtils.hasText(applicationId)) {
 				query.filterEqual("applicationId",  applicationId);
