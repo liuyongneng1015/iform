@@ -3,6 +3,7 @@ package tech.ascs.icity.iform.service;
 import tech.ascs.icity.iform.api.model.BtnPermission;
 import tech.ascs.icity.iform.api.model.ListModel;
 import tech.ascs.icity.iform.model.FormModelEntity;
+import tech.ascs.icity.iform.model.ItemModelEntity;
 import tech.ascs.icity.iform.model.ListModelEntity;
 import tech.ascs.icity.jpa.service.JPAService;
 import tech.ascs.icity.model.Page;
@@ -70,4 +71,9 @@ public interface ListModelService extends JPAService<ListModelEntity> {
 
     // 通过表名查询列表id
     List<String> findListIdByTableName(String tableName);
+
+    /**
+     * 更新表单的时候, 通过这个方法来同步列表中的导入导出模板数据
+     */
+    void syncListModelTempltes(FormModelEntity formModelEntity, List<ItemModelEntity> entities);
 }

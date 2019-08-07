@@ -50,6 +50,8 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 	private JPAManager<BusinessTriggerEntity> businessTriggerManager;
 
+	private JPAManager<ImportTemplateEntity> importTemplateManager;
+
 	@Autowired
 	ProcessService processService;
 
@@ -101,6 +103,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		listSortItemManager = getJPAManagerFactory().getJPAManager(ListSortItem.class);
 		quickSearchEntityManager = getJPAManagerFactory().getJPAManager(QuickSearchEntity.class);
 		businessTriggerManager = getJPAManagerFactory().getJPAManager(BusinessTriggerEntity.class);
+		importTemplateManager = getJPAManagerFactory().getJPAManager(ImportTemplateEntity.class);
 	}
 
 	@Override
@@ -691,6 +694,8 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			ItemModelEntity itemModelEntity = list.get(i);
 			list.remove(itemModelEntity);
 			i--;
+			List<ImportTemplateEntity> templateEntities = importTemplateManager.findByProperty("itemModel", itemModelEntity);
+			importTemplateManager.delete(templateEntities.toArray(new ImportTemplateEntity[0]));
 			if(itemModelEntity instanceof ReferenceItemModelEntity ){
 				if(((ReferenceItemModelEntity) itemModelEntity).getParentItem() != null){
 					((ReferenceItemModelEntity) itemModelEntity).getParentItem().getItems().remove(itemModelEntity);
@@ -1762,7 +1767,6 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			itemModelService.setItemModelEntity(formModel, itemModel, entity, items,	itemModelEntityList,  formMap);
 		}
 		// 同步数据库中以后的模板参数
-		syncExportItemParams(entity, itemModelEntityList);
 		formMap.put(masterDataModel.getTableName(), itemModelEntityList);
 
 		Map<String, DataModel> newDataModelMap = new HashMap<>();
@@ -2490,29 +2494,6 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			i--;
 		}*/
 	}
-
-	private void syncExportItemParams(FormModelEntity formModelEntity, List<ItemModelEntity> entities) {
-		Map<String, ItemModelEntity> idMapping = itemModelService.findByProperty("formModel", formModelEntity)
-				.stream()
-				.collect(Collectors.toMap(ItemModelEntity::getId, i -> i));
-		entities.stream().filter(item -> org.springframework.util.StringUtils.hasText(item.getId())).forEach(item -> {
-			ItemModelEntity itemEntity = idMapping.get(item.getId());
-			if (itemEntity != null) {
-				item.setTemplateName(itemEntity.getName());
-				item.setExampleData(itemEntity.getExampleData());
-				item.setTemplateSelected(itemEntity.isTemplateSelected());
-				item.setDataImported(itemEntity.isDataImported());
-				item.setMatchKey(itemEntity.isMatchKey());
-			}else {
-				item.setTemplateName(item.getName());
-			}
-
-		});
-		entities.stream().filter(item -> org.springframework.util.StringUtils.isEmpty(item.getId())).forEach(item -> {
-			item.setTemplateName(item.getName());
-		});
-	}
-
 
 	@Transactional(readOnly = false)
 	protected FormModelEntity doUpdate(FormModelEntity entity, boolean dataModelUpdateNeeded, Collection<String> deleteItemActivityIds, Collection<String> deleteItemSelectOptionIds) {

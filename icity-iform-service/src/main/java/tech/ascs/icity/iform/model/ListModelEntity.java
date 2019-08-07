@@ -62,6 +62,9 @@ public class ListModelEntity extends BaseEntity implements Serializable {
 	)
 	private List<ItemModelEntity> displayItems = new ArrayList<ItemModelEntity>();
 
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "listModel")
+	private List<ImportTemplateEntity> templateEntities = new ArrayList<>();
+
 	// 展示字段排序
 	@Column(name = "display_item_sort", length = 4096)
 	private String displayItemsSort;
@@ -303,5 +306,13 @@ public class ListModelEntity extends BaseEntity implements Serializable {
 
 	public void setShowSequenceNumber(Boolean showSequenceNumber) {
 		this.showSequenceNumber = showSequenceNumber;
+	}
+
+	public List<ImportTemplateEntity> getTemplateEntities() {
+		return templateEntities;
+	}
+
+	public void setTemplateEntities(List<ImportTemplateEntity> templateEntities) {
+		this.templateEntities = templateEntities;
 	}
 }

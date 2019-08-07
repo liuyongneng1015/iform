@@ -139,11 +139,12 @@ public class ExportDataServiceImpl implements ExportDataService {
     @Override
     public Resource exportTemplate(ListModelEntity listModel) {
         List<ItemModelEntity> modelEntities = eachHasColumnItemModel(listModel.getMasterForm().getItems());
+        List<ImportTemplateEntity> templateEntities = listModel.getTemplateEntities();
         List<String> header = new ArrayList<>();
         List<Object> data = new ArrayList<>();
-        modelEntities.stream()
-                .sorted(Comparator.comparing(ItemModelEntity::getOrderNo))
-                .filter(ItemModelEntity::isTemplateSelected)
+        templateEntities.stream()
+                .sorted(Comparator.comparing( template -> template.getItemModel().getOrderNo()))
+                .filter(ImportTemplateEntity::isTemplateSelected)
                 .forEach(item -> {
                     header.add(item.getTemplateName());
                     data.add(item.getExampleData());
@@ -160,14 +161,16 @@ public class ExportDataServiceImpl implements ExportDataService {
         if (listModelEntity.getMasterForm().getProcess() != null) {
             throw new ICityException("不能对包含流程的表单导入数据");
         }
-        List<ItemModelEntity> itemModelEntities = formModelService.findAllItems(listModelEntity.getMasterForm()).stream()
-                .filter(ItemModelEntity::isDataImported)
+
+        List<ImportTemplateEntity> templateEntities = listModelEntity.getTemplateEntities().stream()
+                .filter(ImportTemplateEntity::isDataImported)
                 .collect(Collectors.toList());
+
         ImportBaseFunctionEntity importSetting = listModelEntity.getFunctions().stream().filter(fuc -> DefaultFunctionType.Import.getValue().equals(fuc.getAction()))
                 .findAny()
                 .map(ListFunction::getImportFunction)
                 .orElseThrow(() -> new ICityException("不存在相应的导入配置"));
-        if (itemModelEntities.stream().noneMatch(ItemModelEntity::isMatchKey)) {
+        if (templateEntities.stream().noneMatch(ImportTemplateEntity::isMatchKey)) {
             throw new ICityException("未设置用于匹配的key, 无法进行导入操作");
         }
         ExcelReaderUtils.ExcelReaderResult<Map<String, Object>> result = ExcelReaderUtils.readExcel(file.getInputStream(), importSetting.getHeaderRow(), importSetting.getStartRow(), importSetting.getEndRow(), mapExcelRowMapper);
@@ -175,7 +178,7 @@ public class ExportDataServiceImpl implements ExportDataService {
             throw new ICityException("导入的excel存在相同的标题头, 无法导入");
         }
 
-        Map<String, ItemModelEntity> nameMapping = itemModelEntities.stream().collect(Collectors.toMap(ItemModelEntity::getTemplateName, i -> i));
+        Map<String, ItemModelEntity> nameMapping = templateEntities.stream().collect(Collectors.toMap(ImportTemplateEntity::getTemplateName, ImportTemplateEntity::getItemModel));
 
         List<Map<String, Object>> datas = result.getResult().stream().map(data ->
                 result.getHeader().stream().map(header -> {
@@ -207,7 +210,7 @@ public class ExportDataServiceImpl implements ExportDataService {
         try (Session session = getSession(dataModelEntity)) {
             List<Map<String, Object>> currentDatas = session.createCriteria(dataModelEntity.getTableName()).list();
 
-            List<Map<String, Object>> saveDatas = computeDatas(importSetting, itemModelEntities, datas, currentDatas, session);
+            List<Map<String, Object>> saveDatas = computeDatas(importSetting, templateEntities, datas, currentDatas, session);
 
             Transaction transaction = session.beginTransaction();
             try {
@@ -241,8 +244,8 @@ public class ExportDataServiceImpl implements ExportDataService {
         }
     }
 
-    private List<Map<String, Object>> computeDatas(ImportBaseFunctionEntity functionEntity, List<ItemModelEntity> importItems, List<Map<String, Object>> importData, List<Map<String, Object>> currentData, Session session) {
-        List<ItemModelEntity> keyEntitys = importItems.stream().filter(ItemModelEntity::isMatchKey).collect(Collectors.toList());
+    private List<Map<String, Object>> computeDatas(ImportBaseFunctionEntity functionEntity, List<ImportTemplateEntity> templateEntities, List<Map<String, Object>> importData, List<Map<String, Object>> currentData, Session session) {
+        List<ItemModelEntity> keyEntitys = templateEntities.stream().filter(ImportTemplateEntity::isMatchKey).map(ImportTemplateEntity::getItemModel).collect(Collectors.toList());
         checkKeys(keyEntitys, currentData, () -> new ICityException("当前的key设置会导致数据库中的数据存在重复, 无法导入"));
         checkKeys(keyEntitys, importData, () -> new ICityException("当前的key设置导致导入数据中存在重复, 无法导入"));
 
@@ -250,12 +253,13 @@ public class ExportDataServiceImpl implements ExportDataService {
         Map<String, Map<String, Object>> currentMappingData = toMapping(keyEntitys, currentData);
 
         return ImportDataComputer.getInstance(functionEntity.getType())
-                .andThen(datas -> handleRefItemsCol(importItems, datas, currentMappingData, session))
-                .andThen(datas -> parseSelectItemsCol(importItems, datas, session))
+                .andThen(datas -> handleRefItemsCol(templateEntities, datas, currentMappingData, session))
+                .andThen(datas -> parseSelectItemsCol(templateEntities, datas, session))
                 .apply(importMappingData, currentMappingData);
     }
 
-    private List<Map<String, Object>> parseSelectItemsCol(List<ItemModelEntity> items, List<Map<String, Object>> datas, Session session) {
+    private List<Map<String, Object>> parseSelectItemsCol(List<ImportTemplateEntity> templateEntities, List<Map<String, Object>> datas, Session session) {
+        List<ItemModelEntity> items = templateEntities.stream().map(ImportTemplateEntity::getItemModel).collect(Collectors.toList());
         Map<String, SelectImportItemWrapperBean> wrapperBeanMap = items.stream()
                 .filter(item -> item instanceof SelectItemModelEntity || item instanceof TreeSelectItemModelEntity)
                 .map(SelectImportItemWrapperBean::new)
@@ -385,9 +389,9 @@ public class ExportDataServiceImpl implements ExportDataService {
     /**
      * 处理 关联控件, 将关联控件转换为对应的jpa map
      */
-    private List<Map<String, Object>> handleRefItemsCol(List<ItemModelEntity> importItems, List<Map<String, Object>> datas, Map<String, Map<String, Object>> dbMappingData, Session session) {
-        List<ItemModelEntity> keyEntitys = importItems.stream().filter(ItemModelEntity::isMatchKey).collect(Collectors.toList());
-
+    private List<Map<String, Object>> handleRefItemsCol(List<ImportTemplateEntity> templateEntities, List<Map<String, Object>> datas, Map<String, Map<String, Object>> dbMappingData, Session session) {
+        List<ItemModelEntity> keyEntitys = templateEntities.stream().filter(ImportTemplateEntity::isMatchKey).map(ImportTemplateEntity::getItemModel).collect(Collectors.toList());
+        List<ItemModelEntity> importItems = templateEntities.stream().map(ImportTemplateEntity::getItemModel).collect(Collectors.toList());
         Map<String, ReferenceImportItemWrapperBean> wrapperMapping = importItems.stream()
                 .filter(this::hasRefDataItem)
                 .map(ReferenceImportItemWrapperBean::new)

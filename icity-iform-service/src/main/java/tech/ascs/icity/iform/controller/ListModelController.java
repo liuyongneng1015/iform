@@ -729,18 +729,21 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 
 	private void assemblyItemModelEntityImportFunction(ListModelEntity entity) {
 		FormModelEntity dataModelEntity = formModelService.find(entity.getMasterForm().getId());
-		List<ItemModelEntity> entities = exportDataService.eachHasColumnItemModel(dataModelEntity.getItems());
-        entities.forEach(item -> {
-            item.setTemplateName(item.getName());
-            item.setTemplateSelected(false);
-            item.setMatchKey(false);
-            item.setDataImported(false);
-        });
-		entities.stream().filter(item -> "id".equals(item.getName()))
-                .findAny()
-                .ifPresent(item -> item.setMatchKey(true));
+		List<ImportTemplateEntity> entities = exportDataService.eachHasColumnItemModel(dataModelEntity.getItems()).stream()
+				.map(item -> {
+				    ImportTemplateEntity templateEntity = new ImportTemplateEntity();
+				    templateEntity.setTemplateName(item.getName());
+				    templateEntity.setTemplateSelected(false);
+				    templateEntity.setMatchKey(false);
+				    templateEntity.setDataImported(false);
+				    templateEntity.setItemModel(item);
+				    templateEntity.setListModel(entity);
+				    return templateEntity;
+				})
+				.collect(Collectors.toList());
 
-		entity.setMasterForm(dataModelEntity);
+		entity.setTemplateEntities(entities);
+
 	}
 
 
@@ -754,31 +757,29 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
             exportModel.setCustomExport(Optional.ofNullable(functionEntiry.getCustomExport()).filter(StringUtils::hasText).map(str -> str.split(",")).map(Arrays::asList).orElseGet(Collections::emptyList));
             functionModel.setExportFunction(exportModel);
         }else if (DefaultFunctionType.TemplateDownload.getValue().equals(function.getAction())) {
-			List<ItemModelEntity> items = exportDataService.eachHasColumnItemModel(listModelEntity.getMasterForm().getItems());
-			List<TemplateItemModel> models = items.stream()
-					.map(item -> {
+			List<TemplateItemModel> models = listModelEntity.getTemplateEntities().stream()
+					.map(entity -> {
 						TemplateItemModel model = new TemplateItemModel();
-						model.setId(item.getId());
-						model.setItemName(item.getName());
-						model.setSelected(item.isTemplateSelected());
-						model.setTemplateName(item.getTemplateName());
-						model.setExampleData(item.getExampleData());
+						model.setId(entity.getItemModel().getId());
+						model.setItemName(entity.getItemModel().getName());
+						model.setSelected(entity.isTemplateSelected());
+						model.setTemplateName(entity.getTemplateName());
+						model.setExampleData(entity.getExampleData());
 						return model;
 					}).collect(Collectors.toList());
 			functionModel.setTemplateItemModels(models);
 		} else if (DefaultFunctionType.Import.getValue().equals(function.getAction()) && function.getImportFunction()!=null) {
-			List<ItemModelEntity> items = exportDataService.eachHasColumnItemModel(listModelEntity.getMasterForm().getItems());
 			ImportFunctionModel model = new ImportFunctionModel();
 			Optional.ofNullable(functionModel.getImportFunction())
 					.ifPresent(func -> BeanCopiers.noConvertCopy(func, model));
-			List<ImportTemplateItemModel> itemModels = items.stream()
-					.map(item -> {
+			List<ImportTemplateItemModel> itemModels = listModelEntity.getTemplateEntities().stream()
+					.map(entity -> {
 						ImportTemplateItemModel  importModel = new ImportTemplateItemModel();
-						importModel.setId(item.getId());
-						importModel.setImported(item.isDataImported());
-						importModel.setItemName(item.getName());
-						importModel.setTemplateName(item.getTemplateName());
-						importModel.setKey(item.isMatchKey());
+						importModel.setId(entity.getItemModel().getId());
+						importModel.setImported(entity.isDataImported());
+						importModel.setItemName(entity.getItemModel().getName());
+						importModel.setTemplateName(entity.getTemplateName());
+						importModel.setKey(entity.isMatchKey());
 						return importModel;
 					}).collect(Collectors.toList());
 			model.setTemplateItemModels(itemModels);
