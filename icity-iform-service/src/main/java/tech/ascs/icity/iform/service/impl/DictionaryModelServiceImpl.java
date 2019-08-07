@@ -107,7 +107,7 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 			throw new IFormException("数据表必须以字母开头，只能包含数字，字母，下划线，不能包含中文，横杆等特殊字符");
 		}
 
-		if (dictionaryModel.getName() == null || dictionaryModel.getName().length() > 128) {
+		if (dictionaryModel.getName() == null || dictionaryModel.getName().length() > 255) {
 			throw new IFormException("字典名称长度错误");
 		}
 
@@ -272,7 +272,7 @@ public class DictionaryModelServiceImpl extends DefaultJPAService<DictionaryMode
 				throw  new IFormException("字典代码key不能重复");
 			}
 		}
-		if (dictionaryModelData.getName() == null || dictionaryModelData.getName().length() > 128) {
+		if (dictionaryModelData.getName() == null || dictionaryModelData.getName().length() > 255) {
 			throw new IFormException("字典代码名称长度错误");
 		}
 	}
