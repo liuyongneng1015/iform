@@ -552,7 +552,6 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 			itemMap.put(itemInstance.getId(), itemInstance);
 		}
 
-		// 表单提交校验
 		List<String> checkResult = elProcessorService.checkSubmitProcessor(formInstance, formModelEntity, formModelService::get);
 		if (!checkResult.isEmpty()) {
 			throw new IFormException(403, checkResult.get(0));
@@ -851,7 +850,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		return null;
 	}
 
-	private void sendWebService(FormModelEntity formModelEntity, BusinessTriggerType triggerType,  Map<String, Object> data, String id){
+	public void sendWebService(FormModelEntity formModelEntity, BusinessTriggerType triggerType,  Map<String, Object> data, String id){
 		BusinessTriggerEntity triggerEntity = getBusinessTrigger(formModelEntity, triggerType);
 		if (triggerEntity!=null) {
             if (triggerEntity.getParamCondition() == ParamCondition.FormCurrentData) {
@@ -1948,7 +1947,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		}
 	}
 
-	private void deleteVerify(ColumnReferenceEntity columnReferenceEntity, Map<String, Object> entity, List<ReferenceItemModelEntity> itemModelEntities){
+	public void deleteVerify(ColumnReferenceEntity columnReferenceEntity, Map<String, Object> entity, List<ReferenceItemModelEntity> itemModelEntities){
 		if(columnReferenceEntity.getReferenceType() == ReferenceType.ManyToMany || !columnReferenceEntity.getFromColumn().getColumnName().equals("id") ){
 			return;
 		}
