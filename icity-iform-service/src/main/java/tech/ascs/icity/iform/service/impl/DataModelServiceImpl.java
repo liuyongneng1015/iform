@@ -1046,8 +1046,10 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		}
 		if (entity.getModelType() == DataModelType.Slaver) {
 			entity = save(entity);
-			entity.getMasterModel().setSynchronize(false);
-			save(entity.getMasterModel());
+			if (entity.getMasterModel()!=null) {
+				entity.getMasterModel().setSynchronize(false);
+				save(entity.getMasterModel());
+			}
 			return entity;
 		} else {
 			entity.setSynchronize(false);
