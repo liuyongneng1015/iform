@@ -505,13 +505,12 @@ public class DictionaryDataController implements tech.ascs.icity.iform.api.servi
 	@Override
 	public List<DictionaryDataItemModel> findItems(@PathVariable(name="id", required = true) String id,
 												   @PathVariable(name="itemId", required = true) String itemId,
-												   @RequestParam(name="itemModelId", required = false) String itemModelId,
-												   @RequestParam(name="linkageDataUnbind", defaultValue = "false") Boolean linkageDataUnbind) {
+												   @RequestParam(name="itemModelId", required = false) String itemModelId) {
 		DictionaryDataEntity dictionaryEntity = dictionaryService.find(id);
 		if (dictionaryEntity == null) {
 			return new ArrayList<>();
 		}
-		if (StringUtils.isNotEmpty(itemModelId) && true == linkageDataUnbind) {
+		if (StringUtils.isNotEmpty(itemModelId)) {
 			return queryLinkageDataUnbind(itemModelId);
 		}
 		DictionaryDataItemEntity dictionaryItemEntity = dictionaryService.getDictionaryItemById(itemId);

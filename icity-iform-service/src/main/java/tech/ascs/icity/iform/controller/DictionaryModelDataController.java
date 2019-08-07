@@ -29,9 +29,8 @@ public class DictionaryModelDataController implements tech.ascs.icity.iform.api.
 
 	@Override
 	public List<DictionaryModelData> findAll(@PathVariable(name = "dictionaryId", required = true) String dictionaryId,
-											 @RequestParam(name = "itemModelId", required = false) String itemModelId,
-											 @RequestParam(name = "linkageDataUnbind", defaultValue = "false") Boolean linkageDataUnbind) {
-		if (linkageDataUnbind && StringUtils.hasText(itemModelId)) {
+											 @RequestParam(name = "itemModelId", required = false) String itemModelId) {
+		if (StringUtils.hasText(itemModelId)) {
 			return queryLinkageDataUnbind(itemModelId);
 		}
 		List<DictionaryModelData> list = new ArrayList<>();
