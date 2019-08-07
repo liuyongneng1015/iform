@@ -227,8 +227,10 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 
 		//旧关联行id
 		List<String> oldToColumnIds = new ArrayList<>();
-		for (ColumnReferenceEntity entity : oldReferenceEntityList) {
-			oldToColumnIds.add(entity.getToColumn().getId());
+		if (oldReferenceEntityList!=null) {
+			for (ColumnReferenceEntity entity : oldReferenceEntityList) {
+				oldToColumnIds.add(entity.getToColumn().getId());
+			}
 		}
 		//旧关联行id
 		List<String> deleteOldToColumnIds = new ArrayList<String>();
