@@ -959,7 +959,20 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 	}
 
 	private void assemblyImportFunction(Map<String, ImportTemplateEntity> itemModelEntities, ListFunction listFunction, FunctionModel model) {
-		ImportFunctionModel importModel = Optional.ofNullable(model.getImportFunction()).orElseThrow(() -> new ICityException("导入功能按钮为传入相关设置"));
+		ImportFunctionModel importModel = Optional.ofNullable(model.getImportFunction()).orElseGet(() -> {
+			ImportFunctionModel importFunc = new ImportFunctionModel();
+			if (listFunction.getImportFunction() != null) {
+				BeanCopiers.noConvertCopy(listFunction.getImportFunction(), importFunc);
+			}else {
+				importFunc.setFileType(ImportFileType.Excel);
+				importFunc.setHeaderRow(1);
+				importFunc.setStartRow(2);
+				importFunc.setDateFormatter("yyyy-MM-dd HH:mm:ss");
+				importFunc.setDateSeparator("-");
+				importFunc.setTimeSeparator(":");
+			}
+			return importFunc;
+		});
 		ImportBaseFunctionEntity importEntity = Optional.ofNullable(listFunction.getImportFunction()).orElseGet(ImportBaseFunctionEntity::new);
 		BeanCopiers.noConvertCopy(importModel, importEntity);
 		listFunction.setImportFunction(importEntity);

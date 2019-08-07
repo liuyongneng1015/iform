@@ -18,13 +18,11 @@ public interface DictionaryModelDataService {
     @ApiOperation(value = "获取树形结构字典建模数据")
     @ApiImplicitParams({
             @ApiImplicitParam(paramType="path", name = "dictionaryId", value = "字典建模ID", required = true, dataType = "String"),
-            @ApiImplicitParam(paramType="query", name = "itemModelId", value = "字典表选项ID", required = false, dataType = "String"),
-            @ApiImplicitParam(paramType="query", name = "linkageDataUnbind", value = "联动数据解绑", required = false, dataType = "Boolean")
+            @ApiImplicitParam(paramType="query", name = "itemModelId", value = "字典表选项ID", required = false, dataType = "String")
     })
     @GetMapping("/all/{dictionaryId}")
     List<DictionaryModelData> findAll(@PathVariable(name = "dictionaryId", required = true) String dictionaryId,
-                                      @RequestParam(name = "itemModelId", required = false) String itemModelId,
-                                      @RequestParam(name = "linkageDataUnbind", defaultValue = "false") Boolean linkageDataUnbind);
+                                      @RequestParam(name = "itemModelId", required = false) String itemModelId);
 
     @ApiOperation(value = "获取字典建模第一级数据")
     @ApiImplicitParams({

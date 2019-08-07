@@ -341,7 +341,7 @@ public class ExportDataServiceImpl implements ExportDataService {
             //系统代码
             String referenceDictionaryId = selectItemModelEntity.getReferenceDictionaryId();
             String referenceDictionaryItemId = selectItemModelEntity.getReferenceDictionaryItemId();
-            List<DictionaryDataItemModel> modelItems = dictionaryDataService.findItems(referenceDictionaryId, referenceDictionaryItemId, null, false);
+            List<DictionaryDataItemModel> modelItems = dictionaryDataService.findItems(referenceDictionaryId, referenceDictionaryItemId, null);
             return eachDictionaryData(modelItems);
         } else if (selectItemModelEntity.getSelectDataSourceType() == SelectDataSourceType.DictionaryModel) {
             //字典建模
