@@ -880,6 +880,7 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 					ItemModelEntity itemEntity = itemModelEntities.get(tModel.getId());
 					itemEntity.setTemplateName(tModel.getTemplateName());
 					itemEntity.setTemplateSelected(tModel.isSelected());
+					itemEntity.setExampleData(tModel.getExampleData());
 				});
 	}
 

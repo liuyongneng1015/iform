@@ -22,6 +22,9 @@ public class TemplateItemModel {
     @ApiModelProperty("是否被选中")
     private boolean selected;
 
+    @ApiModelProperty("数据示例")
+    private String exampleData;
+
     public String getId() {
         return id;
     }
@@ -52,5 +55,13 @@ public class TemplateItemModel {
 
     public void setSelected(boolean selected) {
         this.selected = selected;
+    }
+
+    public String getExampleData() {
+        return exampleData;
+    }
+
+    public void setExampleData(String exampleData) {
+        this.exampleData = exampleData;
     }
 }

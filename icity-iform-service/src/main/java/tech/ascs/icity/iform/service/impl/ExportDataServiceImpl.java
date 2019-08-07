@@ -2,8 +2,10 @@ package tech.ascs.icity.iform.service.impl;
 
 import com.google.common.collect.Sets;
 import com.itextpdf.text.DocumentException;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.hssf.util.HSSFColor;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFColor;
+import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -26,6 +28,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -71,6 +75,8 @@ public class ExportDataServiceImpl implements ExportDataService {
         return ItemModelHandlerUtils.eachItemEntity(entitys, Sets.newHashSet(ItemType.SubForm))
                 .stream()
                 .filter(item -> Objects.nonNull(item.getColumnModel()))
+                // fix 修复遍历可能会出现重复item的问题, 这个重复指的是 对象地址重复, 即是完全相同的一个item
+                .distinct()
                 .sorted(Comparator.comparing(ItemModelEntity::getOrderNo))
                 .collect(Collectors.toList());
     }
@@ -78,11 +84,20 @@ public class ExportDataServiceImpl implements ExportDataService {
     @Override
     public Resource exportTemplate(ListModelEntity listModel) {
         List<ItemModelEntity> modelEntities = eachHasColumnItemModel(listModel.getMasterForm().getItems());
-        List<String> header = modelEntities.stream()
+        List<String> header = new ArrayList<>();
+        List<Object> data = new ArrayList<>();
+        modelEntities.stream()
                 .sorted(Comparator.comparing(ItemModelEntity::getOrderNo))
                 .filter(ItemModelEntity::isTemplateSelected)
-                .map(ItemModelEntity::getTemplateName).collect(Collectors.toList());
-        return exportExcel(listModel.getName(), header, Collections.emptyList());
+                .forEach(item -> {
+                    header.add(item.getTemplateName());
+                    data.add(item.getExampleData());
+                });
+
+        return exportExcel(listModel.getName(), header, Collections.singletonList(data), (style, font) -> {
+            font.setColor(HSSFColor.HSSFColorPredefined.RED.getIndex());
+            font.setItalic(true);
+        });
     }
 
     private Resource exportPdf(String title, List<String> header, List<List<Object>> exportDatas) {
@@ -98,16 +113,12 @@ public class ExportDataServiceImpl implements ExportDataService {
         }
     }
 
-    /**
-     * 导出excel类型的资源
-     * @return 返回Excel的Resource
-     */
-    private Resource exportExcel(String sheetName, List<String> header, List<List<Object>> exportDatas ) {
+    private Resource exportExcel(String sheetName, List<String> header, List<List<Object>> exportDatas, BiConsumer<CellStyle, Font> cellStyle) {
         Workbook wb = new XSSFWorkbook();
         Sheet sheet = wb.createSheet(sheetName);
 
         ExportUtils.outputHeaders(header.toArray(new String[0]), sheet);
-        ExportUtils.outputColumn(exportDatas, sheet, 1);
+        ExportUtils.outputColumn(exportDatas, sheet, 1, cellStyle);
 
         ByteArrayOutputStream os = new ByteArrayOutputStream();
 
@@ -118,6 +129,14 @@ public class ExportDataServiceImpl implements ExportDataService {
         }
 
         return new ByteArrayResource(os.toByteArray());
+    }
+
+    /**
+     * 导出excel类型的资源
+     * @return 返回Excel的Resource
+     */
+    private Resource exportExcel(String sheetName, List<String> header, List<List<Object>> exportDatas ) {
+        return exportExcel(sheetName, header, exportDatas, null);
     }
 
     private Object findValue(ItemInstance instance) {
