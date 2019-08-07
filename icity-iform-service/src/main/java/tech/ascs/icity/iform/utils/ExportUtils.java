@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.poi.hssf.util.HSSFColor;
@@ -23,6 +24,11 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.util.StringUtils;
 import tech.ascs.icity.iform.api.model.*;
+import tech.ascs.icity.iform.api.model.export.ExportControl;
+import tech.ascs.icity.iform.function.HeaderBuild;
+import tech.ascs.icity.iform.model.ItemModelEntity;
+import tech.ascs.icity.iform.service.impl.ExportDataServiceImpl;
+import tech.ascs.icity.jpa.dao.model.BaseEntity;
 
 import javax.imageio.ImageIO;
 
@@ -235,6 +241,65 @@ public class ExportUtils {
 			e.printStackTrace();
 			System.out.println("属性不存在！");
 			return null;
+		}
+	}
+
+
+	/**
+	 * 用于生成导出表格的标题头工厂
+	 */
+	public static class ExportHeaderFactory {
+
+		public static HeaderBuild getInstance(ExportControl control) {
+			switch (control) {
+				case All:
+					return ALL_HEADER_BUILD;
+				case List:
+					return LIST_HEADER_BUILD;
+				case BackCustom:
+					return BACK_HEADER_BUILD;
+				case FrontCustom:
+					return FRONT_HEADER_BUILD;
+				default:
+					return ALL_HEADER_BUILD;
+			}
+		}
+
+		private static HeaderBuild ALL_HEADER_BUILD = (entity, func, queryParams) ->
+				ItemModelHandlerUtils.eachItemEntity(entity.getMasterForm().getItems(), ItemType.SubForm).stream()
+						.filter(item -> item.getType().hasContext())
+						.sorted(Comparator.comparing(ItemModelEntity::getOrderNo))
+						.map(BaseEntity::getName).collect(Collectors.toList());
+
+		private static HeaderBuild LIST_HEADER_BUILD = (entity, function, queryParams) -> entity.getDisplayItems().stream().sorted(Comparator.comparing(ItemModelEntity::getOrderNo)).map(ItemModelEntity::getName).collect(Collectors.toList());
+
+		private static HeaderBuild BACK_HEADER_BUILD = (entity, function, queryParams) -> {
+			Map<String, String> mapping = ItemModelHandlerUtils.eachItemEntity(entity.getMasterForm().getItems(), ItemType.SubForm).stream().distinct().collect(Collectors.toMap(ItemModelEntity::getId, ItemModelEntity::getName));
+			return Stream.of(function.getCustomExport().split(","))
+					.map(mapping::get)
+					.filter(Objects::nonNull)
+					.collect(Collectors.toList());
+		};
+
+		private static HeaderBuild FRONT_HEADER_BUILD = (entity, function, queryParams) -> {
+			Map<String, String> mapping = ItemModelHandlerUtils.eachItemEntity(entity.getMasterForm().getItems(), ItemType.SubForm).stream().distinct().collect(Collectors.toMap(ItemModelEntity::getId, ItemModelEntity::getName));
+			return findFrontItemIds(queryParams).stream()
+					.map(mapping::get)
+					.filter(Objects::nonNull)
+					.collect(Collectors.toList());
+		};
+
+		private static Collection<String> findFrontItemIds(Map<String, Object> params) {
+			final String key = "exportColumnIds";
+			if (params == null || !params.containsKey(key)) {
+				return Collections.emptyList();
+			}
+			Object obj = params.get(key);
+			if (Collection.class.isAssignableFrom(obj.getClass())) {
+				return (Collection<String>) obj;
+			} else {
+				return Arrays.asList(Objects.toString(obj).split(","));
+			}
 		}
 	}
 }
