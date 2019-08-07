@@ -865,6 +865,9 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 	}
 
 	private void assemblyExportFunction(Map<String, ItemModelEntity> itemModelEntities, ListFunction listFunction, FunctionModel model) {
+		if(model.isVisible()==false) {
+			return;
+		}
 		ExportFunctionModel exportModel = Optional.ofNullable(model.getExportFunction()).orElseThrow(() -> new ICityException("导出功能按钮没有传入相关设置数据"));
 		ExportListFunction exportFunction = new ExportListFunction();
 		exportFunction.setControl(exportModel.getControl());
