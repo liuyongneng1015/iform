@@ -741,11 +741,11 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 	private void deleteItemAndColumn(ItemModelEntity itemModelEntity){
 		if(itemModelEntity.getColumnModel() != null){
-			DataModelEntity dataModelEntity = itemModelEntity.getColumnModel().getDataModel();
+			/*DataModelEntity dataModelEntity = itemModelEntity.getColumnModel().getDataModel();
 			String tableName = dataModelEntity.getPrefix() == null ? dataModelEntity.getTableName(): dataModelEntity.getPrefix()+dataModelEntity.getTableName();
 			ColumnModelEntity column = itemModelEntity.getColumnModel();
 			String columnName = column.getPrefix() == null ? column.getColumnName() : column.getPrefix()+column.getColumnName();
-			columnModelService.deleteTableColumn(tableName, columnName);
+			columnModelService.deleteTableColumn(tableName, columnName);*/
 		}
 		itemManager.delete(itemModelEntity);
 	}

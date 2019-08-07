@@ -888,7 +888,13 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 	}
 
 	private void assemblyImportFunction(Map<String, ItemModelEntity> itemModelEntities, ListFunction listFunction, FunctionModel model) {
-		ImportFunctionModel importModel = Optional.ofNullable(model.getImportFunction()).orElseThrow(() -> new ICityException("导入功能按钮为传入相关设置"));
+		if( model.isVisible() && model.getImportFunction() == null) {
+			throw new ICityException("导入功能按钮为传入相关设置");
+		}
+		ImportFunctionModel importModel = model.getImportFunction();
+		if(importModel == null){
+			return;
+		}
 		ImportBaseFunctionEntity importEntity = Optional.ofNullable(listFunction.getImportFunction()).orElseGet(ImportBaseFunctionEntity::new);
 		BeanCopiers.noConvertCopy(importModel, importEntity);
 		listFunction.setImportFunction(importEntity);
