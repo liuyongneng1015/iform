@@ -3863,7 +3863,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 //		itemInstance.setProps(itemModel.getProps());
 		itemInstance.setItemName(itemModel.getName());
 		updateValue(itemModel, itemInstance, value);
-		if (visiblekey) {
+		if (visiblekey!=null && visiblekey) {
 			itemInstance.setVisible(false);
 		} else {
 			updateActivityInfo(itemModel, itemInstance, activityId);
