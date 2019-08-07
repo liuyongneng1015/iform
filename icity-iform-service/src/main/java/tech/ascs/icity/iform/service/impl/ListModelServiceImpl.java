@@ -865,7 +865,13 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 	}
 
 	private void assemblyExportFunction(Map<String, ItemModelEntity> itemModelEntities, ListFunction listFunction, FunctionModel model) {
-		ExportFunctionModel exportModel = Optional.ofNullable(model.getExportFunction()).orElseThrow(() -> new ICityException("导出功能按钮没有传入相关设置数据"));
+		if(model.isVisible() && model.getExportFunction() == null) {
+			throw new ICityException("导出功能按钮没有传入相关设置数据");
+		}
+		ExportFunctionModel exportModel = model.getExportFunction();
+		if(exportModel == null){
+			return;
+		}
 		ExportListFunction exportFunction = new ExportListFunction();
 		exportFunction.setControl(exportModel.getControl());
 		exportFunction.setFormat(exportModel.getFormat());
@@ -885,7 +891,13 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 	}
 
 	private void assemblyImportFunction(Map<String, ItemModelEntity> itemModelEntities, ListFunction listFunction, FunctionModel model) {
-		ImportFunctionModel importModel = Optional.ofNullable(model.getImportFunction()).orElseThrow(() -> new ICityException("导入功能按钮为传入相关设置"));
+		if( model.isVisible() && model.getImportFunction() == null) {
+			throw new ICityException("导入功能按钮为传入相关设置");
+		}
+		ImportFunctionModel importModel = model.getImportFunction();
+		if(importModel == null){
+			return;
+		}
 		ImportBaseFunctionEntity importEntity = Optional.ofNullable(listFunction.getImportFunction()).orElseGet(ImportBaseFunctionEntity::new);
 		BeanCopiers.noConvertCopy(importModel, importEntity);
 		listFunction.setImportFunction(importEntity);
