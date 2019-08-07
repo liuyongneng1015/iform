@@ -187,7 +187,7 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 				functions.add(function);
 			}
 			entity.setFunctions(functions);
-            assemblyItemModelEntityImportFunction(entity);
+			initListModelTemplateEntitys(entity);
 			entity = listModelService.save(entity);
 			return new IdEntity(entity.getId());
 		} catch (Exception e) {
@@ -727,7 +727,10 @@ public class ListModelController implements tech.ascs.icity.iform.api.service.Li
 		return list;
 	}
 
-	private void assemblyItemModelEntityImportFunction(ListModelEntity entity) {
+	/**
+	 * 初始化列表模型中的导入模板内容
+	 */
+	private void initListModelTemplateEntitys(ListModelEntity entity) {
 		FormModelEntity dataModelEntity = formModelService.find(entity.getMasterForm().getId());
 		List<ImportTemplateEntity> entities = exportDataService.eachHasColumnItemModel(dataModelEntity.getItems()).stream()
 				.map(item -> {
