@@ -56,7 +56,7 @@ public class ColumnModelServiceImpl extends DefaultJPAService<ColumnModelEntity>
         List<ColumnModelEntity> list = dataModel.getColumns();
         if (list != null) {
             for (ColumnModelEntity columnModelEntity : list) {
-                if (columnModelEntity.getColumnName().equals(columnName)) {
+                if (StringUtils.isNotEmpty(columnModelEntity.getColumnName()) && columnModelEntity.getColumnName().equals(columnName)) {
                     return columnModelEntity;
                 }
             }
