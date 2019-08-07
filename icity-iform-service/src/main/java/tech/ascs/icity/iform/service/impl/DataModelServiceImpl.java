@@ -85,7 +85,7 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		Map<String, ColumnModelEntity> oldCloumnMap = new HashMap<>();
 		String idColumns = "";
 		for (ColumnModelEntity oldColumn : old.getColumns()) {
-			if(oldColumn.getColumnName().equals("id")){
+			if(StringUtils.isNotEmpty(oldColumn.getColumnName()) && oldColumn.getColumnName().equals("id")){
 				idColumns = oldColumn.getId();
 			}
 			oldCloumnMap.put(oldColumn.getId(), oldColumn);
@@ -227,8 +227,10 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 
 		//旧关联行id
 		List<String> oldToColumnIds = new ArrayList<>();
-		for (ColumnReferenceEntity entity : oldReferenceEntityList) {
-			oldToColumnIds.add(entity.getToColumn().getId());
+		if (oldReferenceEntityList!=null) {
+			for (ColumnReferenceEntity entity : oldReferenceEntityList) {
+				oldToColumnIds.add(entity.getToColumn().getId());
+			}
 		}
 		//旧关联行id
 		List<String> deleteOldToColumnIds = new ArrayList<String>();
@@ -1044,8 +1046,10 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		}
 		if (entity.getModelType() == DataModelType.Slaver) {
 			entity = save(entity);
-			entity.getMasterModel().setSynchronize(false);
-			save(entity.getMasterModel());
+			if (entity.getMasterModel()!=null) {
+				entity.getMasterModel().setSynchronize(false);
+				save(entity.getMasterModel());
+			}
 			return entity;
 		} else {
 			entity.setSynchronize(false);

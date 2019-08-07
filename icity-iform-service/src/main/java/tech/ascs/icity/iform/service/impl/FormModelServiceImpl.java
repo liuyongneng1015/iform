@@ -50,6 +50,8 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 	private JPAManager<BusinessTriggerEntity> businessTriggerManager;
 
+	private JPAManager<ImportTemplateEntity> importTemplateManager;
+
 	@Autowired
 	ProcessService processService;
 
@@ -101,6 +103,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		listSortItemManager = getJPAManagerFactory().getJPAManager(ListSortItem.class);
 		quickSearchEntityManager = getJPAManagerFactory().getJPAManager(QuickSearchEntity.class);
 		businessTriggerManager = getJPAManagerFactory().getJPAManager(BusinessTriggerEntity.class);
+		importTemplateManager = getJPAManagerFactory().getJPAManager(ImportTemplateEntity.class);
 	}
 
 	@Override
@@ -691,6 +694,8 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			ItemModelEntity itemModelEntity = list.get(i);
 			list.remove(itemModelEntity);
 			i--;
+			List<ImportTemplateEntity> templateEntities = importTemplateManager.findByProperty("itemModel", itemModelEntity);
+			importTemplateManager.delete(templateEntities.toArray(new ImportTemplateEntity[0]));
 			if(itemModelEntity instanceof ReferenceItemModelEntity ){
 				if(((ReferenceItemModelEntity) itemModelEntity).getParentItem() != null){
 					((ReferenceItemModelEntity) itemModelEntity).getParentItem().getItems().remove(itemModelEntity);
@@ -741,11 +746,11 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 	private void deleteItemAndColumn(ItemModelEntity itemModelEntity){
 		if(itemModelEntity.getColumnModel() != null){
-			DataModelEntity dataModelEntity = itemModelEntity.getColumnModel().getDataModel();
+			/*DataModelEntity dataModelEntity = itemModelEntity.getColumnModel().getDataModel();
 			String tableName = dataModelEntity.getPrefix() == null ? dataModelEntity.getTableName(): dataModelEntity.getPrefix()+dataModelEntity.getTableName();
 			ColumnModelEntity column = itemModelEntity.getColumnModel();
 			String columnName = column.getPrefix() == null ? column.getColumnName() : column.getPrefix()+column.getColumnName();
-			columnModelService.deleteTableColumn(tableName, columnName);
+			columnModelService.deleteTableColumn(tableName, columnName);*/
 		}
 		itemManager.delete(itemModelEntity);
 	}
@@ -1761,6 +1766,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		for (ItemModel itemModel : formModel.getItems()) {
 			itemModelService.setItemModelEntity(formModel, itemModel, entity, items,	itemModelEntityList,  formMap);
 		}
+		// 同步数据库中以后的模板参数
 		formMap.put(masterDataModel.getTableName(), itemModelEntityList);
 
 		Map<String, DataModel> newDataModelMap = new HashMap<>();
@@ -2488,7 +2494,6 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 			i--;
 		}*/
 	}
-
 
 	@Transactional(readOnly = false)
 	protected FormModelEntity doUpdate(FormModelEntity entity, boolean dataModelUpdateNeeded, Collection<String> deleteItemActivityIds, Collection<String> deleteItemSelectOptionIds) {
