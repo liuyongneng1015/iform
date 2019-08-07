@@ -35,7 +35,7 @@ public class AnalysisDataModel extends NameEntity {
 
     @ApiModelProperty(value = "是否已同步", position = 8)
 	@JsonProperty("synchronized")
-    private boolean synchronize = false;
+    private Boolean synchronize = false;
 
 	@ApiModelProperty(value = "应用id", position = 9)
 	private String applicationId;
@@ -102,12 +102,12 @@ public class AnalysisDataModel extends NameEntity {
 		this.indexes = indexes;
 	}
 
-    @ApiModelProperty(value = "是否已同步", position = 8)
-	public boolean isSynchronize() {
+	@ApiModelProperty(value = "是否已同步", position = 8)
+	public Boolean getSynchronize() {
 		return synchronize;
 	}
 
-	public void setSynchronize(boolean synchronize) {
+	public void setSynchronize(Boolean synchronize) {
 		this.synchronize = synchronize;
 	}
 
