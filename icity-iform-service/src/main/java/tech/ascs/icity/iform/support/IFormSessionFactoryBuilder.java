@@ -133,6 +133,9 @@ public class IFormSessionFactoryBuilder {
 		for(ColumnModelEntity columnModelEntity : dataModelEntity1.getColumns()) {
 			for (ColumnReferenceEntity entity : columnModelEntity.getColumnReferences()) {
 				DataModelEntity dataModelEntity = entity.getToColumn().getDataModel();
+                if(dataModelEntity == null){
+                    continue;
+                }
 				if (!referencesDataModel.contains(dataModelEntity) && !allDataModels.contains(dataModelEntity)) {
 					referencesDataModel.add(dataModelEntity);
 					allDataModels.add(dataModelEntity);
