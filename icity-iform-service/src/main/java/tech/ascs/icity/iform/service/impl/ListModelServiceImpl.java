@@ -976,12 +976,14 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 		ImportBaseFunctionEntity importEntity = Optional.ofNullable(listFunction.getImportFunction()).orElseGet(ImportBaseFunctionEntity::new);
 		BeanCopiers.noConvertCopy(importModel, importEntity);
 		listFunction.setImportFunction(importEntity);
-		model.getImportFunction().getTemplateItemModels()
-				.forEach(iModel -> Optional.ofNullable(itemModelEntities.get(iModel.getId()))
-						.ifPresent(entity -> {
-							entity.setMatchKey(iModel.isKey());
-							entity.setDataImported(iModel.isImported());
-						}));
+		if (model.getImportFunction()!=null && model.getImportFunction().getTemplateItemModels()!=null) {
+			model.getImportFunction().getTemplateItemModels()
+					.forEach(iModel -> Optional.ofNullable(itemModelEntities.get(iModel.getId()))
+							.ifPresent(entity -> {
+								entity.setMatchKey(iModel.isKey());
+								entity.setDataImported(iModel.isImported());
+							}));
+		}
 	}
 
 	private <K, V> Map<K, V> toMap(List<V> list, Function<V, K> keyMapper) {
