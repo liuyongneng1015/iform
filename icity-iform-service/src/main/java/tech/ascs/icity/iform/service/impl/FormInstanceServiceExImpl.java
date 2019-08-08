@@ -4411,12 +4411,13 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
             //开启事务
             session.beginTransaction();
             for(String key : parameters.keySet()){
-            	Object vlaue = parameters.get(key);
-            	if(vlaue == null){
+            	Object value = parameters.get(key);
+            	if(value == null){
             		continue;
 				}
+
             	ColumnModelEntity columnModelEntity = columnMap.get(key);
-            	if(!(vlaue instanceof Date) && columnMap.keySet().contains(key) && (columnModelEntity.getDataType() == ColumnType.Date
+            	if(!(value instanceof Date) && columnMap.keySet().contains(key) && (columnModelEntity.getDataType() == ColumnType.Date
 						|| columnModelEntity.getDataType() == ColumnType.Time || columnModelEntity.getDataType() == ColumnType.Timestamp)){
 					parameters.put(key, new Date((Long)parameters.get(key)));
 				}
@@ -4428,6 +4429,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 						e.printStackTrace();
 					}
 					parameters.put(key, map);
+				}
+				if(value instanceof List){
+					parameters.put(key, String.join(",", (List<String>)value));
 				}
 			}
             if(StringUtils.hasText(instanceId)) {
@@ -4466,6 +4470,23 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
                 session.close();
             }
         }
+        if(data != null){
+        	for(String columnName : data.keySet()){
+				Object o = data.get(columnName);
+				if(o == null){
+					continue;
+				}
+				if(o instanceof List){
+					List<String> list = new ArrayList<>();
+					for(Map<String, Object> map : (List<Map<String, Object>>)o){
+						list.add((String)map.get("id"));
+					}
+					data.put(columnName, list);
+				}else if(o instanceof Map){
+					data.put(columnName, ((Map<String, Object>)o).get("id"));
+				}
+        	}
+		}
         return data;
     }
 
