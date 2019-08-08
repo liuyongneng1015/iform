@@ -11,6 +11,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.criterion.*;
 import org.hibernate.criterion.Order;
 import org.hibernate.internal.CriteriaImpl;
+import org.hibernate.sql.JoinType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -4773,7 +4774,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 	protected DetachedCriteria workListCriteria(String userId, List<String> groups, Date beginDate, Date endDate) {
 
-		DetachedCriteria detachedCriteria = DetachedCriteria.forEntityName("WorkingTask", "wt").createCriteria("wt.candidates", "c")
+		DetachedCriteria detachedCriteria = DetachedCriteria.forEntityName("WorkingTask", "wt").createCriteria("wt.candidates", "c", JoinType.LEFT_OUTER_JOIN)
 				.setProjection(Projections.distinct(Property.forName("wt.processInstance")));
 		if(StringUtils.hasText(userId)){
 			detachedCriteria.add(Restrictions.or(
