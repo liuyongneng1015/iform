@@ -96,9 +96,7 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		List<String> newCloumnIds = new ArrayList<String>();
 		Map<String,Object> map = new HashMap<>();
 		for (ColumnModel newColumn : dataModel.getColumns()) {
-			if(StringUtils.isBlank(newColumn.getColumnName().trim())){
-				throw new IFormException("字段名不能为空");
-			}
+			verifyColumnName(newColumn.getColumnName());
 			if(map.get(newColumn.getColumnName()) != null){
 				throw new IFormException("同步数据模型【" + dataModel.getName() + "】失败：字段" +newColumn.getColumnName()+"重复了");
 			}
@@ -117,7 +115,7 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 
 		//检查属性是否被关联
 		checkRelevance(deleteCloumns);
-		//id行
+		//id字段
 		ColumnModelEntity idColumn = null;
 		List<ColumnModelEntity> columnModelEntities = new ArrayList<ColumnModelEntity>();
 		setColumns(dataModel, idColumn, old, columnModelEntities);
@@ -139,6 +137,16 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		}
 
 		return dataModelEntity;
+	}
+
+	//校验字段名
+	private void verifyColumnName(String name){
+		if(StringUtils.isBlank(name)){
+			throw new IFormException("字段名不能为空");
+		}
+		if (!Pattern.matches(CommonUtils.regEx, name)) {
+			throw new IFormException("字段名必须以字母开头，只能包含数字，字母，下划线，不能包含中文，横杆等特殊字符");
+		}
 	}
 
 	private void setColumns(DataModel dataModel, ColumnModelEntity idColumn, DataModelEntity old, List<ColumnModelEntity> columnModelEntities){
@@ -200,13 +208,11 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 				columnModelService.updateTableColumn(columnEntity.getDataModel().getTableName(), columnEntity.getColumnName(), column.getColumnName());
 			}
 		}
-        if(!column.isNew() && columnEntity.getDataType() != column.getDataType()){
-            //columnModelService.deleteTableColumn(columnEntity.getDataModel().getTableName(), columnEntity.getColumnName());
-        }
+
 		BeanUtils.copyProperties(column, columnEntity, new String[]{"dataModel","referenceTables"});
-		if(column.isNew()){
-			columnEntity.setId(null);
-		}
+
+		verifyColumnName(columnEntity.getColumnName());
+
 		Map<String, ReferenceModel> referenceMap = new HashMap<String, ReferenceModel>();
 		List<ReferenceModel> referenceModelList = column.getReferenceTables();
 		//新关联行id
@@ -251,6 +257,8 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 		addNewColumnReferenceEntity(columnEntity, newToColumnIds, oldReferenceEntityList, referenceMap);
 		return columnEntity;
 	}
+
+
 
 	//设置索引
 	private List<IndexModelEntity> setDeleteIndexs(DataModel dataModel, DataModelEntity old, List<IndexModelEntity> indexes){
@@ -794,6 +802,10 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 			oldColumnModelEntity = columnModelService.get(columnModel.getId());
 		}
 		BeanUtils.copyProperties(columnModel, oldColumnModelEntity, new String[]{"dataModel", "columnReferences","referenceTables"});
+
+		//字段名校验
+		verifyColumnName(oldColumnModelEntity.getColumnName());
+
 		if(columnModel.getDataModel() != null){
 			DataModelEntity dataModelEntity = new DataModelEntity();
 			if(!columnModel.getDataModel().isNew()) {
