@@ -2087,7 +2087,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 		List<ItemModel> itemModels = new ArrayList<>();
 		for(ItemModelEntity entity1 : itemModelEntityList){
 			ColumnModelEntity columnModelEntity = entity1.getColumnModel();
-			if(columnModelEntity.getColumnName().equals("id") || columnModelEntity.getColumnName().equals("master_id")
+			if(columnModelEntity.getColumnName() == null || columnModelEntity.getColumnName().equals("id") || columnModelEntity.getColumnName().equals("master_id")
 					|| !columnModelEntity.getDataModel().getTableName().equals(entity.getDataModels().get(0).getTableName())){
 				continue;
 			}
