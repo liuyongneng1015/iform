@@ -1380,9 +1380,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		//旧的数据
 		List<Map<String, Object>> oldListMap = (List<Map<String, Object>>) data.get(key);
 		//旧的数据
-		for(Map<String, Object> map : oldListMap) {
-			if(map.get("id") != null && (newDataIdList.size() < 1 || !newDataIdList.contains(map.get("id")))) {
-				data.put(key, new ArrayList<>());
+		if(oldListMap != null) {
+			for (Map<String, Object> map : oldListMap) {
+				if (map.get("id") != null && (newDataIdList.size() < 1 || !newDataIdList.contains(map.get("id")))) {
+					data.put(key, new ArrayList<>());
+				}
 			}
 		}
 		deleteSubFormNewMapData("master_id", session, dataModelEntity, oldListMap, newDataIdList);
