@@ -130,14 +130,16 @@ public class IFormSessionFactoryBuilder {
 	}
 
 	private void setReferencesDataModel(Set<DataModelEntity> allDataModels, Set<DataModelEntity> referencesDataModel, DataModelEntity dataModelEntity1){
-		for(ColumnModelEntity columnModelEntity : dataModelEntity1.getColumns()) {
-			for (ColumnReferenceEntity entity : columnModelEntity.getColumnReferences()) {
-				DataModelEntity dataModelEntity = entity.getToColumn().getDataModel();
-				if (!referencesDataModel.contains(dataModelEntity) && !allDataModels.contains(dataModelEntity)) {
-					referencesDataModel.add(dataModelEntity);
-					allDataModels.add(dataModelEntity);
-					//关联表的关联
-					setReferencesDataModel( allDataModels,  referencesDataModel, dataModelEntity);
+		if (dataModelEntity1!=null) {
+			for (ColumnModelEntity columnModelEntity : dataModelEntity1.getColumns()) {
+				for (ColumnReferenceEntity entity : columnModelEntity.getColumnReferences()) {
+					DataModelEntity dataModelEntity = entity.getToColumn().getDataModel();
+					if (!referencesDataModel.contains(dataModelEntity) && !allDataModels.contains(dataModelEntity)) {
+						referencesDataModel.add(dataModelEntity);
+						allDataModels.add(dataModelEntity);
+						//关联表的关联
+						setReferencesDataModel(allDataModels, referencesDataModel, dataModelEntity);
+					}
 				}
 			}
 		}
