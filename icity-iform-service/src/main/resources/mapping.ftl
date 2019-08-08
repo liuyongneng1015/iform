@@ -221,7 +221,7 @@
         <property name="startTime" type="timestamp">
             <column name="start_time_" not-null="true" sql-type="timestamptz"/>
         </property>
-        <property name="signTime" type="timestamp">
+        <property name="claimTime" type="timestamp">
             <column name="claim_time_" not-null="false" sql-type="timestamptz"/>
         </property>
         <property name="endTime" type="timestamp">
