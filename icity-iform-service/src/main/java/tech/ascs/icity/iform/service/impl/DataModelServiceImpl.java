@@ -662,15 +662,15 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 			}
 			List<String> columnModelEntities = dataModel.getColumns().parallelStream().map(ColumnModel::getColumnName).collect(Collectors.toList());
 			Map<String, Object> map = new HashMap<String, Object>();
-			for(String string : columnModelEntities){
-				String key = string.toLowerCase();
-				if(!org.springframework.util.StringUtils.hasText(key.trim())){
+			for(String columnName : columnModelEntities){
+				if(StringUtils.isBlank(columnName) || StringUtils.isBlank(columnName.trim())){
 					throw new IFormException("字段名不能为空");
 				}
+				String key = columnName.toLowerCase();
 				if(map.containsKey(key)){
 					throw new IFormException(key+"字段重复了");
 				}
-				map.put(key, string);
+				map.put(key, columnName);
 			}
 		}
 
@@ -897,6 +897,7 @@ public class DataModelServiceImpl extends DefaultJPAService<DataModelEntity> imp
 				}
 				ColumnModel referenceColumnModel = new ColumnModel();
 				referenceColumnModel.setId(columnModelEntity.getId());
+				referenceColumnModel.setColumnName(columnModelEntity.getColumnName());
 				columnModelService.saveColumnReferenceEntity(oldColumnModelEntity, setColumn(referenceColumnModel), columnReferenceEntity.getReferenceType(), columnReferenceEntity.getReferenceMiddleTableName());
 			}
 		}
