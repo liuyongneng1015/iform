@@ -188,7 +188,12 @@
             <artifactId>itext-asian</artifactId>
             <version>5.2.0</version>
         </dependency>
-
+		<!-- https://mvnrepository.com/artifact/eu.bitwalker/UserAgentUtils -->
+		<dependency>
+			<groupId>eu.bitwalker</groupId>
+			<artifactId>UserAgentUtils</artifactId>
+			<version>1.21</version>
+		</dependency>
 	</dependencies>
 
 	<repositories>

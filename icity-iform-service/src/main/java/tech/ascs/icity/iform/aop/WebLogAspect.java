@@ -34,12 +34,6 @@ public class WebLogAspect {
     @Pointcut("execution(* tech.ascs.icity.iform.controller..*.*(..))") // 成功的
     public void webLog() { }
 
-    /**
-     * String agentString = ServletUtil.getRequest().getHeader("User-Agent");
-     * UserAgent userAgent = UserAgent.parseUserAgentString(agentString);
-     * OperatingSystem operatingSystem = userAgent.getOperatingSystem(); // 操作系统信息
-     * eu.bitwalker.useragentutils.DeviceType deviceType = operatingSystem.getClientType(); // 设备类型
-     */
     @Before("webLog()")
     public void doBefore(JoinPoint joinPoint) throws Throwable {
         // 判断方法上面是否有 RequestMapping 注解，有的话才拦截
@@ -53,12 +47,12 @@ public class WebLogAspect {
         String operate = request.getParameter("operate");
         String menuId = request.getParameter("menuId");
         LogModelEntity entity = new LogModelEntity();
+        entity.setDeviceType(UserAgentUtil.getDeviceType(userAgentStr));
         entity.setAppId(resource.getApplicationId());
         entity.setOperate(resource.getResourceName());
         entity.setHttpMethod(request.getMethod());
         entity.setOperateTime(new Date());
         entity.setUserAgent(userAgentStr);
-        entity.setDeviceType(UserAgentUtil.getSystemTypeVersion(userAgentStr));
         entity.setOperate(operate);
         entity.setUserId("test-user-id");
         entity.setMenuId(menuId);
@@ -120,14 +114,4 @@ public class WebLogAspect {
         resource.setAssociationListId("00000000000");
         return resource;
     }
-
-    /**
-     * Pattern pattern = Pattern.compile(";\\s?(\\S*?\\s?\\S*?)\\s?(Build)?/");
-     * Matcher matcher = pattern.matcher(userAgent); 
-     * String model = null; 
-     * if (matcher.find()) { 
-     *     model = matcher.group(1).trim(); 
-     *     log.debug("通过userAgent解析出机型：" + model); 
-     * }
-     */
 }

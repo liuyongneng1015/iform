@@ -29,7 +29,6 @@ public class LogModelEntity extends JPAEntity {
     @Column(columnDefinition="text")
     private String bodyParams;    // 请求体参数
     private Date operateTime;     // 操作时间
-    private String operateSystem; // 操作系统
 
     public LogModelEntity() { }
 
@@ -111,13 +110,5 @@ public class LogModelEntity extends JPAEntity {
 
     public void setOperateTime(Date operateTime) {
         this.operateTime = operateTime;
-    }
-
-    public String getOperateSystem() {
-        return operateSystem;
-    }
-
-    public void setOperateSystem(String operateSystem) {
-        this.operateSystem = operateSystem;
     }
 }
