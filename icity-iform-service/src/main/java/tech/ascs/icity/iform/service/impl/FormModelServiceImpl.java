@@ -511,6 +511,7 @@ public class FormModelServiceImpl extends DefaultJPAService<FormModelEntity> imp
 
 		//设置下拉联动
 		if (paramerItemModelEntity instanceof SelectItemModelEntity) {
+			((SelectItemModelEntity)saveItemModelEntity).setDefaultReferenceValue(((SelectItemModelEntity) paramerItemModelEntity).getDefaultReferenceValue());
 			((SelectItemModelEntity)saveItemModelEntity).setReferenceDictionaryId(((SelectItemModelEntity) paramerItemModelEntity).getReferenceDictionaryId());
 			((SelectItemModelEntity)saveItemModelEntity).setReferenceDictionaryItemId(((SelectItemModelEntity) paramerItemModelEntity).getReferenceDictionaryItemId());
 			((SelectItemModelEntity)saveItemModelEntity).setParentItem(((SelectItemModelEntity) paramerItemModelEntity).getParentItem());
