@@ -577,6 +577,8 @@ public class ItemModelServiceImpl extends DefaultJPAService<ItemModelEntity> imp
 			selectItemModelEntity.setDefaultReferenceValue(String.join(",",stringList));
 		}else if(itemModel.getDefaultValue() != null){
 			selectItemModelEntity.setDefaultReferenceValue(String.valueOf(itemModel.getDefaultValue()));
+		} else if(itemModel.getDefaultValue() == null){
+			selectItemModelEntity.setDefaultReferenceValue(null);
 		}
 		if(itemModel.getMultiple() != null && itemModel.getMultiple() && itemModel.getOptions() != null && itemModel.getOptions().size() > 0 ){
 			int i = 0;
