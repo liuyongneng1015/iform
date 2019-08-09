@@ -2994,8 +2994,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 		// referenceDataModelList的数据对应的是关联表单的数据标识的item的数据
 		for (ReferenceDataInstance referenceDataInstance : referenceDataModelList) {
-			if(displayIds.contains(referenceDataInstance.getId())){
-				ItemModelEntity itemModelEntity = itemModelManager.find(referenceDataInstance.getId());
+			ItemModelEntity itemModelEntity = itemModelManager.find(referenceDataInstance.getId());
+			if(displayIds.contains(referenceDataInstance.getId()) || hasProcess(formModel)){
 				ItemInstance itemInstance = new ItemInstance();
 				itemInstance.setSystemItemType(itemModelEntity == null ? SystemItemType.ReferenceList : itemModelEntity.getSystemItemType());
 				itemInstance.setType(itemModelEntity == null ? ItemType.ReferenceList : itemModelEntity.getType());
