@@ -3270,10 +3270,11 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		if(model == null || model.getReferenceInnerItemUuid() == null){
 			return;
 		}
-		ItemModelEntity innerItem =  itemModelService.findUniqueByProperty("uuid", model.getReferenceInnerItemUuid());
-		if(innerItem == null){
+		List<ItemModelEntity> innerItemList =  itemModelService.query().filterEqual("uuid", model.getReferenceInnerItemUuid()).list();
+		if(innerItemList == null || innerItemList.size() < 1){
 			return;
 		}
+		ItemModelEntity innerItem = innerItemList.get(0);
 		InnerItemUtils.InnerItemHandler innerItemHandler = InnerItemUtils.InnerItemHandlerFactory.getHandler(innerItem);
 		String displayValue = innerItemHandler.findDisplayValue(model, innerItem, (id) ->itemModelService.find(Objects.toString(id)), rowData);
 		itemInstances.add(InnerItemUtils.buildItemInstance(model, displayValue));
