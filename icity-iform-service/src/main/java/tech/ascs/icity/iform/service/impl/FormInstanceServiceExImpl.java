@@ -4343,11 +4343,13 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 		WorkingTask taskInstance =  null;
 		if(processInstance.getCurrentTaskInstance() instanceof WorkingTask) {
 			taskInstance =  new WorkingTask();
+			taskInstance.setId(processInstance.getCurrentTaskInstance().getId());
 			taskInstance.setSignable(processInstance.getCurrentTaskInstance().isSignable());
 			taskInstance.setRejectable(processInstance.getCurrentTaskInstance().isRejectable());
 			taskInstance.setComplatable(processInstance.getCurrentTaskInstance().isComplatable());
 			taskInstance.setReturnable(processInstance.getCurrentTaskInstance().isReturnable());
 			taskInstance.setJumpable(processInstance.getCurrentTaskInstance().isJumpable());
+			instance.setActivityInstanceId(taskInstance.getId());
 		}
 		instance.setCurrentTaskInstance(taskInstance);
 
