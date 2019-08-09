@@ -3267,6 +3267,9 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	 * @param itemInstances 存储的itemInstances
 	 */
 	private void setReferenceInnerItemInstance(ReferenceInnerItemModelEntity model, Map<String, Object> rowData, List<ItemInstance> itemInstances) {
+		if(model == null || model.getReferenceInnerItemUuid() == null){
+			return;
+		}
 		ItemModelEntity innerItem =  itemModelService.findUniqueByProperty("uuid", model.getReferenceInnerItemUuid());
 		if(innerItem == null){
 			return;
