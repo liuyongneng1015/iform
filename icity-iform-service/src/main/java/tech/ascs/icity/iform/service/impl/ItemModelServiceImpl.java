@@ -577,6 +577,8 @@ public class ItemModelServiceImpl extends DefaultJPAService<ItemModelEntity> imp
 			selectItemModelEntity.setDefaultReferenceValue(String.join(",",stringList));
 		}else if(itemModel.getDefaultValue() != null){
 			selectItemModelEntity.setDefaultReferenceValue(String.valueOf(itemModel.getDefaultValue()));
+		} else if (itemModel.getDefaultValue() == null) {
+			selectItemModelEntity.setDefaultReferenceValue(null);
 		}
 		if(itemModel.getMultiple() != null && itemModel.getMultiple() && itemModel.getOptions() != null && itemModel.getOptions().size() > 0 ){
 			int i = 0;
@@ -596,7 +598,6 @@ public class ItemModelServiceImpl extends DefaultJPAService<ItemModelEntity> imp
 				&& (itemModel.getReferenceDictionaryId() == null || itemModel.getReferenceDictionaryItemId() == null)){
 			throw new IFormException("控件"+itemModel.getName()+"未找到对应的分类或数据范围");
 		}
-
 		if(itemModel.getDictionaryValueType() == DictionaryValueType.Linkage && itemModel.getParentItem() != null){
 			ItemModel parentItemModel = itemModel.getParentItem();
 			parentItemModel.setType(ItemType.Select);
