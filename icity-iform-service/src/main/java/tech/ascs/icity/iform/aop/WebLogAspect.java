@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import tech.ascs.icity.admin.api.model.Resource;
@@ -20,6 +21,8 @@ import javax.servlet.http.HttpServletRequest;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 @Aspect
 @Configuration
@@ -63,29 +66,29 @@ public class WebLogAspect {
             if (args!=null && args.length>0) {
                 MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
                 Method method = methodSignature.getMethod();
-                Object requestBody = getRequestBodyParamsInMethod(method, args);
-                entity.setBodyParams(requestBody!=null? mapper.writeValueAsString(requestBody):"{}");
+                String contentType = request.getContentType();
+                if (StringUtils.hasText(contentType) && contentType.toLowerCase().contains("application/json")) {
+                    Object requestBody = getRequestBodyJsonParamsInMethod(method, args);
+                    entity.setBodyParams(requestBody != null ? mapper.writeValueAsString(requestBody) : "{}");
+                }
             }
         }
         logModelService.save(entity);
     }
 
     public Boolean hasRequestBody(HttpServletRequest request) {
-        String contentType = request.getContentType();
-        if (request.getContentLength()>0 &&
-            StringUtils.hasText(contentType) &&
-            contentType.toLowerCase().contains("application/json") ) {
+        if (request.getContentLength()>0) {
             return true;
         }
         return false;
     }
 
-    public Boolean currentMethodIsRequest() {
-        return null;
-    }
+//    public Boolean currentMethodIsRequest() {
+//        return null;
+//    }
 
     /** 在方法上面获取请求体的参数 */
-    public static Object getRequestBodyParamsInMethod(Method method, Object[] args) {
+    public static Object getRequestBodyJsonParamsInMethod(Method method, Object[] args) {
         Annotation[][] paramAnnotationArr = method.getParameterAnnotations();
         for (int i = 0; i < paramAnnotationArr.length; i++) {
             Annotation[] paramAnnotations = paramAnnotationArr[i];
