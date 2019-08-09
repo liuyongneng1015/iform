@@ -80,9 +80,14 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			throw new IFormException(404, "列表模型【" + listId + "】不存在");
 		}
 		String userId = (String)parameters.get("userId");
+		//查询所有人
+		boolean queryAllUser = "true".equals(parameters.get("queryAllUser"));
 		if(!StringUtils.hasText(userId)){
-			parameters.put("userId",CurrentUserUtils.getCurrentUserId());
+			if(!queryAllUser) {
+				parameters.put("userId", CurrentUserUtils.getCurrentUserId());
+			}
 		}
+		parameters.remove("queryAllUser");
 		Page<FormDataSaveInstance> page = formInstanceService.pageListInstance(listModel,1,Integer.MAX_VALUE, parameters);
 		return page.getResults();
 	}
@@ -94,12 +99,15 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			throw new IFormException(404, "列表模型【" + listId + "】不存在");
 		}
 		Map<String, Object> newParameters = new HashMap<>(parameters);
-		//是否查询自己的数据
-		boolean ownerFlag = "true".equals(newParameters.get("ownerFlag"));
-		if(ownerFlag){
-			newParameters.put("userId", CurrentUserUtils.getCurrentUserId());
+		String userId = (String)parameters.get("userId");
+		//查询所有人
+		boolean queryAllUser = "true".equals(parameters.get("queryAllUser"));
+		if(!StringUtils.hasText(userId)){
+			if(!queryAllUser) {
+				parameters.put("userId", CurrentUserUtils.getCurrentUserId());
+			}
 		}
-		newParameters.remove("ownerFlag");
+		parameters.remove("queryAllUser");
 		List<Map<String, Object>>  mapList =  formInstanceService.formInstanceList(listModel, newParameters);
 		return mapList == null ? 0 : mapList.size();
 	}
@@ -111,9 +119,14 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			throw new IFormException(404, "列表模型【" + listId + "】不存在");
 		}
 		String userId = (String)parameters.get("userId");
+		//查询所有人
+		boolean queryAllUser = "true".equals(parameters.get("queryAllUser"));
 		if(!StringUtils.hasText(userId)){
-			parameters.put("userId",CurrentUserUtils.getCurrentUserId());
+			if(!queryAllUser) {
+				parameters.put("userId", CurrentUserUtils.getCurrentUserId());
+			}
 		}
+		parameters.remove("queryAllUser");
 		Page<FormDataSaveInstance> page = formInstanceService.pageListInstance(listModel,1,Integer.MAX_VALUE, parameters);
 		List<FormDataSaveInstance> list = new ArrayList<>();
 		for(FormDataSaveInstance instance : page.getResults()){
@@ -184,12 +197,18 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			throw new IFormException(404, "列表模型【" + listId + "】不存在");
 		}
 		String userId = (String)parameters.get("userId");
+		//查询所有人
+		boolean queryAllUser = "true".equals(parameters.get("queryAllUser"));
 		if(!StringUtils.hasText(userId)){
-			parameters.put("userId",CurrentUserUtils.getCurrentUserId());
+			if(!queryAllUser) {
+				parameters.put("userId", CurrentUserUtils.getCurrentUserId());
+			}
 		}
+		parameters.remove("queryAllUser");
 		Map<String, Object> queryParameters = assemblyQueryParameters(parameters);
 		return formInstanceService.pageListInstance(listModel, page, pagesize, queryParameters);
 	}
+
 
 	@Override
 	public Page<FormDataSaveInstance> pageByColumnMap(@PathVariable(name = "formId") String formId, @RequestParam(name = "page", defaultValue = "1") int page,
@@ -199,9 +218,14 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			return Page.get(page, pagesize);
 		}
 		String userId = (String)parameters.get("userId");
+		//查询所有人
+		boolean queryAllUser = "true".equals(parameters.get("queryAllUser"));
 		if(!StringUtils.hasText(userId)){
-			parameters.put("userId", CurrentUserUtils.getCurrentUserId());
+			if(!queryAllUser) {
+				parameters.put("userId", CurrentUserUtils.getCurrentUserId());
+			}
 		}
+		parameters.remove("queryAllUser");
 		return formInstanceService.pageByColumnMap(formModel, page, pagesize, parameters);
 	}
 
@@ -221,9 +245,15 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
             queryParameters.remove("exportSelectIds");
         }
 		String userId = (String)parameters.get("userId");
+		//查询所有人
+		boolean queryAllUser = "true".equals(parameters.get("queryAllUser"));
 		if(!StringUtils.hasText(userId)){
-			parameters.put("userId",CurrentUserUtils.getCurrentUserId());
+			if(!queryAllUser) {
+				parameters.put("userId", CurrentUserUtils.getCurrentUserId());
+			}
 		}
+		parameters.remove("queryAllUser");
+
         String extension = function.getFormat() == ExportFormat.Excel ? ".xlsx" : ".pdf";
         List<FormDataSaveInstance> data = formInstanceService.pageListInstance(listModel, 1, Integer.MAX_VALUE, queryParameters).getResults();
 		Resource resource = exportDataService.exportData(listModel,function, data, parameters);
@@ -687,7 +717,7 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 				Object iconObj = JSONPath.eval(jsonArray, "$[" + i + "].navigations[" + j + "].name.displayObject[0].icon");
 				Object screenKeyObj = JSONPath.eval(jsonArray, "$[" + i + "].navigations[" + j + "].name.displayObject[0].code");
 				Object screenTypeObj = JSONPath.eval(jsonArray, "$[" + i + "].navigations[" + j + "].screentype.displayObject[0].code");
-				Boolean initialPage = convertInitialPage(JSONPath.eval(jsonArray, "$[" + i + "].navigations[" + j + "].initialPage.displayObject[0].code"));
+				Boolean initialPage = convertInitialPage(JSONPath.eval(jsonArray, "$[" + i + "].navigations[" + j + "].initialpage.displayObject[0].code"));
 				navigations.add(new Navigations(idObj, nameObj, iconObj, screenKeyObj, screenTypeObj, initialPage));
 			}
 

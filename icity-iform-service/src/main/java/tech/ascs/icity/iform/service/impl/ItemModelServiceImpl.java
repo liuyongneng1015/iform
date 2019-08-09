@@ -300,6 +300,14 @@ public class ItemModelServiceImpl extends DefaultJPAService<ItemModelEntity> imp
 			}
 			itemModel.setSelectMode(SelectMode.Attribute);
 		}
+		ColumnModel columnModel = itemModel.getColumnModel();
+		if(columnModel != null) {
+			List<ColumnType> list = SystemItemType.getColumnType(itemModel.getSystemItemType());
+			if (list != null && columnModel.getDataType() != null && !list.contains(columnModel.getDataType())) {
+				throw new IFormException("控件" + itemModel.getName() + "关联字段" + columnModel.getColumnName() + "类型不符合");
+			}
+		}
+
 
 		ItemModelEntity entity = formModelService.getItemModelEntity(itemModel.getType(), itemModel.getSystemItemType());
 
