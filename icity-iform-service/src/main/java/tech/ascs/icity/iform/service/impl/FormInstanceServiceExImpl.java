@@ -2099,7 +2099,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					if(AssignmentArea.UserID.getValue().equals(map.get("value"))) {
 						objectValue = user == null ? null : user.getId();
 					}else if(AssignmentArea.UserName.getValue().equals(map.get("value"))) {
-						objectValue = user == null ? null : user.getUsername();
+						objectValue = user == null ? null : user.getNickname();
 					}
 				}else if(AssignmentArea.SystemTime.getValue().equals(map.get("value"))){
 					objectValue = new Date();
@@ -3945,7 +3945,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
                 itemInstance.setValue(value);
 				if(itemModel.getSystemItemType() == SystemItemType.Creator && value != null && StringUtils.hasText((String)value)){
 					User user = userService.getUserInfo(String.valueOf(value));
-					itemInstance.setDisplayValue(user == null ? null : user.getUsername());
+					itemInstance.setDisplayValue(user == null ? null : user.getNickname());
 				}else if(itemModel.getType() == ItemType.InputNumber){
 					try {
 						NumberItemModelEntity numberItemModelEntity = (NumberItemModelEntity)itemModel;
