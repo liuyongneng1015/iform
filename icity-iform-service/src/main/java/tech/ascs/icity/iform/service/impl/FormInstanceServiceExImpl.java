@@ -2099,7 +2099,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 					if(AssignmentArea.UserID.getValue().equals(map.get("value"))) {
 						objectValue = user == null ? null : user.getId();
 					}else if(AssignmentArea.UserName.getValue().equals(map.get("value"))) {
-						objectValue = user == null ? null : user.getUsername();
+						objectValue = user == null ? null : user.getNickname();
 					}
 				}else if(AssignmentArea.SystemTime.getValue().equals(map.get("value"))){
 					objectValue = new Date();
@@ -2994,8 +2994,8 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 
 		// referenceDataModelList的数据对应的是关联表单的数据标识的item的数据
 		for (ReferenceDataInstance referenceDataInstance : referenceDataModelList) {
-			if(displayIds.contains(referenceDataInstance.getId())){
-				ItemModelEntity itemModelEntity = itemModelManager.find(referenceDataInstance.getId());
+			ItemModelEntity itemModelEntity = itemModelManager.find(referenceDataInstance.getId());
+			if(displayIds.contains(referenceDataInstance.getId()) || hasProcess(formModel)){
 				ItemInstance itemInstance = new ItemInstance();
 				itemInstance.setSystemItemType(itemModelEntity == null ? SystemItemType.ReferenceList : itemModelEntity.getSystemItemType());
 				itemInstance.setType(itemModelEntity == null ? ItemType.ReferenceList : itemModelEntity.getType());
@@ -3267,7 +3267,14 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
 	 * @param itemInstances 存储的itemInstances
 	 */
 	private void setReferenceInnerItemInstance(ReferenceInnerItemModelEntity model, Map<String, Object> rowData, List<ItemInstance> itemInstances) {
-		ItemModelEntity innerItem =  itemModelService.findUniqueByProperty("uuid", model.getReferenceInnerItemUuid());
+		if(model == null || model.getReferenceInnerItemUuid() == null){
+			return;
+		}
+		List<ItemModelEntity> innerItemList =  itemModelService.query().filterEqual("uuid", model.getReferenceInnerItemUuid()).list();
+		if(innerItemList == null || innerItemList.size() < 1){
+			return;
+		}
+		ItemModelEntity innerItem = innerItemList.get(0);
 		InnerItemUtils.InnerItemHandler innerItemHandler = InnerItemUtils.InnerItemHandlerFactory.getHandler(innerItem);
 		String displayValue = innerItemHandler.findDisplayValue(model, innerItem, (id) ->itemModelService.find(Objects.toString(id)), rowData);
 		itemInstances.add(InnerItemUtils.buildItemInstance(model, displayValue));
@@ -3938,7 +3945,7 @@ public class FormInstanceServiceExImpl extends DefaultJPAService<FormModelEntity
                 itemInstance.setValue(value);
 				if(itemModel.getSystemItemType() == SystemItemType.Creator && value != null && StringUtils.hasText((String)value)){
 					User user = userService.getUserInfo(String.valueOf(value));
-					itemInstance.setDisplayValue(user == null ? null : user.getUsername());
+					itemInstance.setDisplayValue(user == null ? null : user.getNickname());
 				}else if(itemModel.getType() == ItemType.InputNumber){
 					try {
 						NumberItemModelEntity numberItemModelEntity = (NumberItemModelEntity)itemModel;

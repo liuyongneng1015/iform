@@ -99,15 +99,15 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 			throw new IFormException(404, "列表模型【" + listId + "】不存在");
 		}
 		Map<String, Object> newParameters = new HashMap<>(parameters);
-		String userId = (String)parameters.get("userId");
+		String userId = (String)newParameters.get("userId");
 		//查询所有人
-		boolean queryAllUser = "true".equals(parameters.get("queryAllUser"));
+		boolean queryAllUser = "true".equals(newParameters.get("queryAllUser"));
 		if(!StringUtils.hasText(userId)){
 			if(!queryAllUser) {
-				parameters.put("userId", CurrentUserUtils.getCurrentUserId());
+				newParameters.put("userId", CurrentUserUtils.getCurrentUserId());
 			}
 		}
-		parameters.remove("queryAllUser");
+		newParameters.remove("queryAllUser");
 		List<Map<String, Object>>  mapList =  formInstanceService.formInstanceList(listModel, newParameters);
 		return mapList == null ? 0 : mapList.size();
 	}
@@ -249,11 +249,12 @@ public class FormInstanceController implements tech.ascs.icity.iform.api.service
 		boolean queryAllUser = "true".equals(parameters.get("queryAllUser"));
 		if(!StringUtils.hasText(userId)){
 			if(!queryAllUser) {
-				parameters.put("userId", CurrentUserUtils.getCurrentUserId());
+				userId = CurrentUserUtils.getCurrentUserId();
+				parameters.put("userId", userId);
 			}
 		}
 		parameters.remove("queryAllUser");
-
+		queryParameters.put("userId", userId);
         String extension = function.getFormat() == ExportFormat.Excel ? ".xlsx" : ".pdf";
         List<FormDataSaveInstance> data = formInstanceService.pageListInstance(listModel, 1, Integer.MAX_VALUE, queryParameters).getResults();
 		Resource resource = exportDataService.exportData(listModel,function, data, parameters);
