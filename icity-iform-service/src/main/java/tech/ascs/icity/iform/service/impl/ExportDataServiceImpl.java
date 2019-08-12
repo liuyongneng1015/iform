@@ -508,9 +508,15 @@ public class ExportDataServiceImpl implements ExportDataService {
     private String computeKey(List<ItemModelEntity> keys, Map<String, Object> data) {
         StringBuilder builder = new StringBuilder();
         for (ItemModelEntity key : keys) {
-            builder.append(data.getOrDefault(key.getColumnModel().getColumnName(), "").toString());
+            builder.append(getOrDefault(data.get(key.getColumnModel().getColumnName()), ""));
         }
         return builder.toString();
+    }
+
+    private String getOrDefault(Object value, String defaultValue) {
+        return Optional.ofNullable(value)
+                .map(Objects::toString)
+                .orElse(defaultValue);
     }
 
     /**
