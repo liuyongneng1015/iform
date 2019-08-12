@@ -13,11 +13,14 @@ import tech.ascs.icity.ICityException;
 import tech.ascs.icity.admin.api.model.Application;
 import tech.ascs.icity.admin.client.ApplicationService;
 import tech.ascs.icity.admin.client.GroupService;
+import tech.ascs.icity.common.event.EntityEvent;
+import tech.ascs.icity.common.event.EntityEvent.EventType;
 import tech.ascs.icity.iflow.api.model.Activity;
 import tech.ascs.icity.iflow.api.model.Process;
 import tech.ascs.icity.iflow.client.ProcessService;
 import tech.ascs.icity.iform.IFormException;
 import tech.ascs.icity.iform.api.model.*;
+import tech.ascs.icity.iform.event.IFormMessageProducer;
 import tech.ascs.icity.iform.model.*;
 import tech.ascs.icity.iform.service.*;
 import tech.ascs.icity.iform.utils.CommonUtils;
@@ -63,6 +66,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 
 	@Autowired
 	private ELProcessorService elProcessorService;
+
+	@Autowired
+	IFormMessageProducer messageProducer;
 
 	@Override
 	public List<FormModel> list(@RequestParam(name = "name", required = false) String name,
@@ -166,6 +172,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
             }
 			formModelService.verifyFormModelName(formModel);
             oldEntity = formModelService.saveFormModel(formModel);
+			if (formModel.getProcess() != null && formModel.getProcess().getId() != null) {
+				messageProducer.send(new EntityEvent<>(EventType.UPDATED, formModel));
+			}
         } catch (Exception e) {
             if(e instanceof ICityException){
                 throw e;
@@ -223,6 +232,9 @@ public class FormModelController implements tech.ascs.icity.iform.api.service.Fo
 			listModelService.submitFormBtnPermission(formModelEntity);
 			// 同步列表中的导入导出数据模板
 			listModelService.syncListModelTempltes(formModelEntity, formModelEntity.getItems());
+			if (formModel.getProcess() != null && formModel.getProcess().getId() != null) {
+				messageProducer.send(new EntityEvent<>(EventType.UPDATED, formModel));
+			}
 		} catch (Exception e) {
 			throw new IFormException("保存表单模型列表失败：" + e.getMessage(), e);
 		}finally {

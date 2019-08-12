@@ -60,7 +60,8 @@ spring.rabbitmq:
   username: guest
   password: guest
 
-spring.cloud.stream.bindings.input.destination: iflow
+spring.cloud.stream.bindings.output.destination: iform 
+spring.cloud.stream.bindings.inputIFlow.destination: iflow
 
 logging.level:
   org.hibernate.SQL: WARN
