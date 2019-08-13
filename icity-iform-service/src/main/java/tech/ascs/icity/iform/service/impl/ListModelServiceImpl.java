@@ -53,6 +53,8 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 
 	private JPAManager<DataModelEntity> dataModelEntityJPAManager;
 
+	private JPAManager<ImportTemplateEntity> templateEntityJPAManager;
+
 	@Autowired
 	private ObjectMapper objectMapper;
 
@@ -89,6 +91,7 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 		referenceItemModelEntityManager = getJPAManagerFactory().getJPAManager(ReferenceItemModelEntity.class);
 		formModelEntityJPAManager = getJPAManagerFactory().getJPAManager(FormModelEntity.class);
 		dataModelEntityJPAManager = getJPAManagerFactory().getJPAManager(DataModelEntity.class);
+		templateEntityJPAManager = getJPAManagerFactory().getJPAManager(ImportTemplateEntity.class);
 	}
 
 	@Transactional(rollbackFor = Exception.class)
@@ -852,13 +855,7 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 			Sets.difference(idMapping.keySet(), idTemplateMap.keySet())
 					.forEach(diffKey -> {
 						ItemModelEntity itemModelEntity = idMapping.get(diffKey);
-						ImportTemplateEntity templateEntity = new ImportTemplateEntity();
-						templateEntity.setListModel(list);
-						templateEntity.setItemModel(itemModelEntity);
-						templateEntity.setTemplateName(itemModelEntity.getName());
-						templateEntity.setMatchKey(false);
-						templateEntity.setDataImported(false);
-						templateEntity.setTemplateSelected(false);
+						ImportTemplateEntity templateEntity = createDefaultImportItemModel(list, itemModelEntity);
 						templateEntities.add(templateEntity);
 					});
 		});
@@ -895,19 +892,29 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 		// 如果不包含这两个功能, 则需要初始化功能数据
 		if (!listFunctionMap.containsKey(DefaultFunctionType.TemplateDownload.getValue()) && !listFunctionMap.containsKey(DefaultFunctionType.Import.getValue())) {
 			FormModelEntity formModelEntity = formModelService.find(entity.getMasterForm().getId());
-			assemblyItemModelEntityImportFunction(entity, exportDataService.eachHasColumnItemModel(formModelEntity.getItems()).stream().distinct().collect(Collectors.toList()));
-			entity.setMasterForm(formModelEntity);
+			List<ImportTemplateEntity> templateItemModels = assemblyItemModelEntityImportFunction(entity, exportDataService.eachHasColumnItemModel(formModelEntity.getItems()).stream().distinct().collect(Collectors.toList()));
+			entity.setTemplateEntities(templateItemModels);
+		}
+
+//		// 初始化没有创建对应导入导出模型的控件配置
+		List<ItemModelEntity> newItems = exportDataService.eachHasColumnItemModel(listModel.getMasterForm().getItems())
+				.stream()
+				.filter(item -> !templateEntityMap.containsKey(item.getId()))
+				.collect(Collectors.toList());
+		for (ItemModelEntity newItem :newItems ) {
+			ImportTemplateEntity newImport = createDefaultImportItemModel(listModel, newItem);
+			templateEntityMap.put(newItem.getId(), newImport);
 		}
 
 		assemblyConsumer.accept(DefaultFunctionType.Export.getValue(), this::assemblyExportFunction);
 		assemblyConsumer.accept(DefaultFunctionType.TemplateDownload.getValue(), this::assemblyTemplateDownloadFunction);
 		assemblyConsumer.accept(DefaultFunctionType.Import.getValue(), this::assemblyImportFunction);
 
-		entity.setTemplateEntities(templateEntityMap.entrySet().stream().map(Map.Entry::getValue).collect(Collectors.toList()));
+		entity.setTemplateEntities(new ArrayList<>(templateEntityMap.values()));
 	}
 
-	private void assemblyItemModelEntityImportFunction(ListModelEntity listModelEntity, Collection<ItemModelEntity> entities) {
-		List<ImportTemplateEntity> templateEntities = entities.stream()
+	private List<ImportTemplateEntity> assemblyItemModelEntityImportFunction(ListModelEntity listModelEntity, Collection<ItemModelEntity> entities) {
+		return  entities.stream()
 				.map(item -> {
 					ImportTemplateEntity entity = new ImportTemplateEntity();
 					entity.setMatchKey(false);
@@ -919,7 +926,6 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 					return entity;
 				})
 				.collect(Collectors.toList());
-		listModelEntity.setTemplateEntities(templateEntities);
 	}
 
 	private void assemblyExportFunction(Map<String, ImportTemplateEntity> itemModelEntities, ListFunction listFunction, FunctionModel model) {
@@ -984,6 +990,17 @@ public class ListModelServiceImpl extends DefaultJPAService<ListModelEntity> imp
 								entity.setDataImported(iModel.isImported());
 							}));
 		}
+	}
+
+	private ImportTemplateEntity createDefaultImportItemModel(ListModelEntity list, ItemModelEntity itemModelEntity) {
+		ImportTemplateEntity templateEntity = new ImportTemplateEntity();
+		templateEntity.setListModel(list);
+		templateEntity.setItemModel(itemModelEntity);
+		templateEntity.setTemplateName(itemModelEntity.getName());
+		templateEntity.setMatchKey(false);
+		templateEntity.setDataImported(false);
+		templateEntity.setTemplateSelected(false);
+		return templateEntity;
 	}
 
 	private <K, V> Map<K, V> toMap(List<V> list, Function<V, K> keyMapper) {
