@@ -3,9 +3,6 @@ package tech.ascs.icity.iform.utils;
 import eu.bitwalker.useragentutils.*;
 import org.springframework.util.StringUtils;
 
-import java.util.Arrays;
-import java.util.List;
-
 public class UserAgentUtil {
 
     //获取设备类型
@@ -15,28 +12,30 @@ public class UserAgentUtil {
                 StringBuffer sb = new StringBuffer();
                 UserAgent userAgentClient = UserAgent.parseUserAgentString(userAgent);
                 OperatingSystem operatingSystem = userAgentClient.getOperatingSystem(); // 操作系统信息
-                String osName = operatingSystem.getName();
-                if (StringUtils.hasText(osName)) {
-                    sb.append(osName);
+                if (operatingSystem!=null && StringUtils.hasText(operatingSystem.getName())
+                        && "unknown".equals(operatingSystem.getName().toLowerCase().trim())==false) {
+                    sb.append(operatingSystem.getName());
+                } else {
+                    return userAgent;
                 }
-//            DeviceType deviceType = operatingSystem.getDeviceType();
-//            if (deviceType!=null) {
-//                sb.append(" "+deviceType.getName().toLowerCase());
-//            }
                 Browser browser = userAgentClient.getBrowser();
-                if (browser != null) {
+                if (browser != null && StringUtils.hasText(browser.getName())
+                        && "unknown".equals(browser.getName().toLowerCase().trim())==false) {
                     sb.append(" " + browser.getName().toLowerCase());
+                } else {
+                    return userAgent;
                 }
                 Version version = userAgentClient.getBrowserVersion();
-                if (version != null) {
-                    sb.append(" " + version);
+                if (version != null && StringUtils.hasText(version.getVersion())
+                        && "unknown".equals(version.getVersion().toLowerCase().trim())==false) {
+                    sb.append(" " + version.getVersion());
                 }
                 return sb.toString();
             } catch (Exception e) {
 
             }
         }
-        return null;
+        return userAgent;
     }
 
 }
